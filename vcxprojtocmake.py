@@ -4,7 +4,9 @@
 from lxml import etree
 import ntpath as path
 import os
+import sys
 
+# TODO Prévoir l'entrée du fichier .vcxproj
 tree = etree.parse("core.vcxproj")
 ns = {'ns':'http://schemas.microsoft.com/developer/msbuild/2003'}
 
@@ -28,21 +30,30 @@ depend = tree.xpath('//ns:AdditionalDependencies', namespaces=ns)[0]
 print('Additional Dependencies = ' + depend.text)
 
 cppfiles = tree.xpath('//ns:ClCompile', namespaces=ns)
+cpp_path = []
 for cpp in cppfiles:
     if cpp.get('Include') is not None:
-        print('Fichier = ' + str(cpp.get('Include')))
+        cxx = str(cpp.get('Include'))
+        print('Fichier = ' + cxx)
+        cpp_path.append(cxx)
 
 headerfiles = tree.xpath('//ns:ClInclude', namespaces=ns)
+header_path = []
 for header in headerfiles:
-    print('Header = ' + str(header.get('Include')))
+    h = str(header.get('Include'))
+    print('Header = ' + h)
+    header_path.append(h)
+print(os.path.commonprefix(header_path))
 
 references = tree.xpath('//ns:ProjectReference', namespaces=ns)
-
 for ref in references:
     reference = str(ref.get('Include'))
     print(os.path.splitext(path.basename(reference))[0])
 
+print(os.path.dirname(os.path.realpath('../corealpi/platform/msvc/vc2015/elec.vcxproj')))
 
+# TODO Définir le dossier racine du projet
+root = "../../../"
 
 """
 ############ GENERATION CMAKE #############
@@ -50,9 +61,10 @@ for ref in references:
 cmakelist = open('CMakeLists.txt', 'w')
 
 """
-Project Name
+Project Name and Variables
 """
-cmakelist.write('set(PROJECT_NAME ' + projectname.text + ')\n\n')
+cmakelist.write('set(PROJECT_NAME ' + projectname.text + ')\n')
+cmakelist.write('set(MAIN_DIR ' + root + ')\n\n')
 cmakelist.write('project(${PROJECT_NAME} CXX)\n\n')
 
 """
@@ -75,4 +87,17 @@ cmakelist.write('else()\n')
 for ref in references:
     reference = str(ref.get('Include'))
     cmakelist.write('   link_directories(${COREALPI_DIR}/dependencies/' + os.path.splitext(path.basename(reference))[0] + '/build/${CMAKE_BUILD_TYPE})\n')
-cmakelist.write('endif()\n')
+cmakelist.write('endif()\n\n')
+
+"""
+Librarie
+"""
+if configurationtype.text == 'DynamicLibrary':
+    cmakelist.write('add_library(${PROJECT_NAME} SHARED\n')
+elif configurationtype.text == 'StaticLibrary':
+    cmakelist.write('add_library(${PROJECT_NAME} STATIC\n')
+else:
+    cmakelist.write('add_executable(${PROJECT_NAME} \n')
+cmakelist.write('   ' + os.path.commonprefix(header_path) + '*.h\n')
+cmakelist.write('   ' + os.path.commonprefix(cpp_path) + '*.cpp\n')
+cmakelist.write(')')
