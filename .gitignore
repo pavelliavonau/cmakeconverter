@@ -1,0 +1,3 @@
+*.vcxproj
+.idea/
+CMakeLists.txt
