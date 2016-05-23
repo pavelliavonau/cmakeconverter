@@ -50,6 +50,7 @@ def main(argv):
         projectname = tree.xpath('//ns:RootNamespace', namespaces=ns)[0]
         cmakelist.write('set(PROJECT_NAME ' + projectname.text + ')\n')
 
+        # TODO Get a maximum of information to set flags after
         """
         Flags
         """
