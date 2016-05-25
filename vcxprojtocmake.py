@@ -3,12 +3,14 @@
 
 from lxml import etree
 import ntpath as path
-import sys, getopt, os
+import sys, getopt, os, re
 
 """
 Default Variable
 """
-
+FAIL = '\033[91m'
+OKBLUE = '\033[34m'
+ENDC = '\033[0m'
 
 def main(argv):
 
@@ -41,8 +43,6 @@ def main(argv):
 
         cmakelist = open('CMakeLists.txt', 'w')
         try:
-
-
             """
             CMake Required
             """
@@ -53,14 +53,6 @@ def main(argv):
             """
             projectname = tree.xpath('//ns:RootNamespace', namespaces=ns)[0]
             cmakelist.write('set(PROJECT_NAME ' + projectname.text + ')\n')
-
-            # TODO Get a maximum of information to set flags after
-            """
-            Flags
-            """
-            warning = tree.xpath('//ns:WarningLevel', namespaces=ns)[0]
-            lvl = '/W' + warning.text[-1:]
-            print('Warning = ' + lvl)
 
             """
             Variables
@@ -102,13 +94,18 @@ def main(argv):
             for preproc in preprocessor.text.split(";"):
                 if preproc != '%(PreprocessorDefinitions)':
                     cmakelist.write('   -D' + preproc + ' \n')
+                    # Unicode
+            u = tree.find("//ns:CharacterSet", namespaces=ns)
+            if 'Unicode' in u.text:
+                cmakelist.write('   -DUNICODE\n')
+                cmakelist.write('   -D_UNICODE\n')
             cmakelist.write(')\n\n')
 
             """
             Dependencies
             """
             references = tree.xpath('//ns:ProjectReference', namespaces=ns)
-            cmakelist.write('# Dépendances\nif(BUILD_DEPENDS)\n')
+            cmakelist.write('# Dependencies\nif(BUILD_DEPENDS)\n')
             for ref in references:
                 reference = str(ref.get('Include'))
                 cmakelist.write(
@@ -121,9 +118,196 @@ def main(argv):
             cmakelist.write('endif()\n\n')
 
             """
+            Flags
+            """
+            release_flags = ''
+            debug_flags = ''
+
+            # Warning
+            warning = tree.xpath('//ns:WarningLevel', namespaces=ns)[0]
+            lvl = ' /W' + warning.text[-1:]
+            debug_flags += lvl
+            release_flags += lvl
+
+            # WholeProgramOptimization
+            gl_debug_x86 = tree.find(
+                '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Debug|Win32\'"]/ns:WholeProgramOptimization',
+                namespaces=ns)
+            gl_debug_x64 = tree.find(
+                '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Debug|x64\'"]/ns:WholeProgramOptimization',
+                namespaces=ns)
+            if gl_debug_x86 is not None and gl_debug_x64 is not None:
+                if 'true' in gl_debug_x86.text and 'true' in gl_debug_x64.text:
+                    debug_flags += ' /GL'
+            gl_release_x86 = tree.find(
+                '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Release|Win32\'"]/ns:WholeProgramOptimization',
+                namespaces=ns)
+            gl_release_x64 = tree.find(
+                '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Release|x64\'"]/ns:WholeProgramOptimization',
+                namespaces=ns)
+            if gl_release_x86 is not None and gl_release_x64 is not None:
+                if 'true' in gl_release_x86.text and 'true' in gl_release_x64.text:
+                    release_flags += ' /GL'
+
+            # UseDebugLibraries
+            md_debug_x86 = tree.find(
+                '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Debug|Win32\'"]/ns:UseDebugLibraries',
+                namespaces=ns)
+            md_debug_x64 = tree.find(
+                '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Debug|x64\'"]/ns:UseDebugLibraries',
+                namespaces=ns)
+            if md_debug_x64 is not None and md_debug_x86 is not None:
+                if 'true' in md_debug_x86.text and 'true' in md_debug_x64.text:
+                    debug_flags += ' /MDd'
+            md_release_x86 = tree.find(
+                '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Release|Win32\'"]/ns:UseDebugLibraries',
+                namespaces=ns)
+            md_release_x64 = tree.find(
+                '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Release|x64\'"]/ns:UseDebugLibraries',
+                namespaces=ns)
+            if md_release_x86 is not None and md_release_x64 is not None:
+                if 'true' in md_release_x86.text and 'true' in md_release_x64.text:
+                    release_flags += ' /MDd'
+
+            # Optimization
+            opt_debug_x86 = tree.find(
+                '//ns:ItemDefinitionGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Debug|Win32\'"]/ns:ClCompile/ns:Optimization',
+                namespaces=ns)
+            opt_debug_x64 = tree.find(
+                '//ns:ItemDefinitionGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Debug|x64\'"]/ns:ClCompile/ns:Optimization',
+                namespaces=ns)
+            if opt_debug_x86 is not None and opt_debug_x64 is not None:
+                if 'Disabled' in opt_debug_x64.text and 'Disabled' in opt_debug_x86.text:
+                    debug_flags += ' /O2'
+            opt_release_x86 = tree.find(
+                '//ns:ItemDefinitionGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Release|Win32\'"]/ns:ClCompile/ns:Optimization',
+                namespaces=ns)
+            opt_release_x64 = tree.find(
+                '//ns:ItemDefinitionGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Release|x64\'"]/ns:ClCompile/ns:Optimization',
+                namespaces=ns)
+            if opt_release_x86 is not None and opt_release_x64 is not None:
+                if 'MaxSpeed' in opt_release_x64.text and 'MaxSpeed' in opt_release_x86.text:
+                    release_flags += ' /O2'
+
+            # IntrinsicFunctions
+            oi_debug_x86 = tree.find(
+                '//ns:ItemDefinitionGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Debug|Win32\'"]/ns:ClCompile/ns:IntrinsicFunctions',
+                namespaces=ns)
+            oi_debug_x64 = tree.find(
+                '//ns:ItemDefinitionGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Debug|x64\'"]/ns:ClCompile/ns:IntrinsicFunctions',
+                namespaces=ns)
+            if oi_debug_x86 is not None and oi_debug_x64 is not None:
+                if 'true' in oi_debug_x86.text and 'true' in oi_debug_x64.text:
+                    debug_flags += ' /Oi'
+            oi_release_x86 = tree.find(
+                '//ns:ItemDefinitionGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Release|Win32\'"]/ns:ClCompile/ns:IntrinsicFunctions',
+                namespaces=ns)
+            oi_release_x64 = tree.find(
+                '//ns:ItemDefinitionGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Release|x64\'"]/ns:ClCompile/ns:IntrinsicFunctions',
+                namespaces=ns)
+            if oi_release_x86 is not None and oi_release_x64 is not None:
+                if 'true' in oi_release_x86.text and 'true' in oi_release_x64.text:
+                    release_flags += ' /Oi'
+
+            # RuntimeTypeInfo
+            gr_debug_x86 = tree.find(
+                '//ns:ItemDefinitionGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Debug|Win32\'"]/ns:ClCompile/ns:RuntimeTypeInfo',
+                namespaces=ns)
+            gr_debug_x64 = tree.find(
+                '//ns:ItemDefinitionGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Debug|x64\'"]/ns:ClCompile/ns:RuntimeTypeInfo',
+                namespaces=ns)
+            if gr_debug_x64 is not None and gr_debug_x86 is not None:
+                if 'false' in gr_debug_x64.text and gr_debug_x86.text:
+                    debug_flags += ' /GR-'
+                elif 'true' in gr_debug_x64.text and gr_debug_x86.text:
+                    debug_flags += ' /GR'
+            else:
+                print("No RuntimeTypeInfo option.")
+            gr_release_x86 = tree.find(
+                '//ns:ItemDefinitionGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Release|Win32\'"]/ns:ClCompile/ns:RuntimeTypeInfo',
+                namespaces=ns)
+            gr_release_x64 = tree.find(
+                '//ns:ItemDefinitionGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Release|x64\'"]/ns:ClCompile/ns:RuntimeTypeInfo',
+                namespaces=ns)
+            if gr_release_x86 is not None and gr_release_x64 is not None:
+                if 'false' in gr_release_x64.text and gr_release_x86.text:
+                    release_flags += ' /GR-'
+                elif 'true' in gr_release_x64.text and gr_release_x86.text:
+                    release_flags += ' /GR'
+            else:
+                print("No RuntimeTypeInfo option.")
+
+            # FunctionLevelLinking
+            gy_release_x86 = tree.find(
+                '//ns:ItemDefinitionGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Release|Win32\'"]/ns:ClCompile/ns:FunctionLevelLinking',
+                namespaces=ns)
+            gy_release_x64 = tree.find(
+                '//ns:ItemDefinitionGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Release|x64\'"]/ns:ClCompile/ns:FunctionLevelLinking',
+                namespaces=ns)
+            if 'true' in gy_release_x86.text and gy_release_x64.text:
+                release_flags += ' /Gy'
+            else:
+                print("No FunctionLevelLinking option for release.")
+
+            # GenerateDebugInformation
+            zi_debug_x86 = tree.find(
+                '//ns:ItemDefinitionGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Debug|Win32\'"]/ns:Link/ns:GenerateDebugInformation',
+                namespaces=ns)
+            zi_debug_x64 = tree.find(
+                '//ns:ItemDefinitionGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Debug|x64\'"]/ns:Link/ns:GenerateDebugInformation',
+                namespaces=ns)
+            if 'true' in zi_debug_x86.text and zi_debug_x64.text:
+                debug_flags += ' /Zi'
+            else:
+                print("No GenerateDebugInformation option for debug.")
+
+            zi_release_x86 = tree.find(
+                '//ns:ItemDefinitionGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Release|Win32\'"]/ns:Link/ns:GenerateDebugInformation',
+                namespaces=ns)
+            zi_release_x64 = tree.find(
+                '//ns:ItemDefinitionGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Release|x64\'"]/ns:Link/ns:GenerateDebugInformation',
+                namespaces=ns)
+            if 'true' in zi_release_x86.text and zi_release_x64.text:
+                release_flags += ' /Zi'
+            else:
+                print("No GenerateDebugInformation option for release.")
+
+            # ExceptionHandling
+            ehs_debug_x86 = tree.find(
+                '//ns:ItemDefinitionGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Debug|Win32\'"]/ns:ClCompile/ns:ExceptionHandling',
+                namespaces=ns)
+            ehs_debug_x64 = tree.find(
+                '//ns:ItemDefinitionGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Debug|x64\'"]/ns:ClCompile/ns:ExceptionHandling',
+                namespaces=ns)
+            if ehs_debug_x86 is not None and ehs_debug_x64 is not None:
+                if 'false' in ehs_debug_x86.text and ehs_debug_x64.text:
+                    print("No ExceptionHandling option for debug.")
+            else:
+                debug_flags += ' /EHsc'
+            ehs_release_x86 = tree.find(
+                '//ns:ItemDefinitionGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Release|Win32\'"]/ns:ClCompile/ns:ExceptionHandling',
+                namespaces=ns)
+            ehs_release_x64 = tree.find(
+                '//ns:ItemDefinitionGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Release|x64\'"]/ns:ClCompile/ns:ExceptionHandling',
+                namespaces=ns)
+            if ehs_release_x86 is not None and ehs_release_x64 is not None:
+                if 'false' in ehs_release_x86.text and ehs_release_x64.text:
+                    print("No ExceptionHandling option for release.")
+            else:
+                release_flags += ' /EHsc'
+
+            # Write FLAGS in CMake
+            if release_flags != '':
+                cmakelist.write('set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}' + release_flags + '")\n')
+            if debug_flags != '':
+                cmakelist.write('set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}' + debug_flags + '")\n')
+            print(OKBLUE + 'Release FLAGS found = ' + release_flags)
+            print('Debug   FLAGS found = ' + debug_flags + ENDC)
+
+            """
             Files
             """
-            cmakelist.write('file(GLOB SRC_FILES\n')
+            cmakelist.write('\nfile(GLOB SRC_FILES\n')
             x = 1
             while x < c:
                 cmakelist.write('    ${CPP_DIR_' + str(x) + '}/*.cpp\n')
@@ -157,21 +341,18 @@ def main(argv):
             try:
                 if tree.xpath('//ns:AdditionalDependencies', namespaces=ns)[0] is not None:
                     depend = tree.xpath('//ns:AdditionalDependencies', namespaces=ns)[0]
-                    print('Additional Dependencies = ' + depend.text)
+                    print(OKBLUE + 'Additional Dependencies = ' + depend.text  + ENDC)
                     listdepends = depend.text
                     for d in listdepends.split(';'):
                         if d != '%(AdditionalDependencies)':
                             cmakelist.write(d + ' ')
             except IndexError:
-                print('No dependencies')
+                print(OKBLUE + 'No dependencies' + ENDC)
             cmakelist.write(')')
 
         finally:
             cmakelist.close()
     except OSError:
-        FAIL = '\033[91m'
-        OKBLUE = '\033[34m'
-        ENDC = '\033[0m'
         print(FAIL + 'ERROR =' + ENDC + ' You have to precise \'file.vcxproj\' to use this script.\nType : ' + OKBLUE + './vcxprojtocmake.py -h ' + ENDC + 'for more help !' + ENDC)
 
 
