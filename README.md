@@ -52,6 +52,6 @@ Open a windows terminal (`WINDOWS-R` and type `cmd`). Go to the directory of scr
 
 `python vcxprojtocmake.py -p <path/to/file.vcxproj>`
 
-You can also specify file in **script** itself in **head of script** if you have any issue with parameters !
+You can also specify **file in head of script** if you have any issue with **parameters** !
 
 
