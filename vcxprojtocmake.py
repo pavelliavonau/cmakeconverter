@@ -38,7 +38,7 @@ def main():
             file_path = os.path.splitext(args.p)
             if file_path[1] == '.vcxproj':
                 input_proj = args.p
-                msg('--project=' + args.p, '')
+                msg('Project to convert = ' + args.p, '')
 
         """
         Constant Parameter
@@ -64,6 +64,53 @@ def get_xml_data(input_proj):
         generate_cmake(tree, ns)
     except OSError:
         msg('.vcxproj file can not be import. Please verify path you give !', 'error')
+    except etree.XMLSyntaxError:
+        msg('This file is not a file.vcxproj !', 'error')
+
+def generate_cmake(tree, ns):
+    """
+    :param tree: vcxproj tree
+    :param ns: namespace to use
+    """
+
+    cmake = open('CMakeLists.txt', 'w')
+
+    """
+        Variables
+    """
+    header_nb, cpp_nb = define_variable(tree, ns, cmake)
+
+    """
+        Definitions
+    """
+    set_macro_definition(tree, ns, cmake)
+
+    """
+        Dependencies
+    """
+    set_dependencies(tree, ns, cmake)
+
+    """
+    Flags
+    """
+    define_flags(tree, ns, cmake)
+
+    """
+    Files
+    """
+    add_recursefiles(cmake, header_nb, cpp_nb)
+
+    """
+    Library and Executable
+    """
+    create_artefact(tree, ns, cmake)
+
+    """
+    Link and dependencies
+    """
+    link_dependencies(tree, ns, cmake)
+
+    cmake.close()
 
 def define_flags(tree, ns, cmake):
     """
@@ -80,9 +127,13 @@ def define_flags(tree, ns, cmake):
 
     # Warning
     warning = tree.xpath('//ns:WarningLevel', namespaces=ns)[0]
-    lvl = ' /W' + warning.text[-1:]
-    debug_flags += lvl
-    release_flags += lvl
+    if warning.text != '':
+        lvl = ' /W' + warning.text[-1:]
+        debug_flags += lvl
+        release_flags += lvl
+        msg('Warning : ' + warning.text, 'ok')
+    else:
+        msg('No Warning level.', '')
 
     # WholeProgramOptimization
     gl_debug_x86 = tree.find(
@@ -94,6 +145,9 @@ def define_flags(tree, ns, cmake):
     if gl_debug_x86 is not None and gl_debug_x64 is not None:
         if 'true' in gl_debug_x86.text and 'true' in gl_debug_x64.text:
             debug_flags += ' /GL'
+            msg('WholeProgramOptimization for Debug', 'ok')
+    else:
+        msg('No WholeProgramOptimization for Debug', '')
     gl_release_x86 = tree.find(
         '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Release|Win32\'"]/ns:WholeProgramOptimization',
         namespaces=ns)
@@ -103,6 +157,9 @@ def define_flags(tree, ns, cmake):
     if gl_release_x86 is not None and gl_release_x64 is not None:
         if 'true' in gl_release_x86.text and 'true' in gl_release_x64.text:
             release_flags += ' /GL'
+            msg('WholeProgramOptimization for Release', 'ok')
+    else:
+        msg('No WholeProgramOptimization for Release', '')
 
     # UseDebugLibraries
     md_debug_x86 = tree.find(
@@ -114,6 +171,9 @@ def define_flags(tree, ns, cmake):
     if md_debug_x64 is not None and md_debug_x86 is not None:
         if 'true' in md_debug_x86.text and 'true' in md_debug_x64.text:
             debug_flags += ' /MDd'
+            msg('UseDebugLibrairies for Debug', 'ok')
+    else:
+        msg('No UseDebugLibrairies for Debug', '')
     md_release_x86 = tree.find(
         '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Release|Win32\'"]/ns:UseDebugLibraries',
         namespaces=ns)
@@ -123,6 +183,9 @@ def define_flags(tree, ns, cmake):
     if md_release_x86 is not None and md_release_x64 is not None:
         if 'true' in md_release_x86.text and 'true' in md_release_x64.text:
             release_flags += ' /MDd'
+            msg('UseDebugLibrairies for Release', 'ok')
+    else:
+        msg('No UseDebugLibrairies for Release', '')
 
     # Optimization
     opt_debug_x86 = tree.find(
@@ -134,6 +197,9 @@ def define_flags(tree, ns, cmake):
     if opt_debug_x86 is not None and opt_debug_x64 is not None:
         if 'Disabled' in opt_debug_x64.text and 'Disabled' in opt_debug_x86.text:
             debug_flags += ' /O2'
+            msg('Optimization for Debug', 'ok')
+    else:
+        msg('No Optimization for Debug', '')
     opt_release_x86 = tree.find(
         '//ns:ItemDefinitionGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Release|Win32\'"]/ns:ClCompile/ns:Optimization',
         namespaces=ns)
@@ -143,6 +209,9 @@ def define_flags(tree, ns, cmake):
     if opt_release_x86 is not None and opt_release_x64 is not None:
         if 'MaxSpeed' in opt_release_x64.text and 'MaxSpeed' in opt_release_x86.text:
             release_flags += ' /O2'
+            msg('Optimization for Release', 'ok')
+    else:
+        msg('No Optimization for Release', '')
 
     # IntrinsicFunctions
     oi_debug_x86 = tree.find(
@@ -154,6 +223,9 @@ def define_flags(tree, ns, cmake):
     if oi_debug_x86 is not None and oi_debug_x64 is not None:
         if 'true' in oi_debug_x86.text and 'true' in oi_debug_x64.text:
             debug_flags += ' /Oi'
+            msg('IntrinsicFunctions for Debug', 'ok')
+    else:
+        msg('No IntrinsicFunctions for Debug', '')
     oi_release_x86 = tree.find(
         '//ns:ItemDefinitionGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Release|Win32\'"]/ns:ClCompile/ns:IntrinsicFunctions',
         namespaces=ns)
@@ -163,6 +235,9 @@ def define_flags(tree, ns, cmake):
     if oi_release_x86 is not None and oi_release_x64 is not None:
         if 'true' in oi_release_x86.text and 'true' in oi_release_x64.text:
             release_flags += ' /Oi'
+            msg('IntrinsicFunctions for Release', 'ok')
+    else:
+        msg('No IntrinsicFunctions for Release', '')
 
     # RuntimeTypeInfo
     gr_debug_x86 = tree.find(
@@ -172,12 +247,11 @@ def define_flags(tree, ns, cmake):
         '//ns:ItemDefinitionGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Debug|x64\'"]/ns:ClCompile/ns:RuntimeTypeInfo',
         namespaces=ns)
     if gr_debug_x64 is not None and gr_debug_x86 is not None:
-        if 'false' in gr_debug_x64.text and gr_debug_x86.text:
-            debug_flags += ' /GR-'
-        elif 'true' in gr_debug_x64.text and gr_debug_x86.text:
+        if 'true' in gr_debug_x64.text and gr_debug_x86.text:
             debug_flags += ' /GR'
+            msg('RuntimeTypeInfo for Debug', 'ok')
     else:
-        msg("No RuntimeTypeInfo option.", '')
+        msg('No RuntimeTypeInfo for Debug', '')
     gr_release_x86 = tree.find(
         '//ns:ItemDefinitionGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Release|Win32\'"]/ns:ClCompile/ns:RuntimeTypeInfo',
         namespaces=ns)
@@ -185,12 +259,11 @@ def define_flags(tree, ns, cmake):
         '//ns:ItemDefinitionGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Release|x64\'"]/ns:ClCompile/ns:RuntimeTypeInfo',
         namespaces=ns)
     if gr_release_x86 is not None and gr_release_x64 is not None:
-        if 'false' in gr_release_x64.text and gr_release_x86.text:
-            release_flags += ' /GR-'
-        elif 'true' in gr_release_x64.text and gr_release_x86.text:
+        if 'true' in gr_release_x64.text and gr_release_x86.text:
             release_flags += ' /GR'
+            msg('RuntimeTypeInfo for Release', 'ok')
     else:
-        msg("No RuntimeTypeInfo option.", '')
+        msg("No RuntimeTypeInfo for Release", '')
 
     # FunctionLevelLinking
     gy_release_x86 = tree.find(
@@ -282,44 +355,51 @@ def set_dependencies(tree, ns, cmake):
     Dependencies : Add subdirectories or link directories for external libraries.
     """
     references = tree.xpath('//ns:ProjectReference', namespaces=ns)
-    cmake.write('option(BUILD_DEPENDS \n' +
-    '   "Point to CMakeLists of other projects" \n' +
-    '   ON \n' +
-    ')\n\n')
-    cmake.write('# Dependencies : disable BUILD_DEPENDS to link with lib already build.\n')
-    cmake.write('if(BUILD_DEPENDS)\n')
-    for ref in references:
-        reference = str(ref.get('Include'))
-        cmake.write(
-            '   add_subdirectory(platform/cmake/' + os.path.splitext(path.basename(reference))[0] + ')\n')
-    cmake.write('else()\n')
-    for ref in references:
-        reference = str(ref.get('Include'))
-        cmake.write('   link_directories(dependencies/' + os.path.splitext(path.basename(reference))[
-            0] + '/build/\n')
-    cmake.write('endif()\n\n')
+    if references:
+        cmake.write('option(BUILD_DEPENDS \n' +
+        '   "Point to CMakeLists of other projects" \n' +
+        '   ON \n' +
+        ')\n\n')
+        cmake.write('# Dependencies : disable BUILD_DEPENDS to link with lib already build.\n')
+        cmake.write('if(BUILD_DEPENDS)\n')
+        for ref in references:
+            reference = str(ref.get('Include'))
+            cmake.write(
+                '   add_subdirectory(platform/cmake/' + os.path.splitext(path.basename(reference))[0] + ')\n')
+        cmake.write('else()\n')
+        for ref in references:
+            reference = str(ref.get('Include'))
+            cmake.write('   link_directories(dependencies/' + os.path.splitext(path.basename(reference))[
+                0] + '/build/\n')
+        cmake.write('endif()\n\n')
+    else:
+        msg('No link needed.', '')
 
 def link_dependencies(tree, ns, cmake):
     """
     Link : Add command to link dependencies to project.
     """
     references = tree.xpath('//ns:ProjectReference', namespaces=ns)
-    cmake.write('target_link_libraries(${PROJECT_NAME} ')
-    for ref in references:
-        reference = str(ref.get('Include'))
-        cmake.write(os.path.splitext(path.basename(reference))[0] + ' ')
-        message = 'External librairies : ' + os.path.splitext(path.basename(reference))[0]
-        msg(message, 'ok')
-    try:
-        if tree.xpath('//ns:AdditionalDependencies', namespaces=ns)[0] is not None:
-            depend = tree.xpath('//ns:AdditionalDependencies', namespaces=ns)[0]
-            msg('Additional Dependencies = ' + depend.text, 'ok')
-            listdepends = depend.text
-            for d in listdepends.split(';'):
-                if d != '%(AdditionalDependencies)':
-                    cmake.write(d + ' ')
-    except IndexError:
-        msg('No dependencies', '')
+    if references:
+        cmake.write('target_link_libraries(${PROJECT_NAME} ')
+        for ref in references:
+            reference = str(ref.get('Include'))
+            cmake.write(os.path.splitext(path.basename(reference))[0] + ' ')
+            message = 'External librairies : ' + os.path.splitext(path.basename(reference))[0]
+            msg(message, 'ok')
+        try:
+            if tree.xpath('//ns:AdditionalDependencies', namespaces=ns)[0] is not None:
+                depend = tree.xpath('//ns:AdditionalDependencies', namespaces=ns)[0]
+                if depend.text != '%(AdditionalDependencies)':
+                    msg('Additional Dependencies = ' + depend.text, 'ok')
+                listdepends = depend.text
+                for d in listdepends.split(';'):
+                    if d != '%(AdditionalDependencies)':
+                        cmake.write(d + ' ')
+        except IndexError:
+            msg('No dependencies', '')
+    else:
+        msg('No dependencies.', '')
 
     cmake.write(')')
 
@@ -397,51 +477,6 @@ def create_artefact(tree, ns, cmake):
         cmake.write('add_executable(${PROJECT_NAME} \n')
     cmake.write('   ${SRC_FILES}\n')
     cmake.write(')\n\n')
-
-def generate_cmake(tree, ns):
-    """
-    :param tree: vcxproj tree
-    :param ns: namespace to use
-    """
-
-    cmake = open('CMakeLists.txt', 'w')
-
-    """
-        Variables
-    """
-    header_nb, cpp_nb = define_variable(tree, ns, cmake)
-
-    """
-        Definitions
-    """
-    set_macro_definition(tree, ns, cmake)
-
-    """
-        Dependencies
-    """
-    set_dependencies(tree, ns, cmake)
-
-    """
-    Flags
-    """
-    define_flags(tree, ns, cmake)
-
-    """
-    Files
-    """
-    add_recursefiles(cmake, header_nb, cpp_nb)
-
-    """
-    Library and Executable
-    """
-    create_artefact(tree, ns, cmake)
-
-    """
-    Link and dependencies
-    """
-    link_dependencies(tree, ns, cmake)
-
-    cmake.close()
 
 if __name__ == "__main__":
     main()
