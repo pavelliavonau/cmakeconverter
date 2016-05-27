@@ -1,14 +1,14 @@
 # CMakeConverter
 
-This project aims to facilitate the conversion of Visual Studio and QT to CMake projects.
+This project aims to facilitate the conversion of Visual Studio (and QT in second time) to CMake projects.
 
 ## Goal
 
-The goal of this project is to give to a Python script a `.vcxproj` or a `.pro` file and output a CMakeLists.txt. 
+The goal of this project is to give to a Python script a `.vcxproj` file and output a CMakeLists.txt.
 
-Actually, it only works with `vcxproj` and `c/c++` project.
+Actually, it **only works** with `vcxproj` and `c/c++` project.
 
-**This script still in development and has probably many issues**
+> **This script still in development and has probably many issues**
 
 ## How to use
 
@@ -32,7 +32,7 @@ If installation of lxml fails, download binaries you need [here](http://www.lfd.
 
 `pip install <lxml-file.whl>`
 
-That must be work. If no try in Administrator terminal.
+That must be work. If no, try again in Administrator elevated terminal.
 
 ### Run script
 
@@ -52,6 +52,6 @@ Open a windows terminal (`WINDOWS-R` and type `cmd`). Go to the directory of scr
 
 `python vcxprojtocmake.py -p <path/to/file.vcxproj>`
 
-You can also specify **file in head of script** if you have any issue with **parameters** !
+> You can also specify **file in head of script** if you have any issue with **parameters** ! (Normally fix in last version)
 
 
