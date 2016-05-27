@@ -8,34 +8,47 @@ import sys, argparse, os
 """
 Default Variable
 """
-FAIL = '\033[91m'
-OKBLUE = '\033[34m'
-ENDC = '\033[0m'
+
+def msg(message, status):
+    FAIL = ''
+    OK = ''
+    ENDC = ''
+
+    if os.name == 'posix':
+        FAIL += '\033[91m'
+        OK += '\033[34m'
+        ENDC += '\033[0m'
+    if status == 'error':
+        print(FAIL + message + ENDC)
+    elif status == 'ok':
+        print(OK + message + ENDC)
+    else:
+        print(message)
 
 def main():
     """
     Main : verify if input_proj can be parse.
     """
     try:
-        parser = argparse.ArgumentParser(description='')
-        parser.add_argument('-p')
+        input_proj = ''
+        parser = argparse.ArgumentParser(description='Convert file.vcxproj to CMakelists.txt')
+        parser.add_argument('-p', help='absolute or relative path of a file.vcxproj')
         args = parser.parse_args()
-        print(args.p)
-        input_proj = args.p
+        if args.p is not None:
+            file_extension = os.path.splitext('/path/to/somefile.ext')
+            if file_extension == '.vcxproj':
+                input_proj = args.p
+                msg('--project=' + args.p, '')
 
         """
-        Parameters
+        Constant Parameter
         ----------
-        p : .vcxproj file
-         Uncomment following lines to use this script without parameters
+        > Uncomment following line to use this script without parameters
         """
         # input_proj = '../corealpi/platform/msvc/vc2015/elec.vcxproj'
 
         get_xml_data(input_proj)
     except argparse.ArgumentError:
-        print(
-            FAIL + 'ERROR =' + ENDC + ' You have to precise \'file.vcxproj\' to use this script.\n'
-                                      'Type : ' + OKBLUE + './vcxprojtocmake.py -h ' + ENDC + 'for more help !' + ENDC)
         sys.exit()
 
 def get_xml_data(input_proj):
@@ -49,9 +62,8 @@ def get_xml_data(input_proj):
         tree = etree.parse(input_proj)
         ns = {'ns': 'http://schemas.microsoft.com/developer/msbuild/2003'}
         generate_cmake(tree, ns)
-    except ImportError:
-        print('The ' + FAIL + '.vcxproj file can not be import.' + ENDC +
-              '\nPlease verify path you give !')
+    except OSError:
+        msg('.vcxproj file can not be import. Please verify path you give !', 'error')
 
 def define_flags(tree, ns, cmake):
     """
@@ -62,6 +74,7 @@ def define_flags(tree, ns, cmake):
     """
 
     # TODO : see if below can be refactor
+    # TODO : get Conditions before for PropertyGroup
     release_flags = ''
     debug_flags = ''
 
@@ -239,10 +252,10 @@ def define_flags(tree, ns, cmake):
         release_flags += ' /EHsc'
 
     if release_flags != '':
-        print(OKBLUE + 'Release FLAGS found = ' + release_flags)
+        msg('Release FLAGS found = ' + release_flags, 'ok')
         cmake.write('set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}' + release_flags + '")\n')
     if debug_flags != '':
-        print('Debug   FLAGS found = ' + debug_flags + ENDC)
+        msg('Debug   FLAGS found = ' + debug_flags, 'ok')
         cmake.write('set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}' + debug_flags + '")\n')
 
 def set_macro_definition(tree, ns, cmake):
@@ -292,17 +305,19 @@ def link_dependencies(tree, ns, cmake):
     for ref in references:
         reference = str(ref.get('Include'))
         cmake.write(os.path.splitext(path.basename(reference))[0] + ' ')
-        print(OKBLUE + 'External librairies : ' + os.path.splitext(path.basename(reference))[0])
+        message = 'External librairies : ' + os.path.splitext(path.basename(reference))[0]
+        msg(message, 'ok')
     try:
         if tree.xpath('//ns:AdditionalDependencies', namespaces=ns)[0] is not None:
             depend = tree.xpath('//ns:AdditionalDependencies', namespaces=ns)[0]
-            print(OKBLUE + 'Additional Dependencies = ' + depend.text + ENDC)
+            msg('Additional Dependencies = ' + depend.text, 'ok')
             listdepends = depend.text
             for d in listdepends.split(';'):
                 if d != '%(AdditionalDependencies)':
                     cmake.write(d + ' ')
     except IndexError:
-        print(OKBLUE + 'No dependencies' + ENDC)
+        msg('No dependencies', '')
+
     cmake.write(')')
 
 def define_variable(tree, ns, cmake):
