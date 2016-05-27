@@ -19,11 +19,11 @@ def msg(message, status):
         OK += '\033[34m'
         ENDC += '\033[0m'
     if status == 'error':
-        print(FAIL + message + ENDC)
+        print('ERR  : ' + FAIL + message + ENDC)
     elif status == 'ok':
-        print(OK + message + ENDC)
+        print('OK   : ' + OK + message + ENDC)
     else:
-        print(message)
+        print('INFO : ' + message)
 
 def main():
     """
@@ -35,8 +35,8 @@ def main():
         parser.add_argument('-p', help='absolute or relative path of a file.vcxproj')
         args = parser.parse_args()
         if args.p is not None:
-            file_extension = os.path.splitext('/path/to/somefile.ext')
-            if file_extension == '.vcxproj':
+            file_path = os.path.splitext(args.p)
+            if file_path[1] == '.vcxproj':
                 input_proj = args.p
                 msg('--project=' + args.p, '')
 
@@ -177,7 +177,7 @@ def define_flags(tree, ns, cmake):
         elif 'true' in gr_debug_x64.text and gr_debug_x86.text:
             debug_flags += ' /GR'
     else:
-        print("No RuntimeTypeInfo option.")
+        msg("No RuntimeTypeInfo option.", '')
     gr_release_x86 = tree.find(
         '//ns:ItemDefinitionGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Release|Win32\'"]/ns:ClCompile/ns:RuntimeTypeInfo',
         namespaces=ns)
@@ -190,7 +190,7 @@ def define_flags(tree, ns, cmake):
         elif 'true' in gr_release_x64.text and gr_release_x86.text:
             release_flags += ' /GR'
     else:
-        print("No RuntimeTypeInfo option.")
+        msg("No RuntimeTypeInfo option.", '')
 
     # FunctionLevelLinking
     gy_release_x86 = tree.find(
@@ -199,10 +199,11 @@ def define_flags(tree, ns, cmake):
     gy_release_x64 = tree.find(
         '//ns:ItemDefinitionGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Release|x64\'"]/ns:ClCompile/ns:FunctionLevelLinking',
         namespaces=ns)
-    if 'true' in gy_release_x86.text and gy_release_x64.text:
-        release_flags += ' /Gy'
-    else:
-        print("No FunctionLevelLinking option for release.")
+    if gy_release_x86 is not None and gy_release_x64 is not None:
+        if 'true' in gy_release_x86.text and 'true' in gy_release_x64.text:
+            release_flags += ' /Gy'
+        else:
+            msg("No FunctionLevelLinking option for release.", '')
 
     # GenerateDebugInformation
     zi_debug_x86 = tree.find(
@@ -211,10 +212,11 @@ def define_flags(tree, ns, cmake):
     zi_debug_x64 = tree.find(
         '//ns:ItemDefinitionGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Debug|x64\'"]/ns:Link/ns:GenerateDebugInformation',
         namespaces=ns)
-    if 'true' in zi_debug_x86.text and zi_debug_x64.text:
-        debug_flags += ' /Zi'
-    else:
-        print("No GenerateDebugInformation option for debug.")
+    if zi_debug_x86 is not None and zi_debug_x64 is not None:
+        if 'true' in zi_debug_x86.text and zi_debug_x64.text:
+            debug_flags += ' /Zi'
+        else:
+            msg("No GenerateDebugInformation option for debug.", '')
 
     zi_release_x86 = tree.find(
         '//ns:ItemDefinitionGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Release|Win32\'"]/ns:Link/ns:GenerateDebugInformation',
@@ -222,10 +224,11 @@ def define_flags(tree, ns, cmake):
     zi_release_x64 = tree.find(
         '//ns:ItemDefinitionGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Release|x64\'"]/ns:Link/ns:GenerateDebugInformation',
         namespaces=ns)
-    if 'true' in zi_release_x86.text and zi_release_x64.text:
-        release_flags += ' /Zi'
-    else:
-        print("No GenerateDebugInformation option for release.")
+    if zi_release_x86 is not None and zi_release_x64 is not None:
+        if 'true' in zi_release_x86.text and zi_release_x64.text:
+            release_flags += ' /Zi'
+        else:
+            msg("No GenerateDebugInformation option for release.", '')
 
     # ExceptionHandling
     ehs_debug_x86 = tree.find(
@@ -236,7 +239,7 @@ def define_flags(tree, ns, cmake):
         namespaces=ns)
     if ehs_debug_x86 is not None and ehs_debug_x64 is not None:
         if 'false' in ehs_debug_x86.text and ehs_debug_x64.text:
-            print("No ExceptionHandling option for debug.")
+            msg("No ExceptionHandling option for debug.", '')
     else:
         debug_flags += ' /EHsc'
     ehs_release_x86 = tree.find(
@@ -247,7 +250,7 @@ def define_flags(tree, ns, cmake):
         namespaces=ns)
     if ehs_release_x86 is not None and ehs_release_x64 is not None:
         if 'false' in ehs_release_x86.text and ehs_release_x64.text:
-            print("No ExceptionHandling option for release.")
+            msg("No ExceptionHandling option for release.", '')
     else:
         release_flags += ' /EHsc'
 
