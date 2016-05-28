@@ -65,7 +65,7 @@ def get_xml_data(input_proj):
     except OSError:
         msg('.vcxproj file can not be import. Please verify path you give !', 'error')
     except etree.XMLSyntaxError:
-        msg('This file is not a file.vcxproj !', 'error')
+        msg('This file is not a file.vcxproj or xml is broken !', 'error')
 
 def generate_cmake(tree, ns):
     """
@@ -114,7 +114,7 @@ def generate_cmake(tree, ns):
 
 def define_flags(tree, ns, cmake):
     """
-    Define all flags inside project for Release and Debug Target.
+    Define all FLAGS inside project for Release and Debug Target.
     :param tree: vcxproj tree
     :param ns: namespace to use
     :param cmake: CMakeLists to write
@@ -263,7 +263,7 @@ def define_flags(tree, ns, cmake):
             release_flags += ' /GR'
             msg('RuntimeTypeInfo for Release', 'ok')
     else:
-        msg("No RuntimeTypeInfo for Release", '')
+        msg('No RuntimeTypeInfo for Release', '')
 
     # FunctionLevelLinking
     gy_release_x86 = tree.find(
@@ -275,8 +275,9 @@ def define_flags(tree, ns, cmake):
     if gy_release_x86 is not None and gy_release_x64 is not None:
         if 'true' in gy_release_x86.text and 'true' in gy_release_x64.text:
             release_flags += ' /Gy'
-        else:
-            msg("No FunctionLevelLinking option for release.", '')
+            msg('FunctionLevelLinking for release.', 'ok')
+    else:
+        msg('No FunctionLevelLinking for release.', '')
 
     # GenerateDebugInformation
     zi_debug_x86 = tree.find(
@@ -288,8 +289,9 @@ def define_flags(tree, ns, cmake):
     if zi_debug_x86 is not None and zi_debug_x64 is not None:
         if 'true' in zi_debug_x86.text and zi_debug_x64.text:
             debug_flags += ' /Zi'
-        else:
-            msg("No GenerateDebugInformation option for debug.", '')
+            msg('GenerateDebugInformation for debug.', 'ok')
+    else:
+        msg('No GenerateDebugInformation for debug.', '')
 
     zi_release_x86 = tree.find(
         '//ns:ItemDefinitionGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Release|Win32\'"]/ns:Link/ns:GenerateDebugInformation',
@@ -300,8 +302,9 @@ def define_flags(tree, ns, cmake):
     if zi_release_x86 is not None and zi_release_x64 is not None:
         if 'true' in zi_release_x86.text and zi_release_x64.text:
             release_flags += ' /Zi'
-        else:
-            msg("No GenerateDebugInformation option for release.", '')
+            msg('GenerateDebugInformation for release.', 'ok')
+    else:
+        msg('No GenerateDebugInformation for release.', '')
 
     # ExceptionHandling
     ehs_debug_x86 = tree.find(
@@ -312,9 +315,10 @@ def define_flags(tree, ns, cmake):
         namespaces=ns)
     if ehs_debug_x86 is not None and ehs_debug_x64 is not None:
         if 'false' in ehs_debug_x86.text and ehs_debug_x64.text:
-            msg("No ExceptionHandling option for debug.", '')
+            msg('No ExceptionHandling for debug.', '')
     else:
         debug_flags += ' /EHsc'
+        msg('ExceptionHandling for debug.', 'ok')
     ehs_release_x86 = tree.find(
         '//ns:ItemDefinitionGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Release|Win32\'"]/ns:ClCompile/ns:ExceptionHandling',
         namespaces=ns)
@@ -323,16 +327,21 @@ def define_flags(tree, ns, cmake):
         namespaces=ns)
     if ehs_release_x86 is not None and ehs_release_x64 is not None:
         if 'false' in ehs_release_x86.text and ehs_release_x64.text:
-            msg("No ExceptionHandling option for release.", '')
+            msg('No ExceptionHandling option for release.', '')
     else:
         release_flags += ' /EHsc'
+        msg('ExceptionHandling for release.', 'ok')
 
-    if release_flags != '':
-        msg('Release FLAGS found = ' + release_flags, 'ok')
-        cmake.write('set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}' + release_flags + '")\n')
     if debug_flags != '':
         msg('Debug   FLAGS found = ' + debug_flags, 'ok')
         cmake.write('set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}' + debug_flags + '")\n')
+    else:
+        msg('No Debug   FLAGS found', '')
+    if release_flags != '':
+        msg('Release FLAGS found = ' + release_flags, 'ok')
+        cmake.write('set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}' + release_flags + '")\n')
+    else:
+        msg('No Release FLAGS found', '')
 
 def set_macro_definition(tree, ns, cmake):
     """
