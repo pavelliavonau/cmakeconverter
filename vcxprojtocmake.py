@@ -31,49 +31,70 @@ def main():
     """
     try:
         input_proj = ''
+        output = ''
         parser = argparse.ArgumentParser(description='Convert file.vcxproj to CMakelists.txt')
         parser.add_argument('-p', help='absolute or relative path of a file.vcxproj')
+        parser.add_argument('-o', help='define output. Ex: "../../platform/cmake/"')
         args = parser.parse_args()
         if args.p is not None:
             file_path = os.path.splitext(args.p)
             if file_path[1] == '.vcxproj':
                 input_proj = args.p
                 msg('Project to convert = ' + args.p, '')
+        if args.o is not None:
+            if os.path.exists(args.o):
+                output = args.o
+                print('Sortie = ' + args.o)
+            else:
+                msg('This path does not exist.', 'error')
 
         """
         Constant Parameter
         ----------
         > Uncomment following line to use this script without parameters
         """
-        # input_proj = '../corealpi/platform/msvc/vc2015/elec.vcxproj'
+        # input_proj = '../path/to/my.vcxproj'
 
-        get_xml_data(input_proj)
+        create_data(input_proj, output)
     except argparse.ArgumentError:
         sys.exit()
 
-def get_xml_data(input_proj):
+def create_data(input_proj, output):
     """
     Get xml data from vcxproj
     :param input_proj: vcxproj file
+    :param output: path for CMakeLists.txt
     """
 
-    # TODO : get Namespaces by parsing :param tree
     try:
         tree = etree.parse(input_proj)
-        ns = {'ns': 'http://schemas.microsoft.com/developer/msbuild/2003'}
-        generate_cmake(tree, ns)
+        namespace = str(tree.getroot().nsmap)
+        ns = {'ns': namespace.partition('\'')[-1].rpartition('\'')[0]}
+        generate_cmake(tree, ns, output)
     except OSError:
-        msg('.vcxproj file can not be import. Please verify path you give !', 'error')
+        msg('.vcxproj file can not be import. Please, verify you have rights to access this directory !', 'error')
     except etree.XMLSyntaxError:
         msg('This file is not a file.vcxproj or xml is broken !', 'error')
 
-def generate_cmake(tree, ns):
+def generate_cmake(tree, ns, output):
     """
     :param tree: vcxproj tree
     :param ns: namespace to use
     """
 
-    cmake = open('CMakeLists.txt', 'w')
+    """
+    Constant Parameter
+    ----------
+    > Uncomment following line to use this script without parameters
+    """
+    # output = '../../platform/cmake/'
+
+    if output is None:
+        msg('CMakeLists will be build in current directory.', 'ok')
+    else:
+        msg('CmakeLists.txt will be build in : ' + output, 'ok')
+    cmakelists = output + 'CMakeLists.txt'
+    cmake = open(cmakelists, 'w')
 
     """
         Variables
