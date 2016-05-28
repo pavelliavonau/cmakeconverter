@@ -52,6 +52,10 @@ Open a windows terminal (`WINDOWS-R` and type `cmd`). Go to the directory of scr
 
 `python vcxprojtocmake.py -p <path/to/file.vcxproj>`
 
+### Other options :
+
+* -o : define output. Ex: "../../platform/cmake/"
+
 # Use CMake
 
 **Cmakeconverter** try to have the most information as possible in your `file.vcxproj` ! However, it's recommended to read generated CMakeLists.txt before using.

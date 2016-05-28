@@ -80,6 +80,7 @@ def generate_cmake(tree, ns, output):
     """
     :param tree: vcxproj tree
     :param ns: namespace to use
+    :param output: path for CMakeLists.txt
     """
 
     """
