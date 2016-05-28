@@ -235,7 +235,7 @@ def define_flags(tree, ns, cmake):
         namespaces=ns)
     if md_debug_x64 is not None and md_debug_x86 is not None:
         if 'true' in md_debug_x86.text and 'true' in md_debug_x64.text:
-            debug_flags += ' /MDd'
+            debug_flags += ' /MD'
             msg('UseDebugLibrairies for Debug', 'ok')
     else:
         msg('No UseDebugLibrairies for Debug', '')
@@ -247,10 +247,36 @@ def define_flags(tree, ns, cmake):
         namespaces=ns)
     if md_release_x86 is not None and md_release_x64 is not None:
         if 'true' in md_release_x86.text and 'true' in md_release_x64.text:
-            release_flags += ' /MDd'
+            release_flags += ' /MD'
             msg('UseDebugLibrairies for Release', 'ok')
     else:
         msg('No UseDebugLibrairies for Release', '')
+
+    # RuntimeLibrary
+    mdd_debug_x86 = tree.find(
+        '//ns:ItemDefinitionGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Debug|Win32\'"]/ns:ClCompile/ns:RuntimeLibrary',
+        namespaces=ns)
+    mdd_debug_x64 = tree.find(
+        '//ns:ItemDefinitionGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Debug|x64\'"]/ns:ClCompile/ns:RuntimeLibrary',
+        namespaces=ns)
+    if mdd_debug_x64 is not None and mdd_debug_x86 is not None:
+        if 'MultiThreadedDebugDLL' in mdd_debug_x86.text and 'MultiThreadedDebugDLL' in mdd_debug_x64.text:
+            debug_flags += ' /MDd'
+            msg('RuntimeLibrary for Debug', 'ok')
+    else:
+        msg('No RuntimeLibrary for Debug', '')
+    mdd_release_x86 = tree.find(
+        '//ns:ItemDefinitionGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Release|Win32\'"]/ns:ClCompile/ns:RuntimeLibrary',
+        namespaces=ns)
+    mdd_release_x64 = tree.find(
+        '//ns:ItemDefinitionGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Release|x64\'"]/ns:ClCompile/ns:RuntimeLibrary',
+        namespaces=ns)
+    if mdd_release_x86 is not None and mdd_release_x64 is not None:
+        if 'MultiThreadedDebugDLL' in mdd_release_x86.text and 'MultiThreadedDebugDLL' in mdd_release_x64.text:
+            release_flags += ' /MDd'
+            msg('RuntimeLibrary for Release', 'ok')
+    else:
+        msg('No RuntimeLibrary for Release', '')
 
     # Optimization
     opt_debug_x86 = tree.find(
