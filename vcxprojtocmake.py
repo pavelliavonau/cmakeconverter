@@ -112,6 +112,49 @@ def generate_cmake(tree, ns):
 
     cmake.close()
 
+def define_variable(tree, ns, cmake):
+    """
+    Variable : define main variables in CMakeLists.
+    :return header and cpp folder founds.
+    """
+    # CMake Minimum required.
+    cmake.write('cmake_minimum_required(VERSION 3.0.0 FATAL_ERROR)\n\n')
+
+    # Project Name
+    projectname = tree.xpath('//ns:RootNamespace', namespaces=ns)[0]
+    cmake.write('# Variables. Change if you want modify path or other values.\n')
+    cmake.write('set(PROJECT_NAME ' + projectname.text + ')\n')
+
+    # Cpp Dir
+    cppfiles = tree.xpath('//ns:ClCompile', namespaces=ns)
+    cpp_path = []
+    cpp_nb = 1
+    for cpp in cppfiles:
+        if cpp.get('Include') is not None:
+            cxx = str(cpp.get('Include'))
+            current_cpp = '/'.join(cxx.split('\\')[0:-1])
+            if current_cpp not in cpp_path:
+                cpp_path.append(current_cpp)
+                cmake.write('set(CPP_DIR_' + str(cpp_nb) + ' ' + current_cpp + '\n')
+                cpp_nb += 1
+    # Headers Dir
+    headerfiles = tree.xpath('//ns:ClInclude', namespaces=ns)
+    headers_path = []
+    header_nb = 1
+    for header in headerfiles:
+        h = str(header.get('Include'))
+        current_header = '/'.join(h.split('\\')[0:-1])
+        if current_header not in headers_path:
+            headers_path.append(current_header)
+            cmake.write('set(HEADER_DIR_' + str(header_nb) + ' ' + current_header + '\n')
+            header_nb += 1
+
+    # Project Definition
+    cmake.write('\n')
+    cmake.write('# Define Project.\n')
+    cmake.write('project(${PROJECT_NAME} CXX)\n\n')
+    return header_nb, cpp_nb
+
 def define_flags(tree, ns, cmake):
     """
     Define all FLAGS inside project for Release and Debug Target.
@@ -334,11 +377,13 @@ def define_flags(tree, ns, cmake):
 
     if debug_flags != '':
         msg('Debug   FLAGS found = ' + debug_flags, 'ok')
+        cmake.write('# Flags for target "Debug"\n')
         cmake.write('set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}' + debug_flags + '")\n')
     else:
         msg('No Debug   FLAGS found', '')
     if release_flags != '':
         msg('Release FLAGS found = ' + release_flags, 'ok')
+        cmake.write('# Flags for target "Release"\n')
         cmake.write('set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}' + release_flags + '")\n')
     else:
         msg('No Release FLAGS found', '')
@@ -348,6 +393,7 @@ def set_macro_definition(tree, ns, cmake):
     Definitions : get Macro definitions.
     """
     preprocessor = tree.xpath('//ns:PreprocessorDefinitions', namespaces=ns)[0]
+    cmake.write('# Definition of Macros and/or Flags\n')
     cmake.write('add_definitions(\n')
     for preproc in preprocessor.text.split(";"):
         if preproc != '%(PreprocessorDefinitions)':
@@ -365,6 +411,7 @@ def set_dependencies(tree, ns, cmake):
     """
     references = tree.xpath('//ns:ProjectReference', namespaces=ns)
     if references:
+        cmake.write('# Add Dependencies of project.\n# Choose if you want build other CMake project or link with directories.\n')
         cmake.write('option(BUILD_DEPENDS \n' +
         '   "Point to CMakeLists of other projects" \n' +
         '   ON \n' +
@@ -390,6 +437,7 @@ def link_dependencies(tree, ns, cmake):
     """
     references = tree.xpath('//ns:ProjectReference', namespaces=ns)
     if references:
+        cmake.write('# Link with other dependencies.\n')
         cmake.write('target_link_libraries(${PROJECT_NAME} ')
         for ref in references:
             reference = str(ref.get('Include'))
@@ -405,53 +453,11 @@ def link_dependencies(tree, ns, cmake):
                 for d in listdepends.split(';'):
                     if d != '%(AdditionalDependencies)':
                         cmake.write(d + ' ')
+            cmake.write(')')
         except IndexError:
             msg('No dependencies', '')
     else:
         msg('No dependencies.', '')
-
-    cmake.write(')')
-
-def define_variable(tree, ns, cmake):
-    """
-    Variable : define main variables in CMakeLists.
-    :return header and cpp folder founds.
-    """
-    # CMake Minimum required.
-    cmake.write('cmake_minimum_required(VERSION 3.0.0 FATAL_ERROR)\n\n')
-
-    # Project Name
-    projectname = tree.xpath('//ns:RootNamespace', namespaces=ns)[0]
-    cmake.write('set(PROJECT_NAME ' + projectname.text + ')\n')
-
-    # Cpp Dir
-    cppfiles = tree.xpath('//ns:ClCompile', namespaces=ns)
-    cpp_path = []
-    cpp_nb = 1
-    for cpp in cppfiles:
-        if cpp.get('Include') is not None:
-            cxx = str(cpp.get('Include'))
-            current_cpp = '/'.join(cxx.split('\\')[0:-1])
-            if current_cpp not in cpp_path:
-                cpp_path.append(current_cpp)
-                cmake.write('set(CPP_DIR_' + str(cpp_nb) + ' ' + current_cpp + '\n')
-                cpp_nb += 1
-    # Headers Dir
-    headerfiles = tree.xpath('//ns:ClInclude', namespaces=ns)
-    headers_path = []
-    header_nb = 1
-    for header in headerfiles:
-        h = str(header.get('Include'))
-        current_header = '/'.join(h.split('\\')[0:-1])
-        if current_header not in headers_path:
-            headers_path.append(current_header)
-            cmake.write('set(HEADER_DIR_' + str(header_nb) + ' ' + current_header + '\n')
-            header_nb += 1
-
-    # Project Definition
-    cmake.write('\n')
-    cmake.write('project(${PROJECT_NAME} CXX)\n\n')
-    return header_nb, cpp_nb
 
 def add_recursefiles(cmake, header_nb, cpp_nb):
     """
@@ -462,7 +468,8 @@ def add_recursefiles(cmake, header_nb, cpp_nb):
     """
 
     # Glob Recurse for files.
-    cmake.write('\nfile(GLOB SRC_FILES\n')
+    cmake.write('\n# Add files to project.\n')
+    cmake.write('file(GLOB SRC_FILES\n')
     c = 1
     while c < cpp_nb:
         cmake.write('    ${CPP_DIR_' + str(c) + '}/*.cpp\n')
@@ -479,10 +486,13 @@ def create_artefact(tree, ns, cmake):
     """
     configurationtype = tree.find('//ns:ConfigurationType', namespaces=ns)
     if configurationtype.text == 'DynamicLibrary':
+        cmake.write('# Add library to build.\n')
         cmake.write('add_library(${PROJECT_NAME} SHARED\n')
     elif configurationtype.text == 'StaticLibrary':
+        cmake.write('# Add library to build.\n')
         cmake.write('add_library(${PROJECT_NAME} STATIC\n')
     else:
+        cmake.write('# Add executable to build.\n')
         cmake.write('add_executable(${PROJECT_NAME} \n')
     cmake.write('   ${SRC_FILES}\n')
     cmake.write(')\n\n')
