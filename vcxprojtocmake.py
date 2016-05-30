@@ -46,7 +46,7 @@ def main():
                 output = args.o
                 print('Sortie = ' + args.o)
             else:
-                msg('This path does not exist.', 'error')
+                msg('This path does not exist. CMakeList will be generated in current directory.', 'error')
 
         """
         Constant Parameter
@@ -108,6 +108,11 @@ def generate_cmake(tree, ns, output):
     set_macro_definition(tree, ns, cmake)
 
     """
+        General Code
+    """
+    set_output(tree, ns, cmake)
+
+    """
         Dependencies
     """
     set_dependencies(tree, ns, cmake)
@@ -157,7 +162,7 @@ def define_variable(tree, ns, cmake):
             current_cpp = '/'.join(cxx.split('\\')[0:-1])
             if current_cpp not in cpp_path:
                 cpp_path.append(current_cpp)
-                cmake.write('set(CPP_DIR_' + str(cpp_nb) + ' ' + current_cpp + '\n')
+                cmake.write('set(CPP_DIR_' + str(cpp_nb) + ' ' + current_cpp + ')\n')
                 cpp_nb += 1
     # Headers Dir
     headerfiles = tree.xpath('//ns:ClInclude', namespaces=ns)
@@ -168,14 +173,73 @@ def define_variable(tree, ns, cmake):
         current_header = '/'.join(h.split('\\')[0:-1])
         if current_header not in headers_path:
             headers_path.append(current_header)
-            cmake.write('set(HEADER_DIR_' + str(header_nb) + ' ' + current_header + '\n')
+            cmake.write('set(HEADER_DIR_' + str(header_nb) + ' ' + current_header + ')\n')
             header_nb += 1
+
+    # Output DIR of artefacts
+    cmake.write('# Output Variables\n')
+    path_debug_x86 = tree.find(
+        '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Debug|Win32\'"]/ns:OutDir',
+        namespaces=ns)
+    output_deb_x86 = path_debug_x86.text.replace('$(ProjectDir)', '').replace('\\', '/')
+    msg('Output Debug x86 = ' + output_deb_x86, 'ok')
+    cmake.write('set(OUTPUT_DEBUG_X86 ' + output_deb_x86 + ')\n')
+    path_debug_x64 = tree.find(
+        '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Debug|x64\'"]/ns:OutDir',
+        namespaces=ns)
+    output_deb_x64 = path_debug_x64.text.replace('$(ProjectDir)', '').replace('\\', '/')
+    msg('Output Debug x64 = ' + output_deb_x64, 'ok')
+    cmake.write('set(OUTPUT_DEBUG_X64 ' + output_deb_x64 + ')\n')
+    path_release_x86 = tree.find(
+        '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Release|Win32\'"]/ns:OutDir',
+        namespaces=ns)
+    output_rel_x86 = path_release_x86.text.replace('$(ProjectDir)', '').replace('\\', '/')
+    msg('Output Release x86 = ' + output_rel_x86, 'ok')
+    cmake.write('set(OUTPUT_REL_X86 ' + output_rel_x86 + ')\n')
+    path_release_x64 = tree.find(
+        '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Release|x64\'"]/ns:OutDir',
+        namespaces=ns)
+    output_rel_x64 = path_release_x64.text.replace('$(ProjectDir)', '').replace('\\', '/')
+    msg('Output Release x64 = ' + output_rel_x64, 'ok')
+    cmake.write('set(OUTPUT_REL_X64 ' + output_rel_x64 + ')\n')
 
     # Project Definition
     cmake.write('\n')
     cmake.write('# Define Project.\n')
     cmake.write('project(${PROJECT_NAME} CXX)\n\n')
     return header_nb, cpp_nb
+
+def set_output(tree, ns, cmake):
+    """
+    Set output for each target
+    """
+    cmake.write('# Define Output Debug of artefacts \n')
+    if tree.find(
+        '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Debug|Win32\'"]/ns:OutDir',
+        namespaces=ns) is not None and tree.find(
+        '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Debug|x64\'"]/ns:OutDir',
+        namespaces=ns) is not None:
+        cmake.write('if(CMAKE_BUILD_TYPE EQUAL "Debug")\n')
+        cmake.write('  if(x64)\n')
+        cmake.write('    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}${OUTPUT_DEBUG_X64})\n')
+        cmake.write('  else()\n')
+        cmake.write('    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}${OUTPUT_DEBUG_X86})\n')
+        cmake.write('  endif()\n')
+        cmake.write('endif()\n')
+    cmake.write('# Define Output Release of artefacts \n')
+    if tree.find(
+            '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Debug|Win32\'"]/ns:OutDir',
+            namespaces=ns) is not None and tree.find(
+        '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Debug|x64\'"]/ns:OutDir',
+        namespaces=ns) is not None:
+        cmake.write('if(CMAKE_BUILD_TYPE EQUAL "Release")\n')
+        cmake.write('  if(x64)\n')
+        cmake.write('    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}${OUTPUT_RELEASE_X64})\n')
+        cmake.write('  else()\n')
+        cmake.write('    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}${OUTPUT_RELEASE_X86})\n')
+        cmake.write('  endif()\n')
+        cmake.write('endif()\n')
+    cmake.write('\n')
 
 def define_flags(tree, ns, cmake):
     """
@@ -469,12 +533,13 @@ def set_dependencies(tree, ns, cmake):
         for ref in references:
             reference = str(ref.get('Include'))
             cmake.write(
-                '   add_subdirectory(platform/cmake/' + os.path.splitext(path.basename(reference))[0] + ')\n')
+                '   add_subdirectory(platform/cmake/' + os.path.splitext(path.basename(reference))[0] +
+                ' ${CMAKE_BINARY_DIR}/' + os.path.splitext(path.basename(reference))[0] + ')\n')
         cmake.write('else()\n')
         for ref in references:
             reference = str(ref.get('Include'))
             cmake.write('   link_directories(dependencies/' + os.path.splitext(path.basename(reference))[
-                0] + '/build/\n')
+                0] + '/build/)\n')
         cmake.write('endif()\n\n')
     else:
         msg('No link needed.', '')
