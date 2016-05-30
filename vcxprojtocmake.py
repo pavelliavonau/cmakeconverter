@@ -8,6 +8,7 @@ import sys, argparse, os
 """
 Default Variable
 """
+dependencies = []
 
 def msg(message, status):
     FAIL = ''
@@ -37,6 +38,7 @@ def main():
         parser.add_argument('-p', help='absolute or relative path of a file.vcxproj')
         parser.add_argument('-o', help='define output. Ex: "../../platform/cmake/"')
         parser.add_argument('-I', help='import cmake filecode from text to your final CMakeLists.txt')
+        parser.add_argument('-D', help='add dependencies to project. Ex: "../platform/cmake/dep1:../external/cmake/dep2"')
         args = parser.parse_args()
         if args.p is not None:
             file_path = os.path.splitext(args.p)
@@ -46,11 +48,15 @@ def main():
         if args.o is not None:
             if os.path.exists(args.o):
                 output = args.o
-                print('Sortie = ' + args.o)
+                msg('Output = ' + args.o, 'ok')
             else:
                 msg('This path does not exist. CMakeList will be generated in current directory.', 'error')
         if args.I is not None:
             filecode = args.I
+
+        if args.D is not None:
+            global dependencies
+            dependencies = args.D.split(':')
 
         """
         Constant Parameter
@@ -114,10 +120,9 @@ def generate_cmake(tree, ns, output, filecode):
     set_macro_definition(tree, ns, cmake)
 
     """
-        General and Additional Code
+        General Code
     """
     set_output(tree, ns, cmake)
-    add_additional_code(cmake, filecode)
 
     """
         Dependencies
@@ -133,6 +138,11 @@ def generate_cmake(tree, ns, output, filecode):
     Files
     """
     add_recursefiles(cmake, header_nb, cpp_nb)
+
+    """
+        Additional Code
+    """
+    add_additional_code(cmake, filecode)
 
     """
     Library and Executable
@@ -152,7 +162,7 @@ def add_additional_code(cmake, filecode):
     :param filecode: add additional code to your CMakeLists.txt
     :return:
     """
-    print('Fichier = ' + filecode)
+    msg('File of Code is added.' + filecode, 'ok')
     fc = open(filecode, 'r')
     cmake.write('# Additional Code \n')
     for line in fc:
@@ -270,7 +280,6 @@ def define_flags(tree, ns, cmake):
     :param cmake: CMakeLists to write
     """
 
-    # TODO : add condition for MSVC
     # TODO : add -std=c++11
     release_flags = ''
     debug_flags = ''
@@ -508,18 +517,21 @@ def define_flags(tree, ns, cmake):
         release_flags += ' /EHsc'
         msg('ExceptionHandling for release.', 'ok')
 
+    cmake.write('# Flags\n')
+    cmake.write('if(MSVC)\n')
     if debug_flags != '':
         msg('Debug   FLAGS found = ' + debug_flags, 'ok')
-        cmake.write('# Flags for target "Debug"\n')
-        cmake.write('set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}' + debug_flags + '")\n')
+        cmake.write('   # Flags for target "Debug"\n')
+        cmake.write('   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}' + debug_flags + '")\n')
     else:
         msg('No Debug   FLAGS found', '')
     if release_flags != '':
         msg('Release FLAGS found = ' + release_flags, 'ok')
-        cmake.write('# Flags for target "Release"\n')
-        cmake.write('set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}' + release_flags + '")\n')
+        cmake.write('   # Flags for target "Release"\n')
+        cmake.write('   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}' + release_flags + '")\n')
     else:
         msg('No Release FLAGS found', '')
+    cmake.write('endif(MSVC)\n')
 
 def set_macro_definition(tree, ns, cmake):
     """
@@ -544,18 +556,27 @@ def set_dependencies(tree, ns, cmake):
     """
     references = tree.xpath('//ns:ProjectReference', namespaces=ns)
     if references:
-        cmake.write('# Add Dependencies of project.\n# Choose if you want build other CMake project or link with directories.\n')
+        cmake.write(
+            '# Add Dependencies of project.\n# Choose if you want build other CMake project or link with directories.\n')
         cmake.write('option(BUILD_DEPENDS \n' +
-        '   "Point to CMakeLists of other projects" \n' +
-        '   ON \n' +
-        ')\n\n')
-        cmake.write('# Dependencies : disable BUILD_DEPENDS to link with lib already build.\n')
-        cmake.write('if(BUILD_DEPENDS)\n')
-        for ref in references:
-            reference = str(ref.get('Include'))
-            cmake.write(
-                '   add_subdirectory(platform/cmake/' + os.path.splitext(path.basename(reference))[0] +
-                ' ${CMAKE_BINARY_DIR}/' + os.path.splitext(path.basename(reference))[0] + ')\n')
+                    '   "Point to CMakeLists of other projects" \n' +
+                    '   ON \n' +
+                    ')\n\n')
+        if len(dependencies) == 0:
+            cmake.write('# Dependencies : disable BUILD_DEPENDS to link with lib already build.\n')
+            cmake.write('if(BUILD_DEPENDS)\n')
+            for ref in references:
+                reference = str(ref.get('Include'))
+                cmake.write(
+                    '   add_subdirectory(platform/cmake/' + os.path.splitext(path.basename(reference))[0] +
+                    ' ${CMAKE_BINARY_DIR}/' + os.path.splitext(path.basename(reference))[0] + ')\n')
+        else:
+            cmake.write('# Dependencies : disable BUILD_DEPENDS to link with lib already build.\n')
+            cmake.write('if(BUILD_DEPENDS)\n')
+            d = 1
+            for ref in dependencies:
+                cmake.write(
+                    '   add_subdirectory(' + ref + ' ${CMAKE_BINARY_DIR}/lib' + d + ')\n')
         cmake.write('else()\n')
         for ref in references:
             reference = str(ref.get('Include'))
@@ -601,7 +622,7 @@ def link_dependencies(tree, ns, cmake):
                         cmake.write(dep + ' ')
                     cmake.write(')\n')
                     cmake.write('endif(MSVC)\n')
-            cmake.write(')')
+            #cmake.write(')')
         except IndexError:
             msg('No dependencies', '')
     else:
