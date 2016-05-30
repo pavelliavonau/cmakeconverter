@@ -4,7 +4,7 @@ This project aims to facilitate the conversion of Visual Studio (and QT in secon
 
 ## Introduction
 
-The goal of this project is to give to a Python script a `.vcxproj` file and output a CMakeLists.txt.
+The goal of this project is to give to a Python script a **.vcxproj** file and output a **CMakeLists.txt**.
 
 Actually, it **only works** with `.vcxproj` and `c/c++` project.
 
@@ -56,6 +56,7 @@ Open a windows terminal (`WINDOWS-R` and type `cmd`). Go to the directory of scr
 
 * -o : define output. Ex: "../../platform/cmake/"
 * -I : add code from external file.
+* -D : replace folder dependencies found in `.vcxproj` by yours. Ex: "../platform/cmake/dep1:../external/cmake/dep2"
 
 # Use CMake
 
