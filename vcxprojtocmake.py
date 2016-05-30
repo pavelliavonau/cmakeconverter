@@ -32,9 +32,11 @@ def main():
     try:
         input_proj = ''
         output = ''
+        filecode = ''
         parser = argparse.ArgumentParser(description='Convert file.vcxproj to CMakelists.txt')
         parser.add_argument('-p', help='absolute or relative path of a file.vcxproj')
         parser.add_argument('-o', help='define output. Ex: "../../platform/cmake/"')
+        parser.add_argument('-I', help='import cmake filecode from text to your final CMakeLists.txt')
         args = parser.parse_args()
         if args.p is not None:
             file_path = os.path.splitext(args.p)
@@ -47,6 +49,8 @@ def main():
                 print('Sortie = ' + args.o)
             else:
                 msg('This path does not exist. CMakeList will be generated in current directory.', 'error')
+        if args.I is not None:
+            filecode = args.I
 
         """
         Constant Parameter
@@ -55,32 +59,34 @@ def main():
         """
         # input_proj = '../path/to/my.vcxproj'
 
-        create_data(input_proj, output)
+        create_data(input_proj, output, filecode)
     except argparse.ArgumentError:
         sys.exit()
 
-def create_data(input_proj, output):
+def create_data(input_proj, output, filecode):
     """
     Get xml data from vcxproj
     :param input_proj: vcxproj file
     :param output: path for CMakeLists.txt
+    :param filecode: add additional code to your CMakeLists.txt
     """
 
     try:
         tree = etree.parse(input_proj)
         namespace = str(tree.getroot().nsmap)
         ns = {'ns': namespace.partition('\'')[-1].rpartition('\'')[0]}
-        generate_cmake(tree, ns, output)
+        generate_cmake(tree, ns, output, filecode)
     except OSError:
         msg('.vcxproj file can not be import. Please, verify you have rights to access this directory !', 'error')
     except etree.XMLSyntaxError:
         msg('This file is not a file.vcxproj or xml is broken !', 'error')
 
-def generate_cmake(tree, ns, output):
+def generate_cmake(tree, ns, output, filecode):
     """
     :param tree: vcxproj tree
     :param ns: namespace to use
     :param output: path for CMakeLists.txt
+    :param filecode: add additional code to your CMakeLists.txt
     """
 
     """
@@ -108,9 +114,10 @@ def generate_cmake(tree, ns, output):
     set_macro_definition(tree, ns, cmake)
 
     """
-        General Code
+        General and Additional Code
     """
     set_output(tree, ns, cmake)
+    add_additional_code(cmake, filecode)
 
     """
         Dependencies
@@ -138,6 +145,20 @@ def generate_cmake(tree, ns, output):
     link_dependencies(tree, ns, cmake)
 
     cmake.close()
+
+def add_additional_code(cmake, filecode):
+    """
+    :param cmake: CMakeLists to write
+    :param filecode: add additional code to your CMakeLists.txt
+    :return:
+    """
+    print('Fichier = ' + filecode)
+    fc = open(filecode, 'r')
+    cmake.write('# Additional Code \n')
+    for line in fc:
+        cmake.write(line)
+    fc.close()
+
 
 def define_variable(tree, ns, cmake):
     """
@@ -249,8 +270,8 @@ def define_flags(tree, ns, cmake):
     :param cmake: CMakeLists to write
     """
 
-    # TODO : see if below can be refactor
-    # TODO : get Conditions before for PropertyGroup
+    # TODO : add condition for MSVC
+    # TODO : add -std=c++11
     release_flags = ''
     debug_flags = ''
 
@@ -508,7 +529,7 @@ def set_macro_definition(tree, ns, cmake):
     cmake.write('# Definition of Macros and/or Flags\n')
     cmake.write('add_definitions(\n')
     for preproc in preprocessor.text.split(";"):
-        if preproc != '%(PreprocessorDefinitions)':
+        if preproc != '%(PreprocessorDefinitions)' and preproc != 'WIN32':
             cmake.write('   -D' + preproc + ' \n')
             # Unicode
     u = tree.find("//ns:CharacterSet", namespaces=ns)
@@ -557,15 +578,28 @@ def link_dependencies(tree, ns, cmake):
             cmake.write(os.path.splitext(path.basename(reference))[0] + ' ')
             message = 'External librairies : ' + os.path.splitext(path.basename(reference))[0]
             msg(message, 'ok')
+        cmake.write(')\n')
         try:
             if tree.xpath('//ns:AdditionalDependencies', namespaces=ns)[0] is not None:
                 depend = tree.xpath('//ns:AdditionalDependencies', namespaces=ns)[0]
                 if depend.text != '%(AdditionalDependencies)':
                     msg('Additional Dependencies = ' + depend.text, 'ok')
                 listdepends = depend.text
+                windepends = []
                 for d in listdepends.split(';'):
+                    print('ADDITIONAL DEPENDENCIES = ' + d)
                     if d != '%(AdditionalDependencies)':
-                        cmake.write(d + ' ')
+                        if os.path.splitext(d)[1] == '.lib':
+                            windepends.append(d)
+                        #cmake.write(d + ' ')
+                print(windepends)
+                if windepends is not None:
+                    cmake.write('if(MSVC)\n')
+                    cmake.write('   target_link_libraries(${PROJECT_NAME} ')
+                    for dep in windepends:
+                        cmake.write(dep + ' ')
+                    cmake.write(')\n')
+                    cmake.write('endif(MSVC)\n')
             cmake.write(')')
         except IndexError:
             msg('No dependencies', '')

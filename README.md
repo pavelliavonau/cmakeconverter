@@ -55,6 +55,7 @@ Open a windows terminal (`WINDOWS-R` and type `cmd`). Go to the directory of scr
 ### Other options :
 
 * -o : define output. Ex: "../../platform/cmake/"
+* -I : add code from external file.
 
 # Use CMake
 
