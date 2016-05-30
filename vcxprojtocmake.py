@@ -575,7 +575,10 @@ def link_dependencies(tree, ns, cmake):
         cmake.write('target_link_libraries(${PROJECT_NAME} ')
         for ref in references:
             reference = str(ref.get('Include'))
-            cmake.write(os.path.splitext(path.basename(reference))[0] + ' ')
+            lib = os.path.splitext(path.basename(reference))[0]
+            if lib == 'g3log':
+                lib += 'ger'
+            cmake.write(lib + ' ')
             message = 'External librairies : ' + os.path.splitext(path.basename(reference))[0]
             msg(message, 'ok')
         cmake.write(')\n')
@@ -587,12 +590,10 @@ def link_dependencies(tree, ns, cmake):
                 listdepends = depend.text
                 windepends = []
                 for d in listdepends.split(';'):
-                    print('ADDITIONAL DEPENDENCIES = ' + d)
                     if d != '%(AdditionalDependencies)':
                         if os.path.splitext(d)[1] == '.lib':
                             windepends.append(d)
                         #cmake.write(d + ' ')
-                print(windepends)
                 if windepends is not None:
                     cmake.write('if(MSVC)\n')
                     cmake.write('   target_link_libraries(${PROJECT_NAME} ')
