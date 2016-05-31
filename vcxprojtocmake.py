@@ -162,12 +162,13 @@ def add_additional_code(cmake, filecode):
     :param filecode: add additional code to your CMakeLists.txt
     :return:
     """
-    msg('File of Code is added.' + filecode, 'ok')
-    fc = open(filecode, 'r')
-    cmake.write('# Additional Code \n')
-    for line in fc:
-        cmake.write(line)
-    fc.close()
+    if filecode != '':
+        msg('File of Code is added.' + filecode, 'ok')
+        fc = open(filecode, 'r')
+        cmake.write('# Additional Code \n')
+        for line in fc:
+            cmake.write(line)
+        fc.close()
 
 
 def define_variable(tree, ns, cmake):
