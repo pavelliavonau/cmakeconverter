@@ -616,15 +616,14 @@ def link_dependencies(tree, ns, cmake):
         try:
             if tree.xpath('//ns:AdditionalDependencies', namespaces=ns)[0] is not None:
                 depend = tree.xpath('//ns:AdditionalDependencies', namespaces=ns)[0]
-                if depend.text != '%(AdditionalDependencies)':
-                    msg('Additional Dependencies = ' + depend.text, 'ok')
-                listdepends = depend.text
+                listdepends = depend.text.replace('%(AdditionalDependencies)', '')
+                if listdepends != '':
+                    msg('Additional Dependencies = ' + listdepends, 'ok')
                 windepends = []
                 for d in listdepends.split(';'):
                     if d != '%(AdditionalDependencies)':
                         if os.path.splitext(d)[1] == '.lib':
                             windepends.append(d)
-                        #cmake.write(d + ' ')
                 if windepends is not None:
                     cmake.write('if(MSVC)\n')
                     cmake.write('   target_link_libraries(${PROJECT_NAME} ')
@@ -632,7 +631,6 @@ def link_dependencies(tree, ns, cmake):
                         cmake.write(dep + ' ')
                     cmake.write(')\n')
                     cmake.write('endif(MSVC)\n')
-            #cmake.write(')')
         except IndexError:
             msg('No dependencies', '')
     else:
