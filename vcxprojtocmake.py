@@ -245,29 +245,42 @@ def set_output(tree, ns, cmake):
     Set output for each target
     """
     cmake.write('# Define Output Debug of artefacts \n')
-    if tree.find(
-        '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Debug|Win32\'"]/ns:OutDir',
-        namespaces=ns) is not None and tree.find(
+    out_x86d = tree.find(
+            '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Debug|Win32\'"]/ns:OutDir',
+            namespaces=ns)
+    out_x86r = tree.find(
         '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Debug|x64\'"]/ns:OutDir',
-        namespaces=ns) is not None:
+        namespaces=ns)
+    out_x64d = tree.find(
+            '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Release|Win32\'"]/ns:OutDir',
+            namespaces=ns)
+    out_x64r = tree.find(
+        '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Release|x64\'"]/ns:OutDir',
+        namespaces=ns)
+    if out_x86d is not None and out_x86r is not None and out_x64d is not None and out_x64r is not None:
+        cmake.write('option(x64 \n' +
+                    '   "Define x64 output or x86 output" \n' +
+                    '   ON \n' +
+                    ')\n\n')
+    if out_x86d is not None and out_x86r is not None:
         cmake.write('if(CMAKE_BUILD_TYPE EQUAL "Debug")\n')
         cmake.write('  if(x64)\n')
-        cmake.write('    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}${OUTPUT_DEBUG_X64})\n')
+        cmake.write('   set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${OUTPUT_DEBUG_X64}")\n')
+        cmake.write('   message(STATUS "LIBRARY_OUTPUT = ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")\n')
         cmake.write('  else()\n')
-        cmake.write('    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}${OUTPUT_DEBUG_X86})\n')
+        cmake.write('    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${OUTPUT_DEBUG_X86}")\n')
+        cmake.write('   message(STATUS "LIBRARY_OUTPUT = ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")\n')
         cmake.write('  endif()\n')
         cmake.write('endif()\n')
     cmake.write('# Define Output Release of artefacts \n')
-    if tree.find(
-            '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Debug|Win32\'"]/ns:OutDir',
-            namespaces=ns) is not None and tree.find(
-        '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Debug|x64\'"]/ns:OutDir',
-        namespaces=ns) is not None:
+    if out_x64d is not None and out_x64r is not None:
         cmake.write('if(CMAKE_BUILD_TYPE EQUAL "Release")\n')
         cmake.write('  if(x64)\n')
-        cmake.write('    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}${OUTPUT_RELEASE_X64})\n')
+        cmake.write('    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${OUTPUT_RELEASE_X64}")\n')
+        cmake.write('   message(STATUS "LIBRARY_OUTPUT = ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")\n')
         cmake.write('  else()\n')
-        cmake.write('    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_BINARY_DIR}${OUTPUT_RELEASE_X86})\n')
+        cmake.write('    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${OUTPUT_RELEASE_X86}")\n')
+        cmake.write('   message(STATUS "LIBRARY_OUTPUT = ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")\n')
         cmake.write('  endif()\n')
         cmake.write('endif()\n')
     cmake.write('\n')
