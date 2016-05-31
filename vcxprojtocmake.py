@@ -11,6 +11,7 @@ Default Variable
 dependencies = []
 
 def msg(message, status):
+    # TODO : add Warning orange message for more visibility
     FAIL = ''
     OK = ''
     ENDC = ''
@@ -264,24 +265,32 @@ def set_output(tree, ns, cmake):
                     '   ON \n' +
                     ')\n\n')
     if out_x86d is not None and out_x86r is not None:
-        cmake.write('if(CMAKE_BUILD_TYPE EQUAL "Debug")\n')
+        cmake.write('if(CMAKE_BUILD_TYPE STREQUAL "Debug")\n')
         cmake.write('  if(x64)\n')
         cmake.write('   set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${OUTPUT_DEBUG_X64}")\n')
-        cmake.write('   message(STATUS "LIBRARY_OUTPUT = ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")\n')
+        cmake.write('   set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${OUTPUT_DEBUG_X64}")\n')
+        cmake.write('   set(CMAKE_EXECUTABLE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${OUTPUT_DEBUG_X64}")\n')
+        cmake.write('   message(STATUS "ARTEFACTS_OUTPUT = ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")\n')
         cmake.write('  else()\n')
-        cmake.write('    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${OUTPUT_DEBUG_X86}")\n')
-        cmake.write('   message(STATUS "LIBRARY_OUTPUT = ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")\n')
+        cmake.write('   set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${OUTPUT_DEBUG_X86}")\n')
+        cmake.write('   set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${OUTPUT_DEBUG_X86}")\n')
+        cmake.write('   set(CMAKE_EXECUTABLE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${OUTPUT_DEBUG_X86}")\n')
+        cmake.write('   message(STATUS "ARTEFACTS_OUTPUT = ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")\n')
         cmake.write('  endif()\n')
         cmake.write('endif()\n')
     cmake.write('# Define Output Release of artefacts \n')
     if out_x64d is not None and out_x64r is not None:
-        cmake.write('if(CMAKE_BUILD_TYPE EQUAL "Release")\n')
+        cmake.write('if(CMAKE_BUILD_TYPE STREQUAL "Release")\n')
         cmake.write('  if(x64)\n')
-        cmake.write('    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${OUTPUT_RELEASE_X64}")\n')
-        cmake.write('   message(STATUS "LIBRARY_OUTPUT = ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")\n')
+        cmake.write('   set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${OUTPUT_RELEASE_X64}")\n')
+        cmake.write('   set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${OUTPUT_RELEASE_X64}")\n')
+        cmake.write('   set(CMAKE_EXECUTABLE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${OUTPUT_RELEASE_X64}")\n')
+        cmake.write('   message(STATUS "ARTEFACTS_OUTPUT = ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")\n')
         cmake.write('  else()\n')
-        cmake.write('    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${OUTPUT_RELEASE_X86}")\n')
-        cmake.write('   message(STATUS "LIBRARY_OUTPUT = ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")\n')
+        cmake.write('   set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${OUTPUT_RELEASE_X86}")\n')
+        cmake.write('   set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${OUTPUT_RELEASE_X86}")\n')
+        cmake.write('   set(CMAKE_EXECUTABLE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${OUTPUT_RELEASE_X86}")\n')
+        cmake.write('   message(STATUS "ARTEFACTS_OUTPUT = ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}")\n')
         cmake.write('  endif()\n')
         cmake.write('endif()\n')
     cmake.write('\n')
@@ -294,7 +303,6 @@ def define_flags(tree, ns, cmake):
     :param cmake: CMakeLists to write
     """
 
-    # TODO : add -std=c++11
     release_flags = ''
     debug_flags = ''
 
