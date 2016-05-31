@@ -38,7 +38,7 @@ def main():
         parser.add_argument('-p', help='absolute or relative path of a file.vcxproj')
         parser.add_argument('-o', help='define output. Ex: "../../platform/cmake/"')
         parser.add_argument('-I', help='import cmake filecode from text to your final CMakeLists.txt')
-        parser.add_argument('-D', help='add dependencies to project. Ex: "../platform/cmake/dep1:../external/cmake/dep2"')
+        parser.add_argument('-D', help='replace dependencies found in .vcxproj by custom. Ex: "../platform/cmake/dep1:../external/cmake/dep2"')
         args = parser.parse_args()
         if args.p is not None:
             file_path = os.path.splitext(args.p)
@@ -518,6 +518,15 @@ def define_flags(tree, ns, cmake):
         msg('ExceptionHandling for release.', 'ok')
 
     cmake.write('# Flags\n')
+    # Define FLAGS for Linux compiler
+    cmake.write('if(NOT MSVC)\n')
+    cmake.write('   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")\n')
+    cmake.write('   if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")\n')
+    cmake.write('       set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")\n')
+    cmake.write('   endif()\n')
+    cmake.write('endif(NOT MSVC)\n')
+
+    #Define FLAGS for Windows
     cmake.write('if(MSVC)\n')
     if debug_flags != '':
         msg('Debug   FLAGS found = ' + debug_flags, 'ok')
@@ -576,7 +585,8 @@ def set_dependencies(tree, ns, cmake):
             d = 1
             for ref in dependencies:
                 cmake.write(
-                    '   add_subdirectory(' + ref + ' ${CMAKE_BINARY_DIR}/lib' + d + ')\n')
+                    '   add_subdirectory(' + ref + ' ${CMAKE_BINARY_DIR}/lib' + str(d) + ')\n')
+                d += 1
         cmake.write('else()\n')
         for ref in references:
             reference = str(ref.get('Include'))
