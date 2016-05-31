@@ -9,6 +9,7 @@ import sys, argparse, os
 Default Variable
 """
 dependencies = []
+output_artefact = ''
 
 def msg(message, status):
     # TODO : add Warning orange message for more visibility
@@ -37,9 +38,10 @@ def main():
         filecode = ''
         parser = argparse.ArgumentParser(description='Convert file.vcxproj to CMakelists.txt')
         parser.add_argument('-p', help='absolute or relative path of a file.vcxproj')
-        parser.add_argument('-o', help='define output. Ex: "../../platform/cmake/"')
+        parser.add_argument('-o', help='define output.')
         parser.add_argument('-I', help='import cmake filecode from text to your final CMakeLists.txt')
-        parser.add_argument('-D', help='replace dependencies found in .vcxproj by custom. Ex: "../platform/cmake/dep1:../external/cmake/dep2"')
+        parser.add_argument('-D', help='replace dependencies found in .vcxproj by yours. Separated by colons.')
+        parser.add_argument('-O', help='define output of artefact produces by CMake.')
         args = parser.parse_args()
         if args.p is not None:
             file_path = os.path.splitext(args.p)
@@ -58,6 +60,10 @@ def main():
         if args.D is not None:
             global dependencies
             dependencies = args.D.split(':')
+
+        if args.O is not None:
+            global output_artefact
+            output_artefact = args.O
 
         """
         Constant Parameter
@@ -211,28 +217,42 @@ def define_variable(tree, ns, cmake):
 
     # Output DIR of artefacts
     cmake.write('# Output Variables\n')
-    path_debug_x86 = tree.find(
-        '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Debug|Win32\'"]/ns:OutDir',
-        namespaces=ns)
-    output_deb_x86 = path_debug_x86.text.replace('$(ProjectDir)', '').replace('\\', '/')
+    output_deb_x86 = ''
+    output_deb_x64 = ''
+    output_rel_x86 = ''
+    output_rel_x64 = ''
+    if output_artefact == '':
+        path_debug_x86 = tree.find(
+            '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Debug|Win32\'"]/ns:OutDir',
+            namespaces=ns)
+        output_deb_x86 = path_debug_x86.text.replace('$(ProjectDir)', '').replace('\\', '/')
+        path_debug_x64 = tree.find(
+            '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Debug|x64\'"]/ns:OutDir',
+            namespaces=ns)
+        output_deb_x64 = path_debug_x64.text.replace('$(ProjectDir)', '').replace('\\', '/')
+        path_release_x86 = tree.find(
+            '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Release|Win32\'"]/ns:OutDir',
+            namespaces=ns)
+        output_rel_x86 = path_release_x86.text.replace('$(ProjectDir)', '').replace('\\', '/')
+        path_release_x64 = tree.find(
+            '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Release|x64\'"]/ns:OutDir',
+            namespaces=ns)
+        output_rel_x64 = path_release_x64.text.replace('$(ProjectDir)', '').replace('\\', '/')
+    else:
+        output_deb_x86 = output_artefact
+        output_deb_x64 = output_artefact
+        output_rel_x86 = output_artefact
+        output_rel_x64 = output_artefact
+
     msg('Output Debug x86 = ' + output_deb_x86, 'ok')
     cmake.write('set(OUTPUT_DEBUG_X86 ' + output_deb_x86 + ')\n')
-    path_debug_x64 = tree.find(
-        '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Debug|x64\'"]/ns:OutDir',
-        namespaces=ns)
-    output_deb_x64 = path_debug_x64.text.replace('$(ProjectDir)', '').replace('\\', '/')
+
     msg('Output Debug x64 = ' + output_deb_x64, 'ok')
     cmake.write('set(OUTPUT_DEBUG_X64 ' + output_deb_x64 + ')\n')
-    path_release_x86 = tree.find(
-        '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Release|Win32\'"]/ns:OutDir',
-        namespaces=ns)
-    output_rel_x86 = path_release_x86.text.replace('$(ProjectDir)', '').replace('\\', '/')
+
     msg('Output Release x86 = ' + output_rel_x86, 'ok')
     cmake.write('set(OUTPUT_REL_X86 ' + output_rel_x86 + ')\n')
-    path_release_x64 = tree.find(
-        '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Release|x64\'"]/ns:OutDir',
-        namespaces=ns)
-    output_rel_x64 = path_release_x64.text.replace('$(ProjectDir)', '').replace('\\', '/')
+
     msg('Output Release x64 = ' + output_rel_x64, 'ok')
     cmake.write('set(OUTPUT_REL_X64 ' + output_rel_x64 + ')\n')
 
