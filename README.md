@@ -42,6 +42,7 @@ Script provides other option to facilitate conversion of your Visual Studio proj
 * **-I** : add cmake code from external file. Be sure your code is valid. Please read [CMake 3.5 Official Documentation](https://cmake.org/cmake/help/v3.5/release/3.5.html) to know more.
 * **-D** : replace folder dependencies found in `.vcxproj` by other. Usefull for those who have other CMake project in other folders.
 * **-O** : add possibility to define output of artefacts.
+* **-i** : include additional directories if set "True". Default "False".
 
 **Full Example :**
 
@@ -51,7 +52,8 @@ Script provides other option to facilitate conversion of your Visual Studio proj
 > -I additional_code.txt \
 > -o ../project/platform/cmake/mylib/ \
 > -D ../../../external/zlib/platform/cmake/:../../../external/g3log/platform/cmake/
-> -O ../../build/x64/Debug/
+> -O ../../build/x64/\${CMAKE_BUILD_TYPE}/
+> -i True
 ```
 
 # Use CMake

@@ -10,10 +10,12 @@ Default Variable
 """
 dependencies = []
 output_artefact = ''
+include_directories = False
 
 def msg(message, status):
     # TODO : add Warning orange message for more visibility
     FAIL = ''
+    WARN = ''
     OK = ''
     ENDC = ''
 
@@ -21,8 +23,11 @@ def msg(message, status):
         FAIL += '\033[91m'
         OK += '\033[34m'
         ENDC += '\033[0m'
+        WARN += '\033[93m'
     if status == 'error':
         print('ERR  : ' + FAIL + message + ENDC)
+    elif status == 'warn':
+        print('WARN : ' + WARN + message + ENDC)
     elif status == 'ok':
         print('OK   : ' + OK + message + ENDC)
     else:
@@ -40,6 +45,7 @@ def main():
         parser.add_argument('-p', help='absolute or relative path of a file.vcxproj')
         parser.add_argument('-o', help='define output.')
         parser.add_argument('-I', help='import cmake filecode from text to your final CMakeLists.txt')
+        parser.add_argument('-i', help='add include directories in CMakeLists.txt. Default : False')
         parser.add_argument('-D', help='replace dependencies found in .vcxproj by yours. Separated by colons.')
         parser.add_argument('-O', help='define output of artefact produces by CMake.')
         args = parser.parse_args()
@@ -64,6 +70,11 @@ def main():
         if args.O is not None:
             global output_artefact
             output_artefact = args.O
+
+        if args.i is not None:
+            global include_directories
+            if args.i == 'True':
+                include_directories = True
 
         """
         Constant Parameter
@@ -112,7 +123,7 @@ def generate_cmake(tree, ns, output, filecode):
     if output is None:
         msg('CMakeLists will be build in current directory.', 'ok')
     else:
-        msg('CmakeLists.txt will be build in : ' + output, 'ok')
+        msg('CmakeLists.txt will be build in : ' + output, 'warn')
     cmakelists = output + 'CMakeLists.txt'
     cmake = open(cmakelists, 'w')
 
@@ -130,6 +141,11 @@ def generate_cmake(tree, ns, output, filecode):
         General Code
     """
     set_output(tree, ns, cmake)
+
+    """
+        Include Directories
+    """
+    set_include_directories(tree, ns, cmake)
 
     """
         Dependencies
@@ -170,12 +186,15 @@ def add_additional_code(cmake, filecode):
     :return:
     """
     if filecode != '':
-        msg('File of Code is added.' + filecode, 'ok')
-        fc = open(filecode, 'r')
-        cmake.write('# Additional Code \n')
-        for line in fc:
-            cmake.write(line)
-        fc.close()
+        try:
+            fc = open(filecode, 'r')
+            cmake.write('# Additional Code \n')
+            for line in fc:
+                cmake.write(line)
+            fc.close()
+            msg('File of Code is added = ' + filecode, 'warn')
+        except OSError:
+            msg('Wrong data file ! Code was not added, please verify file name or path !', 'error')
 
 
 def define_variable(tree, ns, cmake):
@@ -217,10 +236,6 @@ def define_variable(tree, ns, cmake):
 
     # Output DIR of artefacts
     cmake.write('# Output Variables\n')
-    output_deb_x86 = ''
-    output_deb_x64 = ''
-    output_rel_x86 = ''
-    output_rel_x64 = ''
     if output_artefact == '':
         path_debug_x86 = tree.find(
             '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Debug|Win32\'"]/ns:OutDir',
@@ -561,8 +576,19 @@ def define_flags(tree, ns, cmake):
 
     cmake.write('# Flags\n')
     # Define FLAGS for Linux compiler
+    linux_flags = '-std=c++11'
+    references = tree.xpath('//ns:ProjectReference', namespaces=ns)
+    if references:
+        cmake.write('# Link with other dependencies.\n')
+        cmake.write('target_link_libraries(${PROJECT_NAME} ')
+        for ref in references:
+            reference = str(ref.get('Include'))
+            lib = os.path.splitext(path.basename(reference))[0]
+            if (lib == 'lemon' or lib == 'zlib') and '-fPIC' not in linux_flags:
+                linux_flags += ' -fPIC'
+
     cmake.write('if(NOT MSVC)\n')
-    cmake.write('   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")\n')
+    cmake.write('   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ' + linux_flags + '")\n')
     cmake.write('   if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")\n')
     cmake.write('       set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")\n')
     cmake.write('   endif()\n')
@@ -601,6 +627,20 @@ def set_macro_definition(tree, ns, cmake):
         cmake.write('   -D_UNICODE\n')
     cmake.write(')\n\n')
 
+def set_include_directories(tree, ns, cmake):
+    """
+    Include Directories : Add include directories required for compilation.
+    """
+    if include_directories:
+        includes_dir = tree.find('//ns:ItemGroup/ns:ClCompile/', namespaces=ns)
+        inc_dir = includes_dir.text.replace('$(ProjectDir)', '')
+        for i in inc_dir.split(';'):
+            cmake.write('include_directories(' + i.replace('\\', '/') + ')\n')
+            msg('Include Directories found : ' + i.replace('\\', '/'), 'warn')
+    else:
+        msg('Include Directories is not set.', '')
+
+
 def set_dependencies(tree, ns, cmake):
     """
     Dependencies : Add subdirectories or link directories for external libraries.
@@ -628,6 +668,7 @@ def set_dependencies(tree, ns, cmake):
             for ref in dependencies:
                 cmake.write(
                     '   add_subdirectory(' + ref + ' ${CMAKE_BINARY_DIR}/lib' + str(d) + ')\n')
+                msg('Add manually dependencies : ' + ref + '. Will be build in "lib' + str(d) + '/" !', 'warn')
                 d += 1
         cmake.write('else()\n')
         for ref in references:
