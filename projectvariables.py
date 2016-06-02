@@ -9,16 +9,26 @@ class ProjectVariables(object):
         self.tree = data['vcxproj']['tree']
         self.ns = data['vcxproj']['ns']
         self.output = data['cmake_output']
+        self.out_deb_x86 = self.tree.find(
+            '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Debug|Win32\'"]/ns:OutDir',
+            namespaces=self.ns)
+        self.out_deb_x64 = self.tree.find(
+            '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Debug|x64\'"]/ns:OutDir',
+            namespaces=self.ns)
+        self.out_rel_x86 = self.tree.find(
+            '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Release|Win32\'"]/ns:OutDir',
+            namespaces=self.ns)
+        self.out_rel_x64 = self.tree.find(
+            '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Release|x64\'"]/ns:OutDir',
+            namespaces=self.ns)
+
 
     def define_variable(self):
         """
         Variable : define main variables in CMakeLists.
         :return header and cpp folder founds.
         """
-        # self.data = data
-        # cmake = self.data['cmake']
-        # tree = self.data['vcxproj']['tree']
-        # ns = self.data['vcxproj']['ns']
+
 
         # CMake Minimum required.
         self.cmake.write('cmake_minimum_required(VERSION 3.0.0 FATAL_ERROR)\n\n')
@@ -54,23 +64,11 @@ class ProjectVariables(object):
 
         # Output DIR of artefacts
         self.cmake.write('# Output Variables\n')
-        if self.output == '':
-            path_debug_x86 = self.tree.find(
-                '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Debug|Win32\'"]/ns:OutDir',
-                namespaces=self.ns)
-            output_deb_x86 = path_debug_x86.text.replace('$(ProjectDir)', '').replace('\\', '/')
-            path_debug_x64 = self.tree.find(
-                '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Debug|x64\'"]/ns:OutDir',
-                namespaces=self.ns)
-            output_deb_x64 = path_debug_x64.text.replace('$(ProjectDir)', '').replace('\\', '/')
-            path_release_x86 = self.tree.find(
-                '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Release|Win32\'"]/ns:OutDir',
-                namespaces=self.ns)
-            output_rel_x86 = path_release_x86.text.replace('$(ProjectDir)', '').replace('\\', '/')
-            path_release_x64 = self.tree.find(
-                '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Release|x64\'"]/ns:OutDir',
-                namespaces=self.ns)
-            output_rel_x64 = path_release_x64.text.replace('$(ProjectDir)', '').replace('\\', '/')
+        if self.output is None:
+            output_deb_x86 = self.out_deb_x86.text.replace('$(ProjectDir)', '').replace('\\', '/')
+            output_deb_x64 = self.out_deb_x64.text.replace('$(ProjectDir)', '').replace('\\', '/')
+            output_rel_x86 = self.out_rel_x86.text.replace('$(ProjectDir)', '').replace('\\', '/')
+            output_rel_x64 = self.out_rel_x64.text.replace('$(ProjectDir)', '').replace('\\', '/')
         else:
             output_deb_x86 = self.output
             output_deb_x64 = self.output
@@ -99,24 +97,15 @@ class ProjectVariables(object):
         Set output for each target
         """
         self.cmake.write('# Define Output Debug of artefacts \n')
-        out_x86d = self.tree.find(
-            '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Debug|Win32\'"]/ns:OutDir',
-            namespaces=self.ns)
-        out_x86r = self.tree.find(
-            '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Debug|x64\'"]/ns:OutDir',
-            namespaces=self.ns)
-        out_x64d = self.tree.find(
-            '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Release|Win32\'"]/ns:OutDir',
-            namespaces=self.ns)
-        out_x64r = self.tree.find(
-            '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Release|x64\'"]/ns:OutDir',
-            namespaces=self.ns)
-        if out_x86d is not None and out_x86r is not None and out_x64d is not None and out_x64r is not None:
+        if self.out_deb_x86 is not None \
+                and self.out_deb_x64 is not None \
+                and self.out_rel_x86 is not None \
+                and self.out_rel_x64 is not None:
             self.cmake.write('option(x64 \n' +
                         '   "Define x64 output or x86 output" \n' +
                         '   ON \n' +
                         ')\n\n')
-        if out_x86d is not None and out_x86r is not None:
+        if self.out_deb_x86 is not None and self.out_deb_x64 is not None:
             self.cmake.write('if(CMAKE_BUILD_TYPE STREQUAL "Debug")\n')
             self.cmake.write('  if(x64)\n')
             self.cmake.write('   set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${OUTPUT_DEBUG_X64}")\n')
@@ -131,7 +120,7 @@ class ProjectVariables(object):
             self.cmake.write('  endif()\n')
             self.cmake.write('endif()\n')
         self.cmake.write('# Define Output Release of artefacts \n')
-        if out_x64d is not None and out_x64r is not None:
+        if self.out_rel_x86 is not None and self.out_rel_x64 is not None:
             self.cmake.write('if(CMAKE_BUILD_TYPE STREQUAL "Release")\n')
             self.cmake.write('  if(x64)\n')
             self.cmake.write('   set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${OUTPUT_RELEASE_X64}")\n')
