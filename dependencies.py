@@ -13,7 +13,6 @@ class Dependencies(object):
         self.cmake = data['cmake']
         self.tree = data['vcxproj']['tree']
         self.ns = data['vcxproj']['ns']
-        # self.include_dir = data['includes']
         self.dependencies = data['dependencies']
 
     def write_include_dir(self):

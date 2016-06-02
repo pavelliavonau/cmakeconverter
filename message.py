@@ -3,6 +3,12 @@
 import os
 
 def send(message, status):
+    """
+    send message during execution of script
+    :param message: content of message
+    :param status: level of message
+    :return:
+    """
     FAIL = ''
     WARN = ''
     OK = ''

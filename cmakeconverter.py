@@ -17,7 +17,7 @@ def parse_argument():
         'vcxproj': None,
         'cmake': None,
         'additional_code': None,
-        'include': None,
+        'includes': None,
         'dependencies': None,
         'cmake_output': None,
         'data': None
@@ -62,14 +62,11 @@ def parse_argument():
 
     if args.i is not None:
         if args.i == 'True':
-            data['include'] = True
+            data['includes'] = True
 
     # Give all to class: conversata
     all_data = cv.ConvertData(data)
     all_data.create_data()
-
-    # for keys, values in all_data.get_arguments().items():
-    #     print(keys + ' = ' + str(values))
 
 if __name__ == "__main__":
     parse_argument()

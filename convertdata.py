@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 
 import projectvariables as pv
-import macro
+import message as msg
+import macro, dependencies
 
 class ConvertData:
     """
-    This class will convert data to CMakeLists.txt.
+    ConvertData: will convert data to CMakeLists.txt.
     """
 
     def __init__(self, data=None):
@@ -18,10 +19,20 @@ class ConvertData:
 
         # Write Macro
         macro_project = macro.Macro()
-        macro_project.set_macro_definition(self.data)
+        macro_project.write_macro(self.data)
 
         # Write output variables
-        variables.set_output()
+        variables.write_output()
+
+        # Write include directories
+        depends = dependencies.Dependencies(self.data)
+        if self.data['includes']:
+            depends.write_include_dir()
+        else:
+            msg.send('Include Directories is not set.', '')
+
+        # Write dependencies
+        depends.write_dependencies()
 
     def get_arguments(self):
         return self.data

@@ -2,7 +2,7 @@
 
 class Macro(object):
 
-    def set_macro_definition(tree, data):
+    def write_macro(self, data):
         """
         Definitions : get Macro definitions.
         """

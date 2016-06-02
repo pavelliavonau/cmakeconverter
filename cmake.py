@@ -2,6 +2,9 @@
 import message as msg
 
 class CMake(object):
+    """
+    CMake : create and open CMakeLists.txt
+    """
 
     def __init__(self):
         self.cmake = None

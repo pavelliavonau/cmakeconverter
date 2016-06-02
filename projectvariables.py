@@ -3,6 +3,9 @@
 import message as msg
 
 class ProjectVariables(object):
+    """
+    ProjectVariables : defines all the variables to be used by the project
+    """
 
     def __init__(self, data):
         self.cmake = data['cmake']
@@ -92,7 +95,7 @@ class ProjectVariables(object):
         self.cmake.write('# Define Project.\n')
         self.cmake.write('project(${PROJECT_NAME} CXX)\n\n')
 
-    def set_output(self):
+    def write_output(self):
         """
         Set output for each target
         """
