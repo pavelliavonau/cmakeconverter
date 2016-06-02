@@ -44,7 +44,7 @@ def main():
         parser = argparse.ArgumentParser(description='Convert file.vcxproj to CMakelists.txt')
         parser.add_argument('-p', help='absolute or relative path of a file.vcxproj')
         parser.add_argument('-o', help='define output.')
-        parser.add_argument('-I', help='import cmake filecode from text to your final CMakeLists.txt')
+        parser.add_argument('-I', help='import cmake.py filecode from text to your final CMakeLists.txt')
         parser.add_argument('-i', help='add include directories in CMakeLists.txt. Default : False')
         parser.add_argument('-D', help='replace dependencies found in .vcxproj by yours. Separated by colons.')
         parser.add_argument('-O', help='define output of artefact produces by CMake.')
@@ -118,7 +118,7 @@ def generate_cmake(tree, ns, output, filecode):
     ----------
     > Uncomment following line to use this script without parameters
     """
-    # output = '../../platform/cmake/'
+    # output = '../../platform/cmake.py/'
 
     if output is None:
         msg('CMakeLists will be build in current directory.', 'ok')
@@ -659,7 +659,7 @@ def set_dependencies(tree, ns, cmake):
             for ref in references:
                 reference = str(ref.get('Include'))
                 cmake.write(
-                    '   add_subdirectory(platform/cmake/' + os.path.splitext(path.basename(reference))[0] +
+                    '   add_subdirectory(platform/cmake.py/' + os.path.splitext(path.basename(reference))[0] +
                     ' ${CMAKE_BINARY_DIR}/' + os.path.splitext(path.basename(reference))[0] + ')\n')
         else:
             cmake.write('# Dependencies : disable BUILD_DEPENDS to link with lib already build.\n')
