@@ -10,8 +10,7 @@ class Vcxproj(object):
     """
 
     def __init__(self):
-        self.ns = ''
-        self.tree = ''
+        self.vcxproj = ''
 
     def create_data(self, vcxproj=''):
         """
@@ -19,14 +18,18 @@ class Vcxproj(object):
         """
 
         try:
-            self.tree = etree.parse(vcxproj)
-            namespace = str(self.tree.getroot().nsmap)
-            self.ns = {'ns': namespace.partition('\'')[-1].rpartition('\'')[0]}
+            tree = etree.parse(vcxproj)
+            namespace = str(tree.getroot().nsmap)
+            ns = {'ns': namespace.partition('\'')[-1].rpartition('\'')[0]}
+
+            self.vcxproj = {
+                'tree': tree,
+                'ns': ns
+            }
         except OSError:
             msg.send('.vcxproj file can not be import. Please, verify you have rights to access this directory !', 'error')
         except etree.XMLSyntaxError:
             msg.send('This file is not a file.vcxproj or xml is broken !', 'error')
 
     def get_data(self):
-        vcxproj = [self.tree, self.ns]
-        return vcxproj
+        return self.vcxproj
