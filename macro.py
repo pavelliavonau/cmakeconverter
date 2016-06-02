@@ -1,0 +1,24 @@
+# -*- coding: utf-8 -*-
+
+class Macro(object):
+
+    def set_macro_definition(tree, data):
+        """
+        Definitions : get Macro definitions.
+        """
+        tree = data['vcxproj']['tree']
+        ns = data['vcxproj']['ns']
+        cmake = data['cmake']
+
+        preprocessor = tree.xpath('//ns:PreprocessorDefinitions', namespaces=ns)[0]
+        cmake.write('# Definition of Macros and/or Flags\n')
+        cmake.write('add_definitions(\n')
+        for preproc in preprocessor.text.split(";"):
+            if preproc != '%(PreprocessorDefinitions)' and preproc != 'WIN32':
+                cmake.write('   -D' + preproc + ' \n')
+                # Unicode
+        u = tree.find("//ns:CharacterSet", namespaces=ns)
+        if 'Unicode' in u.text:
+            cmake.write('   -DUNICODE\n')
+            cmake.write('   -D_UNICODE\n')
+        cmake.write(')\n\n')

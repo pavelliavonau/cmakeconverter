@@ -21,7 +21,6 @@ class Vcxproj(object):
             tree = etree.parse(vcxproj)
             namespace = str(tree.getroot().nsmap)
             ns = {'ns': namespace.partition('\'')[-1].rpartition('\'')[0]}
-
             self.vcxproj = {
                 'tree': tree,
                 'ns': ns

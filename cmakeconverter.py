@@ -4,8 +4,7 @@
 import os, argparse
 import message as msg
 import convertdata as cv
-import cmake
-import cmakeconverter
+import cmake, vcxproj
 
 # class CMakeConverter(object):
 
@@ -14,8 +13,8 @@ def parse_argument():
     Main script : define arguments and send to convertdata.
     """
 
-    arguments = {
-        'vcxpath': None,
+    data = {
+        'vcxproj': None,
         'cmake': None,
         'additional_code': None,
         'include': None,
@@ -39,34 +38,38 @@ def parse_argument():
     if args.p is not None:
         temp_path = os.path.splitext(args.p)
         if temp_path[1] == '.vcxproj':
-            arguments['vcxpath'] = args.p
             msg.send('Project to convert = ' + args.p, '')
+            project = vcxproj.Vcxproj()
+            project.create_data(args.p)
+            data['vcxproj'] = project.get_data()
+
     if args.o is not None:
         if os.path.exists(args.o):
             cmakelists = cmake.CMake()
             cmakelists.create_cmake(args.o)
-            arguments['cmake'] = cmakelists.get_cmake()
+            data['cmake'] = cmakelists.get_cmake()
             msg.send('Output = ' + args.o, 'ok')
         else:
             msg.send('This path does not exist. CMakeList will be generated in current directory.', 'error')
     if args.I is not None:
-        arguments['additional_code'] = args.I
+        data['additional_code'] = args.I
 
     if args.D is not None:
-        arguments['dependencies'] = args.D.split(':')
+        data['dependencies'] = args.D.split(':')
 
     if args.O is not None:
-        arguments['cmake_output'] = args.O
+        data['cmake_output'] = args.O
 
     if args.i is not None:
         if args.i == 'True':
-            arguments['include'] = True
+            data['include'] = True
 
     # Give all to class: conversata
-    data = cv.ConvertData(arguments)
+    all_data = cv.ConvertData(data)
+    all_data.create_data()
 
-    for keys, values in data.get_arguments().items():
-        print(keys + ' = ' + str(values))
+    # for keys, values in all_data.get_arguments().items():
+    #     print(keys + ' = ' + str(values))
 
 if __name__ == "__main__":
     parse_argument()
