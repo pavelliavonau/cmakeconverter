@@ -13,12 +13,15 @@ class ConvertData:
 
     def create_data(self):
         # Write variables
-        variables = pv.ProjectVariables()
-        variables.define_variable(self.data)
+        variables = pv.ProjectVariables(self.data)
+        variables.define_variable()
 
         # Write Macro
         macro_project = macro.Macro()
         macro_project.set_macro_definition(self.data)
+
+        # Write output variables
+        variables.set_output()
 
     def get_arguments(self):
         return self.data
