@@ -1,3 +1,4 @@
 *.vcxproj
 .idea/
 CMakeLists.txt
+__pycache__/
