@@ -19,12 +19,14 @@ class Dependencies(object):
         """
         Include Directories : Add include directories required for compilation.
         """
-        incl_dir = self.tree.find('//ns:ItemGroup/ns:ClCompile/', namespaces=self.ns)
+        incl_dir = self.tree.find('//ns:ItemGroup/ns:ClCompile/ns:AdditionalIncludeDirectories', namespaces=self.ns)
         if incl_dir is not None:
+            self.cmake.write('# Include directories \n')
             inc_dir = incl_dir.text.replace('$(ProjectDir)', '')
             for i in inc_dir.split(';'):
                 self.cmake.write('include_directories(' + i.replace('\\', '/') + ')\n')
                 msg.send('Include Directories found : ' + i.replace('\\', '/'), 'warn')
+            self.cmake.write('\n')
         else:
             msg.send('Include Directories not found for this project.', 'warn')
 
@@ -35,7 +37,7 @@ class Dependencies(object):
         references = self.tree.xpath('//ns:ProjectReference', namespaces=self.ns)
         if references:
             self.cmake.write(
-                '# Add Dependencies of project.\n# Choose if you want build other CMake project or link with directories.\n')
+                '# Add Dependencies of project : choose if you want build other CMake project or link with directories.\n')
             self.cmake.write('option(BUILD_DEPENDS \n' +
                         '   "Point to CMakeLists of other projects" \n' +
                         '   ON \n' +

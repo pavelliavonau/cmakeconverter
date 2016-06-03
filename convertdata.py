@@ -2,7 +2,7 @@
 
 import projectvariables as pv
 import message as msg
-import macro, dependencies
+import macro, dependencies, flags
 
 class ConvertData:
     """
@@ -21,18 +21,22 @@ class ConvertData:
         macro_project = macro.Macro()
         macro_project.write_macro(self.data)
 
-        # Write output variables
+        # Write Output Variables
         variables.write_output()
 
-        # Write include directories
+        # Write Include Directories
         depends = dependencies.Dependencies(self.data)
         if self.data['includes']:
             depends.write_include_dir()
         else:
             msg.send('Include Directories is not set.', '')
 
-        # Write dependencies
+        # Write Dependencies
         depends.write_dependencies()
+
+        # Write Flags
+        all_flags = flags.Flags(self.data)
+        all_flags.write_flags()
 
     def get_arguments(self):
         return self.data
