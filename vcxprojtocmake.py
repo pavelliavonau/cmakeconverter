@@ -579,8 +579,6 @@ def define_flags(tree, ns, cmake):
     linux_flags = '-std=c++11'
     references = tree.xpath('//ns:ProjectReference', namespaces=ns)
     if references:
-        cmake.write('# Link with other dependencies.\n')
-        cmake.write('target_link_libraries(${PROJECT_NAME} ')
         for ref in references:
             reference = str(ref.get('Include'))
             lib = os.path.splitext(path.basename(reference))[0]
