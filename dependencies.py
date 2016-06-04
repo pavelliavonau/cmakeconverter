@@ -39,11 +39,11 @@ class Dependencies(object):
             self.cmake.write(
                 '# Add Dependencies of project : choose if you want build other CMake project or link with directories.\n')
             self.cmake.write('option(BUILD_DEPENDS \n' +
-                        '   "Point to CMakeLists of other projects" \n' +
+                        '   "Build other CMake project." \n' +
                         '   ON \n' +
                         ')\n\n')
-            if len(self.dependencies) == 0:
-                self.cmake.write('# Dependencies : disable BUILD_DEPENDS to link with lib already build.\n')
+            self.cmake.write('# Dependencies : disable BUILD_DEPENDS to link with lib already build.\n')
+            if self.dependencies is None:
                 self.cmake.write('if(BUILD_DEPENDS)\n')
                 for ref in references:
                     reference = str(ref.get('Include'))
@@ -51,7 +51,6 @@ class Dependencies(object):
                         '   add_subdirectory(platform/cmake.py/' + os.path.splitext(path.basename(reference))[0] +
                         ' ${CMAKE_BINARY_DIR}/' + os.path.splitext(path.basename(reference))[0] + ')\n')
             else:
-                self.cmake.write('# Dependencies : disable BUILD_DEPENDS to link with lib already build.\n')
                 self.cmake.write('if(BUILD_DEPENDS)\n')
                 d = 1
                 for ref in self.dependencies:

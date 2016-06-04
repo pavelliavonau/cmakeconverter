@@ -15,12 +15,16 @@ class ConvertData:
 
     def create_data(self):
         # Write variables
+
         variables = pv.ProjectVariables(self.data)
         variables.define_variable()
+        files = pf.ProjectFiles(self.data)
+        files.write_variables()
+        variables.define_project()
 
         # Write Macro
-        macro_project = macro.Macro()
-        macro_project.write_macro(self.data)
+        macros = macro.Macro()
+        macros.write_macro(self.data)
 
         # Write Output Variables
         variables.write_output()
@@ -40,11 +44,7 @@ class ConvertData:
         all_flags.write_flags()
 
         # Write Files
-        files = pf.ProjectFiles(self.data)
-        files.find_files()
-        files.add_recursefiles()
-        pf.get_c_folder_nb()
-        pf.get_h_folder_nb()
+        files.write_files()
 
     def get_arguments(self):
         return self.data

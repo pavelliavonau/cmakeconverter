@@ -12,7 +12,7 @@ class ProjectFiles(object):
         self.headerfiles = self.tree.xpath('//ns:ClInclude', namespaces=self.ns)
 
     # TODO : put this method in projectvariables file
-    def find_files(self):
+    def write_variables(self):
         global c_folder_nb
         global h_folder_nb
 
@@ -25,7 +25,7 @@ class ProjectFiles(object):
                 current_cpp = '/'.join(cxx.split('\\')[0:-1])
                 if current_cpp not in known_cpp:
                     known_cpp.append(current_cpp)
-                    # self.cmake.write('set(CPP_DIR_' + str(c_folder_nb) + ' ' + current_cpp + ')\n')
+                    self.cmake.write('set(CPP_DIR_' + str(c_folder_nb) + ' ' + current_cpp + ')\n')
                     c_folder_nb += 1
 
         # Headers Dir
@@ -36,17 +36,18 @@ class ProjectFiles(object):
             current_header = '/'.join(h.split('\\')[0:-1])
             if current_header not in known_headers:
                 known_headers.append(current_header)
-                # self.cmake.write('set(HEADER_DIR_' + str(h_folder_nb) + ' ' + current_header + ')\n')
+                self.cmake.write('set(HEADER_DIR_' + str(h_folder_nb) + ' ' + current_header + ')\n')
                 h_folder_nb += 1
 
-    def add_recursefiles(self):
+    def write_files(self):
         """
         Add directory variables to SRC_FILES
         """
         global c_folder_nb
         global h_folder_nb
 
-        # Glob Recurse for files.
+        # Add files to project
+        # TODO Glob Recurse for files.
         self.cmake.write('\n# Add files to project.\n')
         self.cmake.write('file(GLOB SRC_FILES\n')
         c = 1
@@ -58,11 +59,3 @@ class ProjectFiles(object):
             self.cmake.write('    ${HEADER_DIR_' + str(h) + '}/*.h\n')
             h += 1
         self.cmake.write(')\n\n')
-
-def get_c_folder_nb():
-    print('Number of cpp folder = ' + str(c_folder_nb))
-    # return c_folder_nb
-
-def get_h_folder_nb():
-    print('Number of cpp folder = ' + str(h_folder_nb))
-    # return h_folder_nb
