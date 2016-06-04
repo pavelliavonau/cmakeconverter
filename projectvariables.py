@@ -60,7 +60,9 @@ class ProjectVariables(object):
 
         # Project Name
         projectname = self.tree.xpath('//ns:RootNamespace', namespaces=self.ns)[0]
-        self.cmake.write('# Variables. Change if you want modify path or other values.\n')
+        self.cmake.write('################### Variables. ####################\n'
+                         '# Change if you want modify path or other values. #\n'
+                         '###################################################\n\n')
         self.cmake.write('set(PROJECT_NAME ' + projectname.text + ')\n')
 
         # Output DIR of artefacts
@@ -103,7 +105,9 @@ class ProjectVariables(object):
         """
         # Project Definition
         self.cmake.write('\n')
-        self.cmake.write('# Define Project.\n')
+        self.cmake.write('############ Define Project. #############\n'
+                         '# -- This the main options of project -- #\n'
+                         '##########################################\n\n')
         self.cmake.write('project(${PROJECT_NAME} CXX)\n\n')
 
     def write_output(self):

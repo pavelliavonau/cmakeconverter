@@ -11,7 +11,7 @@ class Macro(object):
         cmake = data['cmake']
 
         preprocessor = tree.xpath('//ns:PreprocessorDefinitions', namespaces=ns)[0]
-        cmake.write('# Definition of Macros and/or Flags\n')
+        cmake.write('# Definition of Macros\n')
         cmake.write('add_definitions(\n')
         for preproc in preprocessor.text.split(";"):
             if preproc != '%(PreprocessorDefinitions)' and preproc != 'WIN32':

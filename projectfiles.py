@@ -48,7 +48,9 @@ class ProjectFiles(object):
 
         # Add files to project
         # TODO Glob Recurse for files.
-        self.cmake.write('\n# Add files to project.\n')
+        self.cmake.write('################ Files ################\n'
+                         '#   --   Add files to project.   --   #\n'
+                         '#######################################\n\n')
         self.cmake.write('file(GLOB SRC_FILES\n')
         c = 1
         while c < c_folder_nb:

@@ -15,7 +15,6 @@ class ConvertData:
 
     def create_data(self):
         # Write variables
-
         variables = pv.ProjectVariables(self.data)
         variables.define_variable()
         files = pf.ProjectFiles(self.data)

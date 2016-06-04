@@ -14,7 +14,9 @@ class Flags(object):
         self.win_rel_flags = ''
 
     def write_flags(self):
-        self.cmake.write('# Flags\n')
+        self.cmake.write('################# Flags ################\n'
+                         '# Defines Flags for Windows and Linux. #\n'
+                         '########################################\n\n')
         self.define_win_flags()
         self.define_lin_flags()
 
@@ -34,7 +36,7 @@ class Flags(object):
         self.cmake.write('   if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")\n')
         self.cmake.write('       set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")\n')
         self.cmake.write('   endif()\n')
-        self.cmake.write('endif(NOT MSVC)\n')
+        self.cmake.write('endif(NOT MSVC)\n\n')
 
     def define_win_flags(self):
         # Warning

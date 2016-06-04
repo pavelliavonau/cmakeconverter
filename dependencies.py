@@ -36,8 +36,10 @@ class Dependencies(object):
         """
         references = self.tree.xpath('//ns:ProjectReference', namespaces=self.ns)
         if references:
-            self.cmake.write(
-                '# Add Dependencies of project : choose if you want build other CMake project or link with directories.\n')
+            self.cmake.write('################### Dependencies ##################\n'
+                             '# Add Dependencies to project. Choose if you want #\n'
+                             '# build other CMake project or link with libs.    #\n'
+                             '###################################################\n\n')
             self.cmake.write('option(BUILD_DEPENDS \n' +
                         '   "Build other CMake project." \n' +
                         '   ON \n' +
