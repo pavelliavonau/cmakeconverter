@@ -20,6 +20,7 @@ class ConvertData:
         files = pf.ProjectFiles(self.data)
         files.write_variables()
         variables.define_project()
+        variables.define_target()
 
         # Write Macro
         macros = macro.Macro()
