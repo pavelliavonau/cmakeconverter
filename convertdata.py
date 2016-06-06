@@ -47,11 +47,6 @@ class ConvertData:
         all_flags = flags.Flags(self.data)
         all_flags.write_flags()
 
-        # Write Files
+        # Write and add Files
         files.write_files()
-
-    def get_arguments(self):
-        return self.data
-
-    def get_cmake(self):
-        return self.data['cmake']
+        files.add_artefact()

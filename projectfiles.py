@@ -73,3 +73,23 @@ class ProjectFiles(object):
                 msg.send('File of Code is added = ' + file_to_add, 'warn')
             except OSError:
                 msg.send('Wrong data file ! Code was not added, please verify file name or path !', 'error')
+
+    def add_artefact(self):
+        """
+        Library and Executable
+        """
+        configurationtype = self.tree.find('//ns:ConfigurationType', namespaces=self.ns)
+        if configurationtype.text == 'DynamicLibrary':
+            self.cmake.write('# Add library to build.\n')
+            self.cmake.write('add_library(${PROJECT_NAME} SHARED\n')
+            msg.send('CMake will build a SHARED Library.', '')
+        elif configurationtype.text == 'StaticLibrary':
+            self.cmake.write('# Add library to build.\n')
+            self.cmake.write('add_library(${PROJECT_NAME} STATIC\n')
+            msg.send('CMake will build a STATIC Library.', '')
+        else:
+            self.cmake.write('# Add executable to build.\n')
+            self.cmake.write('add_executable(${PROJECT_NAME} \n')
+            msg.send('CMake will build an EXECUTABLE.', '')
+        self.cmake.write('   ${SRC_FILES}\n')
+        self.cmake.write(')\n\n')
