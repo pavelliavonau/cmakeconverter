@@ -30,7 +30,11 @@ That must be work. If no, try again in Administrator elevated terminal.
 
 # Use the script
 
-After install prerequisites, just run the script as follow :
+After install prerequisites, just run the script as below.
+
+## Required
+
+The `file.vcxproj` is of course required:
 
 `./vcxprojtocmake.py -p <path/to/file.vcxproj>`
 
@@ -38,10 +42,10 @@ After install prerequisites, just run the script as follow :
 
 Script provides other option to facilitate conversion of your Visual Studio project :
 
-* **-o** : define output of `CMakeLists.txt`.
-* **-I** : add cmake code from external file. Be sure your code is valid. Please read [CMake 3.5 Official Documentation](https://cmake.org/cmake/help/v3.5/release/3.5.html) to know more.
+* **-o** : define output of the geenrated `CMakeLists.txt`.
+* **-a** : add cmake code from file (`file.cmake` is working too). Be sure your code is valid. Please read [CMake 3.5 Official Documentation](https://cmake.org/cmake/help/v3.5/release/3.5.html) to know more.
 * **-D** : replace folder dependencies found in `.vcxproj` by other. Usefull for those who have other CMake project in other folders.
-* **-O** : add possibility to define output of artefacts.
+* **-O** : add possibility to define output of artefacts produces by CMake.
 * **-i** : include additional directories if set "True". Default "False".
 
 **Full Example :**
@@ -49,7 +53,7 @@ Script provides other option to facilitate conversion of your Visual Studio proj
 ```bash
 ./vcxprojtocmake.py \
 > -p ../project/platform/msvc/vc2015/mylib.vcxproj \
-> -I additional_code.txt \
+> -a additional_code.txt \
 > -o ../project/platform/cmake/mylib/ \
 > -D ../../../external/zlib/platform/cmake/:../../../external/g3log/platform/cmake/
 > -O ../../build/x64/\${CMAKE_BUILD_TYPE}/
@@ -112,8 +116,8 @@ You can add the following options to your cmake command :
 ```
 # To link dependencies already compile
 -DBUILD_DEPENDS=OFF
-# To set output debug to x86
--Dx64=OFF
+# To give target Debug. If not set Release will be default.
+-DCMAKE_BUILD_TYPE=Debug
 ```
 
 **Generators :** you can specify which Makefile you want generate, during makefile generation :

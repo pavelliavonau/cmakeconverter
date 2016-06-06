@@ -28,7 +28,7 @@ def parse_argument():
     parser.add_argument('-p', help='absolute or relative path of a file.vcxproj')
     parser.add_argument('-o', help='define output.')
     parser.add_argument('-a', help='import cmake code from file.cmake to your final CMakeLists.txt')
-    parser.add_argument('-D', help='replace dependencies found in .vcxproj by yours. Separated by colons.')
+    parser.add_argument('-D', help='replace dependencies found in .vcxproj, separated by colons.')
     parser.add_argument('-O', help='define output of artefact produces by CMake.')
     parser.add_argument('-i', help='add include directories in CMakeLists.txt. Default : False')
 
