@@ -123,7 +123,7 @@ class Flags(object):
         opt_debug_x64 = self.tree.find(item_deb_x64 + '/ns:ClCompile/ns:Optimization', namespaces=self.ns)
         if opt_debug_x86 is not None and opt_debug_x64 is not None:
             if 'Disabled' in opt_debug_x64.text and 'Disabled' in opt_debug_x86.text:
-                self.win_deb_flags += ' /O2'
+                self.win_deb_flags += ' /Od'
                 msg.send('Optimization for Debug', 'ok')
         else:
             msg.send('No Optimization for Debug', '')
@@ -132,7 +132,7 @@ class Flags(object):
         opt_release_x64 = self.tree.find(item_rel_x64 + '/ns:ClCompile/ns:Optimization', namespaces=self.ns)
         if opt_release_x86 is not None and opt_release_x64 is not None:
             if 'MaxSpeed' in opt_release_x64.text and 'MaxSpeed' in opt_release_x86.text:
-                self.win_rel_flags += ' /O2'
+                self.win_rel_flags += ' /Od'
                 msg.send('Optimization for Release', 'ok')
         else:
             msg.send('No Optimization for Release', '')

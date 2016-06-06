@@ -150,9 +150,9 @@ class ProjectVariables(object):
                 self.cmake.write('  set(CMAKE_EXECUTABLE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${OUTPUT_DEBUG}")\n')
             if ProjectVariables.out_rel:
                 self.cmake.write('else()\n')
-                self.cmake.write('  set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${OUTPUT_RELEASE}")\n')
-                self.cmake.write('  set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${OUTPUT_RELEASE}")\n')
-                self.cmake.write('  set(CMAKE_EXECUTABLE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${OUTPUT_RELEASE}")\n')
+                self.cmake.write('  set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${OUTPUT_REL}")\n')
+                self.cmake.write('  set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${OUTPUT_REL}")\n')
+                self.cmake.write('  set(CMAKE_EXECUTABLE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${OUTPUT_REL}")\n')
                 self.cmake.write('endif()\n\n')
         else:
             msg.send('No Output found or define. CMake will use default ouputs.', 'warn')
