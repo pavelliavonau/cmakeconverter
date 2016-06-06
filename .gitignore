@@ -1,5 +1,6 @@
 *.swp
 *.vcxproj
+*.cmake
 .idea/
 test.py
 CMakeLists.txt
