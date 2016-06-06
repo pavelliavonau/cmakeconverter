@@ -50,3 +50,9 @@ class ConvertData:
         # Write and add Files
         files.write_files()
         files.add_artefact()
+
+        # Link with other dependencies
+        depends.link_dependencies()
+
+        # Close CMake file
+        self.data['cmake'].close()

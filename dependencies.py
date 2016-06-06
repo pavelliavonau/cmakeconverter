@@ -67,3 +67,43 @@ class Dependencies(object):
             self.cmake.write('endif()\n\n')
         else:
             msg.send('No link needed.', '')
+
+    def link_dependencies(self):
+        """
+        Link : Add command to link dependencies to project.
+        """
+        references = self.tree.xpath('//ns:ProjectReference', namespaces=self.ns)
+        if references:
+            self.cmake.write('# Link with other dependencies.\n')
+            self.cmake.write('target_link_libraries(${PROJECT_NAME} ')
+            for ref in references:
+                reference = str(ref.get('Include'))
+                lib = os.path.splitext(path.basename(reference))[0]
+                if lib == 'g3log':
+                    lib += 'ger'
+                self.cmake.write(lib + ' ')
+                message = 'External librairy found : ' + os.path.splitext(path.basename(reference))[0]
+                msg.send(message, '')
+            self.cmake.write(')\n')
+            try:
+                if self.tree.xpath('//ns:AdditionalDependencies', namespaces=self.ns)[0] is not None:
+                    depend = self.tree.xpath('//ns:AdditionalDependencies', namespaces=self.ns)[0]
+                    listdepends = depend.text.replace('%(AdditionalDependencies)', '')
+                    if listdepends != '':
+                        msg.send('Additional Dependencies = ' + listdepends, 'ok')
+                    windepends = []
+                    for d in listdepends.split(';'):
+                        if d != '%(AdditionalDependencies)':
+                            if os.path.splitext(d)[1] == '.lib':
+                                windepends.append(d)
+                    if windepends is not None:
+                        self.cmake.write('if(MSVC)\n')
+                        self.cmake.write('   target_link_libraries(${PROJECT_NAME} ')
+                        for dep in windepends:
+                            self.cmake.write(dep + ' ')
+                        self.cmake.write(')\n')
+                        self.cmake.write('endif(MSVC)\n')
+            except IndexError:
+                msg.send('No dependencies', '')
+        else:
+            msg.send('No dependencies.', '')
