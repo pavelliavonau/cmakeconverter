@@ -1,5 +1,7 @@
 # --*- coding: utf-8 -*-
 
+import message as msg
+
 class ProjectFiles(object):
     c_folder_nb = 1
     h_folder_nb = 1
@@ -56,3 +58,18 @@ class ProjectFiles(object):
             self.cmake.write('    ${HEADER_DIR_' + str(h) + '}/*.h\n')
             h += 1
         self.cmake.write(')\n\n')
+
+    def add_additional_code(self, file_to_add):
+        if file_to_add != '':
+            try:
+                fc = open(file_to_add, 'r')
+                self.cmake.write('############# Additional Code #############\n')
+                self.cmake.write('# Provides from external file.            #\n')
+                self.cmake.write('###########################################\n\n')
+                for line in fc:
+                    self.cmake.write(line)
+                fc.close()
+                self.cmake.write('\n')
+                msg.send('File of Code is added = ' + file_to_add, 'warn')
+            except OSError:
+                msg.send('Wrong data file ! Code was not added, please verify file name or path !', 'error')

@@ -39,6 +39,10 @@ class ConvertData:
         # Write Dependencies
         depends.write_dependencies()
 
+        # Add additional code or not
+        if self.data['additional_code'] is not None:
+            files.add_additional_code(self.data['additional_code'])
+
         # Write Flags
         all_flags = flags.Flags(self.data)
         all_flags.write_flags()

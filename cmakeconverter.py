@@ -27,7 +27,7 @@ def parse_argument():
     parser = argparse.ArgumentParser(description='Convert file.vcxproj to CMakelists.txt')
     parser.add_argument('-p', help='absolute or relative path of a file.vcxproj')
     parser.add_argument('-o', help='define output.')
-    parser.add_argument('-I', help='import cmake code from file to your final CMakeLists.txt')
+    parser.add_argument('-a', help='import cmake code from file to your final CMakeLists.txt')
     parser.add_argument('-D', help='replace dependencies found in .vcxproj by yours. Separated by colons.')
     parser.add_argument('-O', help='define output of artefact produces by CMake.')
     parser.add_argument('-i', help='add include directories in CMakeLists.txt. Default : False')
@@ -60,8 +60,8 @@ def parse_argument():
         data['cmake'] = cmakelists.get_cmake()
 
     # CMake additional Code
-    if args.I is not None:
-        data['additional_code'] = args.I
+    if args.a is not None:
+        data['additional_code'] = args.a
 
     # If replace Dependencies
     if args.D is not None:
