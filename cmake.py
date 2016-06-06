@@ -15,7 +15,10 @@ class CMake(object):
             self.cmake = open('CMakeLists.txt', 'w')
         else:
             msg.send('CmakeLists.txt will be build in : ' + str(cmake_path), 'warn')
-            self.cmake = open(str(cmake_path) + 'CMakeLists.txt', 'w')
+            if cmake_path[-1:] == '/' or cmake_path[-1:] == '\\':
+                self.cmake = open(str(cmake_path) + 'CMakeLists.txt', 'w')
+            else:
+                self.cmake = open(str(cmake_path) + '/CMakeLists.txt', 'w')
 
     def get_cmake(self):
         return self.cmake
