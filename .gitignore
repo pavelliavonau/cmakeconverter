@@ -1,4 +1,7 @@
+*.swp
 *.vcxproj
+*.cmake
 .idea/
+test.py
 CMakeLists.txt
 __pycache__/
