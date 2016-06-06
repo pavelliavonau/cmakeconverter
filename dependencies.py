@@ -49,7 +49,7 @@ class Dependencies(object):
                 for ref in references:
                     reference = str(ref.get('Include'))
                     self.cmake.write(
-                        '   add_subdirectory(platform/cmake.py/' + os.path.splitext(path.basename(reference))[0] +
+                        '   add_subdirectory(platform/cmake/' + os.path.splitext(path.basename(reference))[0] +
                         ' ${CMAKE_BINARY_DIR}/' + os.path.splitext(path.basename(reference))[0] + ')\n')
             else:
                 self.cmake.write('if(BUILD_DEPENDS)\n')
