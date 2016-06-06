@@ -35,6 +35,7 @@ def parse_argument():
     # Get args
     args = parser.parse_args()
 
+    # Vcxproj Path
     if args.p is not None:
         temp_path = os.path.splitext(args.p)
         if temp_path[1] == '.vcxproj':
@@ -43,23 +44,34 @@ def parse_argument():
             project.create_data(args.p)
             data['vcxproj'] = project.get_data()
 
+    # CMakeLists.txt output
     if args.o is not None:
+        cmakelists = cmake.CMake()
         if os.path.exists(args.o):
-            cmakelists = cmake.CMake()
             cmakelists.create_cmake(args.o)
             data['cmake'] = cmakelists.get_cmake()
-            msg.send('Output = ' + args.o, 'ok')
         else:
-            msg.send('This path does not exist. CMakeList will be generated in current directory.', 'error')
+            msg.send('This path does not exist. CMakeList.txt will be generated in current directory.', 'error')
+            cmakelists.create_cmake()
+        data['cmake'] = cmakelists.get_cmake()
+    else:
+        cmakelists = cmake.CMake()
+        cmakelists.create_cmake()
+        data['cmake'] = cmakelists.get_cmake()
+
+    # CMake additional Code
     if args.I is not None:
         data['additional_code'] = args.I
 
+    # If replace Dependencies
     if args.D is not None:
         data['dependencies'] = args.D.split(':')
 
+    # Define Output of CMake artefact
     if args.O is not None:
         data['cmake_output'] = args.O
 
+    # Add include directories found in vcxproj
     if args.i is not None:
         if args.i == 'True':
             data['includes'] = True

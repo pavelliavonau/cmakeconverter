@@ -11,7 +11,7 @@ class CMake(object):
 
     def create_cmake(self, cmake_path=None):
         if cmake_path is None:
-            msg.send('CMakeLists will be build in current directory.', 'ok')
+            msg.send('CMakeLists will be build in current directory.', '')
             self.cmake = open('CMakeLists.txt', 'w')
         else:
             msg.send('CmakeLists.txt will be build in : ' + str(cmake_path), 'warn')
