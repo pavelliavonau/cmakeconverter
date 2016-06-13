@@ -23,13 +23,14 @@ class Flags(object):
     def define_lin_flags(self):
         # Define FLAGS for Linux compiler
         linux_flags = '-std=c++11'
-        references = self.tree.xpath('//ns:ProjectReference', namespaces=self.ns)
-        if references:
-            for ref in references:
-                reference = str(ref.get('Include'))
-                lib = os.path.splitext(path.basename(reference))[0]
-                if (lib == 'lemon' or lib == 'zlib') and '-fPIC' not in linux_flags:
-                    linux_flags += ' -fPIC'
+        # TODO recast this part to "set_target_properties" in class: dependencies
+        # references = self.tree.xpath('//ns:ProjectReference', namespaces=self.ns)
+        # if references:
+        #     for ref in references:
+        #         reference = str(ref.get('Include'))
+        #         lib = os.path.splitext(path.basename(reference))[0]
+        #         if (lib == 'lemon' or lib == 'zlib') and '-fPIC' not in linux_flags:
+        #             linux_flags += ' -fPIC'
 
         self.cmake.write('if(NOT MSVC)\n')
         self.cmake.write('   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ' + linux_flags + '")\n')
