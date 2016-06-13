@@ -36,7 +36,7 @@ After install prerequisites, just run the script as below.
 
 The `file.vcxproj` is of course required:
 
-`./vcxprojtocmake.py -p <path/to/file.vcxproj>`
+`./cmakeconverter.py -p <path/to/file.vcxproj>`
 
 ## Other options :
 
@@ -51,7 +51,7 @@ Script provides other option to facilitate conversion of your Visual Studio proj
 **Full Example :**
 
 ```bash
-./vcxprojtocmake.py \
+./cmakeconverter.py \
 > -p ../project/platform/msvc/vc2015/mylib.vcxproj \
 > -a additional_code.txt \
 > -o ../project/platform/cmake/mylib/ \
@@ -70,7 +70,7 @@ Actually, you have to place your generated CMakelists.txt in the **same** direct
 
 That's why you have the variable for your project (like `PROJECT_NAME`) in head of CMakeLists.txt. You can easily change this variable after.
 
-## Definitions
+## Definitions
 
 After these lines, you have MACRO and FLAGS definitions of project (like `UNICODE` for example). You can if needed add other MACRO like that : `-DYOUR_MACRO` or `-DYOUR_FLAGS`.
 
