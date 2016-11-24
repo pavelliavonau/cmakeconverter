@@ -3,6 +3,7 @@
 import os
 import ntpath as path
 import message as msg
+import re
 
 class Dependencies(object):
     """
@@ -22,10 +23,12 @@ class Dependencies(object):
         incl_dir = self.tree.find('//ns:ItemGroup/ns:ClCompile/ns:AdditionalIncludeDirectories', namespaces=self.ns)
         if incl_dir is not None:
             self.cmake.write('# Include directories \n')
-            inc_dir = incl_dir.text.replace('$(ProjectDir)', '')
+            inc_dir = incl_dir.text.replace('$(ProjectDir)', './')
             for i in inc_dir.split(';'):
-                self.cmake.write('include_directories(' + i.replace('\\', '/') + ')\n')
-                msg.send('Include Directories found : ' + i.replace('\\', '/'), 'warn')
+                i = i.replace('\\', '/')
+                i = re.sub(r'\$\((.+?)\)', r'$ENV{\1}', i)
+                self.cmake.write('include_directories(' + i + ')\n')
+                msg.send('Include Directories found : ' + i, 'warn')
             self.cmake.write('\n')
         else:
             msg.send('Include Directories not found for this project.', 'warn')
