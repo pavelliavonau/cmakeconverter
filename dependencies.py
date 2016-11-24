@@ -23,7 +23,7 @@ class Dependencies(object):
         incl_dir = self.tree.find('//ns:ItemGroup/ns:ClCompile/ns:AdditionalIncludeDirectories', namespaces=self.ns)
         if incl_dir is not None:
             self.cmake.write('# Include directories \n')
-            inc_dir = incl_dir.text.replace('$(ProjectDir)', '')
+            inc_dir = incl_dir.text.replace('$(ProjectDir)', './')
             for i in inc_dir.split(';'):
                 i = i.replace('\\', '/')
                 i = re.sub(r'\$\((.+?)\)', r'$ENV{\1}', i)
