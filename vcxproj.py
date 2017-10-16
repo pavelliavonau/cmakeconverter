@@ -4,6 +4,7 @@ from lxml import etree
 
 import message as msg
 
+
 class Vcxproj(object):
     """
     This class prepare data for parsing. Retrieve root xml and namespace.
@@ -14,7 +15,8 @@ class Vcxproj(object):
 
     def create_data(self, vcxproj=''):
         """
-        Get xml data from vcxproj
+        Get xml data from vcxproj file
+
         """
 
         try:
@@ -26,9 +28,9 @@ class Vcxproj(object):
                 'ns': ns
             }
         except OSError:
-            msg.send('.vcxproj file can not be import. Please, verify you have rights to access this directory !', 'error')
+            msg.send(
+                '.vcxproj file cannot be import. '
+                'Please, verify you have rights to this directory !',
+                'error')
         except etree.XMLSyntaxError:
             msg.send('This file is not a file.vcxproj or xml is broken !', 'error')
-
-    def get_data(self):
-        return self.vcxproj

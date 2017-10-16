@@ -2,13 +2,17 @@
 
 import os
 
+
 def send(message, status):
     """
-    send message during execution of script
+    Send a message during script run
+
     :param message: content of message
+    :type message: str
     :param status: level of message
-    :return:
+    :type status: str
     """
+
     FAIL = ''
     WARN = ''
     OK = ''

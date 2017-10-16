@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
 
+
 class Macro(object):
 
-    def write_macro(self, data):
+    @staticmethod
+    def write_macro(data):
         """
-        Definitions : get Macro definitions.
+        Get Macro definitions and write to cmake file.
+
         """
+
         tree = data['vcxproj']['tree']
         ns = data['vcxproj']['ns']
         cmake = data['cmake']
@@ -16,8 +20,8 @@ class Macro(object):
             cmake.write('add_definitions(\n')
             for preproc in preprocessor.text.split(";"):
                 if preproc != '%(PreprocessorDefinitions)' and preproc != 'WIN32':
-                    cmake.write('   -D' + preproc + ' \n')
-                    # Unicode
+                    cmake.write('   -D%s \n' % preproc)
+            # Unicode
             u = tree.find("//ns:CharacterSet", namespaces=ns)
             if 'Unicode' in u.text:
                 cmake.write('   -DUNICODE\n')

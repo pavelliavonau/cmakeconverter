@@ -1,16 +1,18 @@
 #!/usr/bin/python3
 # -*- coding: utf-8 -*-
 
-import os, argparse
+import os
+import argparse
 import message as msg
 import convertdata as cv
-import cmake, vcxproj
+import cmake
+import vcxproj
 
-# class CMakeConverter(object):
 
 def parse_argument():
     """
     Main script : define arguments and send to convertdata.
+
     """
 
     data = {
@@ -42,7 +44,7 @@ def parse_argument():
             msg.send('Project to convert = ' + args.p, '')
             project = vcxproj.Vcxproj()
             project.create_data(args.p)
-            data['vcxproj'] = project.get_data()
+            data['vcxproj'] = project.vcxproj
 
     # CMakeLists.txt output
     if args.o is not None:

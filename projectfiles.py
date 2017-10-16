@@ -2,6 +2,7 @@
 
 import message as msg
 
+
 class ProjectFiles(object):
     c_folder_nb = 1
     h_folder_nb = 1
@@ -25,7 +26,9 @@ class ProjectFiles(object):
                 current_cpp = '/'.join(cxx.split('\\')[0:-1])
                 if current_cpp not in known_cpp:
                     known_cpp.append(current_cpp)
-                    self.cmake.write('set(CPP_DIR_' + str(ProjectFiles.c_folder_nb) + ' ' + current_cpp + ')\n')
+                    self.cmake.write(
+                        'set(CPP_DIR_%s %s)\n' % (str(ProjectFiles.c_folder_nb), current_cpp)
+                    )
                     ProjectFiles.c_folder_nb += 1
 
         # Headers Dir
@@ -36,7 +39,9 @@ class ProjectFiles(object):
             current_header = '/'.join(h.split('\\')[0:-1])
             if current_header not in known_headers:
                 known_headers.append(current_header)
-                self.cmake.write('set(HEADER_DIR_' + str(ProjectFiles.h_folder_nb) + ' ' + current_header + ')\n')
+                self.cmake.write(
+                    'set(HEADER_DIR_%s %s)\n' % (str(ProjectFiles.h_folder_nb), current_header)
+                )
                 ProjectFiles.h_folder_nb += 1
 
     def write_files(self):
@@ -72,12 +77,17 @@ class ProjectFiles(object):
                 self.cmake.write('\n')
                 msg.send('File of Code is added = ' + file_to_add, 'warn')
             except OSError:
-                msg.send('Wrong data file ! Code was not added, please verify file name or path !', 'error')
+                msg.send(
+                    'Wrong data file ! Code was not added, please verify file name or path !',
+                    'error'
+                )
 
     def add_artefact(self):
         """
-        Library and Executable
+        Add Libraries and Executables
+
         """
+
         configurationtype = self.tree.find('//ns:ConfigurationType', namespaces=self.ns)
         if configurationtype.text == 'DynamicLibrary':
             self.cmake.write('# Add library to build.\n')

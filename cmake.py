@@ -1,15 +1,23 @@
-
 import message as msg
+
 
 class CMake(object):
     """
     CMake : create and open CMakeLists.txt
+
     """
 
     def __init__(self):
         self.cmake = None
 
     def create_cmake(self, cmake_path=None):
+        """
+        Create CMakeLists.txt file in wanted path
+
+        :param cmake_path: path where CMakeLists.txt should be write
+        :type cmake_path: str
+        """
+
         if cmake_path is None:
             msg.send('CMakeLists will be build in current directory.', '')
             self.cmake = open('CMakeLists.txt', 'w')
