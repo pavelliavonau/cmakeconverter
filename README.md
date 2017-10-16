@@ -20,7 +20,7 @@ You may have **Python3** installed and **lxml** module :
 
 Go to [Python Releases for Windows](https://www.python.org/downloads/windows/) and download latest release. Install and follow instruction of setup.
 
-Once Python installed, try to install `lxml` : `pip install lxml`
+Once Python installed, try to install **lxml** : `pip install lxml`
 
 If installation of lxml fails, download binaries you need [here](http://www.lfd.uci.edu/~gohlke/pythonlibs/#lxml) and run :
 
