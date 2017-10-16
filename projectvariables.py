@@ -56,11 +56,21 @@ class ProjectVariables(object):
         self.cmake.write('cmake_minimum_required(VERSION 3.0.0 FATAL_ERROR)\n\n')
 
         # Project Name
-        projectname = self.tree.xpath('//ns:RootNamespace', namespaces=self.ns)[0]
-        self.cmake.write('################### Variables. ####################\n'
-                         '# Change if you want modify path or other values. #\n'
-                         '###################################################\n\n')
-        self.cmake.write('set(PROJECT_NAME ' + projectname.text + ')\n')
+        self.cmake.write(
+            '################### Variables. ####################\n'
+            '# Change if you want modify path or other values. #\n'
+            '###################################################\n\n'
+        )
+        root_projectname = self.tree.xpath('//ns:RootNamespace', namespaces=self.ns)
+        project = False
+        if root_projectname:
+            projectname = root_projectname[0]
+            if projectname.text:
+                self.cmake.write('set(PROJECT_NAME ' + projectname.text + ')\n')
+                project = True
+        if not project:
+            self.cmake.write('set(PROJECT_NAME <PLEASE SET YOUR PROJECT NAME !!>)\n')
+            msg.send('No PROJECT NAME found or define. Please set VARIABLE in CMakeLists.txt.', 'error')
 
         # Output DIR of artefacts
         self.cmake.write('# Output Variables\n')
