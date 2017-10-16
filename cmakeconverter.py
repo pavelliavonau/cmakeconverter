@@ -1,12 +1,31 @@
-#!/usr/bin/python3
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
+# Copyright (c) 2016-2017:
+#   Matthieu Estrada, ttamalfor@gmail.com
+#
+# This file is part of (CMakeConverter).
+#
+# (CMakeConverter) is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# (CMakeConverter) is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
 import os
 import argparse
-import message as msg
-import convertdata as cv
-import cmake
-import vcxproj
+
+from cmake import CMake
+from vcxproj import Vcxproj
+from message import send
+from convertdata import ConvertData
 
 
 def parse_argument():
@@ -41,26 +60,26 @@ def parse_argument():
     if args.p is not None:
         temp_path = os.path.splitext(args.p)
         if temp_path[1] == '.vcxproj':
-            msg.send('Project to convert = ' + args.p, '')
-            project = vcxproj.Vcxproj()
+            send('Project to convert = ' + args.p, '')
+            project = Vcxproj()
             project.create_data(args.p)
             data['vcxproj'] = project.vcxproj
 
     # CMakeLists.txt output
     if args.o is not None:
-        cmakelists = cmake.CMake()
+        cmakelists = CMake()
         if os.path.exists(args.o):
             cmakelists.create_cmake(args.o)
             data['cmake'] = cmakelists.cmake
         else:
-            msg.send(
+            send(
                 'This path does not exist. CMakeList.txt will be generated in current directory.',
                 'error'
             )
             cmakelists.create_cmake()
         data['cmake'] = cmakelists.cmake
     else:
-        cmakelists = cmake.CMake()
+        cmakelists = CMake()
         cmakelists.create_cmake()
         data['cmake'] = cmakelists.cmake
 
@@ -82,7 +101,7 @@ def parse_argument():
             data['includes'] = True
 
     # Give all to class: conversata
-    all_data = cv.ConvertData(data)
+    all_data = ConvertData(data)
     all_data.create_data()
 
 

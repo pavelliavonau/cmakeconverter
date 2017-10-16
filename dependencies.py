@@ -1,9 +1,28 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+# Copyright (c) 2016-2017:
+#   Matthieu Estrada, ttamalfor@gmail.com
+#
+# This file is part of (CMakeConverter).
+#
+# (CMakeConverter) is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# (CMakeConverter) is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
+
 import os
-import ntpath as path
-import message as msg
+import ntpath
 import re
+from message import send
 
 
 class Dependencies(object):
@@ -34,10 +53,10 @@ class Dependencies(object):
                 i = i.replace('\\', '/')
                 i = re.sub(r'\$\((.+?)\)', r'$ENV{\1}', i)
                 self.cmake.write('include_directories(%s)\n' % i)
-                msg.send('Include Directories found : %s' % i, 'warn')
+                send('Include Directories found : %s' % i, 'warn')
             self.cmake.write('\n')
         else:
-            msg.send('Include Directories not found for this project.', 'warn')
+            send('Include Directories not found for this project.', 'warn')
 
     def write_dependencies(self):
         """
@@ -63,7 +82,7 @@ class Dependencies(object):
                 self.cmake.write('if(BUILD_DEPENDS)\n')
                 for ref in references:
                     reference = str(ref.get('Include'))
-                    path_to_reference = os.path.splitext(path.basename(reference))[0]
+                    path_to_reference = os.path.splitext(ntpath.basename(reference))[0]
                     self.cmake.write(
                         '   add_subdirectory(platform/cmake/%s ${CMAKE_BINARY_DIR}/%s)\n' % (
                             path_to_reference, path_to_reference
@@ -75,7 +94,7 @@ class Dependencies(object):
                 for ref in self.dependencies:
                     self.cmake.write(
                         '   add_subdirectory(%s ${CMAKE_BINARY_DIR}/lib%s)\n' % (ref, str(d)))
-                    msg.send(
+                    send(
                         'Add manually dependencies : %s. Will be build in "lib%s/" !' % (
                             ref, str(d)),
                         'warn'
@@ -84,13 +103,13 @@ class Dependencies(object):
             self.cmake.write('else()\n')
             for ref in references:
                 reference = str(ref.get('Include'))
-                path_to_reference = os.path.splitext(path.basename(reference))[0]
+                path_to_reference = os.path.splitext(ntpath.basename(reference))[0]
                 self.cmake.write(
                     '   link_directories(dependencies/%s/build/)\n' % path_to_reference
                 )
             self.cmake.write('endif()\n\n')
         else:
-            msg.send('No link needed.', '')
+            send('No link needed.', '')
 
     def link_dependencies(self):
         """
@@ -104,20 +123,20 @@ class Dependencies(object):
             self.cmake.write('target_link_libraries(${PROJECT_NAME} ')
             for ref in references:
                 reference = str(ref.get('Include'))
-                path_to_reference = os.path.splitext(path.basename(reference))[0]
-                lib = os.path.splitext(path.basename(reference))[0]
+                path_to_reference = os.path.splitext(ntpath.basename(reference))[0]
+                lib = os.path.splitext(ntpath.basename(reference))[0]
                 if lib == 'g3log':
                     lib += 'ger'
                 self.cmake.write(lib + ' ')
                 message = 'External librairy found : %s' % path_to_reference
-                msg.send(message, '')
+                send(message, '')
             self.cmake.write(')\n')
             try:
                 if self.tree.xpath('//ns:AdditionalDependencies', namespaces=self.ns)[0]:
                     depend = self.tree.xpath('//ns:AdditionalDependencies', namespaces=self.ns)[0]
                     listdepends = depend.text.replace('%(AdditionalDependencies)', '')
                     if listdepends != '':
-                        msg.send('Additional Dependencies = %s' % listdepends, 'ok')
+                        send('Additional Dependencies = %s' % listdepends, 'ok')
                     windepends = []
                     for d in listdepends.split(';'):
                         if d != '%(AdditionalDependencies)':
@@ -131,6 +150,6 @@ class Dependencies(object):
                         self.cmake.write(')\n')
                         self.cmake.write('endif(MSVC)\n')
             except IndexError:
-                msg.send('No dependencies', '')
+                send('No dependencies', '')
         else:
-            msg.send('No dependencies.', '')
+            send('No dependencies.', '')
