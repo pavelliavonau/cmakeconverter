@@ -19,6 +19,3 @@ class CMake(object):
                 self.cmake = open(str(cmake_path) + 'CMakeLists.txt', 'w')
             else:
                 self.cmake = open(str(cmake_path) + '/CMakeLists.txt', 'w')
-
-    def get_cmake(self):
-        return self.cmake

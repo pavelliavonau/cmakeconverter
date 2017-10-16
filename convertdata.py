@@ -3,7 +3,10 @@
 import projectvariables as pv
 import message as msg
 import projectfiles as pf
-import macro, dependencies, flags
+import macro
+import dependencies
+import flags
+
 
 class ConvertData:
     """

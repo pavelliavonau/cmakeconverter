@@ -44,20 +44,23 @@ def parse_argument():
             project.create_data(args.p)
             data['vcxproj'] = project.get_data()
 
-    # CMakeLists.txt output
+    # CMakeLists.txt output
     if args.o is not None:
         cmakelists = cmake.CMake()
         if os.path.exists(args.o):
             cmakelists.create_cmake(args.o)
-            data['cmake'] = cmakelists.get_cmake()
+            data['cmake'] = cmakelists.cmake
         else:
-            msg.send('This path does not exist. CMakeList.txt will be generated in current directory.', 'error')
+            msg.send(
+                'This path does not exist. CMakeList.txt will be generated in current directory.',
+                'error'
+            )
             cmakelists.create_cmake()
-        data['cmake'] = cmakelists.get_cmake()
+        data['cmake'] = cmakelists.cmake
     else:
         cmakelists = cmake.CMake()
         cmakelists.create_cmake()
-        data['cmake'] = cmakelists.get_cmake()
+        data['cmake'] = cmakelists.cmake
 
     # CMake additional Code
     if args.a is not None:
@@ -79,6 +82,7 @@ def parse_argument():
     # Give all to class: conversata
     all_data = cv.ConvertData(data)
     all_data.create_data()
+
 
 if __name__ == "__main__":
     parse_argument()
