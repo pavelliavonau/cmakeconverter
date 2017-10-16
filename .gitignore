@@ -1,7 +1,12 @@
-*.swp
-*.vcxproj
-*.cmake
-.idea/
-test.py
-CMakeLists.txt
+# Python file
+*.pyc
 __pycache__/
+
+# IDE
+*.swp
+.idea/
+
+# Misc
+*.cmake
+CMakeLists.txt
+*.vcxproj
