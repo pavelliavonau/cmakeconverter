@@ -2,6 +2,7 @@
 
 import message as msg
 
+
 class ProjectVariables(object):
     """
     ProjectVariables : defines all the variables to be used by the project
@@ -22,35 +23,39 @@ class ProjectVariables(object):
     def define_variable(self):
         """
         Variable : define main variables in CMakeLists.
+
         """
+
+        prop_deb_x86 = \
+            '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Debug|Win32\'"]'
+        prop_deb_x64 = \
+            '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Debug|x64\'"]'
+        prop_rel_x86 = \
+            '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Release|Win32\'"]'
+        prop_rel_x64 = \
+            '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Release|x64\'"]'
+
         ProjectVariables.out_deb_x86 = self.tree.find(
-            '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Debug|Win32\'"]/ns:OutDir',
-            namespaces=self.ns)
+            '%s/ns:OutDir' % prop_deb_x86, namespaces=self.ns
+        )
         if ProjectVariables.out_deb_x86 is None:
-            ProjectVariables.out_deb_x86 = self.tree.find(
-                '//ns:PropertyGroup/ns:OutDir[@Condition="\'$(Configuration)|$(Platform)\'==\'Debug|Win32\'"]',
-                namespaces=self.ns)
+            ProjectVariables.out_deb_x86 = self.tree.find(prop_deb_x86, namespaces=self.ns)
         ProjectVariables.out_deb_x64 = self.tree.find(
-            '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Debug|x64\'"]/ns:OutDir',
-            namespaces=self.ns)
+            '%s/ns:OutDir' % prop_deb_x64, namespaces=self.ns
+        )
         if ProjectVariables.out_deb_x64 is None:
-            ProjectVariables.out_deb_x64 = self.tree.find(
-                '//ns:PropertyGroup/ns:OutDir[@Condition="\'$(Configuration)|$(Platform)\'==\'Debug|x64\'"]',
-                namespaces=self.ns)
+            ProjectVariables.out_deb_x64 = self.tree.find(prop_deb_x64, namespaces=self.ns)
+
         ProjectVariables.out_rel_x86 = self.tree.find(
-            '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Release|Win32\'"]/ns:OutDir',
-            namespaces=self.ns)
+            '%s/ns:OutDir' % prop_rel_x86, namespaces=self.ns
+        )
         if ProjectVariables.out_rel_x86 is None:
-            ProjectVariables.out_rel_x86 = self.tree.find(
-                '//ns:PropertyGroup/ns:OutDir[@Condition="\'$(Configuration)|$(Platform)\'==\'Release|Win32\'"]',
-                namespaces=self.ns)
+            ProjectVariables.out_rel_x86 = self.tree.find(prop_rel_x86, namespaces=self.ns)
         ProjectVariables.out_rel_x64 = self.tree.find(
-            '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Release|x64\'"]/ns:OutDir',
-            namespaces=self.ns)
+            '%s/ns:OutDir' % prop_rel_x64, namespaces=self.ns
+        )
         if ProjectVariables.out_rel_x64 is None:
-            ProjectVariables.out_rel_x64 = self.tree.find(
-                '//ns:PropertyGroup/ns:OutDir[@Condition="\'$(Configuration)|$(Platform)\'==\'Release|x64\'"]',
-                namespaces=self.ns)
+            ProjectVariables.out_rel_x64 = self.tree.find(prop_rel_x64, namespaces=self.ns)
 
         # CMake Minimum required.
         self.cmake.write('cmake_minimum_required(VERSION 3.0.0 FATAL_ERROR)\n\n')
@@ -70,7 +75,10 @@ class ProjectVariables(object):
                 project = True
         if not project:
             self.cmake.write('set(PROJECT_NAME <PLEASE SET YOUR PROJECT NAME !!>)\n')
-            msg.send('No PROJECT NAME found or define. Please set VARIABLE in CMakeLists.txt.', 'error')
+            msg.send(
+                'No PROJECT NAME found or define. Please set VARIABLE in CMakeLists.txt.',
+                'error'
+            )
 
         # Output DIR of artefacts
         self.cmake.write('# Output Variables\n')
@@ -80,13 +88,17 @@ class ProjectVariables(object):
         output_rel_x64 = ''
         if self.output is None:
             if ProjectVariables.out_deb_x86 is not None:
-                output_deb_x86 = ProjectVariables.out_deb_x86.text.replace('$(ProjectDir)', '').replace('\\', '/')
+                output_deb_x86 = ProjectVariables.out_deb_x86.text.replace(
+                    '$(ProjectDir)', '').replace('\\', '/')
             if ProjectVariables.out_deb_x64 is not None:
-                output_deb_x64 = ProjectVariables.out_deb_x64.text.replace('$(ProjectDir)', '').replace('\\', '/')
+                output_deb_x64 = ProjectVariables.out_deb_x64.text.replace(
+                    '$(ProjectDir)', '').replace('\\', '/')
             if ProjectVariables.out_rel_x86 is not None:
-                output_rel_x86 = ProjectVariables.out_rel_x86.text.replace('$(ProjectDir)', '').replace('\\', '/')
+                output_rel_x86 = ProjectVariables.out_rel_x86.text.replace(
+                    '$(ProjectDir)', '').replace('\\', '/')
             if ProjectVariables.out_rel_x64 is not None:
-                output_rel_x64 = ProjectVariables.out_rel_x64.text.replace('$(ProjectDir)', '').replace('\\', '/')
+                output_rel_x64 = ProjectVariables.out_rel_x64.text.replace(
+                    '$(ProjectDir)', '').replace('\\', '/')
         elif self.output:
             if self.output[-1:] == '/' or self.output[-1:] == '\\':
                 build_type = '${CMAKE_BUILD_TYPE}'
@@ -155,14 +167,27 @@ class ProjectVariables(object):
             self.cmake.write('#################################################\n\n')
             if ProjectVariables.out_deb:
                 self.cmake.write('if(CMAKE_BUILD_TYPE STREQUAL "Debug")\n')
-                self.cmake.write('  set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${OUTPUT_DEBUG}")\n')
-                self.cmake.write('  set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${OUTPUT_DEBUG}")\n')
-                self.cmake.write('  set(CMAKE_EXECUTABLE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${OUTPUT_DEBUG}")\n')
+                self.cmake.write(
+                    '  set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${OUTPUT_DEBUG}")\n'
+                )
+                self.cmake.write(
+                    '  set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${OUTPUT_DEBUG}")\n'
+                )
+                self.cmake.write(
+                    '  set(CMAKE_EXECUTABLE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${OUTPUT_DEBUG}")'
+                    '\n'
+                )
             if ProjectVariables.out_rel:
                 self.cmake.write('else()\n')
-                self.cmake.write('  set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${OUTPUT_REL}")\n')
-                self.cmake.write('  set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${OUTPUT_REL}")\n')
-                self.cmake.write('  set(CMAKE_EXECUTABLE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${OUTPUT_REL}")\n')
+                self.cmake.write(
+                    '  set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${OUTPUT_REL}")\n'
+                )
+                self.cmake.write(
+                    '  set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${OUTPUT_REL}")\n'
+                )
+                self.cmake.write(
+                    '  set(CMAKE_EXECUTABLE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${OUTPUT_REL}")\n'
+                )
                 self.cmake.write('endif()\n\n')
         else:
             msg.send('No Output found or define. CMake will use default ouputs.', 'warn')
