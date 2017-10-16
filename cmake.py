@@ -1,4 +1,4 @@
-import message as msg
+from message import send
 
 
 class CMake(object):
@@ -19,10 +19,10 @@ class CMake(object):
         """
 
         if cmake_path is None:
-            msg.send('CMakeLists will be build in current directory.', '')
+            send('CMakeLists will be build in current directory.', '')
             self.cmake = open('CMakeLists.txt', 'w')
         else:
-            msg.send('CmakeLists.txt will be build in : ' + str(cmake_path), 'warn')
+            send('CmakeLists.txt will be build in : ' + str(cmake_path), 'warn')
             if cmake_path[-1:] == '/' or cmake_path[-1:] == '\\':
                 self.cmake = open(str(cmake_path) + 'CMakeLists.txt', 'w')
             else:

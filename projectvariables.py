@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
 
-import message as msg
+from message import send
+from vcxproj import Vcxproj
 
 
 class ProjectVariables(object):
     """
     ProjectVariables : defines all the variables to be used by the project
+
     """
+
     out_deb_x86 = None
     out_deb_x64 = None
     out_rel_x86 = None
@@ -26,20 +29,18 @@ class ProjectVariables(object):
 
         """
 
-        prop_deb_x86 = \
-            '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Debug|Win32\'"]'
-        prop_deb_x64 = \
-            '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Debug|x64\'"]'
-        prop_rel_x86 = \
-            '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Release|Win32\'"]'
-        prop_rel_x64 = \
-            '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Release|x64\'"]'
+        # PropertyGroup
+        prop_deb_x86 = Vcxproj.get_propertygroup_platform('debug', 'x86')
+        prop_deb_x64 = Vcxproj.get_propertygroup_platform('debug', 'x64')
+        prop_rel_x86 = Vcxproj.get_propertygroup_platform('release', 'x86')
+        prop_rel_x64 = Vcxproj.get_propertygroup_platform('release', 'x64')
 
         ProjectVariables.out_deb_x86 = self.tree.find(
             '%s/ns:OutDir' % prop_deb_x86, namespaces=self.ns
         )
         if ProjectVariables.out_deb_x86 is None:
             ProjectVariables.out_deb_x86 = self.tree.find(prop_deb_x86, namespaces=self.ns)
+
         ProjectVariables.out_deb_x64 = self.tree.find(
             '%s/ns:OutDir' % prop_deb_x64, namespaces=self.ns
         )
@@ -51,6 +52,7 @@ class ProjectVariables(object):
         )
         if ProjectVariables.out_rel_x86 is None:
             ProjectVariables.out_rel_x86 = self.tree.find(prop_rel_x86, namespaces=self.ns)
+
         ProjectVariables.out_rel_x64 = self.tree.find(
             '%s/ns:OutDir' % prop_rel_x64, namespaces=self.ns
         )
@@ -75,7 +77,7 @@ class ProjectVariables(object):
                 project = True
         if not project:
             self.cmake.write('set(PROJECT_NAME <PLEASE SET YOUR PROJECT NAME !!>)\n')
-            msg.send(
+            send(
                 'No PROJECT NAME found or define. Please set VARIABLE in CMakeLists.txt.',
                 'error'
             )
@@ -115,26 +117,26 @@ class ProjectVariables(object):
             output_rel_x64 = ''
 
         if output_deb_x64 != '':
-            msg.send('Output Debug = ' + output_deb_x64, 'ok')
+            send('Output Debug = ' + output_deb_x64, 'ok')
             self.cmake.write('set(OUTPUT_DEBUG ' + output_deb_x64 + ')\n')
             ProjectVariables.out_deb = True
         elif output_deb_x86 != '':
-            msg.send('Output Debug = ' + output_deb_x86, 'ok')
+            send('Output Debug = ' + output_deb_x86, 'ok')
             self.cmake.write('set(OUTPUT_DEBUG ' + output_deb_x86 + ')\n')
             ProjectVariables.out_deb = True
         else:
-            msg.send('No Output Debug define.', '')
+            send('No Output Debug define.', '')
 
         if output_rel_x64 != '':
-            msg.send('Output Release = ' + output_rel_x64, 'ok')
+            send('Output Release = ' + output_rel_x64, 'ok')
             self.cmake.write('set(OUTPUT_REL ' + output_rel_x64 + ')\n')
             ProjectVariables.out_rel = True
         elif output_rel_x86 != '':
-            msg.send('Output Release = ' + output_rel_x86, 'ok')
+            send('Output Release = ' + output_rel_x86, 'ok')
             self.cmake.write('set(OUTPUT_REL ' + output_rel_x86 + ')\n')
             ProjectVariables.out_rel = True
         else:
-            msg.send('No Output Release define.', '')
+            send('No Output Release define.', '')
 
     def define_project(self):
         """
@@ -142,20 +144,24 @@ class ProjectVariables(object):
         """
         # Project Definition
         self.cmake.write('\n')
-        self.cmake.write('############## Define Project. ###############\n'
-                         '# ---- This the main options of project ---- #\n'
-                         '##############################################\n\n')
+        self.cmake.write(
+            '############## Define Project. ###############\n'
+            '# ---- This the main options of project ---- #\n'
+            '##############################################\n\n'
+        )
         self.cmake.write('project(${PROJECT_NAME} CXX)\n\n')
 
     def define_target(self):
         """
         Define target release if not define.
         """
-        self.cmake.write('# Define Release by default.\n'
-                         'if(NOT CMAKE_BUILD_TYPE)\n'
-                         '  set(CMAKE_BUILD_TYPE "Release")\n'
-                         '  message(STATUS "Build type not specified: defaulting to release.")\n'
-                         'endif(NOT CMAKE_BUILD_TYPE)\n\n')
+        self.cmake.write(
+            '# Define Release by default.\n'
+            'if(NOT CMAKE_BUILD_TYPE)\n'
+            '  set(CMAKE_BUILD_TYPE "Release")\n'
+            '  message(STATUS "Build type not specified: Use Release by default.")\n'
+            'endif(NOT CMAKE_BUILD_TYPE)\n\n'
+        )
 
     def write_output(self):
         """
@@ -190,4 +196,4 @@ class ProjectVariables(object):
                 )
                 self.cmake.write('endif()\n\n')
         else:
-            msg.send('No Output found or define. CMake will use default ouputs.', 'warn')
+            send('No Output found or define. CMake will use default ouputs.', 'warn')

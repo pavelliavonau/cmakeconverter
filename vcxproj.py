@@ -2,7 +2,7 @@
 
 from lxml import etree
 
-import message as msg
+from message import send
 
 
 class Vcxproj(object):
@@ -28,9 +28,44 @@ class Vcxproj(object):
                 'ns': ns
             }
         except OSError:
-            msg.send(
+            send(
                 '.vcxproj file cannot be import. '
                 'Please, verify you have rights to this directory !',
                 'error')
         except etree.XMLSyntaxError:
-            msg.send('This file is not a file.vcxproj or xml is broken !', 'error')
+            send('This file is not a file.vcxproj or xml is broken !', 'error')
+
+    @staticmethod
+    def get_propertygroup_platform(platform, target):
+        """
+        Return "propertygroup" value for wanted platform and target
+
+        :param platform: wanted platform: x86 | x64
+        :type platform: str
+        :param target: wanted target: debug | release
+        :type target: str
+        :return: "propertygroup" value
+        :rtype: str
+        """
+
+        prop_deb_x86 = \
+            '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Debug|Win32\'"]'
+        prop_deb_x64 = \
+            '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Debug|x64\'"]'
+        prop_rel_x86 = \
+            '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Release|Win32\'"]'
+        prop_rel_x64 = \
+            '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Release|x64\'"]'
+
+        propertygroups = {
+            'debug': {
+                'x86': prop_deb_x86,
+                'x64': prop_deb_x64,
+            },
+            'release': {
+                'x86': prop_rel_x86,
+                'x64': prop_rel_x64
+            }
+        }
+
+        return propertygroups[platform][target]
