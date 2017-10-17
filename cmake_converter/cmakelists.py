@@ -26,7 +26,7 @@
 from cmake_converter.message import send
 
 
-class CMake(object):
+class CMakeLists(object):
     """
         Class who create and open CMakeLists.txt file
     """
@@ -34,7 +34,7 @@ class CMake(object):
     def __init__(self):
         self.cmake = None
 
-    def create_cmake(self, cmake_path=None):
+    def create_file(self, cmake_path=None):
         """
         Create CMakeLists.txt file in wanted path
 

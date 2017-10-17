@@ -26,7 +26,7 @@
 import argparse
 import os
 
-from cmake_converter.cmake import CMake
+from cmake_converter.cmakelists import CMakeLists
 from cmake_converter.convertdata import ConvertData
 from cmake_converter.message import send
 from cmake_converter.vsproject import VSProject
@@ -102,20 +102,20 @@ def main():
 
     # CMakeLists.txt output
     if args.output is not None:
-        cmakelists = CMake()
+        cmakelists = CMakeLists()
         if os.path.exists(args.output):
-            cmakelists.create_cmake(args.output)
+            cmakelists.create_file(args.output)
             data['cmake'] = cmakelists.cmake
         else:
             send(
                 'This path does not exist. CMakeList.txt will be generated in current directory.',
                 'error'
             )
-            cmakelists.create_cmake()
+            cmakelists.create_file()
         data['cmake'] = cmakelists.cmake
     else:
-        cmakelists = CMake()
-        cmakelists.create_cmake()
+        cmakelists = CMakeLists()
+        cmakelists.create_file()
         data['cmake'] = cmakelists.cmake
 
     # CMake additional Code
