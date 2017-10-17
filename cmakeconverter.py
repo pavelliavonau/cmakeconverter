@@ -19,13 +19,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
-import os
 import argparse
+import os
 
-from cmake import CMake
-from vcxproj import Vcxproj
-from message import send
-from convertdata import ConvertData
+from cmake_converter.cmake import CMake
+from cmake_converter.convertdata import ConvertData
+from cmake_converter.message import send
+from cmake_converter.vcxproj import Vcxproj
 
 
 def parse_argument():

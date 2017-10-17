@@ -21,7 +21,7 @@
 
 from lxml import etree
 
-from message import send
+from cmake_converter.message import send
 
 
 class Vcxproj(object):

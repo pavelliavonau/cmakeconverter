@@ -19,10 +19,11 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
-import os
 import ntpath
+import os
 import re
-from message import send
+
+from cmake_converter.message import send
 
 
 class Dependencies(object):
@@ -128,7 +129,7 @@ class Dependencies(object):
                 if lib == 'g3log':
                     lib += 'ger'
                 self.cmake.write(lib + ' ')
-                message = 'External librairy found : %s' % path_to_reference
+                message = 'External library found : %s' % path_to_reference
                 send(message, '')
             self.cmake.write(')\n')
             try:

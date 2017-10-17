@@ -19,12 +19,12 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
-from dependencies import Dependencies
-from macro import Macro
-from flags import Flags
-from projectvariables import ProjectVariables
-from projectfiles import ProjectFiles
-from message import send
+from cmake_converter.dependencies import Dependencies
+from cmake_converter.flags import Flags
+from cmake_converter.macro import Macro
+from cmake_converter.message import send
+from cmake_converter.projectfiles import ProjectFiles
+from cmake_converter.projectvariables import ProjectVariables
 
 
 class ConvertData:
