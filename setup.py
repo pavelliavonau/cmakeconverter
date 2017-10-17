@@ -1,0 +1,90 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
+# Copyright (c) 2016-2017:
+#   Matthieu Estrada, ttamalfor@gmail.com
+#
+# This file is part of (CMakeConverter).
+#
+# (CMakeConverter) is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Affero General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# (CMakeConverter) is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Affero General Public License for more details.
+#
+# You should have received a copy of the GNU Affero General Public License
+# along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
+
+import sys
+
+try:
+    from setuptools import setup, find_packages
+except Exception:
+    sys.exit("Error: missing python-setuptools library")
+
+try:
+    python_version = sys.version_info
+except Exception:
+    python_version = (1, 5)
+if python_version < (3, 5):
+    sys.exit(
+        "This application currently requires a minimum Python 3.5 to be run."
+        "Please update your Python version."
+    )
+
+from cmake_converter import __description__, __version__, __license__, __author__, __project_url__
+from cmake_converter import __name__ as __pkg_name__
+
+# Requirements
+install_requires = [
+    'lxml',
+]
+
+
+setup(
+    name=__pkg_name__,
+    version=__version__,
+
+    license=__license__,
+
+    # metadata for upload to PyPI
+    author=__author__,
+    author_email="ttamalfor@gmail.com",
+    keywords="cmake vcxproj visual",
+    url=__project_url__,
+    description=__description__,
+    long_description=open('README.md').read(),
+
+    zip_safe=False,
+
+    packages=find_packages(),
+    include_package_data=True,
+
+    install_requires=install_requires,
+
+    classifiers=[
+        'Development Status :: 4 - Beta',
+        'Environment :: Console',
+        'Intended Audience :: End Users/Desktop',
+        'Intended Audience :: Developers',
+        'Intended Audience :: System Administrators',
+        'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
+        'Natural Language :: English',
+        'Programming Language :: Python :: 3',
+        'Topic :: Software Development :: Build Tools',
+        'Topic :: Software Development :: Code Generators',
+        'Topic :: Software Development :: Compilers',
+        'Topic :: Software Development :: Libraries'
+    ],
+
+    entry_points={
+        'console_scripts': [
+            'cmake-converter = cmake_converter.main:main'
+        ],
+    }
+
+)

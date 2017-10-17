@@ -29,6 +29,7 @@
 # Application version and manifest
 VERSION = (0, 0, 1)
 __application__ = u"CMakeConverter"
+__name__ = 'cmake_converter'
 __short_version__ = '.'.join((str(each) for each in VERSION[:2]))
 __version__ = '.'.join((str(each) for each in VERSION[:4]))
 __author__ = u"Estrada Matthieu"
