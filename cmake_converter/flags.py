@@ -19,11 +19,18 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+    Flags manage compilation flags of project
+"""
+
 from cmake_converter.message import send
 from cmake_converter.vcxproj import Vcxproj
 
 
 class Flags(object):
+    """
+        Class who check and create compilation flags
+    """
 
     def __init__(self, data):
         self.tree = data['vcxproj']['tree']
@@ -142,7 +149,7 @@ class Flags(object):
         else:
             send('No UseDebugLibrairies for Release', '')
 
-        """ ItemDefinitionGroup """
+        # ItemDefinitionGroup
         item_deb_x86 = \
             '//ns:ItemDefinitionGroup[@Condition="\'$(Configuration)|' \
             '$(Platform)\'==\'Debug|Win32\'"]'

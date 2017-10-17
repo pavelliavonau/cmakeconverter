@@ -19,10 +19,18 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+    Project Files manage collect of CPP files of project
+"""
+
 from cmake_converter.message import send
 
 
 class ProjectFiles(object):
+    """
+        Class who collect and store project files
+    """
+
     c_folder_nb = 1
     h_folder_nb = 1
 
@@ -35,6 +43,11 @@ class ProjectFiles(object):
 
     # TODO : put this method in projectvariables file
     def write_variables(self):
+        """
+        Write the project variables in CMakeLists.txt file
+
+        """
+
         # Cpp Dir
         known_cpp = []
         ProjectFiles.c_folder_nb = 1
@@ -66,7 +79,9 @@ class ProjectFiles(object):
     def write_files(self):
         """
         Add directory variables to SRC_FILES
+
         """
+
         # Add files to project
         # TODO Glob Recurse for files.
         self.cmake.write('################ Files ################\n'
@@ -84,6 +99,13 @@ class ProjectFiles(object):
         self.cmake.write(')\n\n')
 
     def add_additional_code(self, file_to_add):
+        """
+        Add additional file with CMake code inside
+
+        :param file_to_add: the file who contains CMake code
+        :type file_to_add: str
+        """
+
         if file_to_add != '':
             try:
                 fc = open(file_to_add, 'r')

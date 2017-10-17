@@ -19,6 +19,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+    Main manage script arguments
+"""
+
 import argparse
 import os
 
@@ -30,7 +34,7 @@ from cmake_converter.vcxproj import Vcxproj
 
 def main():
     """
-    Main script : define arguments and send to ConvertData.
+    Define arguments and send to ConvertData.
 
     """
 

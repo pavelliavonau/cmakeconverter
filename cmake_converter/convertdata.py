@@ -19,6 +19,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+    ConvertData manage conversion of vcxproj data
+"""
+
 from cmake_converter.dependencies import Dependencies
 from cmake_converter.flags import Flags
 from cmake_converter.macro import Macro
@@ -29,13 +33,18 @@ from cmake_converter.projectvariables import ProjectVariables
 
 class ConvertData:
     """
-    ConvertData: will convert data to CMakeLists.txt.
+        Class who convert data to CMakeLists.txt.
     """
 
     def __init__(self, data=None):
         self.data = data
 
     def create_data(self):
+        """
+        Create the data and convert each part of vcxproj project
+
+        """
+
         # Write variables
         variables = ProjectVariables(self.data)
         variables.define_variable()

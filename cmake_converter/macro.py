@@ -19,8 +19,15 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+    Macro manage creation of project Macros ("-D" instructions)
+"""
+
 
 class Macro(object):
+    """
+        Class who check and write project macros
+    """
 
     @staticmethod
     def write_macro(data):

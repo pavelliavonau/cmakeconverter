@@ -19,6 +19,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+    Dependencies manage directories and libraries dependencies of project
+"""
+
 import ntpath
 import os
 import re
@@ -28,7 +32,7 @@ from cmake_converter.message import send
 
 class Dependencies(object):
     """
-    Dependencies : find and write dependencies of project, additionnal directories...
+        Class who find and write dependencies of project, additionnal directories...
     """
 
     def __init__(self, data):
@@ -52,7 +56,7 @@ class Dependencies(object):
                 '//ns:ItemDefinitionGroup/ns:ClCompile/ns:AdditionalIncludeDirectories',
                 namespaces=self.ns
             )
-        print(incl_dir.text)
+
         if incl_dir is not None:
             self.cmake.write('# Include directories \n')
             inc_dir = incl_dir.text.replace('$(ProjectDir)', './')
@@ -124,6 +128,7 @@ class Dependencies(object):
 
         """
 
+        # External libraries
         references = self.tree.xpath('//ns:ProjectReference', namespaces=self.ns)
         if references:
             self.cmake.write('# Link with other dependencies.\n')
@@ -133,31 +138,29 @@ class Dependencies(object):
                 path_to_reference = os.path.splitext(ntpath.basename(reference))[0]
                 lib = os.path.splitext(ntpath.basename(reference))[0]
                 if lib == 'g3log':
-                    lib += 'ger'
+                    lib += 'ger'  # To get "g3logger"
                 self.cmake.write(lib + ' ')
                 message = 'External library found : %s' % path_to_reference
                 send(message, '')
             self.cmake.write(')\n')
-            try:
-                if self.tree.xpath(
-                        '//ns:AdditionalDependencies', namespaces=self.ns)[0] is not None:
-                    depend = self.tree.xpath('//ns:AdditionalDependencies', namespaces=self.ns)[0]
-                    listdepends = depend.text.replace('%(AdditionalDependencies)', '')
-                    if listdepends != '':
-                        send('Additional Dependencies = %s' % listdepends, 'ok')
-                    windepends = []
-                    for d in listdepends.split(';'):
-                        if d != '%(AdditionalDependencies)':
-                            if os.path.splitext(d)[1] == '.lib':
-                                windepends.append(d)
-                    if windepends:
-                        self.cmake.write('if(MSVC)\n')
-                        self.cmake.write('   target_link_libraries(${PROJECT_NAME} ')
-                        for dep in windepends:
-                            self.cmake.write(dep + ' ')
-                        self.cmake.write(')\n')
-                        self.cmake.write('endif(MSVC)\n')
-            except IndexError:
-                send('No dependencies', '')
+
+        # Additional Dependencies
+        dependencies = self.tree.xpath('//ns:AdditionalDependencies', namespaces=self.ns)[0]
+        if dependencies is not None:
+            listdepends = dependencies.text.replace('%(AdditionalDependencies)', '')
+            if listdepends != '':
+                send('Additional Dependencies = %s' % listdepends, 'ok')
+            windepends = []
+            for d in listdepends.split(';'):
+                if d != '%(AdditionalDependencies)':
+                    if os.path.splitext(d)[1] == '.lib':
+                        windepends.append(d)
+            if windepends:
+                self.cmake.write('if(MSVC)\n')
+                self.cmake.write('   target_link_libraries(${PROJECT_NAME} ')
+                for dep in windepends:
+                    self.cmake.write(dep + ' ')
+                self.cmake.write(')\n')
+                self.cmake.write('endif(MSVC)\n')
         else:
             send('No dependencies.', '')

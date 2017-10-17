@@ -19,6 +19,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+    Vcxproj manage the .vcxproj files and the XML data
+"""
+
 from lxml import etree
 
 from cmake_converter.message import send
@@ -26,17 +30,18 @@ from cmake_converter.message import send
 
 class Vcxproj(object):
     """
-    This class prepare data for parsing. Retrieve root xml and namespace.
-
+        Class who prepare data for parsing. Retrieve root xml and namespace.
     """
 
     def __init__(self):
         self.vcxproj = ''
 
-    def create_data(self, vcxproj=''):
+    def create_data(self, vcxproj):
         """
         Get xml data from vcxproj file
 
+        :param vcxproj: the vcxproj file
+        :type vcxproj: str
         """
 
         try:

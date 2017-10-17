@@ -19,6 +19,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+    Message manage sending messages during script execution
+"""
+
 import os
 
 

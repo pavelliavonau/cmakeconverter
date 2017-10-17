@@ -19,13 +19,16 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+    CMakeLists manage creation of CMakeLists.txt file
+"""
+
 from cmake_converter.message import send
 
 
 class CMake(object):
     """
-    This class create and open CMakeLists.txt file
-
+        Class who create and open CMakeLists.txt file
     """
 
     def __init__(self):

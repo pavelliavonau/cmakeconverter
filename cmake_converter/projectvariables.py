@@ -19,14 +19,16 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+    Project Variables manage creation of CMake variables that will be used during compilation
+"""
 from cmake_converter.message import send
 from cmake_converter.vcxproj import Vcxproj
 
 
 class ProjectVariables(object):
     """
-    ProjectVariables : defines all the variables to be used by the project
-
+        Class who defines all the variables to be used by the project
     """
 
     out_deb_x86 = None
