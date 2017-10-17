@@ -24,7 +24,7 @@
 """
 
 from cmake_converter.message import send
-from cmake_converter.vcxproj import Vcxproj
+from cmake_converter.vsproject import VSProject
 
 
 class Flags(object):
@@ -94,10 +94,10 @@ class Flags(object):
             send('No Warning level.', '')
 
         # PropertyGroup
-        prop_deb_x86 = Vcxproj.get_propertygroup_platform('debug', 'x86')
-        prop_deb_x64 = Vcxproj.get_propertygroup_platform('debug', 'x64')
-        prop_rel_x86 = Vcxproj.get_propertygroup_platform('release', 'x86')
-        prop_rel_x64 = Vcxproj.get_propertygroup_platform('release', 'x64')
+        prop_deb_x86 = VSProject.get_propertygroup_platform('debug', 'x86')
+        prop_deb_x64 = VSProject.get_propertygroup_platform('debug', 'x64')
+        prop_rel_x86 = VSProject.get_propertygroup_platform('release', 'x86')
+        prop_rel_x64 = VSProject.get_propertygroup_platform('release', 'x64')
 
         # WholeProgramOptimization
         gl_debug_x86 = self.tree.find(

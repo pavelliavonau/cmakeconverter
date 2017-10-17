@@ -20,7 +20,7 @@
 # along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
 """
-    Vcxproj manage the .vcxproj files and the XML data
+    VS Project manage the .vcxproj files and its XML data
 """
 
 from lxml import etree
@@ -28,7 +28,7 @@ from lxml import etree
 from cmake_converter.message import send
 
 
-class Vcxproj(object):
+class VSProject(object):
     """
         Class who prepare data for parsing. Retrieve root xml and namespace.
     """

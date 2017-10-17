@@ -29,7 +29,7 @@ import os
 from cmake_converter.cmake import CMake
 from cmake_converter.convertdata import ConvertData
 from cmake_converter.message import send
-from cmake_converter.vcxproj import Vcxproj
+from cmake_converter.vsproject import VSProject
 
 
 def main():
@@ -93,7 +93,7 @@ def main():
         temp_path = os.path.splitext(args.project)
         if temp_path[1] == '.vcxproj':
             send('Project to convert = ' + args.project, '')
-            project = Vcxproj()
+            project = VSProject()
             project.create_data(args.project)
             data['vcxproj'] = project.vcxproj
         else:
