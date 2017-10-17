@@ -72,7 +72,7 @@ class VSProject(object):
             exit(1)
 
     @staticmethod
-    def get_propertygroup_platform(platform, target):
+    def get_propertygroup(platform, target):
         """
         Return "propertygroup" value for wanted platform and target
 
@@ -105,3 +105,38 @@ class VSProject(object):
         }
 
         return propertygroups[platform][target]
+
+    @staticmethod
+    def get_definitiongroup(platform, target):
+        """
+
+        :param platform:
+        :param target:
+        :return:
+        """
+
+        item_deb_x86 = \
+            '//ns:ItemDefinitionGroup[@Condition="\'$(Configuration)|' \
+            '$(Platform)\'==\'Debug|Win32\'"]'
+        item_deb_x64 = \
+            '//ns:ItemDefinitionGroup[@Condition="\'$(Configuration)|' \
+            '$(Platform)\'==\'Debug|x64\'"]'
+        item_rel_x86 = \
+            '//ns:ItemDefinitionGroup[@Condition="\'$(Configuration)|' \
+            '$(Platform)\'==\'Release|Win32\'"]'
+        item_rel_x64 = \
+            '//ns:ItemDefinitionGroup[@Condition="\'$(Configuration)|' \
+            '$(Platform)\'==\'Release|x64\'"]'
+
+        itemdefinitiongroups = {
+            'debug': {
+                'x86': item_deb_x86,
+                'x64': item_deb_x64,
+            },
+            'release': {
+                'x86': item_rel_x86,
+                'x64': item_rel_x64
+            }
+        }
+
+        return itemdefinitiongroups[platform][target]

@@ -51,10 +51,10 @@ class ProjectVariables(object):
         """
 
         # PropertyGroup
-        prop_deb_x86 = VSProject.get_propertygroup_platform('debug', 'x86')
-        prop_deb_x64 = VSProject.get_propertygroup_platform('debug', 'x64')
-        prop_rel_x86 = VSProject.get_propertygroup_platform('release', 'x86')
-        prop_rel_x64 = VSProject.get_propertygroup_platform('release', 'x64')
+        prop_deb_x86 = VSProject.get_propertygroup('debug', 'x86')
+        prop_deb_x64 = VSProject.get_propertygroup('debug', 'x64')
+        prop_rel_x86 = VSProject.get_propertygroup('release', 'x86')
+        prop_rel_x64 = VSProject.get_propertygroup('release', 'x64')
 
         ProjectVariables.out_deb_x86 = self.tree.find(
             '%s/ns:OutDir' % prop_deb_x86, namespaces=self.ns

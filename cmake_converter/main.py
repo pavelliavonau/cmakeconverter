@@ -54,31 +54,37 @@ def main():
         usage=usage,
         description='Convert Visual Studio projects (.vcxproj) to CMakeLists.txt'
     )
-    parser.add_argument('-p', '--project',
-                        help='[required] valid vcxproj file. i.e.: ../../mylib.vcxproj',
-                        dest='project'
-                        )
-    parser.add_argument('-o', '--output',
-                        help='define output of CMakeLists.txt file',
-                        dest='output'
-                        )
-    parser.add_argument('-a', '--additional',
-                        help='import cmake code from file.cmake to your final CMakeLists.txt',
-                        dest='additional'
-                        )
-    parser.add_argument('-D', '--dependencies',
-                        help='replace dependencies found in .vcxproj, separated by colons. '
-                             'i.e.: external/zlib/cmake/:../../external/g3log/cmake/',
-                        dest='dependencies'
-                        )
-    parser.add_argument('-O', '--cmakeoutput',
-                        help='define output of artefact produces by CMake.',
-                        dest='cmakeoutput'
-                        )
-    parser.add_argument('-i', '--include',
-                        help='add include directories in CMakeLists.txt. Default : False',
-                        dest='include', action="store_true", default=False
-                        )
+    parser.add_argument(
+        '-p', '--project',
+        help='[required] valid vcxproj file. i.e.: ../../mylib.vcxproj',
+        dest='project'
+    )
+    parser.add_argument(
+        '-o', '--output',
+        help='define output of CMakeLists.txt file',
+        dest='output'
+    )
+    parser.add_argument(
+        '-a', '--additional',
+        help='import cmake code from file.cmake to your final CMakeLists.txt',
+        dest='additional'
+    )
+    parser.add_argument(
+        '-D', '--dependencies',
+        help='replace dependencies found in .vcxproj, separated by colons. '
+             'i.e.: external/zlib/cmake/:../../external/g3log/cmake/',
+        dest='dependencies'
+    )
+    parser.add_argument(
+        '-O', '--cmakeoutput',
+        help='define output of artefact produces by CMake.',
+        dest='cmakeoutput'
+    )
+    parser.add_argument(
+        '-i', '--include',
+        help='add include directories in CMakeLists.txt. Default : False',
+        dest='include', action="store_true", default=False
+    )
 
     # Get args
     args = parser.parse_args()
