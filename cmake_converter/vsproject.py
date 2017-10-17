@@ -36,22 +36,21 @@ class VSProject(object):
     def __init__(self):
         self.vcxproj = ''
 
-    def create_data(self, vcxproj):
+    def create_data(self, vs_project):
         """
         Get xml data from vcxproj file
 
-        :param vcxproj: the vcxproj file
-        :type vcxproj: str
+        :param vs_project: the vcxproj file
+        :type vs_project: str
         """
 
+        vcxproj = {}
         try:
-            tree = etree.parse(vcxproj)
+            tree = etree.parse(vs_project)
             namespace = str(tree.getroot().nsmap)
             ns = {'ns': namespace.partition('\'')[-1].rpartition('\'')[0]}
-            self.vcxproj = {
-                'tree': tree,
-                'ns': ns
-            }
+            vcxproj['tree'] = tree
+            vcxproj['ns'] = ns
             assert 'http://schemas.microsoft.com' in ns['ns']
         except AssertionError:
             send(
@@ -70,6 +69,8 @@ class VSProject(object):
         except etree.XMLSyntaxError:
             send('This file is not a ".vcxproj" file or XML is broken !', 'error')
             exit(1)
+
+        return vcxproj
 
     @staticmethod
     def get_propertygroup(platform, target):

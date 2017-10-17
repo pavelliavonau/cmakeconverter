@@ -23,6 +23,10 @@
     ConvertData manage conversion of vcxproj data
 """
 
+import os
+from cmake_converter.vsproject import VSProject
+from cmake_converter.cmakelists import CMakeLists
+
 from cmake_converter.dependencies import Dependencies
 from cmake_converter.flags import Flags
 from cmake_converter.macro import Macro
@@ -31,13 +35,52 @@ from cmake_converter.projectfiles import ProjectFiles
 from cmake_converter.projectvariables import ProjectVariables
 
 
-class ConvertData:
+class DataConverter:
     """
         Class who convert data to CMakeLists.txt.
     """
 
     def __init__(self, data=None):
         self.data = data
+
+    def init_files(self, vs_project, cmake):
+        """
+        TODO
+        :param vs_project:
+        :param cmake:
+        :return:
+        """
+
+        # VS Project (.vcxproj)
+        if vs_project:
+            temp_path = os.path.splitext(vs_project)
+            if temp_path[1] == '.vcxproj':
+                send('Project to convert = ' + vs_project, '')
+                project = VSProject()
+                self.data['vcxproj'] = project.create_data(vs_project)
+            else:
+                send('This file is not a ".vcxproj". Be sure you give the right file', 'error')
+                exit(1)
+
+        # CMake Project (CMakeLists.txt)
+        if cmake:
+            cmakelists = CMakeLists()
+            print(cmake)
+            if os.path.exists(cmake):
+                cmakelists.create_file(cmake)
+                self.data['cmake'] = cmakelists.cmake
+            else:
+                send(
+                    'This path does not exist. '
+                    'CMakeList.txt will be generated in current directory.',
+                    'error'
+                )
+                cmakelists.create_file()
+            self.data['cmake'] = cmakelists.cmake
+        else:
+            cmakelists = CMakeLists()
+            cmakelists.create_file()
+            self.data['cmake'] = cmakelists.cmake
 
     def create_data(self):
         """

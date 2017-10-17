@@ -27,7 +27,7 @@ import argparse
 import os
 
 from cmake_converter.cmakelists import CMakeLists
-from cmake_converter.convertdata import ConvertData
+from cmake_converter.dataconverter import DataConverter
 from cmake_converter.message import send
 from cmake_converter.vsproject import VSProject
 
@@ -60,9 +60,9 @@ def main():
         dest='project'
     )
     parser.add_argument(
-        '-o', '--output',
+        '-c', '--cmake',
         help='define output of CMakeLists.txt file',
-        dest='output'
+        dest='cmake'
     )
     parser.add_argument(
         '-a', '--additional',
@@ -89,58 +89,20 @@ def main():
     # Get args
     args = parser.parse_args()
 
-    # If not project, display help
+    # Prepare data
     if not args.project:
         parser.print_help()
         exit(0)
 
-    # Vcxproj Path
-    if args.project is not None:
-        temp_path = os.path.splitext(args.project)
-        if temp_path[1] == '.vcxproj':
-            send('Project to convert = ' + args.project, '')
-            project = VSProject()
-            project.create_data(args.project)
-            data['vcxproj'] = project.vcxproj
-        else:
-            send('This file is not a ".vcxproj". Be sure you give the right file', 'error')
-            exit(1)
-
-    # CMakeLists.txt output
-    if args.output is not None:
-        cmakelists = CMakeLists()
-        if os.path.exists(args.output):
-            cmakelists.create_file(args.output)
-            data['cmake'] = cmakelists.cmake
-        else:
-            send(
-                'This path does not exist. CMakeList.txt will be generated in current directory.',
-                'error'
-            )
-            cmakelists.create_file()
-        data['cmake'] = cmakelists.cmake
-    else:
-        cmakelists = CMakeLists()
-        cmakelists.create_file()
-        data['cmake'] = cmakelists.cmake
-
-    # CMake additional Code
-    if args.additional is not None:
-        data['additional_code'] = args.additional
-
-    # If replace Dependencies
+    data['additional_code'] = args.additional
     if args.dependencies is not None:
         data['dependencies'] = args.dependencies.split(':')
-
-    # Define Output of CMake artefact
-    if args.cmakeoutput is not None:
-        data['cmake_output'] = args.cmakeoutput
-
-    # Add include directories found in vcxproj
+    data['cmake_output'] = args.cmakeoutput
     data['includes'] = args.include
 
     # Give data to ConvertData()
-    all_data = ConvertData(data)
+    all_data = DataConverter(data)
+    all_data.init_files(args.project, args.cmake)
     all_data.create_data()
 
 
