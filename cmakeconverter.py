@@ -64,6 +64,9 @@ def parse_argument():
             project = Vcxproj()
             project.create_data(args.p)
             data['vcxproj'] = project.vcxproj
+        else:
+            send('This file is not a ".vcxproj". Be sure you give the right file', 'error')
+            exit(1)
 
     # CMakeLists.txt output
     if args.o is not None:

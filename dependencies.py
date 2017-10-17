@@ -132,7 +132,8 @@ class Dependencies(object):
                 send(message, '')
             self.cmake.write(')\n')
             try:
-                if self.tree.xpath('//ns:AdditionalDependencies', namespaces=self.ns)[0]:
+                if self.tree.xpath(
+                        '//ns:AdditionalDependencies', namespaces=self.ns)[0] is not None:
                     depend = self.tree.xpath('//ns:AdditionalDependencies', namespaces=self.ns)[0]
                     listdepends = depend.text.replace('%(AdditionalDependencies)', '')
                     if listdepends != '':

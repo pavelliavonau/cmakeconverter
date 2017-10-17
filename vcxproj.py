@@ -47,13 +47,24 @@ class Vcxproj(object):
                 'tree': tree,
                 'ns': ns
             }
-        except OSError:
+            assert 'http://schemas.microsoft.com' in ns['ns']
+        except AssertionError:
+            send(
+                '.vcxproj file cannot be import, because this file does not seem to comply with'
+                ' Microsoft xml data !',
+                'error'
+            )
+            exit(1)
+        except (OSError, IOError):
             send(
                 '.vcxproj file cannot be import. '
-                'Please, verify you have rights to this directory !',
-                'error')
+                'Please, verify you have rights to this directory or file exists !',
+                'error'
+            )
+            exit(1)
         except etree.XMLSyntaxError:
-            send('This file is not a file.vcxproj or xml is broken !', 'error')
+            send('This file is not a ".vcxproj" file or XML is broken !', 'error')
+            exit(1)
 
     @staticmethod
     def get_propertygroup_platform(platform, target):
