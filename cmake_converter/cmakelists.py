@@ -42,7 +42,7 @@ class CMakeLists(object):
         :type cmake_path: str
         """
 
-        if cmake_path is None:
+        if not cmake_path:
             send('CMakeLists will be build in current directory.', '')
             self.cmake = open('CMakeLists.txt', 'w')
         else:
