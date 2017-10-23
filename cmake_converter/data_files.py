@@ -68,7 +68,7 @@ def get_vcxproj_data(vs_project):
     return vcxproj
 
 
-def get_propertygroup(target, platform):
+def get_propertygroup(target, platform, attributes=''):
     """
     Return "propertygroup" value for wanted platform and target
 
@@ -76,18 +76,24 @@ def get_propertygroup(target, platform):
     :type target: str
     :param platform: wanted platform: x86 | x64
     :type platform: str
+    :param attributes: attributes to add to namespace
+    :type attributes: str
     :return: "propertygroup" value
     :rtype: str
     """
 
     prop_deb_x86 = \
-        '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Debug|Win32\'"]'
+        '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Debug|Win32\'"%s]' % \
+        attributes
     prop_deb_x64 = \
-        '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Debug|x64\'"]'
+        '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Debug|x64\'"%s]' % \
+        attributes
     prop_rel_x86 = \
-        '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Release|Win32\'"]'
+        '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Release|Win32\'"%s]' % \
+        attributes
     prop_rel_x64 = \
-        '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Release|x64\'"]'
+        '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Release|x64\'"%s]' % \
+        attributes
 
     propertygroups = {
         'debug': {

@@ -20,7 +20,6 @@
 # along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
 import unittest2
-import os
 
 from cmake_converter.dependencies import Dependencies
 from cmake_converter.data_files import get_vcxproj_data, get_cmake_lists
@@ -62,11 +61,13 @@ class TestDependencies(unittest2.TestCase):
         under_test.write_include_dir()
         self.data_test['cmake'].close()
 
-        new_cmake = open('CMakeLists.txt', 'r')
+        cmakelists_test = open('CMakeLists.txt', 'r')
 
         self.assertTrue(
-            'include_directories(../../../external/g3log/latest/src)' in new_cmake.read()
+            'include_directories(../../../external/g3log/latest/src)' in cmakelists_test.read()
         )
+
+        cmakelists_test.close()
 
     def test_write_dependencies(self):
         """Write Dependencies"""
@@ -77,9 +78,11 @@ class TestDependencies(unittest2.TestCase):
         under_test.write_dependencies()
         self.data_test['cmake'].close()
 
-        new_cmake = open('CMakeLists.txt', 'r')
+        cmakelists_test = open('CMakeLists.txt', 'r')
 
-        self.assertTrue('Add Dependencies to project. ' in new_cmake.read())
+        self.assertTrue('Add Dependencies to project. ' in cmakelists_test.read())
+
+        cmakelists_test.close()
 
     def test_link_dependencies(self):
         """Link Dependencies"""
@@ -90,6 +93,8 @@ class TestDependencies(unittest2.TestCase):
         under_test.link_dependencies()
         self.data_test['cmake'].close()
 
-        new_cmake = open('CMakeLists.txt', 'r')
+        cmakelists_test = open('CMakeLists.txt', 'r')
 
-        self.assertTrue('target_link_libraries(${PROJECT_NAME}' in new_cmake.read())
+        self.assertTrue('target_link_libraries(${PROJECT_NAME}' in cmakelists_test.read())
+
+        cmakelists_test.close()

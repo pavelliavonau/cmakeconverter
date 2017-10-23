@@ -62,6 +62,8 @@ class Flags(object):
             '# Defines Flags for Windows and Linux. #\n'
             '########################################\n\n'
         )
+
+        self.define_microsoft_groups()
         self.define_windows_flags()
         self.define_linux_flags()
 
@@ -90,17 +92,25 @@ class Flags(object):
         self.cmake.write('   endif()\n')
         self.cmake.write('endif(NOT MSVC)\n\n')
 
-    def define_windows_flags(self):
+    def define_microsoft_groups(self):
         """
-        Write the Win32 flags
+        Define the PropertyGroups and DefinitionGroups of Microsoft properties
 
         """
 
         # PropertyGroup
-        self.propertygroup['debug']['x86'] = get_propertygroup('debug', 'x86')
-        self.propertygroup['debug']['x64'] = get_propertygroup('debug', 'x64')
-        self.propertygroup['release']['x86'] = get_propertygroup('release', 'x86')
-        self.propertygroup['release']['x64'] = get_propertygroup('release', 'x64')
+        self.propertygroup['debug']['x86'] = get_propertygroup(
+            'debug', 'x86', ' and @Label="Configuration"'
+        )
+        self.propertygroup['debug']['x64'] = get_propertygroup(
+            'debug', 'x64', ' and @Label="Configuration"'
+        )
+        self.propertygroup['release']['x86'] = get_propertygroup(
+            'release', 'x86', ' and @Label="Configuration"'
+        )
+        self.propertygroup['release']['x64'] = get_propertygroup(
+            'release', 'x64', ' and @Label="Configuration"'
+        )
 
         # ItemDefinitionGroup
         self.definitiongroups['debug']['x86'] = get_definitiongroup('debug', 'x86')
@@ -108,6 +118,13 @@ class Flags(object):
         self.definitiongroups['release']['x86'] = get_definitiongroup('release', 'x86')
         self.definitiongroups['release']['x64'] = get_definitiongroup('release', 'x64')
 
+    def define_windows_flags(self):
+        """
+        Write the Win32 flags
+
+        """
+
+        # Define FLAGS for Windows
         self.set_warning_level()
         self.set_whole_program_optimization()
         self.set_use_debug_libraries()
@@ -119,7 +136,7 @@ class Flags(object):
         self.set_generate_debug_information()
         self.set_exception_handling()
 
-        # Define FLAGS for Windows
+        # Write FLAGS for Windows
         self.cmake.write('if(MSVC)\n')
         if self.win_deb_flags != '':
             send('Debug   FLAGS found = ' + self.win_deb_flags, 'ok')
@@ -160,31 +177,33 @@ class Flags(object):
         """
 
         # WholeProgramOptimization
-        gl_debug_x86 = self.tree.find(
+        gl_debug_x86 = self.tree.xpath(
             '%s/ns:WholeProgramOptimization' % self.propertygroup['debug']['x86'],
             namespaces=self.ns
         )
-        gl_debug_x64 = self.tree.find(
+        gl_debug_x64 = self.tree.xpath(
             '%s/ns:WholeProgramOptimization' % self.propertygroup['debug']['x64'],
             namespaces=self.ns
         )
-        if gl_debug_x86 is not None and gl_debug_x64 is not None:
-            if 'true' in gl_debug_x86.text and 'true' in gl_debug_x64.text:
+
+        if gl_debug_x86 and gl_debug_x64:
+            if 'true' in gl_debug_x86[0].text and 'true' in gl_debug_x64[0].text:
                 self.win_deb_flags += ' /GL'
                 send('WholeProgramOptimization for Debug', 'ok')
         else:
             send('No WholeProgramOptimization for Debug', '')
 
-        gl_release_x86 = self.tree.find(
+        gl_release_x86 = self.tree.xpath(
             '%s/ns:WholeProgramOptimization' % self.propertygroup['release']['x86'],
             namespaces=self.ns
         )
-        gl_release_x64 = self.tree.find(
+        gl_release_x64 = self.tree.xpath(
             '%s/ns:WholeProgramOptimization' % self.propertygroup['release']['x64'],
             namespaces=self.ns
         )
-        if gl_release_x86 is not None and gl_release_x64 is not None:
-            if 'true' in gl_release_x86.text and 'true' in gl_release_x64.text:
+
+        if gl_release_x86 and gl_release_x64:
+            if 'true' in gl_release_x86[0].text and 'true' in gl_release_x64[0].text:
                 self.win_rel_flags += ' /GL'
                 send('WholeProgramOptimization for Release', 'ok')
         else:
@@ -196,31 +215,31 @@ class Flags(object):
 
         """
 
-        md_debug_x86 = self.tree.find(
+        md_debug_x86 = self.tree.xpath(
             '%s/ns:UseDebugLibraries' % self.propertygroup['debug']['x86'],
             namespaces=self.ns
         )
-        md_debug_x64 = self.tree.find(
+        md_debug_x64 = self.tree.xpath(
             '%s/ns:UseDebugLibraries' % self.propertygroup['debug']['x86'],
             namespaces=self.ns
         )
-        if md_debug_x64 is not None and md_debug_x86 is not None:
-            if 'true' in md_debug_x86.text and 'true' in md_debug_x64.text:
+        if md_debug_x64 and md_debug_x86:
+            if 'true' in md_debug_x86[0].text and 'true' in md_debug_x64[0].text:
                 self.win_deb_flags += ' /MD'
                 send('UseDebugLibrairies for Debug', 'ok')
         else:
             send('No UseDebugLibrairies for Debug', '')
 
-        md_release_x86 = self.tree.find(
+        md_release_x86 = self.tree.xpath(
             '%s/ns:UseDebugLibraries' % self.propertygroup['release']['x86'],
             namespaces=self.ns
         )
-        md_release_x64 = self.tree.find(
+        md_release_x64 = self.tree.xpath(
             '%s/ns:UseDebugLibraries' % self.propertygroup['release']['x64'],
             namespaces=self.ns
         )
-        if md_release_x86 is not None and md_release_x64 is not None:
-            if 'true' in md_release_x86.text and 'true' in md_release_x64.text:
+        if md_release_x86 and md_release_x64:
+            if 'true' in md_release_x86[0].text and 'true' in md_release_x64[0].text:
                 self.win_rel_flags += ' /MD'
                 send('UseDebugLibrairies for Release', 'ok')
         else:
