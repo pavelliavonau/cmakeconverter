@@ -23,8 +23,12 @@
     Flags manage compilation flags of project
 """
 
+import os
+
+from os import path
+
 from cmake_converter.message import send
-from cmake_converter.vsproject import VSProject
+from cmake_converter.data_files import get_propertygroup, get_definitiongroup
 
 
 class Flags(object):
@@ -58,25 +62,26 @@ class Flags(object):
             '# Defines Flags for Windows and Linux. #\n'
             '########################################\n\n'
         )
-        self.define_win_flags()
-        self.define_lin_flags()
+        self.define_windows_flags()
+        self.define_linux_flags()
 
-    def define_lin_flags(self):
+    def define_linux_flags(self):
         """
         Define the Linux flags
 
         """
 
-        # Define FLAGS for Linux compiler
         linux_flags = '-std=c++11'
-        # TODO recast this part to "set_target_properties" in class: dependencies
-        # references = self.tree.xpath('//ns:ProjectReference', namespaces=self.ns)
-        # if references:
-        #     for ref in references:
-        #         reference = str(ref.get('Include'))
-        #         lib = os.path.splitext(path.basename(reference))[0]
-        #         if (lib == 'lemon' or lib == 'zlib') and '-fPIC' not in linux_flags:
-        #             linux_flags += ' -fPIC'
+        references = self.tree.xpath('//ns:ProjectReference', namespaces=self.ns)
+        if references:
+            for ref in references:
+                reference = str(ref.get('Include'))
+                if '\\' in reference:
+                    reference = reference.replace('\\', '/')
+                lib = os.path.splitext(path.basename(reference))[0]
+
+                if (lib == 'lemon' or lib == 'zlib') and '-fPIC' not in linux_flags:
+                    linux_flags += ' -fPIC'
 
         self.cmake.write('if(NOT MSVC)\n')
         self.cmake.write('   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} %s")\n' % linux_flags)
@@ -85,23 +90,23 @@ class Flags(object):
         self.cmake.write('   endif()\n')
         self.cmake.write('endif(NOT MSVC)\n\n')
 
-    def define_win_flags(self):
+    def define_windows_flags(self):
         """
         Write the Win32 flags
 
         """
 
         # PropertyGroup
-        self.propertygroup['debug']['x86'] = VSProject.get_propertygroup('debug', 'x86')
-        self.propertygroup['debug']['x64'] = VSProject.get_propertygroup('debug', 'x64')
-        self.propertygroup['release']['x86'] = VSProject.get_propertygroup('release', 'x86')
-        self.propertygroup['release']['x64'] = VSProject.get_propertygroup('release', 'x64')
+        self.propertygroup['debug']['x86'] = get_propertygroup('debug', 'x86')
+        self.propertygroup['debug']['x64'] = get_propertygroup('debug', 'x64')
+        self.propertygroup['release']['x86'] = get_propertygroup('release', 'x86')
+        self.propertygroup['release']['x64'] = get_propertygroup('release', 'x64')
 
         # ItemDefinitionGroup
-        self.definitiongroups['debug']['x86'] = VSProject.get_definitiongroup('debug', 'x86')
-        self.definitiongroups['debug']['x64'] = VSProject.get_definitiongroup('debug', 'x64')
-        self.definitiongroups['release']['x86'] = VSProject.get_definitiongroup('release', 'x86')
-        self.definitiongroups['release']['x64'] = VSProject.get_definitiongroup('release', 'x64')
+        self.definitiongroups['debug']['x86'] = get_definitiongroup('debug', 'x86')
+        self.definitiongroups['debug']['x64'] = get_definitiongroup('debug', 'x64')
+        self.definitiongroups['release']['x86'] = get_definitiongroup('release', 'x86')
+        self.definitiongroups['release']['x64'] = get_definitiongroup('release', 'x64')
 
         self.set_warning_level()
         self.set_whole_program_optimization()
@@ -460,3 +465,29 @@ class Flags(object):
         else:
             self.win_rel_flags += ' /EHsc'
             send('ExceptionHandling for release.', 'ok')
+
+
+# Macros Step
+def define_and_write_macro(data):
+    """
+    Get Macro definitions and write to cmake file.
+
+    """
+
+    tree = data['vcxproj']['tree']
+    ns = data['vcxproj']['ns']
+    cmake = data['cmake']
+
+    preprocessor = tree.xpath('//ns:PreprocessorDefinitions', namespaces=ns)[0]
+    if preprocessor.text:
+        cmake.write('# Definition of Macros\n')
+        cmake.write('add_definitions(\n')
+        for preproc in preprocessor.text.split(";"):
+            if preproc != '%(PreprocessorDefinitions)' and preproc != 'WIN32':
+                cmake.write('   -D%s \n' % preproc)
+        # Unicode
+        u = tree.find("//ns:CharacterSet", namespaces=ns)
+        if 'Unicode' in u.text:
+            cmake.write('   -DUNICODE\n')
+            cmake.write('   -D_UNICODE\n')
+        cmake.write(')\n\n')

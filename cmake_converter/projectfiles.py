@@ -41,8 +41,7 @@ class ProjectFiles(object):
         self.cppfiles = self.tree.xpath('//ns:ClCompile', namespaces=self.ns)
         self.headerfiles = self.tree.xpath('//ns:ClInclude', namespaces=self.ns)
 
-    # TODO : put this method in projectvariables file
-    def write_variables(self):
+    def write_files_variables(self):
         """
         Write the project variables in CMakeLists.txt file
 
@@ -82,8 +81,6 @@ class ProjectFiles(object):
 
         """
 
-        # Add files to project
-        # TODO Glob Recurse for files.
         self.cmake.write('################ Files ################\n'
                          '#   --   Add files to project.   --   #\n'
                          '#######################################\n\n')

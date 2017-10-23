@@ -25,12 +25,10 @@
 
 import os
 
-from cmake_converter.vsproject import VSProject
-from cmake_converter.cmakelists import CMakeLists
+from cmake_converter.data_files import init_vcxproj_data, get_cmake_lists
 
 from cmake_converter.dependencies import Dependencies
-from cmake_converter.flags import Flags
-from cmake_converter.macro import Macro
+from cmake_converter.flags import Flags, define_and_write_macro
 from cmake_converter.message import send
 from cmake_converter.projectfiles import ProjectFiles
 from cmake_converter.projectvariables import ProjectVariables
@@ -44,14 +42,14 @@ class DataConverter:
     def __init__(self, data=None):
         self.data = data
 
-    def init_files(self, vs_project, cmake):
+    def init_files(self, vs_project, cmake_lists):
         """
         Initialize opening of CMake and VS Project files
 
         :param vs_project: Visual Studio project file path
         :type vs_project: str
-        :param cmake: CMakeLists.txt file path
-        :type cmake: str
+        :param cmake_lists: CMakeLists.txt file path
+        :type cmake_lists: str
         """
 
         # VS Project (.vcxproj)
@@ -59,31 +57,23 @@ class DataConverter:
             temp_path = os.path.splitext(vs_project)
             if temp_path[1] == '.vcxproj':
                 send('Project to convert = ' + vs_project, '')
-                project = VSProject()
-                self.data['vcxproj'] = project.create_data(vs_project)
+                self.data['vcxproj'] = init_vcxproj_data(vs_project)
             else:
                 send('This file is not a ".vcxproj". Be sure you give the right file', 'error')
                 exit(1)
 
-        # CMake Project (CMakeLists.txt)
-        if cmake:
-            cmakelists = CMakeLists()
-            print(cmake)
-            if os.path.exists(cmake):
-                cmakelists.create_file(cmake)
-                self.data['cmake'] = cmakelists.cmake
-            else:
-                send(
-                    'This path does not exist. '
-                    'CMakeList.txt will be generated in current directory.',
-                    'error'
-                )
-                cmakelists.create_file()
-            self.data['cmake'] = cmakelists.cmake
-        else:
-            cmakelists = CMakeLists()
-            cmakelists.create_file()
-            self.data['cmake'] = cmakelists.cmake
+        # CMakeLists
+        if cmake_lists:
+            if os.path.exists(cmake_lists):
+                self.data['cmake'] = get_cmake_lists(cmake_lists)
+
+        if not self.data['cmake']:
+            send(
+                'CMakeLists.txt path is not set. '
+                'He will be generated in current directory.',
+                'warn'
+            )
+            self.data['cmake'] = get_cmake_lists(cmake_lists)
 
     def create_data(self):
         """
@@ -95,13 +85,12 @@ class DataConverter:
         variables = ProjectVariables(self.data)
         variables.define_variable()
         files = ProjectFiles(self.data)
-        files.write_variables()
+        files.write_files_variables()
         variables.define_project()
         variables.define_target()
 
         # Write Macro
-        macros = Macro()
-        macros.write_macro(self.data)
+        define_and_write_macro(self.data)
 
         # Write Output Variables
         variables.write_output()

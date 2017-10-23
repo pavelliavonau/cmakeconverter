@@ -24,12 +24,8 @@
 """
 
 import argparse
-import os
 
-from cmake_converter.cmakelists import CMakeLists
 from cmake_converter.dataconverter import DataConverter
-from cmake_converter.message import send
-from cmake_converter.vsproject import VSProject
 
 
 def main():
