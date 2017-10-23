@@ -25,7 +25,7 @@
 
 import os
 
-from cmake_converter.data_files import init_vcxproj_data, get_cmake_lists
+from cmake_converter.data_files import get_vcxproj_data, get_cmake_lists
 
 from cmake_converter.dependencies import Dependencies
 from cmake_converter.flags import Flags, define_and_write_macro
@@ -57,7 +57,7 @@ class DataConverter:
             temp_path = os.path.splitext(vs_project)
             if temp_path[1] == '.vcxproj':
                 send('Project to convert = ' + vs_project, '')
-                self.data['vcxproj'] = init_vcxproj_data(vs_project)
+                self.data['vcxproj'] = get_vcxproj_data(vs_project)
             else:
                 send('This file is not a ".vcxproj". Be sure you give the right file', 'error')
                 exit(1)

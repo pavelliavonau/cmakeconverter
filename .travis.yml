@@ -1,0 +1,34 @@
+language: python
+sudo: true
+python:
+  - "3.5"
+  - "3.6"
+
+install:
+  - ./test/setup_test.sh
+
+script:
+  # so to help eventual debug: knowing what exact versions are in use can be rather useful.
+  - pip freeze
+  # Code static analysis
+  - pep8 --max-line-length=100 --exclude='*.pyc, *.cfg, *.log' --ignore='E402' cmake_converter/*
+  - pylint --rcfile=.pylintrc cmake_converter/
+  # No pep257 currently (Code doc compliance)
+  # - pep257 --select=D300 alignak_app
+  # Code dynamic analysis
+  - coverage erase
+  # - cd test/
+  - nosetests -xv --nologcapture --with-coverage --cover-package=cmake_converter test/test_*.py
+  - coverage combine
+  # - cd ..
+  - coverage report -m
+
+
+# specific call to launch coverage data into coveralls.io
+after_success:
+  # to get coverage data with relative paths and not absolute we have to
+  # execute coveralls from the base directory of the project,
+  # so we need to move the .coverage file here :
+  # mv test/.coverage . && coveralls --rcfile=test/.coveragerc -v
+  - coveralls -v
+  

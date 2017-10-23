@@ -28,7 +28,7 @@ from lxml import etree
 from cmake_converter.message import send
 
 
-def init_vcxproj_data(vs_project):
+def get_vcxproj_data(vs_project):
     """
     Return xml data from vcxproj file
 
@@ -66,14 +66,14 @@ def init_vcxproj_data(vs_project):
     return vcxproj
 
 
-def get_propertygroup(platform, target):
+def get_propertygroup(target, platform):
     """
     Return "propertygroup" value for wanted platform and target
 
-    :param platform: wanted platform: x86 | x64
-    :type platform: str
     :param target: wanted target: debug | release
     :type target: str
+    :param platform: wanted platform: x86 | x64
+    :type platform: str
     :return: "propertygroup" value
     :rtype: str
     """
@@ -98,7 +98,7 @@ def get_propertygroup(platform, target):
         }
     }
 
-    return propertygroups[platform][target]
+    return propertygroups[target][platform]
 
 
 def get_definitiongroup(target, platform):
