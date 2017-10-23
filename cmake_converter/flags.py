@@ -49,7 +49,7 @@ class Flags(object):
 
     def write_flags(self):
         """
-        Parce all flags property and Write FLAGS in CMakeLists.txt file
+        Parse all flags properties and write them in CMakeLists.txt file
 
         """
 
@@ -63,7 +63,7 @@ class Flags(object):
 
     def define_lin_flags(self):
         """
-        Define the Linux FLAGS
+        Define the Linux flags
 
         """
 
@@ -87,7 +87,7 @@ class Flags(object):
 
     def define_win_flags(self):
         """
-        Write the Win32 FLAGS
+        Write the Win32 flags
 
         """
 

@@ -20,10 +20,11 @@
 # along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
 """
-    ConvertData manage conversion of vcxproj data
+    Data Converter manage conversion of vcxproj data
 """
 
 import os
+
 from cmake_converter.vsproject import VSProject
 from cmake_converter.cmakelists import CMakeLists
 
@@ -45,10 +46,12 @@ class DataConverter:
 
     def init_files(self, vs_project, cmake):
         """
-        TODO
-        :param vs_project:
-        :param cmake:
-        :return:
+        Initialize opening of CMake and VS Project files
+
+        :param vs_project: Visual Studio project file path
+        :type vs_project: str
+        :param cmake: CMakeLists.txt file path
+        :type cmake: str
         """
 
         # VS Project (.vcxproj)
