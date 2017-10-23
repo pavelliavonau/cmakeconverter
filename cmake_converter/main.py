@@ -101,6 +101,9 @@ def main():
     all_data.init_files(args.project, args.cmake)
     all_data.create_data()
 
+    # Close CMake file
+    all_data.close_cmake_file()
+
 
 if __name__ == "__main__":
     main()

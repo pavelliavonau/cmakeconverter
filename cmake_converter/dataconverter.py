@@ -39,7 +39,7 @@ class DataConverter:
         Class who convert data to CMakeLists.txt.
     """
 
-    def __init__(self, data=None):
+    def __init__(self, data):
         self.data = data
 
     def init_files(self, vs_project, cmake_lists):
@@ -73,7 +73,7 @@ class DataConverter:
                 'He will be generated in current directory.',
                 'warn'
             )
-            self.data['cmake'] = get_cmake_lists(cmake_lists)
+            self.data['cmake'] = get_cmake_lists()
 
     def create_data(self):
         """
@@ -120,5 +120,10 @@ class DataConverter:
         # Link with other dependencies
         depends.link_dependencies()
 
-        # Close CMake file
+    def close_cmake_file(self):
+        """
+        Close the CmakeLists.txt file
+
+        """
+
         self.data['cmake'].close()

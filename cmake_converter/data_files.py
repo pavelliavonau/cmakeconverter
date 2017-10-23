@@ -34,6 +34,8 @@ def get_vcxproj_data(vs_project):
 
     :param vs_project: the vcxproj file
     :type vs_project: str
+    :return: dict with VS Project data
+    :rtype: dict
     """
 
     vcxproj = {}
