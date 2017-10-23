@@ -9,6 +9,10 @@ __pycache__/
 # Tests/Coverage
 .coverage
 
+# Docs
+_static
+_build
+
 # Misc
 *.cmake
 CMakeLists.txt

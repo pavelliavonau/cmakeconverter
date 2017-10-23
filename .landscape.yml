@@ -1,0 +1,15 @@
+doc-warnings: true
+test-warnings: false
+strictness: medium
+max-line-length: 100
+autodetect: true
+requirements:
+  - requirements.txt
+  - test/requirements.txt
+python-targets:
+  - 3
+pyflakes:
+  disable:
+    - F821
+ignore-paths:
+  - docs
