@@ -20,19 +20,16 @@
 # along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
 import unittest2
-import lxml
-import _io
 
 from cmake_converter.dataconverter import DataConverter
 
 
 class TestDataConverter(unittest2.TestCase):
     """
-        This file test methods of ActionManager class.
+        This file test methods of DataConverter class.
     """
 
     vs_project = 'test/project_test.vcxproj'
-
 
     def test_init_files(self):
         """Data Converter Init Files"""

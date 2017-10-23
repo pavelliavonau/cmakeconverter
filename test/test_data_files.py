@@ -29,7 +29,7 @@ from cmake_converter.data_files import get_propertygroup, get_definitiongroup
 
 class TestDataFiles(unittest2.TestCase):
     """
-        This file test methods of ActionManager class.
+        This file test 'data_files' functions
     """
 
     vs_project = 'test/project_test.vcxproj'
