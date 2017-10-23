@@ -63,7 +63,7 @@ class Flags(object):
             '########################################\n\n'
         )
 
-        self.define_microsoft_groups()
+        self.define_group_properties()
         self.define_windows_flags()
         self.define_linux_flags()
 
@@ -92,9 +92,9 @@ class Flags(object):
         self.cmake.write('   endif()\n')
         self.cmake.write('endif(NOT MSVC)\n\n')
 
-    def define_microsoft_groups(self):
+    def define_group_properties(self):
         """
-        Define the PropertyGroups and DefinitionGroups of Microsoft properties
+        Define the PropertyGroups and DefinitionGroups of XML properties
 
         """
 
@@ -220,7 +220,7 @@ class Flags(object):
             namespaces=self.ns
         )
         md_debug_x64 = self.tree.xpath(
-            '%s/ns:UseDebugLibraries' % self.propertygroup['debug']['x86'],
+            '%s/ns:UseDebugLibraries' % self.propertygroup['debug']['x64'],
             namespaces=self.ns
         )
         if md_debug_x64 and md_debug_x86:
