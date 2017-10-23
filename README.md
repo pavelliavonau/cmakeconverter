@@ -1,5 +1,7 @@
 # CMakeConverter
 
+[![Build Status](https://travis-ci.org/algorys/cmakeconverter.svg?branch=develop)](https://travis-ci.org/algorys/cmakeconverter)
+
 ## Introduction
 
 This project aims to facilitate the conversion of Visual Studio projects to CMake projects. The goal is to give to a Python script, a **.vcxproj** file, and output a **CMakeLists.txt**.
