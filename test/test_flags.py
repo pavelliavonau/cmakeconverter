@@ -109,7 +109,7 @@ class TestDependencies(unittest2.TestCase):
         self.data_test['cmake'] = get_cmake_lists('./')
         under_test = Flags(self.data_test)
 
-        under_test.define_microsoft_groups()
+        under_test.define_group_properties()
         under_test.define_windows_flags()
         self.data_test['cmake'].close()
 
@@ -123,10 +123,42 @@ class TestDependencies(unittest2.TestCase):
         self.assertTrue(' /W4 /MD /Od /Zi /EHsc' in content_test)
         self.assertTrue(' /W4 /GL /Od /Oi /Zi /EHsc' in content_test)
 
-    def test_set_warning_level(self):
-        """Set Warning Level"""
+    def test_define_group_properties(self):
+        """Define XML Groups Properties"""
 
-        self.data_test['cmake'] = get_cmake_lists('./')
+        under_test = Flags(self.data_test)
+
+        self.assertIsNone(under_test.propertygroup['debug']['x86'])
+        self.assertIsNone(under_test.propertygroup['debug']['x64'])
+        self.assertIsNone(under_test.propertygroup['release']['x86'])
+        self.assertIsNone(under_test.propertygroup['release']['x64'])
+
+        self.assertIsNone(under_test.definitiongroups['debug']['x86'])
+        self.assertIsNone(under_test.definitiongroups['debug']['x64'])
+        self.assertIsNone(under_test.definitiongroups['release']['x86'])
+        self.assertIsNone(under_test.definitiongroups['release']['x64'])
+
+        under_test.define_group_properties()
+
+        self.assertIsNotNone(under_test.propertygroup['debug']['x86'])
+        self.assertIsNotNone(under_test.propertygroup['debug']['x64'])
+        self.assertIsNotNone(under_test.propertygroup['release']['x86'])
+        self.assertIsNotNone(under_test.propertygroup['release']['x64'])
+
+        self.assertIsNotNone(under_test.definitiongroups['debug']['x86'])
+        self.assertIsNotNone(under_test.definitiongroups['debug']['x64'])
+        self.assertIsNotNone(under_test.definitiongroups['release']['x86'])
+        self.assertIsNotNone(under_test.definitiongroups['release']['x64'])
+
+        property_test = '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Debug|Win32\'" and @Label="Configuration"]'
+        self.assertEqual(property_test, under_test.propertygroup['debug']['x86'])
+
+        definition_test = '//ns:ItemDefinitionGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Debug|Win32\'"]'
+        self.assertEqual(definition_test, under_test.definitiongroups['debug']['x86'])
+
+    def test_set_warning_level(self):
+        """Set Warning Level Flag"""
+
         under_test = Flags(self.data_test)
 
         under_test.set_warning_level()
@@ -135,14 +167,56 @@ class TestDependencies(unittest2.TestCase):
         self.assertTrue('/W4' in under_test.win_rel_flags)
 
     def test_set_whole_program_optimization(self):
-        """Set Whole Program Optimization"""
+        """Set Whole Program Optimization Flag"""
 
-        self.data_test['cmake'] = get_cmake_lists()
-        self.data_test['vcxproj'] = get_vcxproj_data('test/project_test.vcxproj')
         under_test = Flags(self.data_test)
 
-        under_test.define_microsoft_groups()
+        under_test.define_group_properties()
         under_test.set_whole_program_optimization()
 
         self.assertFalse('/GL' in under_test.win_deb_flags)
         self.assertTrue('/GL' in under_test.win_rel_flags)
+
+    def test_set_use_debug_libraries(self):
+        """Set Use Debug Libraries Flag"""
+
+        under_test = Flags(self.data_test)
+
+        under_test.define_group_properties()
+        under_test.set_use_debug_libraries()
+
+        self.assertTrue('/MD' in under_test.win_deb_flags)
+        self.assertFalse('/MD' in under_test.win_rel_flags)
+
+    def test_set_runtime_library(self):
+        """Set Runtime Library Flag"""
+
+        under_test = Flags(self.data_test)
+
+        under_test.define_group_properties()
+        under_test.set_runtime_library()
+
+        self.assertFalse('/MDd' in under_test.win_deb_flags)
+        self.assertFalse('/MDd' in under_test.win_rel_flags)
+
+    def test_set_optimization(self):
+        """Set Optimization Flag"""
+
+        under_test = Flags(self.data_test)
+
+        under_test.define_group_properties()
+        under_test.set_optimization()
+
+        self.assertTrue('/Od' in under_test.win_deb_flags)
+        self.assertTrue('/Od' in under_test.win_rel_flags)
+
+    def test_set_intrinsic_functions(self):
+        """Set Intrinsic Functions Flag"""
+
+        under_test = Flags(self.data_test)
+
+        under_test.define_group_properties()
+        under_test.set_intrinsic_functions()
+
+        self.assertFalse('/Oi' in under_test.win_deb_flags)
+        self.assertTrue('/Oi' in under_test.win_rel_flags)
