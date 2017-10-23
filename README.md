@@ -2,6 +2,14 @@
 
 [![Build Status](https://travis-ci.org/algorys/cmakeconverter.svg?branch=develop)](https://travis-ci.org/algorys/cmakeconverter)
 
+[![Code Health](https://landscape.io/github/algorys/cmakeconverter/master/landscape.svg?style=flat)](https://landscape.io/github/algorys/cmakeconverter/master)
+
+[![Coverage Status](https://coveralls.io/repos/github/algorys/cmakeconverter/badge.svg?branch=master)](https://coveralls.io/github/algorys/cmakeconverter?branch=master)
+
+[![PyPI version](https://badge.fury.io/py/cmake_converter.svg)](https://badge.fury.io/py/cmake_converter)
+
+[![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
+
 ## Introduction
 
 This project aims to facilitate the conversion of Visual Studio projects to CMake projects. The goal is to give to a Python script, a **.vcxproj** file, and output a **CMakeLists.txt**.
