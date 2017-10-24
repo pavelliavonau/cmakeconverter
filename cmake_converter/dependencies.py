@@ -145,22 +145,22 @@ class Dependencies(object):
             self.cmake.write(')\n')
 
         # Additional Dependencies
-        dependencies = self.tree.xpath('//ns:AdditionalDependencies', namespaces=self.ns)[0]
-        if dependencies is not None:
-            listdepends = dependencies.text.replace('%(AdditionalDependencies)', '')
+        dependencies = self.tree.xpath('//ns:AdditionalDependencies', namespaces=self.ns)
+        if dependencies:
+            listdepends = dependencies[0].text.replace('%(AdditionalDependencies)', '')
             if listdepends != '':
                 send('Additional Dependencies = %s' % listdepends, 'ok')
-            windepends = []
-            for d in listdepends.split(';'):
-                if d != '%(AdditionalDependencies)':
-                    if os.path.splitext(d)[1] == '.lib':
-                        windepends.append(d)
-            if windepends:
-                self.cmake.write('if(MSVC)\n')
-                self.cmake.write('   target_link_libraries(${PROJECT_NAME} ')
-                for dep in windepends:
-                    self.cmake.write(dep + ' ')
-                self.cmake.write(')\n')
-                self.cmake.write('endif(MSVC)\n')
+                windepends = []
+                for d in listdepends.split(';'):
+                    if d != '%(AdditionalDependencies)':
+                        if os.path.splitext(d)[1] == '.lib':
+                            windepends.append(d)
+                if windepends:
+                    self.cmake.write('if(MSVC)\n')
+                    self.cmake.write('   target_link_libraries(${PROJECT_NAME} ')
+                    for dep in windepends:
+                        self.cmake.write(dep + ' ')
+                    self.cmake.write(')\n')
+                    self.cmake.write('endif(MSVC)\n')
         else:  # pragma: no cover
             send('No dependencies.', '')

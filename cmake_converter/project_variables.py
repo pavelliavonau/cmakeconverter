@@ -169,8 +169,8 @@ class ProjectVariables(object):
         self.cmake.write('\n')
         self.cmake.write(
             '############## CMake Project ################\n'
-            '#     This the main options of project      #\n'
-            '##############################################\n\n'
+            '#        The main options of project        #\n'
+            '#############################################\n\n'
         )
         self.cmake.write('project(${PROJECT_NAME} CXX)\n\n')
 
