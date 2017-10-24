@@ -16,7 +16,7 @@ This project aims to facilitate the conversion of Visual Studio projects to CMak
 # Prerequisites
 
 You may have **Python3** installed to make this library works. Currently, **cmake-converter** is not available on **pip**.
-So clone this repository and type the following commands:
+So clone this repository and type the following command to install it:
 
 ```bash
 # Inside repository folder
@@ -25,11 +25,7 @@ sudo pip install .
 
 # Use the script
 
-After install prerequisites, just run the script as below.
-
-## Required
-
-The `file.vcxproj` is of course required:
+After install library, just run the script as below. Your `<file>.vcxproj` is of course required:
 
 `cmake-converter -p <path/to/file.vcxproj>`
 
@@ -93,7 +89,7 @@ After script get all information, he create your library (`STATIC` or `SHARED`) 
 
 At end of file, you have directives to link your artefact with other project (external libraries).
 
-## Cmake Compilation
+## CMake Compilation
 
 Once you have verify CMakeLists.txt, copy it in your `.vcxproj` folder and run the following command :
 
