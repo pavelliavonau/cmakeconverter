@@ -15,25 +15,13 @@ This project aims to facilitate the conversion of Visual Studio projects to CMak
 
 # Prerequisites
 
-You may have **Python3** installed and **lxml** module :
+You may have **Python3** installed to make this library works. Currently, **cmake-converter** is not available on **pip**.
+So clone this repository and type the following commands:
 
-## On Linux
-
-`sudo apt-get install python3`
-
-`pip install lxml`
-
-### On Windows
-
-Go to [Python Releases for Windows](https://www.python.org/downloads/windows/) and download latest release. Install and follow instruction of setup.
-
-Once Python installed, try to install **lxml** : `pip install lxml`
-
-If installation of lxml fails, download binaries you need [here](http://www.lfd.uci.edu/~gohlke/pythonlibs/#lxml) and run :
-
-`pip install <lxml-file.whl>`
-
-That must be work. If no, try again in Administrator elevated terminal.
+```bash
+# Inside repository folder
+sudo pip install .
+```
 
 # Use the script
 
@@ -43,7 +31,7 @@ After install prerequisites, just run the script as below.
 
 The `file.vcxproj` is of course required:
 
-`./cmakeconverter.py -p <path/to/file.vcxproj>`
+`cmake-converter -p <path/to/file.vcxproj>`
 
 ## Other options :
 
@@ -58,7 +46,7 @@ Script provides other option to facilitate conversion of your Visual Studio proj
 **Full Example :**
 
 ```bash
-./cmakeconverter.py \
+cmake-converter \
 > -p ../project/platform/msvc/vc2015/mylib.vcxproj \
 > -a additional_code.txt \
 > -o ../project/platform/cmake/mylib/ \
@@ -69,7 +57,7 @@ Script provides other option to facilitate conversion of your Visual Studio proj
 
 # Use CMake
 
-**Cmakeconverter** try to have the most information as possible in your `file.vcxproj` ! However, it's recommended to read and test generated CMakeLists.txt before using in production.
+**cmake-converter** try to have the most information as possible in your `file.vcxproj` ! However, it's recommended to read and test generated CMakeLists.txt before using in production.
 
 ## Variables
 
