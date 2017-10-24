@@ -21,7 +21,7 @@
 
 import unittest2
 
-from cmake_converter.flags import Flags
+from cmake_converter.flags import Flags, define_and_write_macro
 from cmake_converter.data_files import get_vcxproj_data, get_cmake_lists
 
 
@@ -74,7 +74,7 @@ class TestDependencies(unittest2.TestCase):
         self.assertTrue(under_test.win_deb_flags)
         self.assertEqual(' /W4 /MD /Od /Zi /EHsc', under_test.win_deb_flags)
         self.assertTrue(under_test.win_rel_flags)
-        self.assertEqual(' /W4 /GL /Od /Oi /Zi /EHsc', under_test.win_rel_flags)
+        self.assertEqual(' /W4 /GL /Od /Oi /Gy /Zi /EHsc', under_test.win_rel_flags)
 
         self.data_test['cmake'].close()
 
@@ -82,7 +82,7 @@ class TestDependencies(unittest2.TestCase):
         content_test = cmakelists_test.read()
 
         self.assertTrue(' /W4 /MD /Od /Zi /EHsc' in content_test)
-        self.assertTrue(' /W4 /GL /Od /Oi /Zi /EHsc' in content_test)
+        self.assertTrue(' /W4 /GL /Od /Oi /Gy /Zi /EHsc' in content_test)
 
         cmakelists_test.close()
 
@@ -121,7 +121,7 @@ class TestDependencies(unittest2.TestCase):
 
         self.assertFalse('-std=c++11 -fPIC' in content_test)
         self.assertTrue(' /W4 /MD /Od /Zi /EHsc' in content_test)
-        self.assertTrue(' /W4 /GL /Od /Oi /Zi /EHsc' in content_test)
+        self.assertTrue(' /W4 /GL /Od /Oi /Gy /Zi /EHsc' in content_test)
 
     def test_define_group_properties(self):
         """Define XML Groups Properties"""
@@ -220,3 +220,65 @@ class TestDependencies(unittest2.TestCase):
 
         self.assertFalse('/Oi' in under_test.win_deb_flags)
         self.assertTrue('/Oi' in under_test.win_rel_flags)
+
+    def test_set_runtime_type_info(self):
+        """Set runtime Type Info Flag"""
+
+        under_test = Flags(self.data_test)
+
+        under_test.define_group_properties()
+        under_test.set_runtime_type_info()
+
+        self.assertFalse('/GR' in under_test.win_deb_flags)
+        self.assertFalse('/GR' in under_test.win_rel_flags)
+
+    def test_set_function_level_linking(self):
+        """Set Function Level Linking"""
+
+        under_test = Flags(self.data_test)
+
+        under_test.define_group_properties()
+        under_test.set_function_level_linking()
+
+        self.assertTrue('/Gy' in under_test.win_rel_flags)
+
+    def test_set_generate_debug_information(self):
+        """Set Generate Debug Information"""
+
+        under_test = Flags(self.data_test)
+
+        under_test.define_group_properties()
+        under_test.set_generate_debug_information()
+
+        self.assertTrue('/Zi' in under_test.win_deb_flags)
+        self.assertTrue('/Zi' in under_test.win_rel_flags)
+
+    def test_set_exception_handling(self):
+        """Set Exception Handling"""
+
+        under_test = Flags(self.data_test)
+
+        under_test.define_group_properties()
+        under_test.set_exception_handling()
+
+        self.assertTrue('/EHsc' in under_test.win_deb_flags)
+        self.assertTrue('/EHsc' in under_test.win_rel_flags)
+
+    def test_define_and_write_macro(self):
+        """Define and Write Macros"""
+
+        self.data_test['cmake'] = get_cmake_lists('./')
+        define_and_write_macro(self.data_test)
+
+        self.data_test['cmake'].close()
+
+        cmakelists_test = open('CMakeLists.txt', 'r')
+        under_test = cmakelists_test.read()
+
+        macros_test = [
+            '-D_CRT_NONSTDC_NO_DEPRECATE', '-D_DEBUG', '-D_WINDOWS', '-D_USRDLL',
+            '-DCORE_EXPORTS', '-DUNICODE', '-D_UNICODE'
+        ]
+
+        for macro in macros_test:
+            self.assertTrue(macro in under_test)

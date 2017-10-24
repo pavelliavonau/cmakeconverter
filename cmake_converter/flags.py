@@ -371,7 +371,7 @@ class Flags(object):
             namespaces=self.ns
         )
         if gr_debug_x64 is not None and gr_debug_x86 is not None:
-            if 'true' in gr_debug_x64.text and gr_debug_x86.text:
+            if 'true' in gr_debug_x64.text and 'true' in gr_debug_x86.text:
                 self.win_deb_flags += ' /GR'
                 send('RuntimeTypeInfo for Debug', 'ok')
         else:
@@ -386,7 +386,7 @@ class Flags(object):
             namespaces=self.ns
         )
         if gr_release_x86 is not None and gr_release_x64 is not None:
-            if 'true' in gr_release_x64.text and gr_release_x86.text:
+            if 'true' in gr_release_x64.text and 'true' in gr_release_x86.text:
                 self.win_rel_flags += ' /GR'
                 send('RuntimeTypeInfo for Release', 'ok')
         else:
@@ -399,11 +399,11 @@ class Flags(object):
         """
 
         gy_release_x86 = self.tree.find(
-            '%s/ns:ClCompile/ns:FunctionLevelLinking' % self.definitiongroups['debug']['x86'],
+            '%s/ns:ClCompile/ns:FunctionLevelLinking' % self.definitiongroups['release']['x86'],
             namespaces=self.ns
         )
         gy_release_x64 = self.tree.find(
-            '%s/ns:ClCompile/ns:FunctionLevelLinking' % self.definitiongroups['debug']['x64'],
+            '%s/ns:ClCompile/ns:FunctionLevelLinking' % self.definitiongroups['release']['x64'],
             namespaces=self.ns
         )
         if gy_release_x86 is not None and gy_release_x64 is not None:
@@ -428,7 +428,7 @@ class Flags(object):
             namespaces=self.ns
         )
         if zi_debug_x86 is not None and zi_debug_x64 is not None:
-            if 'true' in zi_debug_x86.text and zi_debug_x64.text:
+            if 'true' in zi_debug_x86.text and 'true' in zi_debug_x64.text:
                 self.win_deb_flags += ' /Zi'
                 send('GenerateDebugInformation for debug.', 'ok')
         else:
@@ -443,7 +443,7 @@ class Flags(object):
             namespaces=self.ns
         )
         if zi_release_x86 is not None and zi_release_x64 is not None:
-            if 'true' in zi_release_x86.text and zi_release_x64.text:
+            if 'true' in zi_release_x86.text and 'true' in zi_release_x64.text:
                 self.win_rel_flags += ' /Zi'
                 send('GenerateDebugInformation for release.', 'ok')
         else:
@@ -464,7 +464,7 @@ class Flags(object):
             namespaces=self.ns
         )
         if ehs_debug_x86 is not None and ehs_debug_x64 is not None:
-            if 'false' in ehs_debug_x86.text and ehs_debug_x64.text:
+            if 'false' in ehs_debug_x86.text and 'false' in ehs_debug_x64.text:
                 send('No ExceptionHandling for debug.', '')
         else:
             self.win_deb_flags += ' /EHsc'
@@ -479,7 +479,7 @@ class Flags(object):
             namespaces=self.ns
         )
         if ehs_release_x86 is not None and ehs_release_x64 is not None:
-            if 'false' in ehs_release_x86.text and ehs_release_x64.text:
+            if 'false' in ehs_release_x86.text and 'false' in ehs_release_x64.text:
                 send('No ExceptionHandling option for release.', '')
         else:
             self.win_rel_flags += ' /EHsc'

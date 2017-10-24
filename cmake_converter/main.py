@@ -28,7 +28,7 @@ import argparse
 from cmake_converter.dataconverter import DataConverter
 
 
-def main():
+def main():  # pragma: no cover
     """
     Define arguments and send to ConvertData.
 

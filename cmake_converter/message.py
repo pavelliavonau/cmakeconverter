@@ -26,7 +26,7 @@
 import os
 
 
-def send(message, status):
+def send(message, status):  # pragma: no cover
     """
     Send a message during script run
 
