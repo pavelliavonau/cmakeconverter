@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/algorys/cmakeconverter.svg?branch=develop)](https://travis-ci.org/algorys/cmakeconverter)
 [![Code Health](https://landscape.io/github/algorys/cmakeconverter/develop/landscape.svg?style=flat)](https://landscape.io/github/algorys/cmakeconverter/develop)
-[![Coverage Status](https://coveralls.io/repos/github/algorys/cmakeconverter/badge.svg?branch=develop)](https://coveralls.io/github/algorys/cmakeconverter?branch=develop)
+[![Coverage Status](https://coveralls.io/repos/github/algorys/cmakeconverter/badge.svg?branch=develop&service=github)](https://coveralls.io/github/algorys/cmakeconverter?branch=develop)
 [![Documentation Status](http://readthedocs.org/projects/cmakeconverter/badge/?version=latest)](http://cmakeconverter.readthedocs.io/en/latest/?badge=latest)
 [![PyPI version](https://badge.fury.io/py/cmake_converter.svg)](https://badge.fury.io/py/cmake_converter)
 [![License: AGPL v3](https://img.shields.io/badge/License-AGPL%20v3-blue.svg)](https://www.gnu.org/licenses/agpl-3.0)
