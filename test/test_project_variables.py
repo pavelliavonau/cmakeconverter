@@ -51,12 +51,9 @@ class TestProjectVariables(unittest2.TestCase):
         self.assertTrue(under_test.ns)
         self.assertTrue(under_test.cmake)
         self.assertFalse(under_test.output)
+        self.assertIsNotNone(under_test.vs_outputs)
 
         # Class var are not None due to other tests
-        self.assertIsNotNone(under_test.out_deb_x86)
-        self.assertIsNotNone(under_test.out_deb_x64)
-        self.assertIsNotNone(under_test.out_rel_x86)
-        self.assertIsNotNone(under_test.out_rel_x64)
         self.assertIsNotNone(under_test.out_deb)
         self.assertIsNotNone(under_test.out_rel)
 
@@ -85,6 +82,7 @@ class TestProjectVariables(unittest2.TestCase):
         self.data_test['cmake'] = get_cmake_lists('./')
         under_test = ProjectVariables(self.data_test)
 
+        under_test.add_project_variables()
         under_test.add_outputs_variables()
 
         self.data_test['cmake'].close()
@@ -92,7 +90,7 @@ class TestProjectVariables(unittest2.TestCase):
         cmakelists_test = open('CMakeLists.txt', 'r')
         content_test = cmakelists_test.read()
 
-        self.assertTrue('OUTPUT_DEBUG ../../../build/vc2017_x64d/bin/' in content_test)
+        self.assertTrue('OUTPUT_DEBUG ../../../build/vc2017_x64d/bin/', content_test)
         self.assertTrue('OUTPUT_REL ../../../build/vc2017_x64/bin/' in content_test)
 
         cmakelists_test.close()
