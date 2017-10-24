@@ -25,7 +25,7 @@ from cmake_converter.flags import Flags, define_and_write_macro
 from cmake_converter.data_files import get_vcxproj_data, get_cmake_lists
 
 
-class TestDependencies(unittest2.TestCase):
+class TestFlags(unittest2.TestCase):
     """
         This file test methods of ActionManager class.
     """
@@ -103,6 +103,8 @@ class TestDependencies(unittest2.TestCase):
 
         self.assertTrue('-std=c++11 -fPIC' in content_test)
 
+        cmakelists_test.close()
+
     def test_define_windows_flags(self):
         """Define Windows Flags"""
 
@@ -122,6 +124,8 @@ class TestDependencies(unittest2.TestCase):
         self.assertFalse('-std=c++11 -fPIC' in content_test)
         self.assertTrue(' /W4 /MD /Od /Zi /EHsc' in content_test)
         self.assertTrue(' /W4 /GL /Od /Oi /Gy /Zi /EHsc' in content_test)
+
+        cmakelists_test.close()
 
     def test_define_group_properties(self):
         """Define XML Groups Properties"""
@@ -282,3 +286,5 @@ class TestDependencies(unittest2.TestCase):
 
         for macro in macros_test:
             self.assertTrue(macro in under_test)
+
+        cmakelists_test.close()

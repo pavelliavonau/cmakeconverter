@@ -30,7 +30,7 @@ from cmake_converter.data_files import get_vcxproj_data, get_cmake_lists
 from cmake_converter.dependencies import Dependencies
 from cmake_converter.flags import Flags, define_and_write_macro
 from cmake_converter.message import send
-from cmake_converter.projectfiles import ProjectFiles
+from cmake_converter.project_files import ProjectFiles
 from cmake_converter.projectvariables import ProjectVariables
 
 
@@ -114,8 +114,8 @@ class DataConverter:
         all_flags.write_flags()
 
         # Write and add Files
-        files.write_files()
-        files.add_artefact()
+        files.write_source_files()
+        files.add_target_artefact()
 
         # Link with other dependencies
         depends.link_dependencies()

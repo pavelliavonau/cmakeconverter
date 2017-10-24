@@ -75,9 +75,9 @@ class ProjectFiles(object):
                 )
                 ProjectFiles.h_folder_nb += 1
 
-    def write_files(self):
+    def write_source_files(self):
         """
-        Add directory variables to SRC_FILES
+        Write source files variables to file() cmake function
 
         """
 
@@ -120,9 +120,9 @@ class ProjectFiles(object):
                     'error'
                 )
 
-    def add_artefact(self):
+    def add_target_artefact(self):
         """
-        Add Libraries and Executables
+        Add Library or Executable target
 
         """
 
