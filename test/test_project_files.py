@@ -27,7 +27,7 @@ from cmake_converter.data_files import get_vcxproj_data, get_cmake_lists
 
 class TestProjectFiles(unittest2.TestCase):
     """
-        This file test methods of ActionManager class.
+        This file test methods of ProjectFiles class.
     """
 
     vcxproj_data_test = get_vcxproj_data('test/project_test.vcxproj')
@@ -42,7 +42,7 @@ class TestProjectFiles(unittest2.TestCase):
         'additional_code': None,
     }
 
-    def test_init_dependencies(self):
+    def test_init_project_files(self):
         """Initialize Project Files"""
 
         under_test = ProjectFiles(self.data_test)
@@ -94,7 +94,7 @@ class TestProjectFiles(unittest2.TestCase):
     def test_add_additional_code(self):
         """Add Additional CMake Code"""
 
-        # When file does not exist, nothing is added
+        # When file is empty, nothing is added
         self.data_test['cmake'] = get_cmake_lists('./')
         under_test = ProjectFiles(self.data_test)
 
@@ -114,10 +114,25 @@ class TestProjectFiles(unittest2.TestCase):
 
         under_test.cmake.close()
 
+        cmakelists_test = open('CMakeLists.txt', 'r')
+        content_test = cmakelists_test.read()
+
+        self.assertTrue('set(ADD_CODE code)' in content_test)
+
+        cmakelists_test.close()
+
+        # When file does not exist, nothing is added
+        under_test.cmake = get_cmake_lists('./')
+        under_test.add_additional_code('nofile/additional_code_test.cmake')
+
+        under_test.cmake.close()
+
         cmakelists_add_test = open('CMakeLists.txt', 'r')
         content_add_test = cmakelists_add_test.read()
 
-        self.assertTrue('set(ADD_CODE code)', content_add_test)
+        self.assertEqual('', content_add_test)
+
+        cmakelists_test.close()
 
     def test_add_artefacts(self):
         """Add Artefact Target"""

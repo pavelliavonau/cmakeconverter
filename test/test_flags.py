@@ -27,7 +27,7 @@ from cmake_converter.data_files import get_vcxproj_data, get_cmake_lists
 
 class TestFlags(unittest2.TestCase):
     """
-        This file test methods of ActionManager class.
+        This file test methods of Flags class.
     """
 
     vcxproj_data_test = get_vcxproj_data('test/project_test.vcxproj')

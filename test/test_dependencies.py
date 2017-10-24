@@ -27,7 +27,7 @@ from cmake_converter.data_files import get_vcxproj_data, get_cmake_lists
 
 class TestDependencies(unittest2.TestCase):
     """
-        This file test methods of ActionManager class.
+        This file test methods of Dependencies class.
     """
 
     vcxproj_data_test = get_vcxproj_data('test/project_test.vcxproj')
@@ -79,8 +79,26 @@ class TestDependencies(unittest2.TestCase):
         self.data_test['cmake'].close()
 
         cmakelists_test = open('CMakeLists.txt', 'r')
+        content_test = cmakelists_test.read()
 
-        self.assertTrue('Add Dependencies to project. ' in cmakelists_test.read())
+        self.assertTrue('add_subdirectory(platform/cmake/g3log ${CMAKE_BINARY_DIR}/g3log' in content_test)
+        self.assertTrue('add_subdirectory(platform/cmake/zlib ${CMAKE_BINARY_DIR}/zlib' in content_test)
+
+        cmakelists_test.close()
+
+        dependencies = ['external/zlib/cmake/', '../../external/g3log/cmake/']
+        self.data_test['dependencies'] = dependencies
+        self.data_test['cmake'] = get_cmake_lists('./')
+        under_test = Dependencies(self.data_test)
+
+        under_test.write_dependencies()
+        self.data_test['cmake'].close()
+
+        cmakelists_test = open('CMakeLists.txt', 'r')
+        content_test = cmakelists_test.read()
+
+        self.assertTrue('add_subdirectory(external/zlib/cmake/ ${CMAKE_BINARY_DIR}/lib1)' in content_test)
+        self.assertTrue('add_subdirectory(../../external/g3log/cmake/ ${CMAKE_BINARY_DIR}/lib2)' in content_test)
 
         cmakelists_test.close()
 
