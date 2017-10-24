@@ -47,21 +47,21 @@ def get_vcxproj_data(vs_project):
         vcxproj['tree'] = tree
         vcxproj['ns'] = ns
         assert 'http://schemas.microsoft.com' in ns['ns']
-    except AssertionError:
+    except AssertionError:  # pragma: no cover
         send(
             '.vcxproj file cannot be import, because this file does not seem to comply with'
             ' Microsoft xml data !',
             'error'
         )
         exit(1)
-    except (OSError, IOError):
+    except (OSError, IOError):  # pragma: no cover
         send(
             '.vcxproj file cannot be import. '
             'Please, verify you have rights to this directory or file exists !',
             'error'
         )
         exit(1)
-    except etree.XMLSyntaxError:
+    except etree.XMLSyntaxError:  # pragma: no cover
         send('This file is not a ".vcxproj" file or XML is broken !', 'error')
         exit(1)
 

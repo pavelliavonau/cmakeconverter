@@ -83,17 +83,19 @@ class DataConverter:
 
         # Write variables
         variables = ProjectVariables(self.data)
-        variables.define_variable()
+        variables.add_project_variables()
+        variables.add_outputs_variables()
+
         files = ProjectFiles(self.data)
         files.write_files_variables()
-        variables.define_project()
-        variables.define_target()
+        variables.add_cmake_project()
+        variables.add_default_target()
 
         # Write Macro
         define_and_write_macro(self.data)
 
         # Write Output Variables
-        variables.write_output()
+        variables.add_artefact_target_outputs()
 
         # Write Include Directories
         depends = Dependencies(self.data)

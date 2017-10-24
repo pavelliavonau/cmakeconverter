@@ -28,7 +28,7 @@ from cmake_converter.data_files import get_propertygroup
 
 class ProjectVariables(object):
     """
-        Class who defines all the variables to be used by the project
+        Class who defines all the CMake variables to be used by the project
     """
 
     out_deb_x86 = None
@@ -44,9 +44,9 @@ class ProjectVariables(object):
         self.ns = data['vcxproj']['ns']
         self.output = data['cmake_output']
 
-    def define_variable(self):
+    def add_project_variables(self):
         """
-        Variable : define main variables in CMakeLists.
+        Add main CMake project variables
 
         """
 
@@ -99,17 +99,23 @@ class ProjectVariables(object):
         if not project:
             self.cmake.write('set(PROJECT_NAME <PLEASE SET YOUR PROJECT NAME !!>)\n')
             send(
-                'No PROJECT NAME found or define. Please set VARIABLE in CMakeLists.txt.',
+                'No PROJECT NAME found or define. '
+                'Please set [PROJECT_NAME] variable in CMakeLists.txt.',
                 'error'
             )
 
-        # Output DIR of artefacts
+    def add_outputs_variables(self):
+        """
+        Add Outputs Variables
+
+        """
+
         self.cmake.write('# Output Variables\n')
         output_deb_x86 = ''
         output_deb_x64 = ''
         output_rel_x86 = ''
         output_rel_x64 = ''
-        if self.output is None:
+        if not self.output:
             if ProjectVariables.out_deb_x86 is not None:
                 output_deb_x86 = ProjectVariables.out_deb_x86.text.replace(
                     '$(ProjectDir)', '').replace('\\', '/')
@@ -122,7 +128,8 @@ class ProjectVariables(object):
             if ProjectVariables.out_rel_x64 is not None:
                 output_rel_x64 = ProjectVariables.out_rel_x64.text.replace(
                     '$(ProjectDir)', '').replace('\\', '/')
-        elif self.output:
+        else:
+            print('Output', self.output)
             if self.output[-1:] == '/' or self.output[-1:] == '\\':
                 build_type = '${CMAKE_BUILD_TYPE}'
             else:
@@ -131,11 +138,6 @@ class ProjectVariables(object):
             output_deb_x64 = self.output + build_type
             output_rel_x86 = self.output + build_type
             output_rel_x64 = self.output + build_type
-        else:
-            output_deb_x86 = ''
-            output_deb_x64 = ''
-            output_rel_x86 = ''
-            output_rel_x64 = ''
 
         if output_deb_x64 != '':
             send('Output Debug = ' + output_deb_x64, 'ok')
@@ -159,23 +161,26 @@ class ProjectVariables(object):
         else:
             send('No Output Release define.', '')
 
-    def define_project(self):
+    def add_cmake_project(self):
         """
-        Define Cmake Project
+        Add CMake Project
+
         """
-        # Project Definition
+
         self.cmake.write('\n')
         self.cmake.write(
-            '############## Define Project. ###############\n'
-            '# ---- This the main options of project ---- #\n'
+            '############## CMake Project ################\n'
+            '#     This the main options of project      #\n'
             '##############################################\n\n'
         )
         self.cmake.write('project(${PROJECT_NAME} CXX)\n\n')
 
-    def define_target(self):
+    def add_default_target(self):
         """
-        Define target release if not define.
+        Add default target release if not define.
+
         """
+
         self.cmake.write(
             '# Define Release by default.\n'
             'if(NOT CMAKE_BUILD_TYPE)\n'
@@ -184,10 +189,12 @@ class ProjectVariables(object):
             'endif(NOT CMAKE_BUILD_TYPE)\n\n'
         )
 
-    def write_output(self):
+    def add_artefact_target_outputs(self):
         """
-        Set output for each target
+        Add outputs for each artefacts CMake target
+
         """
+
         if ProjectVariables.out_deb or ProjectVariables.out_rel:
             self.cmake.write('############## Artefacts Output #################\n')
             self.cmake.write('# Defines outputs , depending Debug or Release. #\n')

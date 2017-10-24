@@ -66,7 +66,7 @@ class Dependencies(object):
                 self.cmake.write('include_directories(%s)\n' % i)
                 send('Include Directories found : %s' % i, 'warn')
             self.cmake.write('\n')
-        else:
+        else:  # pragma: no cover
             send('Include Directories not found for this project.', 'warn')
 
     def write_dependencies(self):
@@ -119,7 +119,7 @@ class Dependencies(object):
                     '   link_directories(dependencies/%s/build/)\n' % path_to_reference
                 )
             self.cmake.write('endif()\n\n')
-        else:
+        else:  # pragma: no cover
             send('No link needed.', '')
 
     def link_dependencies(self):
@@ -162,5 +162,5 @@ class Dependencies(object):
                     self.cmake.write(dep + ' ')
                 self.cmake.write(')\n')
                 self.cmake.write('endif(MSVC)\n')
-        else:
+        else:  # pragma: no cover
             send('No dependencies.', '')
