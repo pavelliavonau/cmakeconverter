@@ -31,7 +31,7 @@ from cmake_converter.dependencies import Dependencies
 from cmake_converter.flags import Flags, define_and_write_macro
 from cmake_converter.message import send
 from cmake_converter.project_files import ProjectFiles
-from cmake_converter.projectvariables import ProjectVariables
+from cmake_converter.project_variables import ProjectVariables
 
 
 class DataConverter:

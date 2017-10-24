@@ -25,7 +25,7 @@
 
 import argparse
 
-from cmake_converter.dataconverter import DataConverter
+from cmake_converter.data_converter import DataConverter
 
 
 def main():  # pragma: no cover

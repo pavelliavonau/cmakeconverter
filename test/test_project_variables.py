@@ -21,7 +21,7 @@
 
 import unittest2
 
-from cmake_converter.projectvariables import ProjectVariables
+from cmake_converter.project_variables import ProjectVariables
 from cmake_converter.data_files import get_vcxproj_data, get_cmake_lists
 
 

@@ -21,7 +21,7 @@
 
 import unittest2
 
-from cmake_converter.dataconverter import DataConverter
+from cmake_converter.data_converter import DataConverter
 
 
 class TestDataConverter(unittest2.TestCase):
