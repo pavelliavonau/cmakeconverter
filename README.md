@@ -115,5 +115,5 @@ You can add the following options to your cmake command :
 
 `-G"NMake Makefiles"`
 
-Please refer to [Cmake Generators](https://cmake.org/cmake/help/v3.5/manual/cmake-generators.7.html) for further details.
+Please refer to [CMake Generators](https://cmake.org/cmake/help/v3.5/manual/cmake-generators.7.html) for further details.
 

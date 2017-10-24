@@ -32,8 +32,8 @@ except Exception:
     python_version = (1, 5)
 if python_version < (3, 5):
     sys.exit(
-        "This application currently requires a minimum Python 3.5 to be run."
-        "Please update your Python version."
+        "This application requires a minimum of Python 3.5 !"
+        " Please update your Python version."
     )
 
 from cmake_converter import __description__, __version__, __license__, __author__, __project_url__
