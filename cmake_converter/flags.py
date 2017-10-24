@@ -143,7 +143,7 @@ class Flags(object):
             self.cmake.write(
                 '   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}%s")\n' % self.win_deb_flags
             )
-        else:
+        else:  # pragma: no cover
             send('No Debug   FLAGS found', '')
         if self.win_rel_flags != '':
             send('Release FLAGS found = ' + self.win_rel_flags, 'ok')
@@ -151,7 +151,7 @@ class Flags(object):
                 '   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}%s")\n' %
                 self.win_rel_flags
             )
-        else:
+        else:  # pragma: no cover
             send('No Release FLAGS found', '')
         self.cmake.write('endif(MSVC)\n')
 
@@ -167,7 +167,7 @@ class Flags(object):
             self.win_deb_flags += lvl
             self.win_rel_flags += lvl
             send('Warning : ' + warning.text, 'ok')
-        else:
+        else:  # pragma: no cover
             send('No Warning level.', '')
 
     def set_whole_program_optimization(self):

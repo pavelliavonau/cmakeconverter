@@ -96,7 +96,7 @@ class ProjectVariables(object):
             if projectname.text:
                 self.cmake.write('set(PROJECT_NAME ' + projectname.text + ')\n')
                 project = True
-        if not project:
+        if not project:  # pragma: no cover
             self.cmake.write('set(PROJECT_NAME <PLEASE SET YOUR PROJECT NAME !!>)\n')
             send(
                 'No PROJECT NAME found or define. '
@@ -129,7 +129,6 @@ class ProjectVariables(object):
                 output_rel_x64 = ProjectVariables.out_rel_x64.text.replace(
                     '$(ProjectDir)', '').replace('\\', '/')
         else:
-            print('Output', self.output)
             if self.output[-1:] == '/' or self.output[-1:] == '\\':
                 build_type = '${CMAKE_BUILD_TYPE}'
             else:
@@ -143,22 +142,22 @@ class ProjectVariables(object):
             send('Output Debug = ' + output_deb_x64, 'ok')
             self.cmake.write('set(OUTPUT_DEBUG ' + output_deb_x64 + ')\n')
             ProjectVariables.out_deb = True
-        elif output_deb_x86 != '':
+        elif output_deb_x86 != '':  # pragma: no cover
             send('Output Debug = ' + output_deb_x86, 'ok')
             self.cmake.write('set(OUTPUT_DEBUG ' + output_deb_x86 + ')\n')
             ProjectVariables.out_deb = True
-        else:
+        else:  # pragma: no cover
             send('No Output Debug define.', '')
 
         if output_rel_x64 != '':
             send('Output Release = ' + output_rel_x64, 'ok')
             self.cmake.write('set(OUTPUT_REL ' + output_rel_x64 + ')\n')
             ProjectVariables.out_rel = True
-        elif output_rel_x86 != '':
+        elif output_rel_x86 != '':  # pragma: no cover
             send('Output Release = ' + output_rel_x86, 'ok')
             self.cmake.write('set(OUTPUT_REL ' + output_rel_x86 + ')\n')
             ProjectVariables.out_rel = True
-        else:
+        else:  # pragma: no cover
             send('No Output Release define.', '')
 
     def add_cmake_project(self):
@@ -223,5 +222,5 @@ class ProjectVariables(object):
                     '  set(CMAKE_EXECUTABLE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${OUTPUT_REL}")\n'
                 )
                 self.cmake.write('endif()\n\n')
-        else:
+        else:  # pragma: no cover
             send('No Output found or define. CMake will use default ouputs.', 'warn')

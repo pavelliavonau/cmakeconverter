@@ -105,5 +105,5 @@ def main():  # pragma: no cover
     all_data.close_cmake_file()
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     main()

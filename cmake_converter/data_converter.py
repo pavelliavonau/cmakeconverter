@@ -58,7 +58,7 @@ class DataConverter:
             if temp_path[1] == '.vcxproj':
                 send('Project to convert = ' + vs_project, '')
                 self.data['vcxproj'] = get_vcxproj_data(vs_project)
-            else:
+            else:  # pragma: no cover
                 send('This file is not a ".vcxproj". Be sure you give the right file', 'error')
                 exit(1)
 

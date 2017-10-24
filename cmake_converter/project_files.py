@@ -131,11 +131,11 @@ class ProjectFiles(object):
             self.cmake.write('# Add library to build.\n')
             self.cmake.write('add_library(${PROJECT_NAME} SHARED\n')
             send('CMake will build a SHARED Library.', '')
-        elif configurationtype.text == 'StaticLibrary':
+        elif configurationtype.text == 'StaticLibrary':  # pragma: no cover
             self.cmake.write('# Add library to build.\n')
             self.cmake.write('add_library(${PROJECT_NAME} STATIC\n')
             send('CMake will build a STATIC Library.', '')
-        else:
+        else:  # pragma: no cover
             self.cmake.write('# Add executable to build.\n')
             self.cmake.write('add_executable(${PROJECT_NAME} \n')
             send('CMake will build an EXECUTABLE.', '')

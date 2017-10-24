@@ -49,7 +49,7 @@ class TestDataConverter(unittest2.TestCase):
         self.assertIsNone(under_test.data['cmake'])
         self.assertIsNone(under_test.data['vcxproj'])
 
-        under_test.init_files(self.vs_project, '')
+        under_test.init_files(self.vs_project, './')
 
         self.assertIsNotNone(under_test.data['cmake'])
         self.assertIsNotNone(under_test.data['vcxproj'])
