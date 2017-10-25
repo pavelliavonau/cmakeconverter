@@ -3,13 +3,20 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to cmake_converter's documentation!
-===========================================
+Welcome to CMake Converter's documentation
+==========================================
 
-Contents:
+Documentation Content:
 
 .. toctree::
-   :maxdepth: 2
+    :maxdepth: 3
+
+    intro
+    install
+    utilisation
+    cmake
+    converter
+
 
 
 
