@@ -33,7 +33,7 @@ After install library, just run the script as below. Your `<file>.vcxproj` is of
 
 ## Documentation
 
-Documentation for CMake Converter is available on [Read The Docs](http://cmakeconverter.readthedocs.io).
+Documentation for CMake Converter is available on [Read The Docs](http://cmakeconverter.readthedocs.io/en/develop).
 
 ## Bugs, issues and contributing
 
