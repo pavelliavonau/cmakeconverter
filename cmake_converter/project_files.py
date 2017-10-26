@@ -20,7 +20,9 @@
 # along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
 """
-    Project Files manage collect of CPP files of project
+    ProjectFiles
+    =============
+     Manages the recovery of project files
 """
 
 from cmake_converter.message import send

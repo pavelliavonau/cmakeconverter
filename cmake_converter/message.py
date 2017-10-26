@@ -20,7 +20,9 @@
 # along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
 """
-    Message manage sending messages during script execution
+    Message
+    =======
+     Manage sending messages during module execution
 """
 
 import os

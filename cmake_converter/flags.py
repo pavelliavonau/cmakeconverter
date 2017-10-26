@@ -20,7 +20,9 @@
 # along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
 """
-    Flags manage compilation flags of project
+    Flags
+    =====
+     Manage compilation flags of project
 """
 
 import os

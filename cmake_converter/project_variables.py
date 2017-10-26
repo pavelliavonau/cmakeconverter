@@ -20,7 +20,9 @@
 # along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
 """
-    Project Variables manage creation of CMake variables that will be used during compilation
+    ProjectVariables
+    ================
+     Manage creation of CMake variables that will be used during compilation
 """
 from cmake_converter.message import send
 from cmake_converter.data_files import get_propertygroup

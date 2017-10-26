@@ -20,7 +20,9 @@
 # along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
 """
-    Main manage script arguments
+    Main
+    ====
+     Manage script arguments and launch
 """
 
 import argparse
