@@ -1,16 +1,14 @@
 .. _api:
 
-Module Documentation
-====================
+API Documentation
+=================
 
 .. automodule:: cmake_converter.data_converter
     :members:
-    :undoc-members:
     :inherited-members:
     :show-inheritance:
 .. automodule:: cmake_converter.data_files
     :members:
-    :undoc-members:
     :inherited-members:
     :show-inheritance:
 .. automodule:: cmake_converter.dependencies

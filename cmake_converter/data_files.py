@@ -20,7 +20,9 @@
 # along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
 """
-    VS Project manage the .vcxproj files and its XML data
+    Data Files
+    ==========
+     Manage the **VS Project** data and creation of **CMakeLists.txt** file
 """
 
 from lxml import etree

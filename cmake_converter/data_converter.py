@@ -20,7 +20,9 @@
 # along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
 """
-    Data Converter manage conversion of vcxproj data
+    DataConverter
+    =============
+     Manage conversion of **vcxproj** data
 """
 
 import os

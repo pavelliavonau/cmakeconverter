@@ -20,7 +20,9 @@
 # along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
 """
-    Dependencies manage directories and libraries dependencies of project
+    Dependencies
+    ============
+     Manage directories and libraries of project dependencies
 """
 
 import ntpath
