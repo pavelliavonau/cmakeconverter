@@ -1,4 +1,4 @@
-.. _converter:
+.. _api:
 
 Module Documentation
 ====================
