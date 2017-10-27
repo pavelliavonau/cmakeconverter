@@ -90,7 +90,7 @@ class DataConverter:
 
         files = ProjectFiles(self.data)
         files.write_files_variables()
-        variables.add_cmake_project()
+        variables.add_cmake_project(files.language)
         variables.add_default_target()
 
         # Write Macro

@@ -507,8 +507,9 @@ def define_and_write_macro(data):
             if preproc != '%(PreprocessorDefinitions)' and preproc != 'WIN32':
                 cmake.write('   -D%s \n' % preproc)
         # Unicode
-        u = tree.find("//ns:CharacterSet", namespaces=ns)
-        if 'Unicode' in u.text:
-            cmake.write('   -DUNICODE\n')
-            cmake.write('   -D_UNICODE\n')
+        unicode = tree.find("//ns:CharacterSet", namespaces=ns)
+        if unicode is not None:
+            if 'Unicode' in unicode.text:
+                cmake.write('   -DUNICODE\n')
+                cmake.write('   -D_UNICODE\n')
         cmake.write(')\n\n')

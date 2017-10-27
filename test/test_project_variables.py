@@ -116,7 +116,8 @@ class TestProjectVariables(unittest2.TestCase):
         self.data_test['cmake'] = get_cmake_lists('./')
         under_test = ProjectVariables(self.data_test)
 
-        under_test.add_cmake_project()
+        # Case CXX language
+        under_test.add_cmake_project('cpp')
 
         self.data_test['cmake'].close()
 
@@ -124,6 +125,19 @@ class TestProjectVariables(unittest2.TestCase):
         content_test = cmakelists_test.read()
 
         self.assertTrue('project(${PROJECT_NAME} CXX)' in content_test)
+
+        cmakelists_test.close()
+
+        # Case C language
+        under_test.cmake = get_cmake_lists('./')
+        under_test.add_cmake_project('c')
+
+        under_test.cmake.close()
+
+        cmakelists_test = open('CMakeLists.txt', 'r')
+        content_test = cmakelists_test.read()
+
+        self.assertTrue('project(${PROJECT_NAME} C)' in content_test)
 
         cmakelists_test.close()
 

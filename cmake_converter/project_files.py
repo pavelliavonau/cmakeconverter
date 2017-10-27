@@ -42,6 +42,7 @@ class ProjectFiles(object):
         self.cmake = data['cmake']
         self.cppfiles = self.tree.xpath('//ns:ClCompile', namespaces=self.ns)
         self.headerfiles = self.tree.xpath('//ns:ClInclude', namespaces=self.ns)
+        self.language = None
 
     def write_files_variables(self):
         """
@@ -56,6 +57,7 @@ class ProjectFiles(object):
         for cpp in self.cppfiles:
             if cpp.get('Include') is not None:
                 cxx = str(cpp.get('Include'))
+                self.language = cxx.rpartition('.')[-1]
                 current_cpp = '/'.join(cxx.split('\\')[0:-1])
                 if current_cpp not in known_cpp:
                     if not current_cpp:
@@ -92,7 +94,7 @@ class ProjectFiles(object):
         self.cmake.write('file(GLOB SRC_FILES\n')
         c = 1
         while c < ProjectFiles.c_folder_nb:
-            self.cmake.write('    ${CPP_DIR_' + str(c) + '}/*.cpp\n')
+            self.cmake.write('    ${CPP_DIR_' + str(c) + '}/*.%s\n' % self.language)
             c += 1
         h = 1
         while h < ProjectFiles.h_folder_nb:
