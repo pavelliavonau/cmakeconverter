@@ -40,3 +40,6 @@ Documentation for CMake Converter is available on [Read The Docs](http://cmakeco
 Contributions to this project are welcome and encouraged ... 
 Issues in the project repository are the common way to raise an information.
 
+## For QMake
+
+If you're looking for QMake to CMake, please look at [qmake2cmake](https://github.com/digitalist/qmake2cmake) by _digitalist_.
