@@ -163,7 +163,11 @@ class Flags(object):
 
         """
 
-        warning = self.tree.xpath('//ns:WarningLevel', namespaces=self.ns)[0]
+        try:
+            warning = self.tree.xpath('//ns:WarningLevel', namespaces=self.ns)[0]
+        except IndexError:
+            return
+			
         if warning.text != '':
             lvl = ' /W' + warning.text[-1:]
             self.win_deb_flags += lvl
@@ -498,8 +502,12 @@ def define_and_write_macro(data):
     tree = data['vcxproj']['tree']
     ns = data['vcxproj']['ns']
     cmake = data['cmake']
-
-    preprocessor = tree.xpath('//ns:PreprocessorDefinitions', namespaces=ns)[0]
+	
+    try:
+        preprocessor = tree.xpath('//ns:PreprocessorDefinitions', namespaces=ns)[0]
+    except IndexError:
+        return
+		
     if preprocessor.text:
         cmake.write('# Definition of Macros\n')
         cmake.write('add_definitions(\n')
