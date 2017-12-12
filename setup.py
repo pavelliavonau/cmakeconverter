@@ -57,7 +57,7 @@ setup(
     keywords="cmake vcxproj visual",
     url=__project_url__,
     description=__description__,
-    long_description=open('README.md').read(),
+    long_description=open('README.rst').read(),
 
     zip_safe=False,
 

@@ -1,6 +1,8 @@
 # Python file
 *.pyc
 __pycache__/
+*.egg-info
+dist/
 
 # IDE
 *.swp
