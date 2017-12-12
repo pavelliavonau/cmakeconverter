@@ -16,7 +16,9 @@ Installation
 End user installation
 ~~~~~~~~~~~~~~~~~~~~~
 
-Currently, CMake Converter is not available by **pip** ! Please install it by sources.
+Install cmake-converter as a standard python library::
+
+    sudo pip install cmake_converter
 
 From Sources
 ~~~~~~~~~~~~

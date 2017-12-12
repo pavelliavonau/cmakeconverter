@@ -4,19 +4,19 @@ CMake Converter
 .. image:: https://travis-ci.org/algorys/cmakeconverter.svg?branch=develop
     :target: https://travis-ci.org/algorys/cmakeconverter
 .. image:: https://landscape.io/github/algorys/cmakeconverter/develop/landscape.svg?style=flat
-   :target: https://landscape.io/github/algorys/cmakeconverter/develop
-   :alt: Code Health
+    :target: https://landscape.io/github/algorys/cmakeconverter/develop
+    :alt: Code Health
 .. image:: https://coveralls.io/repos/github/algorys/cmakeconverter/badge.svg?branch=develop
-   :target: https://coveralls.io/github/algorys/cmakeconverter?branch=develop
-.. image:: http://readthedocs.org/projects/cmakeconverter/badge/?version=latest
-   :target: http://cmakeconverter.readthedocs.io/en/latest/?badge=latest
-   :alt: Documentation Status
+    :target: https://coveralls.io/github/algorys/cmakeconverter?branch=develop
+.. image:: http://readthedocs.org/projects/cmakeconverter/badge/?version=develop
+    :target: http://cmakeconverter.readthedocs.io/en/develop/?badge=develop
+    :alt: Documentation Status
 .. image:: https://badge.fury.io/py/cmake_converter.svg
-   :target: https://badge.fury.io/py/cmake_converter
-   :alt: Most recent PyPi version
+    :target: https://badge.fury.io/py/cmake_converter
+    :alt: Most recent PyPi version
 .. image:: https://img.shields.io/badge/License-AGPL%20v3-blue.svg
-   :target: http://www.gnu.org/licenses/agpl-3.0
-   :alt: License AGPL v3
+    :target: http://www.gnu.org/licenses/agpl-3.0
+    :alt: License AGPL v3
 
 Introduction
 ------------
@@ -28,17 +28,25 @@ This project aims to facilitate the conversion of Visual Studio projects to CMak
 Quick Install & Run
 -------------------
 
-Install
-~~~~~~~
+You may have **Python3** installed to make this library works !
 
-You may have **Python3** installed to make this library works. Currently, **cmake-converter** is not available on **pip**.
-So clone this repository and type the following command to install it::
+Install from Pip
+~~~~~~~~~~~~~~~~
+
+Install cmake-converter as a standard python library::
+
+    sudo pip install cmake_converter
+
+Install from Source
+~~~~~~~~~~~~~~~~~~~
+
+Simply clone this repository and type the following command to install it::
 
     # Inside repository folder
     sudo pip install .
 
-Run
-~~~
+Run & Convert
+~~~~~~~~~~~~~
 
 After install library, just run the script as below. Your `<file>.vcxproj` is of course required::
 
