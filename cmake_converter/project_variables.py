@@ -223,10 +223,8 @@ class ProjectVariables(object):
         :type language: str
         """
 
-        available_language = {
-            'cpp': 'CXX',
-            'c': 'C'
-        }
+        available_language = {'c'  : 'C'}
+        available_language.update(dict.fromkeys(['cc', 'cp', 'cxx', 'cpp', 'CPP', 'c++', 'C'], 'CXX'))
 
         self.cmake.write('\n')
         self.cmake.write(
