@@ -31,8 +31,9 @@ class TestProjectVariables(unittest2.TestCase):
         This file test methods of ProjectVariables class.
     """
 
-    vcxproj_data_test = get_vcxproj_data('test/project_test.vcxproj')
-    cmake_lists_test = get_cmake_lists('./')
+    cur_dir = os.path.dirname(os.path.realpath(__file__))
+    vcxproj_data_test = get_vcxproj_data('%s/test_files/project_test.vcxproj' % cur_dir)
+    cmake_lists_test = get_cmake_lists(cur_dir)
 
     data_test = {
         'cmake': cmake_lists_test,
@@ -42,8 +43,6 @@ class TestProjectVariables(unittest2.TestCase):
         'includes': None,
         'additional_code': None,
     }
-
-    cur_dir = os.path.dirname(os.path.realpath(__file__))
 
     def test_init_project_variables(self):
         """Initialize Project Variables"""

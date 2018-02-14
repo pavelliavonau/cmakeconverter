@@ -1,9 +1,9 @@
 # Python requirements for unit tests
 unittest2
-nose
-nose-cov
-coverage<=4.1
+pytest
+pytest-cov
+coverage
 coveralls
-pep8
+pycodestyle
 future
 pylint

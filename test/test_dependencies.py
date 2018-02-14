@@ -19,6 +19,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
+import os
 import unittest2
 
 from cmake_converter.dependencies import Dependencies
@@ -30,13 +31,14 @@ class TestDependencies(unittest2.TestCase):
         This file test methods of Dependencies class.
     """
 
-    vcxproj_data_test = get_vcxproj_data('test/project_test.vcxproj')
+    cur_dir = os.path.dirname(os.path.realpath(__file__))
+    vs_project = get_vcxproj_data('%s/test_files/project_test.vcxproj' % cur_dir)
     cmake_lists_test = get_cmake_lists('./')
 
     data_test = {
         'cmake': cmake_lists_test,
         'cmake_output': None,
-        'vcxproj': vcxproj_data_test,
+        'vcxproj': vs_project,
         'dependencies': None,
         'includes': None,
         'additional_code': None,
@@ -81,8 +83,10 @@ class TestDependencies(unittest2.TestCase):
         cmakelists_test = open('CMakeLists.txt', 'r')
         content_test = cmakelists_test.read()
 
-        self.assertTrue('add_subdirectory(platform/cmake/g3log ${CMAKE_BINARY_DIR}/g3log' in content_test)
-        self.assertTrue('add_subdirectory(platform/cmake/zlib ${CMAKE_BINARY_DIR}/zlib' in content_test)
+        self.assertTrue(
+            'add_subdirectory(platform/cmake/g3log ${CMAKE_BINARY_DIR}/g3log' in content_test)
+        self.assertTrue(
+            'add_subdirectory(platform/cmake/zlib ${CMAKE_BINARY_DIR}/zlib' in content_test)
 
         cmakelists_test.close()
 
@@ -97,8 +101,10 @@ class TestDependencies(unittest2.TestCase):
         cmakelists_test = open('CMakeLists.txt', 'r')
         content_test = cmakelists_test.read()
 
-        self.assertTrue('add_subdirectory(external/zlib/cmake/ ${CMAKE_BINARY_DIR}/lib1)' in content_test)
-        self.assertTrue('add_subdirectory(../../external/g3log/cmake/ ${CMAKE_BINARY_DIR}/lib2)' in content_test)
+        self.assertTrue(
+            'add_subdirectory(external/zlib/cmake/ ${CMAKE_BINARY_DIR}/lib1)' in content_test)
+        self.assertTrue(
+            'add_subdirectory(../../external/g3log/cmake/ ${CMAKE_BINARY_DIR}/lib2)' in content_test)
 
         cmakelists_test.close()
 

@@ -19,6 +19,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
+import os
 import unittest2
 
 from cmake_converter.flags import Flags, define_and_write_macro
@@ -30,13 +31,14 @@ class TestFlags(unittest2.TestCase):
         This file test methods of Flags class.
     """
 
-    vcxproj_data_test = get_vcxproj_data('test/project_test.vcxproj')
+    cur_dir = os.path.dirname(os.path.realpath(__file__))
+    vs_project = get_vcxproj_data('%s/test_files/project_test.vcxproj' % cur_dir)
     cmake_lists_test = get_cmake_lists('./')
 
     data_test = {
         'cmake': cmake_lists_test,
         'cmake_output': None,
-        'vcxproj': vcxproj_data_test,
+        'vcxproj': vs_project,
         'dependencies': None,
         'includes': None,
         'additional_code': None,
@@ -154,10 +156,14 @@ class TestFlags(unittest2.TestCase):
         self.assertIsNotNone(under_test.definitiongroups['release']['x86'])
         self.assertIsNotNone(under_test.definitiongroups['release']['x64'])
 
-        property_test = '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Debug|Win32\'" and @Label="Configuration"]'
+        property_test = \
+            '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Debug|Win32\'"' \
+            ' and @Label="Configuration"]'
         self.assertEqual(property_test, under_test.propertygroup['debug']['x86'])
 
-        definition_test = '//ns:ItemDefinitionGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Debug|Win32\'"]'
+        definition_test = \
+            '//ns:ItemDefinitionGroup[@Condition="\'$(Configuration)|' \
+            '$(Platform)\'==\'Debug|Win32\'"]'
         self.assertEqual(definition_test, under_test.definitiongroups['debug']['x86'])
 
     def test_set_warning_level(self):

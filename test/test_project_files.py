@@ -31,8 +31,9 @@ class TestProjectFiles(unittest2.TestCase):
         This file test methods of ProjectFiles class.
     """
 
-    vcxproj_data_test = get_vcxproj_data('test/project_test.vcxproj')
-    cmake_lists_test = get_cmake_lists('./')
+    cur_dir = os.path.dirname(os.path.realpath(__file__))
+    vcxproj_data_test = get_vcxproj_data('%s/test_files/project_test.vcxproj' % cur_dir)
+    cmake_lists_test = get_cmake_lists(cur_dir)
 
     data_test = {
         'cmake': cmake_lists_test,
@@ -42,8 +43,6 @@ class TestProjectFiles(unittest2.TestCase):
         'includes': None,
         'additional_code': None,
     }
-
-    cur_dir = os.path.dirname(os.path.realpath(__file__))
 
     def test_init_project_files(self):
         """Initialize Project Files"""
@@ -114,7 +113,7 @@ class TestProjectFiles(unittest2.TestCase):
 
         # When file exist, code is added
         under_test.cmake = get_cmake_lists(self.cur_dir)
-        under_test.add_additional_code('%s/additional_code_test.cmake' % self.cur_dir)
+        under_test.add_additional_code('%s/test_files/additional_code_test.cmake' % self.cur_dir)
 
         under_test.cmake.close()
 

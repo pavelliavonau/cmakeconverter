@@ -19,6 +19,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
+import os
 import unittest2
 
 from cmake_converter.data_converter import DataConverter
@@ -29,7 +30,8 @@ class TestDataConverter(unittest2.TestCase):
         This file test methods of DataConverter class.
     """
 
-    vs_project = 'test/project_test.vcxproj'
+    cur_dir = os.path.dirname(os.path.realpath(__file__))
+    vs_project = '%s/test_files/project_test.vcxproj' % cur_dir
 
     def test_init_files(self):
         """Data Converter Init Files"""

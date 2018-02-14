@@ -19,6 +19,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
+import os
 import unittest2
 import lxml
 import _io
@@ -32,7 +33,8 @@ class TestDataFiles(unittest2.TestCase):
         This file test 'data_files' functions
     """
 
-    vs_project = 'test/project_test.vcxproj'
+    cur_dir = os.path.dirname(os.path.realpath(__file__))
+    vs_project = '%s/test_files/project_test.vcxproj' % cur_dir
 
     def test_get_vcxproj_data(self):
         """Get VS Project Data"""

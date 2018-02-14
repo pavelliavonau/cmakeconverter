@@ -1,0 +1,7 @@
+[report]
+exclude_lines =
+    pragma: no cover
+
+[run]
+source =
+    cmake_converter
