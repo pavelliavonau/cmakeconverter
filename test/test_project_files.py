@@ -103,7 +103,7 @@ class TestProjectFiles(unittest2.TestCase):
 
         under_test.add_additional_code('')
 
-        self.data_test['cmake'].close()
+        under_test.cmake.close()
 
         cmakelists_test = open('%s/CMakeLists.txt' % self.cur_dir, 'r')
         content_test = cmakelists_test.read()

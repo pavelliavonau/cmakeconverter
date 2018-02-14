@@ -125,7 +125,8 @@ class ProjectFiles(object):
                 fc.close()
                 self.cmake.write('\n')
                 send('File of Code is added = ' + file_to_add, 'warn')
-            except OSError:
+            except OSError as e:
+                send(str(e), 'error')
                 send(
                     'Wrong data file ! Code was not added, please verify file name or path !',
                     'error'
