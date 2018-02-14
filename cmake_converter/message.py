@@ -30,11 +30,11 @@ import os
 
 def send(message, status):  # pragma: no cover
     """
-    Send a message during script run
+    Displays a message while the script is running
 
-    :param message: content of message
+    :param message: content of the message
     :type message: str
-    :param status: level of message
+    :param status: level of the message (change color)
     :type status: str
     """
 

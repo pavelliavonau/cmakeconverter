@@ -32,7 +32,7 @@ from cmake_converter.data_converter import DataConverter
 
 def main():  # pragma: no cover
     """
-    Define arguments and send to ConvertData.
+    Define arguments and send to DataConverter()
 
     """
 
@@ -99,12 +99,12 @@ def main():  # pragma: no cover
     data['includes'] = args.include
 
     # Give data to ConvertData()
-    all_data = DataConverter(data)
-    all_data.init_files(args.project, args.cmake)
-    all_data.create_data()
+    data_converter = DataConverter(data)
+    data_converter.init_files(args.project, args.cmake)
+    data_converter.create_data()
 
     # Close CMake file
-    all_data.close_cmake_file()
+    data_converter.close_cmake_file()
 
 
 if __name__ == "__main__":  # pragma: no cover

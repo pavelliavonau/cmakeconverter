@@ -19,6 +19,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
+import os
 import unittest2
 
 from cmake_converter.project_variables import ProjectVariables
@@ -42,6 +43,8 @@ class TestProjectVariables(unittest2.TestCase):
         'additional_code': None,
     }
 
+    cur_dir = os.path.dirname(os.path.realpath(__file__))
+
     def test_init_project_variables(self):
         """Initialize Project Variables"""
 
@@ -60,14 +63,14 @@ class TestProjectVariables(unittest2.TestCase):
     def test_add_project_variables(self):
         """Add Project Variables"""
 
-        self.data_test['cmake'] = get_cmake_lists('./')
+        self.data_test['cmake'] = get_cmake_lists(self.cur_dir)
         under_test = ProjectVariables(self.data_test)
 
         under_test.add_project_variables()
 
         self.data_test['cmake'].close()
 
-        cmakelists_test = open('CMakeLists.txt', 'r')
+        cmakelists_test = open('%s/CMakeLists.txt' % self.cur_dir, 'r')
         content_test = cmakelists_test.read()
 
         self.assertTrue('cmake_minimum_required(VERSION 3.0.0 FATAL_ERROR)' in content_test)
@@ -79,7 +82,7 @@ class TestProjectVariables(unittest2.TestCase):
         """Add Outputs Variables"""
 
         # If NO output is given
-        self.data_test['cmake'] = get_cmake_lists('./')
+        self.data_test['cmake'] = get_cmake_lists(self.cur_dir)
         under_test = ProjectVariables(self.data_test)
 
         under_test.add_project_variables()
@@ -87,7 +90,7 @@ class TestProjectVariables(unittest2.TestCase):
 
         self.data_test['cmake'].close()
 
-        cmakelists_test = open('CMakeLists.txt', 'r')
+        cmakelists_test = open('%s/CMakeLists.txt' % self.cur_dir, 'r')
         content_test = cmakelists_test.read()
 
         self.assertTrue('OUTPUT_DEBUG ../../../build/vc2017_x64d/bin/', content_test)
@@ -97,12 +100,12 @@ class TestProjectVariables(unittest2.TestCase):
 
         # If output is given
         under_test.output = '../output_binaries'
-        under_test.cmake = get_cmake_lists('./')
+        under_test.cmake = get_cmake_lists(self.cur_dir)
         under_test.add_outputs_variables()
 
         under_test.cmake.close()
 
-        cmakelists_test = open('CMakeLists.txt', 'r')
+        cmakelists_test = open('%s/CMakeLists.txt' % self.cur_dir, 'r')
         content_test = cmakelists_test.read()
 
         self.assertTrue('OUTPUT_DEBUG ../output_binaries/${CMAKE_BUILD_TYPE}', content_test)
@@ -113,15 +116,15 @@ class TestProjectVariables(unittest2.TestCase):
     def test_add_cmake_project(self):
         """Add CMake Project"""
 
-        self.data_test['cmake'] = get_cmake_lists('./')
+        self.data_test['cmake'] = get_cmake_lists(self.cur_dir)
         under_test = ProjectVariables(self.data_test)
 
         # Case CXX language
-        under_test.add_cmake_project('cpp')
+        under_test.add_cmake_project(['cpp'])
 
         self.data_test['cmake'].close()
 
-        cmakelists_test = open('CMakeLists.txt', 'r')
+        cmakelists_test = open('%s/CMakeLists.txt' % self.cur_dir, 'r')
         content_test = cmakelists_test.read()
 
         self.assertTrue('project(${PROJECT_NAME} CXX)' in content_test)
@@ -129,12 +132,12 @@ class TestProjectVariables(unittest2.TestCase):
         cmakelists_test.close()
 
         # Case C language
-        under_test.cmake = get_cmake_lists('./')
-        under_test.add_cmake_project('c')
+        under_test.cmake = get_cmake_lists(self.cur_dir)
+        under_test.add_cmake_project(['c'])
 
         under_test.cmake.close()
 
-        cmakelists_test = open('CMakeLists.txt', 'r')
+        cmakelists_test = open('%s/CMakeLists.txt' % self.cur_dir, 'r')
         content_test = cmakelists_test.read()
 
         self.assertTrue('project(${PROJECT_NAME} C)' in content_test)
@@ -144,14 +147,14 @@ class TestProjectVariables(unittest2.TestCase):
     def test_add_default_target(self):
         """Add Release as Default Target"""
 
-        self.data_test['cmake'] = get_cmake_lists('./')
+        self.data_test['cmake'] = get_cmake_lists(self.cur_dir)
         under_test = ProjectVariables(self.data_test)
 
         under_test.add_default_target()
 
         self.data_test['cmake'].close()
 
-        cmakelists_test = open('CMakeLists.txt', 'r')
+        cmakelists_test = open('%s/CMakeLists.txt' % self.cur_dir, 'r')
         content_test = cmakelists_test.read()
 
         self.assertTrue('set(CMAKE_BUILD_TYPE "Release")' in content_test)
@@ -161,14 +164,14 @@ class TestProjectVariables(unittest2.TestCase):
     def test_add_artefact_target_outputs(self):
         """Add Artefact Target Outputs"""
 
-        self.data_test['cmake'] = get_cmake_lists('./')
+        self.data_test['cmake'] = get_cmake_lists(self.cur_dir)
         under_test = ProjectVariables(self.data_test)
 
         under_test.add_artefact_target_outputs()
 
         self.data_test['cmake'].close()
 
-        cmakelists_test = open('CMakeLists.txt', 'r')
+        cmakelists_test = open('%s/CMakeLists.txt' % self.cur_dir, 'r')
         content_test = cmakelists_test.read()
 
         self.assertTrue(

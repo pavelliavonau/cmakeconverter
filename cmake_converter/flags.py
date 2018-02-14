@@ -55,7 +55,7 @@ class Flags(object):
 
     def write_flags(self):
         """
-        Parse all flags properties and write them in CMakeLists.txt file
+        Parse all flags properties and write them inside "CMakeLists.txt" file
 
         """
 
@@ -71,7 +71,7 @@ class Flags(object):
 
     def define_linux_flags(self):
         """
-        Define the Linux flags
+        Define the Flags for Linux platforms
 
         """
 
@@ -122,7 +122,7 @@ class Flags(object):
 
     def define_windows_flags(self):
         """
-        Write the Win32 flags
+        Define the Flags for Win32 platforms
 
         """
 
@@ -495,7 +495,7 @@ class Flags(object):
 # Macros Step
 def define_and_write_macro(data):
     """
-    Get Macro definitions and write to cmake file.
+    Get and write Preprocessor Macros definitions
 
     """
 

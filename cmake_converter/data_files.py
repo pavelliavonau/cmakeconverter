@@ -32,7 +32,7 @@ from cmake_converter.message import send
 
 def get_vcxproj_data(vs_project):
     """
-    Return xml data from vcxproj file
+    Return xml data from "vcxproj" file
 
     :param vs_project: the vcxproj file
     :type vs_project: str
@@ -152,7 +152,7 @@ def get_definitiongroup(target, platform):
 
 def get_cmake_lists(cmake_path=None):
     """
-    Create CMakeLists.txt file in wanted path
+    Create CMakeLists.txt file in wanted "cmake_path"
 
     :param cmake_path: path where CMakeLists.txt should be write
     :type cmake_path: str

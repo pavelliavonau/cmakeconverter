@@ -45,7 +45,7 @@ class Dependencies(object):
 
     def write_include_dir(self):
         """
-        Include Directories : Add include directories required for compilation.
+        Write on "CMakeLists.txt" include directories required for compilation.
 
         """
 
@@ -73,7 +73,7 @@ class Dependencies(object):
 
     def write_dependencies(self):
         """
-        Dependencies : Add subdirectories or link directories for external libraries.
+        Write on "CMakeLists.txt" subdirectories or link directories for external libraries.
 
         """
 
@@ -126,7 +126,7 @@ class Dependencies(object):
 
     def link_dependencies(self):
         """
-        Link : Add command to link dependencies to project.
+        Write link dependencies of project.
 
         """
 

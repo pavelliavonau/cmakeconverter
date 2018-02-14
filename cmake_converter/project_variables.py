@@ -24,6 +24,7 @@
     ================
      Manage creation of CMake variables that will be used during compilation
 """
+
 from cmake_converter.message import send
 from cmake_converter.data_files import get_propertygroup
 
@@ -220,13 +221,14 @@ class ProjectVariables(object):
         Add CMake Project
 
         :param language: type of project language: cpp | c
-        :type language: str
+        :type language: list
         """
 
-        CPP_EXTENSIONS = ['cc', 'cp', 'cxx', 'cpp', 'CPP', 'c++', 'C']
+        lang = language[0]
+        cpp_extensions = ['cc', 'cp', 'cxx', 'cpp', 'CPP', 'c++', 'C']
 
         available_language = {'c': 'C'}
-        available_language.update(dict.fromkeys(CPP_EXTENSIONS, 'CXX'))
+        available_language.update(dict.fromkeys(cpp_extensions, 'CXX'))
 
         self.cmake.write('\n')
         self.cmake.write(
@@ -234,7 +236,7 @@ class ProjectVariables(object):
             '#        The main options of project        #\n'
             '#############################################\n\n'
         )
-        self.cmake.write('project(${PROJECT_NAME} %s)\n\n' % available_language[language].upper())
+        self.cmake.write('project(${PROJECT_NAME} %s)\n\n' % available_language[lang].upper())
 
     def add_default_target(self):
         """

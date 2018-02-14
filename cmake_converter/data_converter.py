@@ -46,7 +46,7 @@ class DataConverter:
 
     def init_files(self, vs_project, cmake_lists):
         """
-        Initialize opening of CMake and VS Project files
+        Initialize opening of CMakeLists.txt and VS Project files
 
         :param vs_project: Visual Studio project file path
         :type vs_project: str
@@ -64,7 +64,7 @@ class DataConverter:
                 send('This file is not a ".vcxproj". Be sure you give the right file', 'error')
                 exit(1)
 
-        # CMakeLists
+        # Cmake Porject (CMakeLists.txt)
         if cmake_lists:
             if os.path.exists(cmake_lists):
                 self.data['cmake'] = get_cmake_lists(cmake_lists)
@@ -79,7 +79,7 @@ class DataConverter:
 
     def create_data(self):
         """
-        Create the data and convert each part of vcxproj project
+        Create the data and convert each part of "vcxproj" project
 
         """
 
@@ -126,7 +126,7 @@ class DataConverter:
 
     def close_cmake_file(self):
         """
-        Close the CMakeLists.txt file
+        Close the "CMakeLists.txt" file
 
         """
 
