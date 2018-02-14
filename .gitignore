@@ -10,11 +10,12 @@ dist/
 
 # Tests/Coverage
 .coverage
+.pytest_cache/
 
 # Docs
 _static
 _build
 
 # Misc
-*.cmake
+#*.cmake
 CMakeLists.txt
