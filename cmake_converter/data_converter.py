@@ -126,7 +126,7 @@ class DataConverter:
 
     def close_cmake_file(self):
         """
-        Close the CmakeLists.txt file
+        Close the CMakeLists.txt file
 
         """
 

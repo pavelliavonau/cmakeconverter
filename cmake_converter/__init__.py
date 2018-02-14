@@ -27,7 +27,7 @@
 """
 
 # Application version and manifest
-VERSION = (0, 0, 2)
+VERSION = (1, 0, 0)
 __application__ = u"CMakeConverter"
 __short_version__ = '.'.join((str(each) for each in VERSION[:2]))
 __version__ = '.'.join((str(each) for each in VERSION[:4]))

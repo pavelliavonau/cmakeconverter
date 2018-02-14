@@ -63,6 +63,8 @@ Bugs, issues and contributing
 Contributions to this project are welcome and encouraged ... 
 Issues in the project repository are the common way to raise an information.
 
+**Note:** if you have an issue, please provide me if possible the visual studio project involved.
+
 For QMake
 ---------
 
