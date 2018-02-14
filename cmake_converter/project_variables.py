@@ -225,7 +225,7 @@ class ProjectVariables(object):
 
         CPP_EXTENSIONS = ['cc', 'cp', 'cxx', 'cpp', 'CPP', 'c++', 'C']
 
-        available_language = {'c':'C'}
+        available_language = {'c': 'C'}
         available_language.update(dict.fromkeys(CPP_EXTENSIONS, 'CXX'))
 
         self.cmake.write('\n')
