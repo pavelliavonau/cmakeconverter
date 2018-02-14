@@ -42,6 +42,7 @@ class TestProjectVariables(unittest2.TestCase):
         'dependencies': None,
         'includes': None,
         'additional_code': None,
+        'std': None,
     }
 
     def test_init_project_variables(self):

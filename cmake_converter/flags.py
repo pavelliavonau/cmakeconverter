@@ -38,6 +38,8 @@ class Flags(object):
         Class who check and create compilation flags
     """
 
+    available_std = ['c++11', 'c++14', 'c++17']
+
     def __init__(self, data):
         self.tree = data['vcxproj']['tree']
         self.ns = data['vcxproj']['ns']
@@ -52,6 +54,7 @@ class Flags(object):
         }
         self.win_deb_flags = ''
         self.win_rel_flags = ''
+        self.std = data['std']
 
     def write_flags(self):
         """
@@ -75,7 +78,19 @@ class Flags(object):
 
         """
 
-        linux_flags = '-std=c++11'
+        if self.std:
+            if self.std in self.available_std:
+                send('Cmake will use C++ std %s.' % self.std, 'info')
+                linux_flags = '-std=%s' % self.std
+            else:
+                send(
+                    'C++ std %s version does not exist. CMake will use "c++11" instead' % self.std,
+                    'warn'
+                )
+                linux_flags = '-std=c++11'
+        else:
+            send('No C++ std version specified. CMake will use "c++11" by default.', 'info')
+            linux_flags = '-std=c++11'
         references = self.tree.xpath('//ns:ProjectReference', namespaces=self.ns)
         if references:
             for ref in references:

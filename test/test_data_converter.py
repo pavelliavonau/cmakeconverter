@@ -33,6 +33,16 @@ class TestDataConverter(unittest2.TestCase):
     cur_dir = os.path.dirname(os.path.realpath(__file__))
     vs_project = '%s/test_files/project_test.vcxproj' % cur_dir
 
+    data_test = {
+        'cmake': None,
+        'cmake_output': None,
+        'vcxproj': None,
+        'dependencies': None,
+        'includes': None,
+        'additional_code': None,
+        'std': None,
+    }
+
     def test_init_files(self):
         """Data Converter Init Files"""
 
@@ -43,6 +53,7 @@ class TestDataConverter(unittest2.TestCase):
             'dependencies': None,
             'includes': None,
             'additional_code': None,
+            'std': None,
         }
 
         under_test = DataConverter(data_test)
@@ -51,7 +62,8 @@ class TestDataConverter(unittest2.TestCase):
         self.assertIsNone(under_test.data['cmake'])
         self.assertIsNone(under_test.data['vcxproj'])
 
-        under_test.init_files(self.vs_project, './')
+        under_test.init_files(self.vs_project, self.cur_dir)
+        under_test.close_cmake_file()
 
         self.assertIsNotNone(under_test.data['cmake'])
         self.assertIsNotNone(under_test.data['vcxproj'])
@@ -62,23 +74,15 @@ class TestDataConverter(unittest2.TestCase):
     def test_create_data(self):
         """Data Converter Create Data"""
 
-        data_test = {
-            'cmake': None,
-            'cmake_output': None,
-            'vcxproj': None,
-            'dependencies': None,
-            'includes': None,
-            'additional_code': None,
-        }
-
-        under_test = DataConverter(data_test)
+        under_test = DataConverter(self.data_test)
         self.assertTrue(under_test.data)
 
-        under_test.init_files(self.vs_project, '')
+        under_test.init_files(self.vs_project, self.cur_dir)
 
         old_cmake = open('CMakeLists.txt', 'r')
 
         under_test.create_data()
+        under_test.close_cmake_file()
 
         new_cmake = open('CMakeLists.txt', 'r')
 
@@ -91,15 +95,7 @@ class TestDataConverter(unittest2.TestCase):
     def test_close_cmake_file(self):
         """Close CMake File"""
 
-        data_test = {
-            'cmake': None,
-            'cmake_output': None,
-            'vcxproj': None,
-            'dependencies': None,
-            'includes': None,
-            'additional_code': None,
-        }
-        under_test = DataConverter(data_test)
+        under_test = DataConverter(self.data_test)
 
         under_test.init_files(self.vs_project, '')
         under_test.create_data()

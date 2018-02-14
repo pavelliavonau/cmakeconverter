@@ -43,7 +43,8 @@ def main():  # pragma: no cover
         'includes': None,
         'dependencies': None,
         'cmake_output': None,
-        'data': None
+        'data': None,
+        'std': None
     }
 
     usage = "cmake-converter -p <vcxproj>"
@@ -83,6 +84,11 @@ def main():  # pragma: no cover
         help='add include directories in CMakeLists.txt. Default : False',
         dest='include', action="store_true", default=False
     )
+    parser.add_argument(
+        '-std', '--std',
+        help='choose your C++ std version. Default : c++11',
+        dest='std'
+    )
 
     # Get args
     args = parser.parse_args()
@@ -97,6 +103,9 @@ def main():  # pragma: no cover
         data['dependencies'] = args.dependencies.split(':')
     data['cmake_output'] = args.cmakeoutput
     data['includes'] = args.include
+
+    if args.std:
+        data['std'] = args.std
 
     # Give data to ConvertData()
     data_converter = DataConverter(data)
