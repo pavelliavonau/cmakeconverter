@@ -108,6 +108,33 @@ class TestFlags(unittest2.TestCase):
 
         cmakelists_test.close()
 
+    def test_define_linux_flags_with_std(self):
+        """Define Linux Flags"""
+
+        self.data_test['cmake'] = get_cmake_lists('./')
+        self.data_test['std'] = 'c++17'
+        under_test = Flags(self.data_test)
+        under_test.define_linux_flags()
+        self.data_test['cmake'].close()
+
+        cmakelists_test = open('%s/CMakeLists.txt' % self.cur_dir, 'r')
+        content_test = cmakelists_test.read()
+
+        self.assertTrue('-std=c++17' in content_test)
+        cmakelists_test.close()
+
+        self.data_test['cmake'] = get_cmake_lists('./')
+        self.data_test['std'] = 'c++19'
+        under_test = Flags(self.data_test)
+        under_test.define_linux_flags()
+        self.data_test['cmake'].close()
+
+        cmakelists_test = open('%s/CMakeLists.txt' % self.cur_dir, 'r')
+        content_test = cmakelists_test.read()
+
+        self.assertTrue('-std=c++11' in content_test)
+        cmakelists_test.close()
+
     def test_define_windows_flags(self):
         """Define Windows Flags"""
 
