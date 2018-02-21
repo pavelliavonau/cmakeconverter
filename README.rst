@@ -11,9 +11,6 @@ CMake Converter
 .. image:: http://readthedocs.org/projects/cmakeconverter/badge/?version=develop
     :target: http://cmakeconverter.readthedocs.io/en/develop/?badge=develop
     :alt: Documentation Status
-.. image:: https://badge.fury.io/py/cmake_converter.svg
-    :target: https://badge.fury.io/py/cmake_converter
-    :alt: Most recent PyPi version
 .. image:: https://img.shields.io/badge/License-AGPL%20v3-blue.svg
     :target: http://www.gnu.org/licenses/agpl-3.0
     :alt: License AGPL v3
@@ -21,9 +18,10 @@ CMake Converter
 Introduction
 ------------
 
-This project aims to facilitate the conversion of Visual Studio projects to CMake projects. The goal is to give to a Python script, a **.vcxproj** file, and output a **CMakeLists.txt**.
+This project aims to facilitate the conversion of Visual Studio projects to CMake projects.
+The goal is to give to a Python script, a **.vcxproj** file, and output a **CMakeLists.txt**.
 
-**Note :** Actually, it's **only works** with `c/c++` projects.
+**Note :** Actually, it's **only works** with ``C/C++`` projects.
 
 Quick Install & Run
 -------------------
@@ -48,7 +46,7 @@ Simply clone this repository and type the following command to install it::
 Run & Convert
 ~~~~~~~~~~~~~
 
-After install library, just run the script as below. Your `<file>.vcxproj` is of course required::
+After install library, just run the script as below. Your ``.vcxproj`` file is of course required::
 
     cmake-converter -p <path/to/file.vcxproj>`
 
