@@ -14,7 +14,7 @@ script:
   - pycodestyle --max-line-length=100 --exclude='*.pyc, *.cfg, *.log' --ignore='E402' cmake_converter/*
   - pylint --rcfile=.pylintrc cmake_converter/
   # No pep257 currently (Code doc compliance)
-  # - pep257 --select=D300 alignak_app
+  - pep257 --select=D300 cmake_converter
   # Code dynamic analysis
   - cd test/
   - coverage erase
