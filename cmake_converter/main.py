@@ -47,7 +47,7 @@ def main():  # pragma: no cover
         'std': None
     }
 
-    usage = "cmake-converter -p <vcxproj>"
+    usage = "cmake-converter -p <vcxproj> [-c | -a | -D | -O | -i | -std]"
     # Init parser
     parser = argparse.ArgumentParser(
         usage=usage,

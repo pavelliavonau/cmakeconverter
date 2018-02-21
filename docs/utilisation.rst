@@ -24,12 +24,13 @@ You can always get help using the following command::
 
 Here is the list of all possible parameters:
 
-* **-p** : path to a valid **vcxproj** file. (``required``)
-* **-c** : define output of CMakeLists.txt file
-* **-a** : import cmake code from **file.cmake** (by convention, but any text file works) to the generated **CMakeLists.txt**.
-* **-D** : replace dependencies found in **.vcxproj** by yours. This dependencies must be **separated by colons**.
-* **-O** : define output of artefact produces by CMake. If this option is not specified, cmake-converter will try to get the one defined in **vcxproj**.
-* **-i** : add include directories found in **vcxproj** in the generated **CMakeLists.txt**. Default : False
+* ``'-p', '--project'``: **required** valid path to vcxproj file. i.e.: ../../mylib.vcxproj
+* ``'-c', '--cmake'``: define output of CMakeLists.txt file.
+* ``'-a', '--additional'``: import cmake code from file.cmake to your final CMakeLists.txt.
+* ``'-D', '--dependencies'``: replace dependencies found in **.vcxproj**, separated by colons. i.e.: "external/zlib/cmake/:../../external/g3log/cmake/"
+* ``'-O', '--cmakeoutput'``: define output of artefact produces by CMake.
+* ``'-i', '--include'``: add include directories in CMakeLists.txt. Default : False.
+* ``'-std', '--std'``: choose your C++ std version. Default : c++11.
 
 Example
 -------
@@ -43,4 +44,5 @@ Here is a full example where all parameters are used::
     > -D ../../../external/zlib/platform/cmake/:../../../external/g3log/platform/cmake/
     > -O ../../build/x64/\${CMAKE_BUILD_TYPE}/
     > -i
+    > -std c++17
 
