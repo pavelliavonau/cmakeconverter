@@ -33,7 +33,6 @@ class ProjectFiles(object):
         Class who collect and store project files
     """
 
-    c_folder_nb = 1
     h_folder_nb = 1
 
     def __init__(self, data):
@@ -43,6 +42,8 @@ class ProjectFiles(object):
         self.cppfiles = self.tree.xpath('//ns:ClCompile', namespaces=self.ns)
         self.headerfiles = self.tree.xpath('//ns:ClInclude', namespaces=self.ns)
         self.language = []
+        self.sources = {}
+        self.headers = {}
 
     def write_files_variables(self):
         """
@@ -51,8 +52,6 @@ class ProjectFiles(object):
         """
 
         # Cpp Dir
-        known_cpp = []
-        ProjectFiles.c_folder_nb = 1
         self.cmake.write('# Folders files\n')
         for cpp in self.cppfiles:
             if cpp.get('Include') is not None:
@@ -63,25 +62,17 @@ class ProjectFiles(object):
                 if not current_cpp:
                     # Case files are beside the VS Project
                     current_cpp = './'
-                if current_cpp not in known_cpp:
-                    known_cpp.append(current_cpp)
-                    self.cmake.write(
-                        'set(CPP_DIR_%s %s)\n' % (str(ProjectFiles.c_folder_nb), current_cpp)
-                    )
-                    ProjectFiles.c_folder_nb += 1
+                if current_cpp not in self.sources:
+                    self.sources = {current_cpp : []}
+                self.sources[current_cpp].append(cxx) 
 
         # Headers Dir
-        known_headers = []
-        ProjectFiles.h_folder_nb = 1
         for header in self.headerfiles:
             h = str(header.get('Include'))
             current_header = '/'.join(h.split('\\')[0:-1])
-            if current_header not in known_headers:
-                known_headers.append(current_header)
-                self.cmake.write(
-                    'set(HEADER_DIR_%s %s)\n' % (str(ProjectFiles.h_folder_nb), current_header)
-                )
-                ProjectFiles.h_folder_nb += 1
+            if current_header not in self.headers:
+                self.headers = {current_header : []}
+            self.headers[current_header].append(h)
 
         send("C++ Extensions found: %s" % self.language, 'INFO')
 
@@ -91,20 +82,26 @@ class ProjectFiles(object):
 
         """
 
-        self.cmake.write('################ Files ################\n'
-                         '#   --   Add files to project.   --   #\n'
-                         '#######################################\n\n')
-        self.cmake.write('file(GLOB SRC_FILES\n')
-        c = 1
-        while c < ProjectFiles.c_folder_nb:
-            for lang in self.language:
-                self.cmake.write('    ${CPP_DIR_' + str(c) + '}/*.%s\n' % lang)
-            c += 1
-        h = 1
-        while h < ProjectFiles.h_folder_nb:
-            self.cmake.write('    ${HEADER_DIR_' + str(h) + '}/*.h\n')
-            h += 1
-        self.cmake.write(')\n\n')
+        self.cmake.write('\n############ Source Files #############\n')
+        self.cmake.write('set(SRC_FILES\n')
+
+        for src_dir in self.sources:
+            for src_file in self.sources[src_dir]:
+                self.cmake.write('    ' + str(src_dir) + str(src_file) + '\n')
+
+        self.cmake.write(')\n')
+
+        self.cmake.write('source_group("Sources" FILES ${SRC_FILES})\n\n')
+
+        self.cmake.write('\n############ Header Files #############\n')
+        self.cmake.write('set(HEADERS_FILES\n')
+
+        for hdrs_dir in self.headers:
+            for header_file in self.headers[hdrs_dir]:
+                self.cmake.write('    ' + str(hdrs_dir) + str(header_file) + '\n')
+
+        self.cmake.write(')\n')
+        self.cmake.write('source_group("Headers" FILES ${HEADERS_FILES})\n\n')
 
     def add_additional_code(self, file_to_add):
         """
