@@ -148,5 +148,5 @@ class ProjectFiles(object):
             self.cmake.write('# Add executable to build.\n')
             self.cmake.write('add_executable(${PROJECT_NAME} \n')
             send('CMake will build an EXECUTABLE.', '')
-        self.cmake.write('   ${SRC_FILES}\n')
+        self.cmake.write('   ${SRC_FILES} ${HEADERS_FILES}\n')
         self.cmake.write(')\n\n')
