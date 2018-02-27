@@ -224,7 +224,6 @@ class ProjectVariables(object):
         :type language: list
         """
 
-        lang = language[0]
         cpp_extensions = ['cc', 'cp', 'cxx', 'cpp', 'CPP', 'c++', 'C']
 
         available_language = {'c': 'C'}
@@ -236,6 +235,9 @@ class ProjectVariables(object):
             '#        The main options of project        #\n'
             '#############################################\n\n'
         )
+        lang = 'cpp'
+        if(len(language) is not 0):
+            lang = language[0]
         self.cmake.write('project(${PROJECT_NAME} %s)\n\n' % available_language[lang].upper())
 
     def add_default_target(self):
