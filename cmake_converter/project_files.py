@@ -60,10 +60,10 @@ class ProjectFiles(object):
                 if not cxx.rpartition('.')[-1] in self.language:
                     self.language.append(cxx.rpartition('.')[-1])
                 current_cpp = '/'.join(cxx.split('\\')[0:-1])
+                if not current_cpp:
+                    # Case files are beside the VS Project
+                    current_cpp = './'
                 if current_cpp not in known_cpp:
-                    if not current_cpp:
-                        # Case files are beside the VS Project
-                        current_cpp = './'
                     known_cpp.append(current_cpp)
                     self.cmake.write(
                         'set(CPP_DIR_%s %s)\n' % (str(ProjectFiles.c_folder_nb), current_cpp)
