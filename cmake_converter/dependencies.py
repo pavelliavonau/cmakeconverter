@@ -30,6 +30,7 @@ import os
 import re
 
 from cmake_converter.message import send
+from cmake_converter.data_files import get_vcxproj_data
 
 
 class Dependencies(object):
@@ -71,12 +72,41 @@ class Dependencies(object):
         else:  # pragma: no cover
             send('Include Directories not found for this project.', 'warn')
 
+    def getDependencyTargetName(self, vs_project):
+        """
+        """
+        # VS Project (.vcxproj)
+        if vs_project:
+            vcxproj_xml = get_vcxproj_data(os.path.join(os.path.dirname(self.cmake.name), vs_project))
+            root_projectname = vcxproj_xml['tree'].xpath('//ns:RootNamespace', namespaces=self.ns)
+            if root_projectname:
+                projectname = root_projectname[0]
+                if projectname.text:
+                    return projectname.text
+
+    def write_dependencies2(self):
+        """
+        """
+        references = self.tree.xpath('//ns:ProjectReference', namespaces=self.ns)
+        if references:
+            self.cmake.write( 'add_dependencies(${PROJECT_NAME}')
+            for ref in references:
+                if ref is None:
+                    continue
+                
+                ref_inc = ref.get('Include')
+                if ref_inc is None:
+                    continue;
+                reference = str(ref_inc)
+
+                self.cmake.write(' %s' % self.getDependencyTargetName(reference))
+            self.cmake.write(')\n\n')
+
     def write_dependencies(self):
         """
         Write on "CMakeLists.txt" subdirectories or link directories for external libraries.
 
         """
-
         references = self.tree.xpath('//ns:ProjectReference', namespaces=self.ns)
         if references:
             self.cmake.write('################### Dependencies ##################\n'
@@ -136,9 +166,12 @@ class Dependencies(object):
             self.cmake.write('# Link with other dependencies.\n')
             self.cmake.write('target_link_libraries(${PROJECT_NAME} ')
             for ref in references:
-                reference = str(ref.get('Include'))
+                ref_inc = ref.get('Include')
+                if ref_inc is None:
+                    continue;
+                reference = str(ref_inc)
                 path_to_reference = os.path.splitext(ntpath.basename(reference))[0]
-                lib = os.path.splitext(ntpath.basename(reference))[0]
+                lib = self.getDependencyTargetName(reference)
                 if lib == 'g3log':
                     lib += 'ger'  # To get "g3logger"
                 self.cmake.write(lib + ' ')
