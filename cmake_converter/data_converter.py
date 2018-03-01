@@ -120,6 +120,7 @@ class DataConverter:
         # Write and add Files
         files.write_source_files()
         files.add_target_artefact()
+        depends.write_dependencies2()
 
         # Link with other dependencies
         depends.link_dependencies()
