@@ -26,9 +26,21 @@
 """
 
 import argparse
+import re
+import os
 
 from cmake_converter.data_converter import DataConverter
 
+
+def convertProject(data, project, cmakeArg):
+    # Give data to ConvertData()
+    data_converter = DataConverter(data)
+    data_converter.init_files(project, cmakeArg)
+    data_converter.create_data()
+
+    # Close CMake file
+    data_converter.close_cmake_file()
+    
 
 def main():  # pragma: no cover
     """
@@ -44,7 +56,7 @@ def main():  # pragma: no cover
         'dependencies': None,
         'cmake_output': None,
         'data': None,
-        'std': None
+        'std': None,
     }
 
     usage = "cmake-converter -p <vcxproj> [-c | -a | -D | -O | -i | -std]"
@@ -52,6 +64,11 @@ def main():  # pragma: no cover
     parser = argparse.ArgumentParser(
         usage=usage,
         description='Convert Visual Studio projects (.vcxproj) to CMakeLists.txt'
+    )
+    parser.add_argument(
+        '-s', '--solution',
+        help='valid solution file. i.e.: ../../my.sln',
+        dest='solution'
     )
     parser.add_argument(
         '-p', '--project',
@@ -94,7 +111,7 @@ def main():  # pragma: no cover
     args = parser.parse_args()
 
     # Prepare data
-    if not args.project:
+    if not args.project and not args.solution:
         parser.print_help()
         exit(0)
 
@@ -107,14 +124,20 @@ def main():  # pragma: no cover
     if args.std:
         data['std'] = args.std
 
-    # Give data to ConvertData()
-    data_converter = DataConverter(data)
-    data_converter.init_files(args.project, args.cmake)
-    data_converter.create_data()
-
-    # Close CMake file
-    data_converter.close_cmake_file()
-
+    if(not args.solution):
+        cmake_lists_path = os.path.dirname(args.project)
+        if args.cmake is not None:
+            cmake_lists_path = args.cmake
+        convertProject(data, args.project, cmake_lists_path)
+    else:
+        sln = open(args.solution, 'r')
+        slnpath = os.path.dirname(args.solution)
+        p = re.compile(r', "(.*\.vcxproj)"')
+        projects = p.findall(sln.read())
+        for project in projects:
+            project_abs = os.path.join(slnpath, project)
+            convertProject(data, project_abs, os.path.dirname(project_abs))
+            print('\n\n')
 
 if __name__ == "__main__":  # pragma: no cover
     main()
