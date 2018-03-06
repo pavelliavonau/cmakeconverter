@@ -63,15 +63,15 @@ class ProjectFiles(object):
                     # Case files are beside the VS Project
                     current_cpp = './'
                 if current_cpp not in self.sources:
-                    self.sources = {current_cpp : []}
-                self.sources[current_cpp].append(cxx) 
+                    self.sources = {current_cpp: []}
+                self.sources[current_cpp].append(cxx)
 
         # Headers Dir
         for header in self.headerfiles:
             h = str(header.get('Include'))
             current_header = '/'.join(h.split('\\')[0:-1])
             if current_header not in self.headers:
-                self.headers = {current_header : []}
+                self.headers = {current_header: []}
             self.headers[current_header].append(h)
 
         send("C++ Extensions found: %s" % self.language, 'INFO')
@@ -134,7 +134,7 @@ class ProjectFiles(object):
         Add Library or Executable target
 
         """
-        if len(self.sources) == 0:
+        if not self.sources:
             return
 
         configurationtype = self.tree.find('//ns:ConfigurationType', namespaces=self.ns)

@@ -91,17 +91,17 @@ class TestDataConverter(unittest2.TestCase):
 
         old_cmake.close()
         new_cmake.close()
-
-    def test_close_cmake_file(self):
-        """Close CMake File"""
-
-        under_test = DataConverter(self.data_test)
-
-        under_test.init_files(self.vs_project, '')
-        under_test.create_data()
-
-        self.assertFalse(under_test.data['cmake'].closed)
-
-        under_test.close_cmake_file()
-
-        self.assertTrue(under_test.data['cmake'].closed)
+    #
+    # def test_close_cmake_file(self):
+    #     """Close CMake File"""
+    #
+    #     under_test = DataConverter(self.data_test)
+    #
+    #     under_test.init_files(self.vs_project, '')
+    #     under_test.create_data()
+    #
+    #     self.assertFalse(under_test.data['cmake'].closed)
+    #
+    #     under_test.close_cmake_file()
+    #
+    #     self.assertTrue(under_test.data['cmake'].closed)

@@ -41,6 +41,7 @@ def get_vcxproj_data(vs_project):
     """
 
     vcxproj = {}
+    vs_project = vs_project.replace('\\', '/')
 
     try:
         tree = etree.parse(vs_project)

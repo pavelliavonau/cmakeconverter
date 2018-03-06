@@ -32,15 +32,26 @@ import os
 from cmake_converter.data_converter import DataConverter
 
 
-def convertProject(data, project, cmakeArg):
-    # Give data to ConvertData()
+def convert_project(data, vcxproj, cmake_dest_dir):
+    """
+    Convert a ``vcxproj`` to a ``CMakeLists.txt``
+
+    :param data: input data of user
+    :type data: dict
+    :param vcxproj: input vcxproj
+    :type vcxproj: str
+    :param cmake_dest_dir: destinaton folder of CMakeLists.txt
+    :type cmake_dest_dir: str
+    """
+
+    # Give data to DataConverter()
     data_converter = DataConverter(data)
-    data_converter.init_files(project, cmakeArg)
+    data_converter.init_files(vcxproj, cmake_dest_dir)
     data_converter.create_data()
 
     # Close CMake file
     data_converter.close_cmake_file()
-    
+
 
 def main():  # pragma: no cover
     """
@@ -116,7 +127,7 @@ def main():  # pragma: no cover
         exit(0)
 
     data['additional_code'] = args.additional
-    if args.dependencies is not None:
+    if args.dependencies:
         data['dependencies'] = args.dependencies.split(':')
     data['cmake_output'] = args.cmakeoutput
     data['includes'] = args.include
@@ -124,11 +135,11 @@ def main():  # pragma: no cover
     if args.std:
         data['std'] = args.std
 
-    if(not args.solution):
+    if not args.solution:
         cmake_lists_path = os.path.dirname(args.project)
-        if args.cmake is not None:
+        if args.cmake:
             cmake_lists_path = args.cmake
-        convertProject(data, args.project, cmake_lists_path)
+        convert_project(data, args.project, cmake_lists_path)
     else:
         sln = open(args.solution, 'r')
         slnpath = os.path.dirname(args.solution)
@@ -136,8 +147,9 @@ def main():  # pragma: no cover
         projects = p.findall(sln.read())
         for project in projects:
             project_abs = os.path.join(slnpath, project)
-            convertProject(data, project_abs, os.path.dirname(project_abs))
+            convert_project(data, project_abs, os.path.dirname(project_abs))
             print('\n\n')
+
 
 if __name__ == "__main__":  # pragma: no cover
     main()

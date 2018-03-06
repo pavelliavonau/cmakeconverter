@@ -236,7 +236,7 @@ class ProjectVariables(object):
             '#############################################\n\n'
         )
         lang = 'cpp'
-        if(len(language) is not 0):
+        if len(language) is not 0:
             lang = language[0]
         self.cmake.write('project(${PROJECT_NAME} %s)\n\n' % available_language[lang].upper())
 
