@@ -50,14 +50,15 @@ class TestProjectFiles(unittest2.TestCase):
 
         under_test = ProjectFiles(self.data_test)
 
-        self.assertFalse(under_test.sources)
-        self.assertTrue(under_test.h_folder_nb)
-
         self.assertTrue(under_test.tree)
         self.assertTrue(under_test.ns)
         self.assertTrue(under_test.cmake)
         self.assertTrue(under_test.cppfiles)
         self.assertTrue(under_test.headerfiles)
+
+        self.assertFalse(under_test.language)
+        self.assertFalse(under_test.sources)
+        self.assertFalse(under_test.headers)
 
     def test_collects_source_files(self):
         """Collects Source Files"""
