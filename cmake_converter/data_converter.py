@@ -89,7 +89,7 @@ class DataConverter:
         variables.add_outputs_variables()
 
         files = ProjectFiles(self.data)
-        files.write_files_variables()
+        files.collects_source_files()
         variables.add_cmake_project(files.language)
         variables.add_default_target()
 
