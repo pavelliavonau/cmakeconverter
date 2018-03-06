@@ -141,14 +141,16 @@ def main():  # pragma: no cover
             cmake_lists_path = args.cmake
         convert_project(data, args.project, cmake_lists_path)
     else:
-        sln = open(args.solution, 'r')
+        sln = open(args.solution)
         slnpath = os.path.dirname(args.solution)
         p = re.compile(r', "(.*\.vcxproj)"')
         projects = p.findall(sln.read())
+        sln.close()
         for project in projects:
+            project = '/'.join(project.split('\\'))
             project_abs = os.path.join(slnpath, project)
             convert_project(data, project_abs, os.path.dirname(project_abs))
-            print('\n\n')
+            print('\n')
 
 
 if __name__ == "__main__":  # pragma: no cover
