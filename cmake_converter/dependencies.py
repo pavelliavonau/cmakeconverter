@@ -99,19 +99,25 @@ class Dependencies(object):
         """
 
         references = self.tree.xpath('//ns:ProjectReference', namespaces=self.ns)
+        references_found = []
         if references:
-            self.cmake.write('add_dependencies(${PROJECT_NAME}')
             for ref in references:
-                if ref is not None:
+                if ref is None:
                     continue
 
                 ref_inc = ref.get('Include')
-                if ref_inc is not None:
+                if ref_inc is None:
                     continue
-                reference = str(ref_inc)
 
-                self.cmake.write(' %s' % self.get_dependency_target_name(reference))
-            self.cmake.write(')\n\n')
+                if ref_inc not in references_found:
+                    references_found.append(ref_inc)
+
+            if references_found:
+                self.cmake.write('add_dependencies(${PROJECT_NAME}')
+                for ref_found in references_found:
+                    self.cmake.write(' %s' % self.get_dependency_target_name(ref_found))
+
+                self.cmake.write(')\n\n')
 
     def write_dependencies(self):
         """
