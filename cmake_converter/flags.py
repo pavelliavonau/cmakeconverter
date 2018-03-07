@@ -148,7 +148,9 @@ class Flags(object):
                     if preproc != '%(PreprocessorDefinitions)' and preproc != 'WIN32':
                         self.settings[setting][defines] += '   -D%s \n' % preproc
                 # Unicode
-                unicode = self.tree.find("{0}/ns:CharacterSet".format(self.definitiongroups[setting]), namespaces=self.ns)
+                unicode = self.tree.find(
+                    "{0}/ns:CharacterSet".format(self.definitiongroups[setting]), namespaces=self.ns
+                )
                 if unicode is not None:
                     if 'Unicode' in unicode.text:
                         self.settings[setting][defines] += '   -DUNICODE\n'

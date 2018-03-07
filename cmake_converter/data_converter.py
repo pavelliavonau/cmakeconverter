@@ -137,7 +137,7 @@ class DataConverter:
         # Write and add Files
         files.write_source_files()
 
-        if len(files.sources) != 0:
+        if files.sources:
             files.add_target_artefact()
             # Write Flags
             all_flags = Flags(self.data)

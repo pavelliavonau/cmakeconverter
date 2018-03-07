@@ -84,52 +84,52 @@ class ProjectVariables(object):
             )
 
         # PropertyGroup TODO: remove hard code
-        return
-        prop_deb_x86 = get_propertygroup('debug', 'x86')
-        prop_deb_x64 = get_propertygroup('debug', 'x64')
-        prop_rel_x86 = get_propertygroup('release', 'x86')
-        prop_rel_x64 = get_propertygroup('release', 'x64')
-
-        if not self.vs_outputs['debug']['x86']:
-            self.vs_outputs['debug']['x86'] = self.tree.find(
-                '%s//ns:OutDir' % prop_deb_x86, namespaces=self.ns
-            )
-            if self.vs_outputs['debug']['x86'] is None:
-                vs_output_debug_x86 = self.tree.xpath(
-                    '//ns:PropertyGroup[@Label="UserMacros"]/ns:OutDir', namespaces=self.ns
-                )
-                if vs_output_debug_x86:
-                    self.vs_outputs['debug']['x86'] = vs_output_debug_x86[0]
-        if not self.vs_outputs['debug']['x64']:
-            self.vs_outputs['debug']['x64'] = self.tree.find(
-                '%s/ns:OutDir' % prop_deb_x64, namespaces=self.ns
-            )
-            if self.vs_outputs['debug']['x64'] is None:
-                vs_output_debug_x64 = self.tree.xpath(
-                    '//ns:PropertyGroup[@Label="UserMacros"]/ns:OutDir', namespaces=self.ns
-                )
-                if vs_output_debug_x64:
-                    self.vs_outputs['debug']['x64'] = vs_output_debug_x64[0]
-        if not self.vs_outputs['release']['x86']:
-            self.vs_outputs['release']['x86'] = self.tree.find(
-                '%s//ns:OutDir' % prop_rel_x86, namespaces=self.ns
-            )
-            if self.vs_outputs['release']['x86'] is None:
-                vs_output_release_x86 = self.tree.xpath(
-                    '//ns:PropertyGroup[@Label="UserMacros"]/ns:OutDir', namespaces=self.ns
-                )
-                if vs_output_release_x86:
-                    self.vs_outputs['release']['x86'] = vs_output_release_x86[0]
-        if not self.vs_outputs['release']['x64']:
-            self.vs_outputs['release']['x64'] = self.tree.find(
-                '%s//ns:OutDir' % prop_rel_x64, namespaces=self.ns
-            )
-            if self.vs_outputs['release']['x64'] is None:
-                vs_output_release_x64 = self.tree.xpath(
-                    '//ns:PropertyGroup[@Label="UserMacros"]/ns:OutDir', namespaces=self.ns
-                )
-                if vs_output_release_x64:
-                    self.vs_outputs['release']['x64'] = vs_output_release_x64[0]
+        # return
+        # prop_deb_x86 = get_propertygroup('debug', 'x86')
+        # prop_deb_x64 = get_propertygroup('debug', 'x64')
+        # prop_rel_x86 = get_propertygroup('release', 'x86')
+        # prop_rel_x64 = get_propertygroup('release', 'x64')
+        #
+        # if not self.vs_outputs['debug']['x86']:
+        #     self.vs_outputs['debug']['x86'] = self.tree.find(
+        #         '%s//ns:OutDir' % prop_deb_x86, namespaces=self.ns
+        #     )
+        #     if self.vs_outputs['debug']['x86'] is None:
+        #         vs_output_debug_x86 = self.tree.xpath(
+        #             '//ns:PropertyGroup[@Label="UserMacros"]/ns:OutDir', namespaces=self.ns
+        #         )
+        #         if vs_output_debug_x86:
+        #             self.vs_outputs['debug']['x86'] = vs_output_debug_x86[0]
+        # if not self.vs_outputs['debug']['x64']:
+        #     self.vs_outputs['debug']['x64'] = self.tree.find(
+        #         '%s/ns:OutDir' % prop_deb_x64, namespaces=self.ns
+        #     )
+        #     if self.vs_outputs['debug']['x64'] is None:
+        #         vs_output_debug_x64 = self.tree.xpath(
+        #             '//ns:PropertyGroup[@Label="UserMacros"]/ns:OutDir', namespaces=self.ns
+        #         )
+        #         if vs_output_debug_x64:
+        #             self.vs_outputs['debug']['x64'] = vs_output_debug_x64[0]
+        # if not self.vs_outputs['release']['x86']:
+        #     self.vs_outputs['release']['x86'] = self.tree.find(
+        #         '%s//ns:OutDir' % prop_rel_x86, namespaces=self.ns
+        #     )
+        #     if self.vs_outputs['release']['x86'] is None:
+        #         vs_output_release_x86 = self.tree.xpath(
+        #             '//ns:PropertyGroup[@Label="UserMacros"]/ns:OutDir', namespaces=self.ns
+        #         )
+        #         if vs_output_release_x86:
+        #             self.vs_outputs['release']['x86'] = vs_output_release_x86[0]
+        # if not self.vs_outputs['release']['x64']:
+        #     self.vs_outputs['release']['x64'] = self.tree.find(
+        #         '%s//ns:OutDir' % prop_rel_x64, namespaces=self.ns
+        #     )
+        #     if self.vs_outputs['release']['x64'] is None:
+        #         vs_output_release_x64 = self.tree.xpath(
+        #             '//ns:PropertyGroup[@Label="UserMacros"]/ns:OutDir', namespaces=self.ns
+        #         )
+        #         if vs_output_release_x64:
+        #             self.vs_outputs['release']['x64'] = vs_output_release_x64[0]
 
     def add_outputs_variables(self):
         """
