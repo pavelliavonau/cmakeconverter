@@ -22,7 +22,7 @@
 import os
 import unittest2
 
-from cmake_converter.flags import Flags, define_and_write_macro
+from cmake_converter.flags import Flags
 from cmake_converter.data_files import get_vcxproj_data, get_cmake_lists
 
 
@@ -44,69 +44,6 @@ class TestFlags(unittest2.TestCase):
         'additional_code': None,
         'std': None,
     }
-
-    def test_init_dependencies(self):
-        """Initialize Flags"""
-
-        under_test = Flags(self.data_test)
-
-        self.assertIsNotNone(under_test.tree)
-        self.assertIsNotNone(under_test.ns)
-
-        self.assertIsNotNone(under_test.propertygroup)
-        self.assertTrue('debug' in under_test.propertygroup)
-        self.assertTrue('release' in under_test.propertygroup)
-
-        self.assertIsNotNone(under_test.definitiongroups)
-        self.assertTrue('debug' in under_test.definitiongroups)
-        self.assertTrue('release' in under_test.definitiongroups)
-
-        self.assertFalse(under_test.win_deb_flags)
-        self.assertFalse(under_test.win_rel_flags)
-
-    def test_write_flags(self):
-        """Write Flags"""
-
-        self.data_test['cmake'] = get_cmake_lists('./')
-        under_test = Flags(self.data_test)
-        self.assertFalse(under_test.win_deb_flags)
-        self.assertFalse(under_test.win_rel_flags)
-
-        under_test.write_flags()
-
-        self.assertTrue(under_test.win_deb_flags)
-        self.assertEqual(' /W4 /MD /Od /Zi /EHsc', under_test.win_deb_flags)
-        self.assertTrue(under_test.win_rel_flags)
-        self.assertEqual(' /W4 /GL /Od /Oi /Gy /Zi /EHsc', under_test.win_rel_flags)
-
-        self.data_test['cmake'].close()
-
-        cmakelists_test = open('CMakeLists.txt', 'r')
-        content_test = cmakelists_test.read()
-
-        self.assertTrue(' /W4 /MD /Od /Zi /EHsc' in content_test)
-        self.assertTrue(' /W4 /GL /Od /Oi /Gy /Zi /EHsc' in content_test)
-
-        cmakelists_test.close()
-
-    def test_define_linux_flags(self):
-        """Define Linux Flags"""
-
-        self.data_test['cmake'] = get_cmake_lists('./')
-        under_test = Flags(self.data_test)
-
-        under_test.define_linux_flags()
-        self.data_test['cmake'].close()
-
-        self.assertFalse(under_test.win_deb_flags)
-        self.assertFalse(under_test.win_rel_flags)
-
-        cmakelists_test = open('CMakeLists.txt', 'r')
-        content_test = cmakelists_test.read()
-
-        self.assertTrue('-std=c++11 -fPIC' in content_test)
-
-        cmakelists_test.close()
 
     def test_define_linux_flags_with_std(self):
         """Define Linux Flags"""
@@ -135,190 +72,16 @@ class TestFlags(unittest2.TestCase):
         self.assertTrue('-std=c++11' in content_test)
         cmakelists_test.close()
 
-    def test_define_windows_flags(self):
-        """Define Windows Flags"""
-
-        self.data_test['cmake'] = get_cmake_lists('./')
-        under_test = Flags(self.data_test)
-
-        under_test.define_group_properties()
-        under_test.define_windows_flags()
-        self.data_test['cmake'].close()
-
-        self.assertTrue(under_test.win_deb_flags)
-        self.assertTrue(under_test.win_rel_flags)
-
-        cmakelists_test = open('CMakeLists.txt', 'r')
-        content_test = cmakelists_test.read()
-
-        self.assertFalse('-std=c++11 -fPIC' in content_test)
-        self.assertTrue(' /W4 /MD /Od /Zi /EHsc' in content_test)
-        self.assertTrue(' /W4 /GL /Od /Oi /Gy /Zi /EHsc' in content_test)
-
-        cmakelists_test.close()
-
     def test_define_group_properties(self):
         """Define XML Groups Properties"""
 
         under_test = Flags(self.data_test)
 
-        self.assertIsNone(under_test.propertygroup['debug']['x86'])
-        self.assertIsNone(under_test.propertygroup['debug']['x64'])
-        self.assertIsNone(under_test.propertygroup['release']['x86'])
-        self.assertIsNone(under_test.propertygroup['release']['x64'])
+        self.assertFalse(under_test.propertygroup)
+        self.assertFalse(under_test.definitiongroups)
 
-        self.assertIsNone(under_test.definitiongroups['debug']['x86'])
-        self.assertIsNone(under_test.definitiongroups['debug']['x64'])
-        self.assertIsNone(under_test.definitiongroups['release']['x86'])
-        self.assertIsNone(under_test.definitiongroups['release']['x64'])
-
+        under_test.define_settings()
         under_test.define_group_properties()
 
-        self.assertIsNotNone(under_test.propertygroup['debug']['x86'])
-        self.assertIsNotNone(under_test.propertygroup['debug']['x64'])
-        self.assertIsNotNone(under_test.propertygroup['release']['x86'])
-        self.assertIsNotNone(under_test.propertygroup['release']['x64'])
-
-        self.assertIsNotNone(under_test.definitiongroups['debug']['x86'])
-        self.assertIsNotNone(under_test.definitiongroups['debug']['x64'])
-        self.assertIsNotNone(under_test.definitiongroups['release']['x86'])
-        self.assertIsNotNone(under_test.definitiongroups['release']['x64'])
-
-        property_test = \
-            '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Debug|Win32\'"' \
-            ' and @Label="Configuration"]'
-        self.assertEqual(property_test, under_test.propertygroup['debug']['x86'])
-
-        definition_test = \
-            '//ns:ItemDefinitionGroup[@Condition="\'$(Configuration)|' \
-            '$(Platform)\'==\'Debug|Win32\'"]'
-        self.assertEqual(definition_test, under_test.definitiongroups['debug']['x86'])
-
-    def test_set_warning_level(self):
-        """Set Warning Level Flag"""
-
-        under_test = Flags(self.data_test)
-
-        under_test.set_warning_level()
-
-        self.assertTrue('/W4' in under_test.win_deb_flags)
-        self.assertTrue('/W4' in under_test.win_rel_flags)
-
-    def test_set_whole_program_optimization(self):
-        """Set Whole Program Optimization Flag"""
-
-        under_test = Flags(self.data_test)
-
-        under_test.define_group_properties()
-        under_test.set_whole_program_optimization()
-
-        self.assertFalse('/GL' in under_test.win_deb_flags)
-        self.assertTrue('/GL' in under_test.win_rel_flags)
-
-    def test_set_use_debug_libraries(self):
-        """Set Use Debug Libraries Flag"""
-
-        under_test = Flags(self.data_test)
-
-        under_test.define_group_properties()
-        under_test.set_use_debug_libraries()
-
-        self.assertTrue('/MD' in under_test.win_deb_flags)
-        self.assertFalse('/MD' in under_test.win_rel_flags)
-
-    def test_set_runtime_library(self):
-        """Set Runtime Library Flag"""
-
-        under_test = Flags(self.data_test)
-
-        under_test.define_group_properties()
-        under_test.set_runtime_library()
-
-        self.assertFalse('/MDd' in under_test.win_deb_flags)
-        self.assertFalse('/MDd' in under_test.win_rel_flags)
-
-    def test_set_optimization(self):
-        """Set Optimization Flag"""
-
-        under_test = Flags(self.data_test)
-
-        under_test.define_group_properties()
-        under_test.set_optimization()
-
-        self.assertTrue('/Od' in under_test.win_deb_flags)
-        self.assertTrue('/Od' in under_test.win_rel_flags)
-
-    def test_set_intrinsic_functions(self):
-        """Set Intrinsic Functions Flag"""
-
-        under_test = Flags(self.data_test)
-
-        under_test.define_group_properties()
-        under_test.set_intrinsic_functions()
-
-        self.assertFalse('/Oi' in under_test.win_deb_flags)
-        self.assertTrue('/Oi' in under_test.win_rel_flags)
-
-    def test_set_runtime_type_info(self):
-        """Set runtime Type Info Flag"""
-
-        under_test = Flags(self.data_test)
-
-        under_test.define_group_properties()
-        under_test.set_runtime_type_info()
-
-        self.assertFalse('/GR' in under_test.win_deb_flags)
-        self.assertFalse('/GR' in under_test.win_rel_flags)
-
-    def test_set_function_level_linking(self):
-        """Set Function Level Linking"""
-
-        under_test = Flags(self.data_test)
-
-        under_test.define_group_properties()
-        under_test.set_function_level_linking()
-
-        self.assertTrue('/Gy' in under_test.win_rel_flags)
-
-    def test_set_generate_debug_information(self):
-        """Set Generate Debug Information"""
-
-        under_test = Flags(self.data_test)
-
-        under_test.define_group_properties()
-        under_test.set_generate_debug_information()
-
-        self.assertTrue('/Zi' in under_test.win_deb_flags)
-        self.assertTrue('/Zi' in under_test.win_rel_flags)
-
-    def test_set_exception_handling(self):
-        """Set Exception Handling"""
-
-        under_test = Flags(self.data_test)
-
-        under_test.define_group_properties()
-        under_test.set_exception_handling()
-
-        self.assertTrue('/EHsc' in under_test.win_deb_flags)
-        self.assertTrue('/EHsc' in under_test.win_rel_flags)
-
-    def test_define_and_write_macro(self):
-        """Define and Write Macros"""
-
-        self.data_test['cmake'] = get_cmake_lists('./')
-        define_and_write_macro(self.data_test)
-
-        self.data_test['cmake'].close()
-
-        cmakelists_test = open('CMakeLists.txt', 'r')
-        under_test = cmakelists_test.read()
-
-        macros_test = [
-            '-D_CRT_NONSTDC_NO_DEPRECATE', '-D_DEBUG', '-D_WINDOWS', '-D_USRDLL',
-            '-DCORE_EXPORTS', '-DUNICODE', '-D_UNICODE'
-        ]
-
-        for macro in macros_test:
-            self.assertTrue(macro in under_test)
-
-        cmakelists_test.close()
+        self.assertTrue(under_test.propertygroup)
+        self.assertTrue(under_test.definitiongroups)

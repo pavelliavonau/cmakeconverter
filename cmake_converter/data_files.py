@@ -100,6 +100,7 @@ def get_propertygroup(target_platform, attributes=''):
     :return: "propertygroup" value
     :rtype: str
     """
+
     prop = \
         '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'{0}\'"{1}]'.format(
             target_platform, attributes)
@@ -111,8 +112,8 @@ def get_definitiongroup(target_platform):
     """
     Return ItemDefinitionGroup namespace depends on platform and target
 
-    :param target: wanted target: debug | release
-    :type target: str
+    :param target_platform: wanted target: debug | release
+    :type target_platform: str
     :return: wanted ItemDefinitionGroup namespace
     :rtype: str
     """

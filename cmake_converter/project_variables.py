@@ -173,7 +173,7 @@ class ProjectVariables(object):
             self.cmake.write('set(OUTPUT_DEBUG ' + debug_output + ')\n')
             ProjectVariables.out_deb = True
         else:  # pragma: no cover
-            send('No Output Debug define. Use [Debug/bin] by default !', 'warn')
+            send('No Output Debug found. Use [Debug/bin] by default !', 'warn')
             self.cmake.write('set(OUTPUT_DEBUG Debug/bin)\n')
             ProjectVariables.out_deb = True
 
@@ -183,7 +183,7 @@ class ProjectVariables(object):
             self.cmake.write('set(OUTPUT_REL ' + release_output + ')\n')
             ProjectVariables.out_rel = True
         else:  # pragma: no cover
-            send('No Output Release define. Use [Release/bin] by default !', 'warn')
+            send('No Output Release found. Use [Release/bin] by default !', 'warn')
             self.cmake.write('set(OUTPUT_RELEASE Release/bin)\n')
             ProjectVariables.out_rel = True
 

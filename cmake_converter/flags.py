@@ -362,11 +362,16 @@ class Flags(object):
 
         cmake.write('\n# Preprocessor definitions\n')
         for setting in self.settings:
-            def_str = self.settings[setting][defines]
             conf = setting.split('|')[0].upper()
             cmake.write('\nif(CMAKE_BUILD_TYPE STREQUAL {0}_BUILD_TYPE)\n'.format(conf))
-            cmake.write('    target_compile_definitions(${{PROJECT_NAME}} PRIVATE \n{0}    )'.format(self.settings[setting][defines]))
+            cmake.write(
+                '    target_compile_definitions(${{PROJECT_NAME}} PRIVATE \n{0}    )'.format(
+                    self.settings[setting][defines])
+            )
             cmake.write('\n    if(MSVC)')
-            cmake.write('\n        target_compile_options(${{PROJECT_NAME}} PRIVATE {0})'.format(self.settings[setting][cl_flags]))
+            cmake.write(
+                '\n        target_compile_options(${{PROJECT_NAME}} PRIVATE {0})'.format(
+                    self.settings[setting][cl_flags])
+            )
             cmake.write('\n    endif()\n')
             cmake.write('\nendif()\n')

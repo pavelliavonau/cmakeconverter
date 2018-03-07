@@ -85,9 +85,9 @@ class TestDependencies(unittest2.TestCase):
         content_test = cmakelists_test.read()
 
         self.assertTrue(
-            'add_subdirectory(platform/cmake/g3log ${CMAKE_BINARY_DIR}/g3log' in content_test)
+            'add_subdirectory(test_files/cmake-g3log ${CMAKE_BINARY_DIR}/g3log)' in content_test)
         self.assertTrue(
-            'add_subdirectory(platform/cmake/zlib ${CMAKE_BINARY_DIR}/zlib' in content_test)
+            'add_subdirectory(test_files/cmake-zlib ${CMAKE_BINARY_DIR}/zlib)' in content_test)
 
         cmakelists_test.close()
 
