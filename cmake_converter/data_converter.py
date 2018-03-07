@@ -28,6 +28,7 @@
 import os
 
 from cmake_converter.data_files import get_vcxproj_data, get_cmake_lists
+from cmake_converter.utils import mkdir
 
 from cmake_converter.dependencies import Dependencies
 from cmake_converter.flags import Flags
@@ -43,44 +44,67 @@ class DataConverter:
 
     def __init__(self, data):
         self.data = data
+        self.main_vcxproj = None
+        self.referenced_projs = []
 
-    def init_files(self, vs_project, cmake_lists):
+    def init_files(self, vs_project, cmake_path):
         """
         Initialize opening of CMakeLists.txt and VS Project files
 
         :param vs_project: Visual Studio project file path
         :type vs_project: str
-        :param cmake_lists: CMakeLists.txt file path
-        :type cmake_lists: str
+        :param cmake_path: CMakeLists.txt file path
+        :type cmake_path: str
         """
 
         # VS Project (.vcxproj)
-        if vs_project:
-            temp_path = os.path.splitext(vs_project)
-            if temp_path[1] == '.vcxproj':
-                send('Project to convert = ' + vs_project, '')
-                self.data['vcxproj'] = get_vcxproj_data(vs_project)
-            else:  # pragma: no cover
-                send('This file is not a ".vcxproj". Be sure you give the right file', 'error')
-                exit(1)
+        self.main_vcxproj = vs_project
 
-        # Cmake Porject (CMakeLists.txt)
-        if cmake_lists:
-            if os.path.exists(cmake_lists):
-                self.data['cmake'] = get_cmake_lists(cmake_lists)
+        if os.path.splitext(vs_project)[1] == '.vcxproj':
+            send('Project to convert = ' + vs_project, '')
+            self.data['vcxproj'] = get_vcxproj_data(vs_project)
+        else:  # pragma: no cover
+            send('This file is not a ".vcxproj". Be sure you give the right file', 'error')
+            exit(1)
 
-        if not self.data['cmake']:
-            send(
-                'CMakeLists.txt path is not set. '
-                'He will be generated in current directory.',
-                'warn'
+        # CMake Project (CMakeLists.txt)
+        if os.path.exists(cmake_path):
+            self.data['cmake'] = get_cmake_lists(cmake_path)
+
+        self.set_referenced_projects()
+
+    def set_referenced_projects(self):
+        """
+        Define for current project references, to create the corresponding CMakeLists later
+
+        """
+
+        referenced_projs = self.data['vcxproj']['tree'].xpath(
+            '//ns:ProjectReference', namespaces=self.data['vcxproj']['ns']
+        )
+
+        for ref_proj in referenced_projs:
+            vcxproj = ref_proj.get('Include')
+            vcxproj = '/'.join(vcxproj.split('\\'))
+            vcxproj = os.path.join(os.path.split(self.main_vcxproj)[0], vcxproj)
+
+            cmake_path, proj_name = os.path.split(vcxproj)
+            cmake_path = os.path.join(cmake_path, 'cmake-' + proj_name.replace('.vcxproj', ''))
+            mkdir(cmake_path)
+
+            self.referenced_projs.append(
+                {
+                    'vcxproj': vcxproj,
+                    'cmake': cmake_path,
+                }
             )
-            self.data['cmake'] = get_cmake_lists()
 
-    def create_data(self):
+    def create_data(self, references=True):
         """
         Create the data and convert each part of "vcxproj" project
 
+        :param references: defines if project had references or not
+        :type references: bool
         """
 
         # Write variables
@@ -89,7 +113,7 @@ class DataConverter:
         variables.add_outputs_variables()
 
         files = ProjectFiles(self.data)
-        files.collects_source_files()
+        files.collects_source_files(references=references)
         variables.add_cmake_project(files.language)
         variables.add_default_target()
 
@@ -112,15 +136,17 @@ class DataConverter:
 
         # Write and add Files
         files.write_source_files()
+
         if len(files.sources) != 0:
             files.add_target_artefact()
             # Write Flags
             all_flags = Flags(self.data)
+            all_flags.define_settings()
             all_flags.write_flags()
             # Write Macro
             all_flags.write_defines_and_flags()
 
-        depends.write_dependencies2()
+        # depends.write_dependencies2()
 
         # Link with other dependencies
         depends.link_dependencies()

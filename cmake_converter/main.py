@@ -32,7 +32,7 @@ import os
 from cmake_converter.data_converter import DataConverter
 
 
-def convert_project(data, vcxproj, cmake_dest_dir):
+def convert_project(data, vcxproj, cmake_dest_dir, references=False):
     """
     Convert a ``vcxproj`` to a ``CMakeLists.txt``
 
@@ -40,6 +40,7 @@ def convert_project(data, vcxproj, cmake_dest_dir):
     :type data: dict
     :param vcxproj: input vcxproj
     :type vcxproj: str
+    :param references: input vcxproj
     :param cmake_dest_dir: destinaton folder of CMakeLists.txt
     :type cmake_dest_dir: str
     """
@@ -47,10 +48,15 @@ def convert_project(data, vcxproj, cmake_dest_dir):
     # Give data to DataConverter()
     data_converter = DataConverter(data)
     data_converter.init_files(vcxproj, cmake_dest_dir)
-    data_converter.create_data()
+    data_converter.create_data(references)
 
     # Close CMake file
     data_converter.close_cmake_file()
+
+    # If the current VS Project had references, create the corresponding CMakeLists
+    if data_converter.referenced_projs:
+        for proj in data_converter.referenced_projs:
+            convert_project(data, proj['vcxproj'], proj['cmake'], references=True)
 
 
 def main():  # pragma: no cover

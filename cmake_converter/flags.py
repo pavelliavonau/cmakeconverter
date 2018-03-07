@@ -35,6 +35,7 @@ from cmake_converter.data_files import get_propertygroup, get_definitiongroup
 cl_flags = 'cl_flags'
 defines = 'defines'
 
+
 class Flags(object):
     """
         Class who check and create compilation flags
@@ -46,19 +47,22 @@ class Flags(object):
         self.tree = data['vcxproj']['tree']
         self.ns = data['vcxproj']['ns']
         self.cmake = data['cmake']
-        self.define_settings()
-        self.propertygroup = { }
-        self.definitiongroups = { }
-
+        self.propertygroup = {}
+        self.definitiongroups = {}
         self.std = data['std']
+        self.settings = {}
 
     def define_settings(self):
-        self.settings = {}
+        """
+        Define the settings of vcxproj
+
+        """
+
         configuration_nodes = self.tree.xpath('//ns:ProjectConfiguration', namespaces=self.ns)
         if configuration_nodes:
             for configuration_node in configuration_nodes:
                 configuration_data = str(configuration_node.get('Include'))
-                self.settings[configuration_data] = {defines : '', cl_flags : ''}
+                self.settings[configuration_data] = {defines: '', cl_flags: ''}
 
     def write_flags(self):
         """
