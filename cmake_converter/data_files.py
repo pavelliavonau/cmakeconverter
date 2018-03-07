@@ -71,7 +71,7 @@ def get_vcxproj_data(vs_project):
     return vcxproj
 
 
-def get_propertygroup(target, platform, attributes=''):
+def get_propertygroup(target_platform, attributes=''):
     """
     Return "propertygroup" value for wanted platform and target
 
@@ -84,35 +84,13 @@ def get_propertygroup(target, platform, attributes=''):
     :return: "propertygroup" value
     :rtype: str
     """
+    prop = \
+        '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'{0}\'"{1}]'.format(target_platform, attributes)
 
-    prop_deb_x86 = \
-        '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Debug|Win32\'"%s]' % \
-        attributes
-    prop_deb_x64 = \
-        '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Debug|x64\'"%s]' % \
-        attributes
-    prop_rel_x86 = \
-        '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Release|Win32\'"%s]' % \
-        attributes
-    prop_rel_x64 = \
-        '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'Release|x64\'"%s]' % \
-        attributes
-
-    propertygroups = {
-        'debug': {
-            'x86': prop_deb_x86,
-            'x64': prop_deb_x64,
-        },
-        'release': {
-            'x86': prop_rel_x86,
-            'x64': prop_rel_x64
-        }
-    }
-
-    return propertygroups[target][platform]
+    return prop
 
 
-def get_definitiongroup(target, platform):
+def get_definitiongroup(target_platform):
     """
     Return ItemDefinitionGroup namespace depends on platform and target
 
@@ -124,31 +102,11 @@ def get_definitiongroup(target, platform):
     :rtype: str
     """
 
-    item_deb_x86 = \
+    item = \
         '//ns:ItemDefinitionGroup[@Condition="\'$(Configuration)|' \
-        '$(Platform)\'==\'Debug|Win32\'"]'
-    item_deb_x64 = \
-        '//ns:ItemDefinitionGroup[@Condition="\'$(Configuration)|' \
-        '$(Platform)\'==\'Debug|x64\'"]'
-    item_rel_x86 = \
-        '//ns:ItemDefinitionGroup[@Condition="\'$(Configuration)|' \
-        '$(Platform)\'==\'Release|Win32\'"]'
-    item_rel_x64 = \
-        '//ns:ItemDefinitionGroup[@Condition="\'$(Configuration)|' \
-        '$(Platform)\'==\'Release|x64\'"]'
+        '$(Platform)\'==\'{0}\'"]'.format(target_platform)
 
-    itemdefinitiongroups = {
-        'debug': {
-            'x86': item_deb_x86,
-            'x64': item_deb_x64,
-        },
-        'release': {
-            'x86': item_rel_x86,
-            'x64': item_rel_x64
-        }
-    }
-
-    return itemdefinitiongroups[target][platform]
+    return item
 
 
 def get_cmake_lists(cmake_path=None):

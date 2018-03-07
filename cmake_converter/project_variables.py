@@ -83,7 +83,8 @@ class ProjectVariables(object):
                 'error'
             )
 
-        # PropertyGroup
+        # PropertyGroup TODO: remove hard code
+        return
         prop_deb_x86 = get_propertygroup('debug', 'x86')
         prop_deb_x64 = get_propertygroup('debug', 'x64')
         prop_rel_x86 = get_propertygroup('release', 'x86')

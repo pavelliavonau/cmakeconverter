@@ -137,8 +137,6 @@ class ProjectFiles(object):
         Add Library or Executable target
 
         """
-        if not self.sources:
-            return
 
         configurationtype = self.tree.find('//ns:ConfigurationType', namespaces=self.ns)
         if configurationtype.text == 'DynamicLibrary':

@@ -32,6 +32,8 @@ from os import path
 from cmake_converter.message import send
 from cmake_converter.data_files import get_propertygroup, get_definitiongroup
 
+cl_flags = 'cl_flags'
+defines = 'defines'
 
 class Flags(object):
     """
@@ -44,17 +46,19 @@ class Flags(object):
         self.tree = data['vcxproj']['tree']
         self.ns = data['vcxproj']['ns']
         self.cmake = data['cmake']
-        self.propertygroup = {
-            'debug': {'x86': None, 'x64': None},
-            'release': {'x86': None, 'x64': None}
-        }
-        self.definitiongroups = {
-            'debug': {'x86': None, 'x64': None},
-            'release': {'x86': None, 'x64': None}
-        }
-        self.win_deb_flags = ''
-        self.win_rel_flags = ''
+        self.define_settings()
+        self.propertygroup = { }
+        self.definitiongroups = { }
+
         self.std = data['std']
+
+    def define_settings(self):
+        self.settings = {}
+        configuration_nodes = self.tree.xpath('//ns:ProjectConfiguration', namespaces=self.ns)
+        if configuration_nodes:
+            for configuration_node in configuration_nodes:
+                configuration_data = str(configuration_node.get('Include'))
+                self.settings[configuration_data] = {defines : '', cl_flags : ''}
 
     def write_flags(self):
         """
@@ -70,6 +74,7 @@ class Flags(object):
 
         self.define_group_properties()
         self.define_windows_flags()
+        self.define_defines()
         self.define_linux_flags()
 
     def define_linux_flags(self):
@@ -115,25 +120,36 @@ class Flags(object):
 
         """
 
-        # PropertyGroup
-        self.propertygroup['debug']['x86'] = get_propertygroup(
-            'debug', 'x86', ' and @Label="Configuration"'
-        )
-        self.propertygroup['debug']['x64'] = get_propertygroup(
-            'debug', 'x64', ' and @Label="Configuration"'
-        )
-        self.propertygroup['release']['x86'] = get_propertygroup(
-            'release', 'x86', ' and @Label="Configuration"'
-        )
-        self.propertygroup['release']['x64'] = get_propertygroup(
-            'release', 'x64', ' and @Label="Configuration"'
-        )
+        for setting in self.settings:
+            self.propertygroup[setting] = get_propertygroup(
+                setting, ' and @Label="Configuration"')
 
         # ItemDefinitionGroup
-        self.definitiongroups['debug']['x86'] = get_definitiongroup('debug', 'x86')
-        self.definitiongroups['debug']['x64'] = get_definitiongroup('debug', 'x64')
-        self.definitiongroups['release']['x86'] = get_definitiongroup('release', 'x86')
-        self.definitiongroups['release']['x64'] = get_definitiongroup('release', 'x64')
+        for setting in self.settings:
+            self.definitiongroups[setting] = get_definitiongroup(setting)
+
+    def define_defines(self):
+        """
+        DEFINES
+        """
+
+        # PreprocessorDefinitions
+        for setting in self.settings:
+            define = self.tree.find(
+                '%s/ns:ClCompile/ns:PreprocessorDefinitions' % self.definitiongroups[setting],
+                namespaces=self.ns
+            )
+            if define is not None:
+                for preproc in define.text.split(";"):
+                    if preproc != '%(PreprocessorDefinitions)' and preproc != 'WIN32':
+                        self.settings[setting][defines] += '   -D%s \n' % preproc
+                # Unicode
+                unicode = self.tree.find("{0}/ns:CharacterSet".format(self.definitiongroups[setting]), namespaces=self.ns)
+                if unicode is not None:
+                    if 'Unicode' in unicode.text:
+                        self.settings[setting][defines] += '   -DUNICODE\n'
+                        self.settings[setting][defines] += '   -D_UNICODE\n'
+                send('PreprocessorDefinitions for {0}'.format(setting), 'ok')
 
     def define_windows_flags(self):
         """
@@ -153,25 +169,6 @@ class Flags(object):
         self.set_generate_debug_information()
         self.set_exception_handling()
 
-        # Write FLAGS for Windows
-        self.cmake.write('if(MSVC)\n')
-        if self.win_deb_flags != '':
-            send('Debug   FLAGS found = ' + self.win_deb_flags, 'ok')
-            self.cmake.write(
-                '   set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}%s")\n' % self.win_deb_flags
-            )
-        else:  # pragma: no cover
-            send('No Debug   FLAGS found', '')
-        if self.win_rel_flags != '':
-            send('Release FLAGS found = ' + self.win_rel_flags, 'ok')
-            self.cmake.write(
-                '   set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE}%s")\n' %
-                self.win_rel_flags
-            )
-        else:  # pragma: no cover
-            send('No Release FLAGS found', '')
-        self.cmake.write('endif(MSVC)\n')
-
     def set_warning_level(self):
         """
         Set Warning level for Windows: /W
@@ -185,8 +182,8 @@ class Flags(object):
 
         if warning.text != '':
             lvl = ' /W' + warning.text[-1:]
-            self.win_deb_flags += lvl
-            self.win_rel_flags += lvl
+            for setting in self.settings:
+                self.settings[setting][cl_flags] += lvl
             send('Warning : ' + warning.text, 'ok')
         else:  # pragma: no cover
             send('No Warning level.', '')
@@ -198,73 +195,33 @@ class Flags(object):
         """
 
         # WholeProgramOptimization
-        gl_debug_x86 = self.tree.xpath(
-            '%s/ns:WholeProgramOptimization' % self.propertygroup['debug']['x86'],
-            namespaces=self.ns
-        )
-        gl_debug_x64 = self.tree.xpath(
-            '%s/ns:WholeProgramOptimization' % self.propertygroup['debug']['x64'],
-            namespaces=self.ns
-        )
-
-        if gl_debug_x86 and gl_debug_x64:
-            if 'true' in gl_debug_x86[0].text and 'true' in gl_debug_x64[0].text:
-                self.win_deb_flags += ' /GL'
-                send('WholeProgramOptimization for Debug', 'ok')
-        else:
-            send('No WholeProgramOptimization for Debug', '')
-
-        gl_release_x86 = self.tree.xpath(
-            '%s/ns:WholeProgramOptimization' % self.propertygroup['release']['x86'],
-            namespaces=self.ns
-        )
-        gl_release_x64 = self.tree.xpath(
-            '%s/ns:WholeProgramOptimization' % self.propertygroup['release']['x64'],
-            namespaces=self.ns
-        )
-
-        if gl_release_x86 and gl_release_x64:
-            if 'true' in gl_release_x86[0].text and 'true' in gl_release_x64[0].text:
-                self.win_rel_flags += ' /GL'
-                send('WholeProgramOptimization for Release', 'ok')
-        else:
-            send('No WholeProgramOptimization for Release', '')
+        for setting in self.settings:
+            gl = self.tree.xpath(
+                '%s/ns:WholeProgramOptimization' % self.propertygroup[setting],
+                namespaces=self.ns)
+            if gl:
+                if 'true' in gl[0].text:
+                    self.settings[setting][cl_flags] += ' /GL'
+                    send('WholeProgramOptimization for {0}'.format(setting), 'ok')
+            else:
+                send('No WholeProgramOptimization for {0}'.format(setting), '')
 
     def set_use_debug_libraries(self):
         """
         Set Use Debug Libraries flag: /MD
 
         """
-
-        md_debug_x86 = self.tree.xpath(
-            '%s/ns:UseDebugLibraries' % self.propertygroup['debug']['x86'],
-            namespaces=self.ns
-        )
-        md_debug_x64 = self.tree.xpath(
-            '%s/ns:UseDebugLibraries' % self.propertygroup['debug']['x64'],
-            namespaces=self.ns
-        )
-        if md_debug_x64 and md_debug_x86:
-            if 'true' in md_debug_x86[0].text and 'true' in md_debug_x64[0].text:
-                self.win_deb_flags += ' /MD'
-                send('UseDebugLibrairies for Debug', 'ok')
-        else:
-            send('No UseDebugLibrairies for Debug', '')
-
-        md_release_x86 = self.tree.xpath(
-            '%s/ns:UseDebugLibraries' % self.propertygroup['release']['x86'],
-            namespaces=self.ns
-        )
-        md_release_x64 = self.tree.xpath(
-            '%s/ns:UseDebugLibraries' % self.propertygroup['release']['x64'],
-            namespaces=self.ns
-        )
-        if md_release_x86 and md_release_x64:
-            if 'true' in md_release_x86[0].text and 'true' in md_release_x64[0].text:
-                self.win_rel_flags += ' /MD'
-                send('UseDebugLibrairies for Release', 'ok')
-        else:
-            send('No UseDebugLibrairies for Release', '')
+        for setting in self.settings:
+            md = self.tree.xpath(
+                '%s/ns:UseDebugLibraries' % self.propertygroup[setting],
+                namespaces=self.ns
+            )
+            if md:
+                if 'true' in md[0].text:
+                    self.settings[setting][cl_flags] += ' /MD'
+                    send('UseDebugLibrairies for {0}'.format(setting), 'ok')
+            else:
+                send('No UseDebugLibrairies for {0}'.format(setting), '')
 
     def set_runtime_library(self):
         """
@@ -273,37 +230,17 @@ class Flags(object):
         """
 
         # RuntimeLibrary
-        mdd_debug_x86 = self.tree.find(
-            '%s/ns:ClCompile/ns:RuntimeLibrary' % self.definitiongroups['debug']['x86'],
-            namespaces=self.ns
-        )
-        mdd_debug_x64 = self.tree.find(
-            '%s/ns:ClCompile/ns:RuntimeLibrary' % self.definitiongroups['debug']['x64'],
-            namespaces=self.ns
-        )
-        if mdd_debug_x64 is not None and mdd_debug_x86 is not None:
-            if 'MultiThreadedDebugDLL' in mdd_debug_x86.text and \
-                    'MultiThreadedDebugDLL' in mdd_debug_x64.text:
-                self.win_deb_flags += ' /MDd'
-                send('RuntimeLibrary for Debug', 'ok')
-        else:
-            send('No RuntimeLibrary for Debug', '')
-
-        mdd_release_x86 = self.tree.find(
-            '%s/ns:ClCompile/ns:RuntimeLibrary' % self.definitiongroups['release']['x86'],
-            namespaces=self.ns
-        )
-        mdd_release_x64 = self.tree.find(
-            '%s/ns:ClCompile/ns:RuntimeLibrary' % self.definitiongroups['release']['x64'],
-            namespaces=self.ns
-        )
-        if mdd_release_x86 is not None and mdd_release_x64 is not None:
-            if 'MultiThreadedDebugDLL' in mdd_release_x86.text and \
-                    'MultiThreadedDebugDLL' in mdd_release_x64.text:
-                self.win_rel_flags += ' /MDd'
-                send('RuntimeLibrary for Release', 'ok')
-        else:
-            send('No RuntimeLibrary for Release', '')
+        for setting in self.settings:
+            mdd = self.tree.find(
+                '%s/ns:ClCompile/ns:RuntimeLibrary' % self.definitiongroups[setting],
+                namespaces=self.ns
+            )
+            if mdd is not None:
+                if 'MultiThreadedDebugDLL' in mdd.text:
+                    self.settings[setting][cl_flags] += ' /MDd'
+                    send('RuntimeLibrary for {0}'.format(setting), 'ok')
+            else:
+                send('No RuntimeLibrary for {0}'.format(setting), '')
 
     def set_optimization(self):
         """
@@ -311,35 +248,17 @@ class Flags(object):
 
         """
 
-        opt_debug_x86 = self.tree.find(
-            '%s/ns:ClCompile/ns:Optimization' % self.definitiongroups['debug']['x86'],
-            namespaces=self.ns
-        )
-        opt_debug_x64 = self.tree.find(
-            '%s/ns:ClCompile/ns:Optimization' % self.definitiongroups['debug']['x64'],
-            namespaces=self.ns
-        )
-        if opt_debug_x86 is not None and opt_debug_x64 is not None:
-            if 'Disabled' in opt_debug_x64.text and 'Disabled' in opt_debug_x86.text:
-                self.win_deb_flags += ' /Od'
-                send('Optimization for Debug', 'ok')
-        else:
-            send('No Optimization for Debug', '')
-
-        opt_release_x86 = self.tree.find(
-            '%s/ns:ClCompile/ns:Optimization' % self.definitiongroups['release']['x86'],
-            namespaces=self.ns
-        )
-        opt_release_x64 = self.tree.find(
-            '%s/ns:ClCompile/ns:Optimization' % self.definitiongroups['release']['x64'],
-            namespaces=self.ns
-        )
-        if opt_release_x86 is not None and opt_release_x64 is not None:
-            if 'MaxSpeed' in opt_release_x64.text and 'MaxSpeed' in opt_release_x86.text:
-                self.win_rel_flags += ' /Od'
-                send('Optimization for Release', 'ok')
-        else:
-            send('No Optimization for Release', '')
+        for setting in self.settings:
+            opt = self.tree.find(
+                '%s/ns:ClCompile/ns:Optimization' % self.definitiongroups[setting],
+                namespaces=self.ns
+            )
+            if opt is not None:
+                if 'Disabled' in opt.text:
+                    self.settings[setting][cl_flags] += ' /Od'
+                    send('Optimization for {0}'.format(setting), 'ok')
+            else:
+                send('No Optimization for {0}'.format(setting), '')
 
     def set_intrinsic_functions(self):
         """
@@ -347,35 +266,17 @@ class Flags(object):
 
         """
 
-        oi_debug_x86 = self.tree.find(
-            '%s/ns:ClCompile/ns:IntrinsicFunctions' % self.definitiongroups['debug']['x86'],
-            namespaces=self.ns
-        )
-        oi_debug_x64 = self.tree.find(
-            '%s/ns:ClCompile/ns:IntrinsicFunctions' % self.definitiongroups['debug']['x64'],
-            namespaces=self.ns
-        )
-        if oi_debug_x86 is not None and oi_debug_x64 is not None:
-            if 'true' in oi_debug_x86.text and 'true' in oi_debug_x64.text:
-                self.win_deb_flags += ' /Oi'
-                send('IntrinsicFunctions for Debug', 'ok')
-        else:
-            send('No IntrinsicFunctions for Debug', '')
-
-        oi_release_x86 = self.tree.find(
-            '%s/ns:ClCompile/ns:IntrinsicFunctions' % self.definitiongroups['release']['x86'],
-            namespaces=self.ns
-        )
-        oi_release_x64 = self.tree.find(
-            '%s/ns:ClCompile/ns:IntrinsicFunctions' % self.definitiongroups['release']['x64'],
-            namespaces=self.ns
-        )
-        if oi_release_x86 is not None and oi_release_x64 is not None:
-            if 'true' in oi_release_x86.text and 'true' in oi_release_x64.text:
-                self.win_rel_flags += ' /Oi'
-                send('IntrinsicFunctions for Release', 'ok')
-        else:
-            send('No IntrinsicFunctions for Release', '')
+        for setting in self.settings:
+            oi = self.tree.find(
+                '%s/ns:ClCompile/ns:IntrinsicFunctions' % self.definitiongroups[setting],
+                namespaces=self.ns
+            )
+            if oi is not None:
+                if 'true' in oi.text:
+                    self.settings[setting][cl_flags] += ' /Oi'
+                    send('IntrinsicFunctions for {0}'.format(setting), 'ok')
+            else:
+                send('No IntrinsicFunctions for {0}'.format(setting), '')
 
     def set_runtime_type_info(self):
         """
@@ -383,56 +284,34 @@ class Flags(object):
 
         """
         # RuntimeTypeInfo
-        gr_debug_x86 = self.tree.find(
-            '%s/ns:ClCompile/ns:RuntimeTypeInfo' % self.definitiongroups['debug']['x86'],
-            namespaces=self.ns
-        )
-        gr_debug_x64 = self.tree.find(
-            '%s/ns:ClCompile/ns:RuntimeTypeInfo' % self.definitiongroups['debug']['x64'],
-            namespaces=self.ns
-        )
-        if gr_debug_x64 is not None and gr_debug_x86 is not None:
-            if 'true' in gr_debug_x64.text and 'true' in gr_debug_x86.text:
-                self.win_deb_flags += ' /GR'
-                send('RuntimeTypeInfo for Debug', 'ok')
-        else:
-            send('No RuntimeTypeInfo for Debug', '')
-
-        gr_release_x86 = self.tree.find(
-            '%s/ns:ClCompile/ns:RuntimeTypeInfo' % self.definitiongroups['release']['x86'],
-            namespaces=self.ns
-        )
-        gr_release_x64 = self.tree.find(
-            '%s/ns:ClCompile/ns:RuntimeTypeInfo' % self.definitiongroups['release']['x64'],
-            namespaces=self.ns
-        )
-        if gr_release_x86 is not None and gr_release_x64 is not None:
-            if 'true' in gr_release_x64.text and 'true' in gr_release_x86.text:
-                self.win_rel_flags += ' /GR'
-                send('RuntimeTypeInfo for Release', 'ok')
-        else:
-            send('No RuntimeTypeInfo for Release', '')
+        for setting in self.settings:
+            gr = self.tree.find(
+                '%s/ns:ClCompile/ns:RuntimeTypeInfo' % self.definitiongroups[setting],
+                namespaces=self.ns
+            )
+            if gr is not None:
+                if 'true' in gr.text:
+                    self.settings[setting][cl_flags] += ' /GR'
+                    send('RuntimeTypeInfo for {0}'.format(setting), 'ok')
+            else:
+                send('No RuntimeTypeInfo for {0}'.format(setting), '')
 
     def set_function_level_linking(self):
         """
         Set FunctionLevelLinking flag: /Gy
 
         """
-
-        gy_release_x86 = self.tree.find(
-            '%s/ns:ClCompile/ns:FunctionLevelLinking' % self.definitiongroups['release']['x86'],
-            namespaces=self.ns
-        )
-        gy_release_x64 = self.tree.find(
-            '%s/ns:ClCompile/ns:FunctionLevelLinking' % self.definitiongroups['release']['x64'],
-            namespaces=self.ns
-        )
-        if gy_release_x86 is not None and gy_release_x64 is not None:
-            if 'true' in gy_release_x86.text and 'true' in gy_release_x64.text:
-                self.win_rel_flags += ' /Gy'
-                send('FunctionLevelLinking for release.', 'ok')
-        else:
-            send('No FunctionLevelLinking for release.', '')
+        for setting in self.settings:
+            gy = self.tree.find(
+                '%s/ns:ClCompile/ns:FunctionLevelLinking' % self.definitiongroups[setting],
+                namespaces=self.ns
+            )
+            if gy is not None:
+                if 'true' in gy.text:
+                    self.settings[setting][cl_flags] += ' /Gy'
+                    send('FunctionLevelLinking for {0}'.format(setting), 'ok')
+            else:
+                send('No FunctionLevelLinking for {0}'.format(setting), '')
 
     def set_generate_debug_information(self):
         """
@@ -440,35 +319,17 @@ class Flags(object):
 
         """
 
-        zi_debug_x86 = self.tree.find(
-            '%s/ns:Link/ns:GenerateDebugInformation' % self.definitiongroups['debug']['x86'],
-            namespaces=self.ns
-        )
-        zi_debug_x64 = self.tree.find(
-            '%s/ns:Link/ns:GenerateDebugInformation' % self.definitiongroups['debug']['x64'],
-            namespaces=self.ns
-        )
-        if zi_debug_x86 is not None and zi_debug_x64 is not None:
-            if 'true' in zi_debug_x86.text and 'true' in zi_debug_x64.text:
-                self.win_deb_flags += ' /Zi'
-                send('GenerateDebugInformation for debug.', 'ok')
-        else:
-            send('No GenerateDebugInformation for debug.', '')
-
-        zi_release_x86 = self.tree.find(
-            '%s/ns:Link/ns:GenerateDebugInformation' % self.definitiongroups['release']['x86'],
-            namespaces=self.ns
-        )
-        zi_release_x64 = self.tree.find(
-            '%s/ns:Link/ns:GenerateDebugInformation' % self.definitiongroups['release']['x64'],
-            namespaces=self.ns
-        )
-        if zi_release_x86 is not None and zi_release_x64 is not None:
-            if 'true' in zi_release_x86.text and 'true' in zi_release_x64.text:
-                self.win_rel_flags += ' /Zi'
-                send('GenerateDebugInformation for release.', 'ok')
-        else:
-            send('No GenerateDebugInformation for release.', '')
+        for setting in self.settings:
+            zi = self.tree.find(
+                '%s/ns:Link/ns:GenerateDebugInformation' % self.definitiongroups[setting],
+                namespaces=self.ns
+            )
+            if zi is not None:
+                if 'true' in zi.text:
+                    self.settings[setting][cl_flags] += ' /Zi'
+                    send('GenerateDebugInformation for {0}'.format(setting), 'ok')
+            else:
+                send('No GenerateDebugInformation for {0}'.format(setting), '')
 
     def set_exception_handling(self):
         """
@@ -476,63 +337,32 @@ class Flags(object):
 
         """
 
-        ehs_debug_x86 = self.tree.find(
-            '%s/ns:ClCompile/ns:ExceptionHandling' % self.definitiongroups['debug']['x86'],
-            namespaces=self.ns
-        )
-        ehs_debug_x64 = self.tree.find(
-            '%s/ns:ClCompile/ns:ExceptionHandling' % self.definitiongroups['debug']['x64'],
-            namespaces=self.ns
-        )
-        if ehs_debug_x86 is not None and ehs_debug_x64 is not None:
-            if 'false' in ehs_debug_x86.text and 'false' in ehs_debug_x64.text:
-                send('No ExceptionHandling for debug.', '')
-        else:
-            self.win_deb_flags += ' /EHsc'
-            send('ExceptionHandling for debug.', 'ok')
+        for setting in self.settings:
+            ehs = self.tree.find(
+                '%s/ns:ClCompile/ns:ExceptionHandling' % self.definitiongroups[setting],
+                namespaces=self.ns
+            )
+            if ehs is not None:
+                if 'false' in ehs.text:
+                    send('No ExceptionHandling for {0}'.format(setting), '')
+            else:
+                self.settings[setting][cl_flags] += ' /EHsc'
+                send('ExceptionHandling for {0}'.format(setting), 'ok')
 
-        ehs_release_x86 = self.tree.find(
-            '%s/ns:ClCompile/ns:ExceptionHandling' % self.definitiongroups['release']['x86'],
-            namespaces=self.ns
-        )
-        ehs_release_x64 = self.tree.find(
-            '%s/ns:ClCompile/ns:ExceptionHandling' % self.definitiongroups['release']['x64'],
-            namespaces=self.ns
-        )
-        if ehs_release_x86 is not None and ehs_release_x64 is not None:
-            if 'false' in ehs_release_x86.text and 'false' in ehs_release_x64.text:
-                send('No ExceptionHandling option for release.', '')
-        else:
-            self.win_rel_flags += ' /EHsc'
-            send('ExceptionHandling for release.', 'ok')
+    def write_defines_and_flags(self):
+        """
+        Get and write Preprocessor Macros definitions
 
+        """
+        cmake = self.cmake
 
-# Macros Step
-def define_and_write_macro(data):
-    """
-    Get and write Preprocessor Macros definitions
-
-    """
-
-    tree = data['vcxproj']['tree']
-    ns = data['vcxproj']['ns']
-    cmake = data['cmake']
-
-    try:
-        preprocessor = tree.xpath('//ns:PreprocessorDefinitions', namespaces=ns)[0]
-    except IndexError:
-        return
-
-    if preprocessor.text:
-        cmake.write('# Definition of Macros\n')
-        cmake.write('add_definitions(\n')
-        for preproc in preprocessor.text.split(";"):
-            if preproc != '%(PreprocessorDefinitions)' and preproc != 'WIN32':
-                cmake.write('   -D%s \n' % preproc)
-        # Unicode
-        unicode = tree.find("//ns:CharacterSet", namespaces=ns)
-        if unicode is not None:
-            if 'Unicode' in unicode.text:
-                cmake.write('   -DUNICODE\n')
-                cmake.write('   -D_UNICODE\n')
-        cmake.write(')\n\n')
+        cmake.write('\n# Preprocessor definitions\n')
+        for setting in self.settings:
+            def_str = self.settings[setting][defines]
+            conf = setting.split('|')[0].upper()
+            cmake.write('\nif(CMAKE_BUILD_TYPE STREQUAL {0}_BUILD_TYPE)\n'.format(conf))
+            cmake.write('    target_compile_definitions(${{PROJECT_NAME}} PRIVATE \n{0}    )'.format(self.settings[setting][defines]))
+            cmake.write('\n    if(MSVC)')
+            cmake.write('\n        target_compile_options(${{PROJECT_NAME}} PRIVATE {0})'.format(self.settings[setting][cl_flags]))
+            cmake.write('\n    endif()\n')
+            cmake.write('\nendif()\n')

@@ -30,7 +30,7 @@ import os
 from cmake_converter.data_files import get_vcxproj_data, get_cmake_lists
 
 from cmake_converter.dependencies import Dependencies
-from cmake_converter.flags import Flags, define_and_write_macro
+from cmake_converter.flags import Flags
 from cmake_converter.message import send
 from cmake_converter.project_files import ProjectFiles
 from cmake_converter.project_variables import ProjectVariables
@@ -93,9 +93,6 @@ class DataConverter:
         variables.add_cmake_project(files.language)
         variables.add_default_target()
 
-        # Write Macro
-        define_and_write_macro(self.data)
-
         # Write Output Variables
         variables.add_artefact_target_outputs()
 
@@ -113,13 +110,16 @@ class DataConverter:
         if self.data['additional_code'] is not None:
             files.add_additional_code(self.data['additional_code'])
 
-        # Write Flags
-        all_flags = Flags(self.data)
-        all_flags.write_flags()
-
         # Write and add Files
         files.write_source_files()
-        files.add_target_artefact()
+        if len(files.sources) != 0:
+            files.add_target_artefact()
+            # Write Flags
+            all_flags = Flags(self.data)
+            all_flags.write_flags()
+            # Write Macro
+            all_flags.write_defines_and_flags()
+
         depends.write_dependencies2()
 
         # Link with other dependencies
