@@ -224,8 +224,10 @@ class Flags(object):
             )
             if md:
                 if 'true' in md[0].text:
-                    self.settings[setting][cl_flags] += ' /MD'
-                    send('UseDebugLibrairies for {0}'.format(setting), 'ok')
+                    self.settings[setting]['use_debug_libs'] = True
+                else:
+                    self.settings[setting]['use_debug_libs'] = False
+                send('UseDebugLibrairies for {0}'.format(setting), 'ok')
             else:
                 send('No UseDebugLibrairies for {0}'.format(setting), '')
 
@@ -241,12 +243,50 @@ class Flags(object):
                 '%s/ns:ClCompile/ns:RuntimeLibrary' % self.definitiongroups[setting],
                 namespaces=self.ns
             )
+
+            MDd = ' /MDd'
+            MD  = ' /MD'
+            MTd = ' /MTd'
+            MT  = ' /MT'
+
+            if 'use_debug_libs' in self.settings[setting]:
+                if self.settings[setting]['use_debug_libs']:
+                    MD = ' /MDd'
+                    MT  = ' /MTd'
+                else:
+                    MDd = ' /MD'
+                    MTd  = ' /MT'
+
             if mdd is not None:
-                if 'MultiThreadedDebugDLL' in mdd.text:
-                    self.settings[setting][cl_flags] += ' /MDd'
+                if 'MultiThreadedDebugDLL' == mdd.text:
+                    self.settings[setting][cl_flags] += MDd
                     send('RuntimeLibrary for {0}'.format(setting), 'ok')
+                    continue
+
+                if 'MultiThreadedDLL' == mdd.text:
+                    self.settings[setting][cl_flags] += MD
+                    send('RuntimeLibrary for {0}'.format(setting), 'ok')
+                    continue
+
+                if 'MultiThreaded' == mdd.text:
+                    self.settings[setting][cl_flags] += MT
+                    send('RuntimeLibrary for {0}'.format(setting), 'ok')
+                    continue
+
+                if 'MultiThreadedDebug' == mdd.text:
+                    self.settings[setting][cl_flags] += MTd
+                    send('RuntimeLibrary for {0}'.format(setting), 'ok')
+                    continue
             else:
-                send('No RuntimeLibrary for {0}'.format(setting), '')
+                if 'use_debug_libs' in self.settings[setting]:
+                    if self.settings[setting]['use_debug_libs']:
+                        self.settings[setting][cl_flags] += MTd if 'static' in setting else MDd
+                        send('RuntimeLibrary for {0}'.format(setting), 'ok')
+                    else:
+                        self.settings[setting][cl_flags] += MT if 'static' in setting else MD
+                        send('RuntimeLibrary for {0}'.format(setting), 'ok')
+                else:
+                    send('No RuntimeLibrary for {0}'.format(setting), '')
 
     def set_optimization(self):
         """
