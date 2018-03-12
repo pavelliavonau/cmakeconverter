@@ -71,24 +71,6 @@ def get_vcxproj_data(vs_project):
     return vcxproj
 
 
-def get_cmake_lists(cmake_path):
-    """
-    Create CMakeLists.txt file in wanted "cmake_path"
-    :param cmake_path: path where CMakeLists.txt should be write
-    :type cmake_path: str
-    :return: cmake file wrapper opened
-    :rtype: _io.TextIOWrapper
-    """
-
-    send('CMakeLists.txt will be build in : ' + str(cmake_path), 'warn')
-    if cmake_path[-1:] == '/' or cmake_path[-1:] == '\\':
-        cmake = open(str(cmake_path) + 'CMakeLists.txt', 'w')
-    else:
-        cmake = open(str(cmake_path) + '/CMakeLists.txt', 'w')
-
-    return cmake
-
-
 def get_propertygroup(target_platform, attributes=''):
     """
     Return "propertygroup" value for wanted platform and target
@@ -123,3 +105,26 @@ def get_definitiongroup(target_platform):
         '$(Platform)\'==\'{0}\'"]'.format(target_platform)
 
     return item
+
+
+def get_cmake_lists(cmake_path=None):
+    """
+    Create CMakeLists.txt file in wanted "cmake_path"
+
+    :param cmake_path: path where CMakeLists.txt should be write
+    :type cmake_path: str
+    :return: cmake file wrapper opened
+    :rtype: _io.TextIOWrapper
+    """
+
+    if not cmake_path:
+        send('CMakeLists will be build in current directory.', '')
+        cmake = open('CMakeLists.txt', 'w')
+    else:
+        send('CmakeLists.txt will be build in : ' + str(cmake_path), 'warn')
+        if cmake_path[-1:] == '/' or cmake_path[-1:] == '\\':
+            cmake = open(str(cmake_path) + 'CMakeLists.txt', 'w')
+        else:
+            cmake = open(str(cmake_path) + '/CMakeLists.txt', 'w')
+
+    return cmake

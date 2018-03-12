@@ -45,12 +45,10 @@ class ProjectFiles(object):
         self.sources = {}
         self.headers = {}
 
-    def collects_source_files(self, references=False):
+    def collects_source_files(self):
         """
         Write the project variables in CMakeLists.txt file
 
-        :param references: if this project is a reference of another, add one level to path (../)
-        :type references: bool
         """
 
         # Cpp Dir
@@ -64,8 +62,6 @@ class ProjectFiles(object):
                 if not cpp_path:
                     # Case files are beside the VS Project
                     cpp_path = './'
-                if references:
-                    cpp_path = '../' + cpp_path
                 if cpp_path not in self.sources:
                     self.sources = {cpp_path: []}
                 if cxx_file not in self.sources[cpp_path]:
@@ -76,8 +72,6 @@ class ProjectFiles(object):
             h = str(header.get('Include'))
             h = '/'.join(h.split('\\'))
             header_path, header_file = os.path.split(h)
-            if references:
-                header_path = '../' + header_path
             if header_path not in self.headers:
                 self.headers = {header_path: []}
             if header_file not in self.headers[header_path]:

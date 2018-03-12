@@ -81,7 +81,11 @@ class Dependencies(object):
         """
         # VS Project (.vcxproj)
         if vs_project:
-            root_projectname = self.tree.xpath('//ns:RootNamespace', namespaces=self.ns)
+            vcxproj_xml = get_vcxproj_data(
+                os.path.join(os.path.dirname(self.cmake.name), vs_project)
+            )
+            root_projectname = vcxproj_xml['tree'].xpath('//ns:RootNamespace', namespaces=self.ns)
+
             if root_projectname:
                 projectname = root_projectname[0]
                 if projectname.text:
@@ -89,13 +93,12 @@ class Dependencies(object):
 
         return ''
 
-    def write_dependencies2(self):
+    def write_target_dependencies(self, references):
         """
         Add dependencies to project
 
         """
 
-        references = self.tree.xpath('//ns:ProjectReference', namespaces=self.ns)
         references_found = []
         if references:
             for ref in references:
@@ -112,7 +115,7 @@ class Dependencies(object):
             if references_found:
                 self.cmake.write('add_dependencies(${PROJECT_NAME}')
                 for ref_found in references_found:
-                    self.cmake.write(' %s' % ref_found.replace('.vcxproj', ''))
+                    self.cmake.write(' %s' % self.get_dependency_target_name(ref_found))
 
                 self.cmake.write(')\n\n')
 
@@ -123,9 +126,10 @@ class Dependencies(object):
         """
         references = self.tree.xpath('//ns:ProjectReference', namespaces=self.ns)
         if references:
-            self.cmake.write('################### Dependencies ##################\n'
+            self.cmake.write('\n################### Dependencies ##################\n'
                              '# Add Dependencies to project.                    #\n'
                              '###################################################\n\n')
+            self.write_target_dependencies(references)
             self.cmake.write(
                 'option(BUILD_DEPENDS \n' +
                 '   "Build other CMake project." \n' +
@@ -138,17 +142,11 @@ class Dependencies(object):
             if self.dependencies is None:
                 self.cmake.write('if(BUILD_DEPENDS)\n')
                 for ref in references:
-                    ref_inc = ref.get('Include')
-                    if ref_inc is None:
-                        continue
-
-                    reference = '/'.join(str(ref_inc).split('\\'))
-                    cmake_dir = self.get_cmake_dir(reference.replace('.vcxproj', ''))
+                    reference = str(ref.get('Include'))
+                    path_to_reference = os.path.splitext(ntpath.basename(reference))[0]
                     self.cmake.write(
-                        '   add_subdirectory(%s ${CMAKE_BINARY_DIR}/%s)\n' %
-                        (
-                            cmake_dir,
-                            os.path.split(reference)[1].replace('.vcxproj', '')
+                        '   add_subdirectory(platform/cmake/%s ${CMAKE_BINARY_DIR}/%s)\n' % (
+                            path_to_reference, path_to_reference
                         )
                     )
             else:
@@ -174,21 +172,6 @@ class Dependencies(object):
         else:  # pragma: no cover
             send('No link needed.', '')
 
-    @staticmethod
-    def get_cmake_dir(cmake_path):
-        """
-        Return the cmake folder for original cmake path (used
-        :param cmake_path:
-        :return:
-        """
-
-        path, name = os.path.split(cmake_path)
-        name = 'cmake-' + name
-
-        cmake_dir = os.path.join(path, name)
-
-        return cmake_dir
-
     def link_dependencies(self):
         """
         Write link dependencies of project.
@@ -198,19 +181,19 @@ class Dependencies(object):
         # External libraries
         references = self.tree.xpath('//ns:ProjectReference', namespaces=self.ns)
         if references:
-            self.cmake.write('# Link with other dependencies.\n')
+            self.cmake.write('# Link with other targets.\n')
             self.cmake.write('target_link_libraries(${PROJECT_NAME} ')
             for ref in references:
                 ref_inc = ref.get('Include')
                 if ref_inc is None:
                     continue
-
-                reference = '/'.join(str(ref_inc).split('\\'))
-                lib = os.path.split(str(reference))[1].replace('.vcxproj', '')
+                reference = str(ref_inc)
+                path_to_reference = os.path.splitext(ntpath.basename(reference))[0]
+                lib = self.get_dependency_target_name(reference)
                 if lib == 'g3log':
                     lib += 'ger'  # To get "g3logger"
                 self.cmake.write(lib + ' ')
-                message = 'External library found : %s' % lib
+                message = 'External library found : %s' % path_to_reference
                 send(message, '')
             self.cmake.write(')\n')
 
