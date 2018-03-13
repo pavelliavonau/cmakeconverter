@@ -45,11 +45,30 @@ class ProjectFiles(object):
         self.sources = {}
         self.headers = {}
 
+    def get_real_file_name(self, filelist, path, name):
+        """
+        """
+        real_name = ''
+        for item in filelist:
+            if item.lower() == name.lower():
+                real_name = item
+                break;
+
+        filelist.remove(real_name)
+        
+        if real_name == '':
+            raise ValueError('Filename {0} not found at filesystem.'.format(name))
+        else:
+            return real_name
+
     def collects_source_files(self):
         """
         Write the project variables in CMakeLists.txt file
 
         """
+
+        filelists = {}
+        cmake_dir = os.path.dirname(self.cmake.name)
 
         # Cpp Dir
         for cpp in self.cppfiles:
@@ -59,23 +78,26 @@ class ProjectFiles(object):
                 if not cxx.rpartition('.')[-1] in self.language:
                     self.language.append(cxx.rpartition('.')[-1])
                 cpp_path, cxx_file = os.path.split(cxx)
-                if not cpp_path:
-                    # Case files are beside the VS Project
-                    cpp_path = './'
+                if cpp_path not in filelists:
+                    filelists[cpp_path] = os.listdir(os.path.join(cmake_dir, cpp_path))
                 if cpp_path not in self.sources:
                     self.sources = {cpp_path: []}
                 if cxx_file not in self.sources[cpp_path]:
-                    self.sources[cpp_path].append(cxx_file)
+                    self.sources[cpp_path].append(self.get_real_file_name(filelists[cpp_path],
+                                                                          cpp_path, cxx_file))
 
         # Headers Dir
         for header in self.headerfiles:
             h = str(header.get('Include'))
             h = '/'.join(h.split('\\'))
             header_path, header_file = os.path.split(h)
+            if header_path not in filelists:
+                filelists[header_path] = os.listdir(os.path.join(cmake_dir, header_path))
             if header_path not in self.headers:
                 self.headers = {header_path: []}
             if header_file not in self.headers[header_path]:
-                self.headers[header_path].append(header_file)
+                self.headers[header_path].append(self.get_real_file_name(filelists[header_path],
+                                                                        header_path, header_file))
 
         send("C++ Extensions found: %s" % self.language, 'INFO')
 
