@@ -33,6 +33,7 @@ from cmake_converter.message import send
 from cmake_converter.data_files import get_propertygroup, get_definitiongroup
 
 cl_flags = 'cl_flags'
+ln_flags = 'ln_flags'
 defines = 'defines'
 
 
@@ -62,7 +63,7 @@ class Flags(object):
         if configuration_nodes:
             for configuration_node in configuration_nodes:
                 configuration_data = str(configuration_node.get('Include'))
-                self.settings[configuration_data] = {defines: '', cl_flags: ''}
+                self.settings[configuration_data] = {defines: '', cl_flags: '', ln_flags: ''}
 
     def write_flags(self):
         """
@@ -164,35 +165,27 @@ class Flags(object):
         """
 
         # Define FLAGS for Windows
-        self.set_warning_level()
+
+        # from propertygroup
         self.set_whole_program_optimization()
         self.set_use_debug_libraries()
-        self.set_runtime_library()
+
+        # from definitiongroups
         self.set_optimization()
         self.set_intrinsic_functions()
-        self.set_runtime_type_info()
+        self.set_string_pooling()
+        self.set_runtime_library()
         self.set_function_level_linking()
-        self.set_generate_debug_information()
+        self.set_warning_level()
+        self.set_debug_information_format()
+        self.set_floating_point_model()
+        self.set_runtime_type_info()
+        self.set_additional_options()
         self.set_exception_handling()
+        self.set_buffer_security_check()
 
-    def set_warning_level(self):
-        """
-        Set Warning level for Windows: /W
-
-        """
-
-        try:
-            warning = self.tree.xpath('//ns:WarningLevel', namespaces=self.ns)[0]
-        except IndexError:
-            return
-
-        if warning.text != '':
-            lvl = ' /W' + warning.text[-1:]
-            for setting in self.settings:
-                self.settings[setting][cl_flags] += lvl
-            send('Warning : ' + warning.text, 'ok')
-        else:  # pragma: no cover
-            send('No Warning level.', '')
+        #link options
+        self.set_generate_debug_information()
 
     def set_whole_program_optimization(self):
         """
@@ -230,6 +223,37 @@ class Flags(object):
                 send('UseDebugLibrairies for {0}'.format(setting), 'ok')
             else:
                 send('No UseDebugLibrairies for {0}'.format(setting), '')
+
+    def set_warning_level(self):
+        """
+        Set Warning level for Windows: /W
+
+        """
+        for setting in self.settings:
+            warning = self.tree.xpath('{0}/ns:ClCompile/ns:WarningLevel'.format(self.definitiongroups[setting])
+                                      , namespaces=self.ns)
+            if warning[0].text != '':
+                lvl = ' /W' + warning[0].text[-1:]
+                self.settings[setting][cl_flags] += lvl
+                send('Warning for {0} : {1}'.format(setting, lvl), 'ok')
+            else:  # pragma: no cover
+                send('No Warning level.', '')
+
+    def set_additional_options(self):
+        """
+        Set Additional options
+
+        """
+        for setting in self.settings:
+            addOpt = self.tree.xpath('{0}/ns:ClCompile/ns:AdditionalOptions'.format(self.definitiongroups[setting])
+                                     ,namespaces=self.ns)
+            if addOpt:
+                for opt in addOpt[0].text.strip().split(" "):
+                    if opt != '%(AdditionalOptions)':
+                        self.settings[setting][cl_flags] += ' {0}'.format(opt)
+                send('Additional Options for {0} : {1}'.format(setting, opt), 'ok')
+            else:
+                send('No Additional Options for {0}'.format(setting), '')
 
     def set_runtime_library(self):
         """
@@ -287,6 +311,26 @@ class Flags(object):
                         send('RuntimeLibrary for {0}'.format(setting), 'ok')
                 else:
                     send('No RuntimeLibrary for {0}'.format(setting), '')
+
+    def set_string_pooling(self):
+        """
+        Set StringPooling flag: /GF
+
+        """
+
+        for setting in self.settings:
+            sp = self.tree.find(
+                '%s/ns:ClCompile/ns:StringPooling' % self.definitiongroups[setting],
+                namespaces=self.ns
+            )
+            if sp is not None:
+                if 'true' in sp.text:
+                    self.settings[setting][cl_flags] += ' /GF'
+                if 'false' in sp.text:
+                    self.settings[setting][cl_flags] += ' /GF-'
+                send('StringPooling for {0}'.format(setting), 'ok')
+            else:
+                send('No StringPooling for {0}'.format(setting), '')
 
     def set_optimization(self):
         """
@@ -359,7 +403,7 @@ class Flags(object):
             else:
                 send('No FunctionLevelLinking for {0}'.format(setting), '')
 
-    def set_generate_debug_information(self):
+    def set_debug_information_format(self):
         """
         Set GenerateDebugInformation flag: /Zi
 
@@ -367,15 +411,59 @@ class Flags(object):
 
         for setting in self.settings:
             zi = self.tree.find(
-                '%s/ns:Link/ns:GenerateDebugInformation' % self.definitiongroups[setting],
+                '%s/ns:ClCompile/ns:DebugInformationFormat' % self.definitiongroups[setting],
                 namespaces=self.ns
             )
             if zi is not None:
-                if 'true' in zi.text:
+                if 'ProgramDatabase' in zi.text:
                     self.settings[setting][cl_flags] += ' /Zi'
+                    send('GenerateDebugInformation for {0} is {1}'.format(setting, ' /Zi'), 'ok')
+                if 'EditAndContinue' in zi.text:
+                    self.settings[setting][cl_flags] += ' /ZI'
+                    send('GenerateDebugInformation for {0} is {1}'.format(setting, ' /ZI'), 'ok')
+            else:
+                send('No GenerateDebugInformation for {0}'.format(setting), '')
+
+    def set_generate_debug_information(self):
+        """
+        Set GenerateDebugInformation flag: /DEBUG
+
+        """
+
+        for setting in self.settings:
+            deb = self.tree.find(
+                '%s/ns:Link/ns:GenerateDebugInformation' % self.definitiongroups[setting],
+                namespaces=self.ns
+            )
+            if deb is not None:
+                if 'true' in deb.text:
+                    self.settings[setting][ln_flags] += ' /DEBUG'
                     send('GenerateDebugInformation for {0}'.format(setting), 'ok')
             else:
                 send('No GenerateDebugInformation for {0}'.format(setting), '')
+
+    def set_floating_point_model(self):
+        """
+        Set FloatingPointModel flag: /fp
+
+        """
+
+        for setting in self.settings:
+            fp = self.tree.find(
+                '%s/ns:ClCompile/ns:FloatingPointModel' % self.definitiongroups[setting],
+                namespaces=self.ns
+            )
+            if fp is not None:
+                if 'Precise' in fp.text:
+                    self.settings[setting][cl_flags] += ' /fp:precise'
+                if 'Strict' in fp.text:
+                    self.settings[setting][cl_flags] += ' /fp:strict'
+                if 'Fast' in fp.text:
+                    self.settings[setting][cl_flags] += ' /fp:fast'
+                send('FloatingPointModel for {0} is {1}'.format(setting, fp.text), '')
+            else:
+                self.settings[setting][cl_flags] += ' /fp:precise'
+                send('FloatingPointModel for {0} is {1}'.format(setting, '/fp:precise'), 'ok')
 
     def set_exception_handling(self):
         """
@@ -394,6 +482,24 @@ class Flags(object):
             else:
                 self.settings[setting][cl_flags] += ' /EHsc'
                 send('ExceptionHandling for {0}'.format(setting), 'ok')
+
+    def set_buffer_security_check(self):
+        """
+        Set BufferSecurityCheck flag: /GS
+
+        """
+
+        for setting in self.settings:
+            gs = self.tree.find(
+                '%s/ns:ClCompile/ns:BufferSecurityCheck' % self.definitiongroups[setting],
+                namespaces=self.ns
+            )
+            if gs is not None:
+                if 'false' in gs.text:
+                    send('No BufferSecurityCheck for {0}'.format(setting), '')
+            else:
+                self.settings[setting][cl_flags] += ' /GS'
+                send('BufferSecurityCheck for {0}'.format(setting), 'ok')
 
     def write_defines_and_flags(self):
         """
@@ -415,5 +521,10 @@ class Flags(object):
                 '\n        target_compile_options(${{PROJECT_NAME}} PRIVATE {0})'.format(
                     self.settings[setting][cl_flags])
             )
+            if len(self.settings[setting][ln_flags]) != 0:
+                cmake.write(
+                    '\n        set_target_properties(${{PROJECT_NAME}} PROPERTIES LINK_FLAGS {0})'.format(
+                        self.settings[setting][ln_flags])
+                )
             cmake.write('\n    endif()\n')
             cmake.write('\nendif()\n')
