@@ -147,15 +147,17 @@ class Flags(object):
             if define is not None:
                 for preproc in define.text.split(";"):
                     if preproc != '%(PreprocessorDefinitions)' and preproc != 'WIN32':
-                        self.settings[setting][defines] += '   -D%s \n' % preproc
+                        self.settings[setting][defines] += '    -D%s \n' % preproc
                 # Unicode
-                unicode = self.tree.find(
-                    "{0}/ns:CharacterSet".format(self.definitiongroups[setting]), namespaces=self.ns
-                )
-                if unicode is not None:
-                    if 'Unicode' in unicode.text:
-                        self.settings[setting][defines] += '   -DUNICODE\n'
-                        self.settings[setting][defines] += '   -D_UNICODE\n'
+                characterSet = self.tree.xpath(
+                    '{0}/ns:CharacterSet'.format(self.propertygroup[setting]),
+                    namespaces=self.ns)
+                if characterSet is not None:
+                    if 'Unicode' in characterSet[0].text:
+                        self.settings[setting][defines] += '    -DUNICODE\n'
+                        self.settings[setting][defines] += '    -D_UNICODE\n'
+                    if 'MultiByte' in characterSet[0].text:
+                        self.settings[setting][defines] += '    -D_MBCS\n'
                 send('PreprocessorDefinitions for {0}'.format(setting), 'ok')
 
     def define_windows_flags(self):
