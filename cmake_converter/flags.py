@@ -349,6 +349,15 @@ class Flags(object):
                 if 'Disabled' in opt.text:
                     self.settings[setting][cl_flags] += ' /Od'
                     send('Optimization for {0}'.format(setting), 'ok')
+                if 'MinSpace' in opt.text:
+                    self.settings[setting][cl_flags] += ' /O1'
+                    send('Optimization for {0}'.format(setting), 'ok')
+                if 'MaxSpeed' in opt.text:
+                    self.settings[setting][cl_flags] += ' /O2'
+                    send('Optimization for {0}'.format(setting), 'ok')
+                if 'Full' in opt.text:
+                    self.settings[setting][cl_flags] += ' /Ox'
+                    send('Optimization for {0}'.format(setting), 'ok')
             else:
                 send('No Optimization for {0}'.format(setting), '')
 
