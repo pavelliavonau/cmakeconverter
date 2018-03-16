@@ -66,19 +66,13 @@ class Flags(object):
                 configuration_data = str(configuration_node.get('Include'))
                 self.settings[configuration_data] = {defines: '', cl_flags: '', ln_flags: ''}
 
-    def write_flags(self):
+        self.define_group_properties()
+
+    def define_flags(self):
         """
         Parse all flags properties and write them inside "CMakeLists.txt" file
 
         """
-
-        self.cmake.write(
-            '################# Flags ################\n'
-            '# Defines Flags for Windows and Linux. #\n'
-            '########################################\n\n'
-        )
-
-        self.define_group_properties()
         self.define_windows_flags()
         self.define_defines()
         self.define_linux_flags()
@@ -161,6 +155,32 @@ class Flags(object):
                         self.settings[setting][defines] += '    -D_MBCS\n'
                 send('PreprocessorDefinitions for {0}'.format(setting), 'ok')
 
+    def do_precompiled_headers(self, files):
+        project_has_pch = False
+        for setting in self.settings:
+            PrecompiledHeader_values = {'Use': {'PrecompiledHeader': 'Use'},
+                                        'NotUsing': {'PrecompiledHeader': 'NotUsing'},
+                                        'Create': {'PrecompiledHeader': 'Create'},
+                                        default_value: {'PrecompiledHeader': 'NotUsing'}}
+            self.set_flag(setting,
+                          '{0}/ns:ClCompile/ns:PrecompiledHeader'
+                          .format(self.definitiongroups[setting]),
+                          PrecompiledHeader_values)
+
+            PrecompiledHeaderFile_values = {default_value: {'PrecompiledHeaderFile': 'stdafx.h'}}
+            flag_value = self.set_flag(setting,
+                          '{0}/ns:ClCompile/ns:PrecompiledHeaderFile'
+                          .format(self.definitiongroups[setting]),
+                          PrecompiledHeaderFile_values)
+            if flag_value != '':
+                self.settings[setting]['PrecompiledHeaderFile'] = flag_value
+
+            if not project_has_pch and self.settings[setting]['PrecompiledHeader'] == 'Use':
+                for folder in files.sources:
+                    pch_cpp = self.settings[setting]['PrecompiledHeaderFile'].replace('.h', '.cpp')
+                    files.sources[folder].remove(pch_cpp)
+                project_has_pch = True
+
     def define_windows_flags(self):
         """
         Define the Flags for Win32 platforms
@@ -208,18 +228,24 @@ class Flags(object):
         if default_value in flag_values:
             values = flag_values[default_value]
 
+        flag_text = ''
         if flag_element:
-            values = flag_values[flag_element[0].text]
+            flag_text = flag_element[0].text
+            if flag_text in flag_values:
+                values = flag_values[flag_text]
 
         flags_message = ''
         if values is not None:
             for key in values:
                 value = values[key]
+                if not key in self.settings[setting]:
+                    self.settings[setting][key] = ''
                 self.settings[setting][key] += value
                 flags_message += value
 
         flag_name = xpath.split(':')[-1]
         send('{0} for {1} is {2} '.format(flag_name, setting, flags_message), '')
+        return flag_text
 
     def set_whole_program_optimization(self):
         """
@@ -663,6 +689,74 @@ class Flags(object):
             else:
                 self.settings[setting][cl_flags] += ' /Zc:wchar_t'
                 send('TreatWChar_tAsBuiltInType for {0}: {1}'.format(setting, ch), '')
+    
+    def setting_has_pch(self, setting):
+        """
+        """
+        has_pch = self.settings[setting]['PrecompiledHeader']
+        return has_pch == 'Use'
+
+    def write_precompiled_headers_macro(self):
+        """
+        """
+        need_pch_macro = False
+        for setting in self.settings:
+            if self.setting_has_pch(setting):
+                need_pch_macro = True
+                break
+
+        if need_pch_macro:
+            cmake = self.cmake
+            cmake.write('\nMACRO(ADD_PRECOMPILED_HEADER PrecompiledHeader PrecompiledSource SourcesVar)')
+            cmake.write('\n    if(MSVC)')
+            cmake.write('\n        set(PrecompiledBinary "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.pch")')
+            cmake.write('\n        SET(Sources ${${SourcesVar}})')
+
+            cmake.write('\n        SET_SOURCE_FILES_PROPERTIES(${PrecompiledSource}')
+            cmake.write('\n                                    PROPERTIES COMPILE_FLAGS "/Yc\\"${PrecompiledHeader}\\" /Fp\\"${PrecompiledBinary}\\""')
+            cmake.write('\n                                               OBJECT_OUTPUTS "${PrecompiledBinary}")')
+            cmake.write('\n        SET_SOURCE_FILES_PROPERTIES(${Sources}')
+            cmake.write('\n                                    PROPERTIES COMPILE_FLAGS "/Yu\\"${PrecompiledHeader}\\" /FI\\"${PrecompiledHeader}\\" /Fp\\"${PrecompiledBinary}\\""')
+            cmake.write('\n                                               OBJECT_DEPENDS "${PrecompiledBinary}")')
+            cmake.write('\n    endif()')
+            cmake.write('\n    LIST(INSERT ${SourcesVar} 0 ${PrecompiledSource})')
+            cmake.write('\nENDMACRO(ADD_PRECOMPILED_HEADER)\n')
+
+    def write_precompiled_headers(self, setting):
+        """
+        """
+        if not self.setting_has_pch(setting):
+            return
+
+        pch = self.settings[setting]['PrecompiledHeaderFile']
+        self.cmake.write('\n    ADD_PRECOMPILED_HEADER("{0}" "{1}" SRC_FILES)'
+                    .format(pch, pch.replace('.h', '.cpp')))
+
+    def write_target_artefact(self):
+        """
+        Add Library or Executable target
+
+        """
+
+        for setting in self.settings:
+            conf = setting.split('|')[0].upper()
+            self.cmake.write('\nif(CMAKE_BUILD_TYPE STREQUAL {0}_BUILD_TYPE)'.format(conf))
+            self.write_precompiled_headers(setting)
+            configurationtype = self.tree.xpath(
+                    '{0}/ns:ConfigurationType'.format(self.propertygroup[setting]),
+                    namespaces=self.ns)
+            if configurationtype[0].text == 'DynamicLibrary':
+                self.cmake.write('\n    add_library(${PROJECT_NAME} SHARED')
+                send('CMake will build a SHARED Library.', '')
+            elif configurationtype[0].text == 'StaticLibrary':  # pragma: no cover
+                self.cmake.write('\n    add_library(${PROJECT_NAME} STATIC')
+                send('CMake will build a STATIC Library.', '')
+            else:  # pragma: no cover
+                self.cmake.write('\n    add_executable(${PROJECT_NAME} ')
+                send('CMake will build an EXECUTABLE.', '')
+            self.cmake.write(' ${SRC_FILES} ${HEADERS_FILES}')
+            self.cmake.write(')\n')
+            self.cmake.write('endif()\n')
 
     def write_defines_and_flags(self):
         """
@@ -671,7 +765,14 @@ class Flags(object):
         """
         cmake = self.cmake
 
-        cmake.write('\n# Preprocessor definitions\n')
+        
+        self.cmake.write(
+            '################# Flags ################\n'
+            '# Defines Flags for Windows and Linux. #\n'
+            '########################################\n\n'
+        )
+
+        cmake.write('\n# Configuration settings of target\n')
         for setting in self.settings:
             conf = setting.split('|')[0].upper()
             cmake.write('\nif(CMAKE_BUILD_TYPE STREQUAL {0}_BUILD_TYPE)\n'.format(conf))
@@ -685,9 +786,8 @@ class Flags(object):
                 .format(self.settings[setting][cl_flags])
             )
             if len(self.settings[setting][ln_flags]) != 0:
-                configurationtype = self.tree.xpath(
-                    '%s/ns:ConfigurationType' % self.propertygroup[setting],
-                    namespaces=self.ns)
+                configurationtype = self.tree.xpath('{0}/ns:ConfigurationType'
+                                                    .format(self.propertygroup[setting]), namespaces=self.ns)
                 if 'StaticLibrary' in configurationtype[0].text:
                     cmake.write(
                         '\n        set_target_properties(${{PROJECT_NAME}} PROPERTIES STATIC_LIBRARY_FLAGS "{0}")'

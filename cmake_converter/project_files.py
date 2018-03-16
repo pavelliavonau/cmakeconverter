@@ -101,12 +101,24 @@ class ProjectFiles(object):
 
         send("C++ Extensions found: %s" % self.language, 'INFO')
 
+    def write_header_files(self):
+        """
+        Write header files variables to file() cmake function
+        """
+        self.cmake.write('\n############ Header Files #############\n')
+        self.cmake.write('set(HEADERS_FILES\n')
+
+        for hdrs_dir in self.headers:
+            for header_file in self.headers[hdrs_dir]:
+                self.cmake.write('    %s\n' % os.path.join(hdrs_dir, header_file))
+
+        self.cmake.write(')\n')
+        self.cmake.write('source_group("Headers" FILES ${HEADERS_FILES})\n\n')
+
     def write_source_files(self):
         """
         Write source files variables to file() cmake function
-
         """
-
         self.cmake.write('\n############ Source Files #############\n')
         self.cmake.write('set(SRC_FILES\n')
 
@@ -117,16 +129,6 @@ class ProjectFiles(object):
         self.cmake.write(')\n')
 
         self.cmake.write('source_group("Sources" FILES ${SRC_FILES})\n\n')
-
-        self.cmake.write('\n############ Header Files #############\n')
-        self.cmake.write('set(HEADERS_FILES\n')
-
-        for hdrs_dir in self.headers:
-            for header_file in self.headers[hdrs_dir]:
-                self.cmake.write('    %s\n' % os.path.join(hdrs_dir, header_file))
-
-        self.cmake.write(')\n')
-        self.cmake.write('source_group("Headers" FILES ${HEADERS_FILES})\n\n')
 
     def add_additional_code(self, file_to_add):
         """
@@ -153,25 +155,3 @@ class ProjectFiles(object):
                     'Wrong data file ! Code was not added, please verify file name or path !',
                     'error'
                 )
-
-    def add_target_artefact(self):
-        """
-        Add Library or Executable target
-
-        """
-
-        configurationtype = self.tree.find('//ns:ConfigurationType', namespaces=self.ns)
-        if configurationtype.text == 'DynamicLibrary':
-            self.cmake.write('# Add library to build.\n')
-            self.cmake.write('add_library(${PROJECT_NAME} SHARED\n')
-            send('CMake will build a SHARED Library.', '')
-        elif configurationtype.text == 'StaticLibrary':  # pragma: no cover
-            self.cmake.write('# Add library to build.\n')
-            self.cmake.write('add_library(${PROJECT_NAME} STATIC\n')
-            send('CMake will build a STATIC Library.', '')
-        else:  # pragma: no cover
-            self.cmake.write('# Add executable to build.\n')
-            self.cmake.write('add_executable(${PROJECT_NAME} \n')
-            send('CMake will build an EXECUTABLE.', '')
-        self.cmake.write('   ${SRC_FILES} ${HEADERS_FILES}\n')
-        self.cmake.write(')\n\n')

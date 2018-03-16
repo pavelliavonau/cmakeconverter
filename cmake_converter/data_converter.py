@@ -107,16 +107,17 @@ class DataConverter:
         if self.data['additional_code'] is not None:
             files.add_additional_code(self.data['additional_code'])
 
-        # Write and add Files
-        files.write_source_files()
+        files.write_header_files()
 
         if len(files.sources) != 0:
-            files.add_target_artefact()
-            # Write Flags
             all_flags = Flags(self.data)
             all_flags.define_settings()
-            all_flags.write_flags()
-            # Write Macro
+            all_flags.do_precompiled_headers(files)
+            all_flags.define_flags()
+            # Writing
+            files.write_source_files()
+            all_flags.write_precompiled_headers_macro()
+            all_flags.write_target_artefact()
             all_flags.write_defines_and_flags()
 
         # Write Dependencies
