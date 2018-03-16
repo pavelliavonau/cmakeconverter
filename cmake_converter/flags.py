@@ -35,6 +35,7 @@ from cmake_converter.data_files import get_propertygroup, get_definitiongroup
 cl_flags = 'cl_flags'
 ln_flags = 'ln_flags'
 defines = 'defines'
+default_value = 'default_value'
 
 
 class Flags(object):
@@ -194,6 +195,31 @@ class Flags(object):
         self.set_buffer_security_check()
         self.set_diagnostics_format()
         self.set_treatwchar_t_as_built_in_type()
+        self.set_force_conformance_in_for_loop_scope()
+        self.set_remove_unreferenced_code_data()
+
+    def set_flag(self, setting, xpath, flag_values):
+        """
+        Set flag helper
+        """
+        flag_element = self.tree.xpath(xpath, namespaces=self.ns)
+
+        values = None
+        if default_value in flag_values:
+            values = flag_values[default_value]
+
+        if flag_element:
+            values = flag_values[flag_element[0].text]
+
+        flags_message = ''
+        if values is not None:
+            for key in values:
+                value = values[key]
+                self.settings[setting][key] += value
+                flags_message += value
+
+        flag_name = xpath.split(':')[-1]
+        send('{0} for {1} is {2} '.format(flag_name, setting, flags_message), '')
 
     def set_whole_program_optimization(self):
         """
@@ -201,18 +227,12 @@ class Flags(object):
 
         """
 
-        # WholeProgramOptimization
+        flag_values = {'true' : {ln_flags: ' /LTCG', cl_flags: ' /GL'}}
+
         for setting in self.settings:
-            gl = self.tree.xpath(
-                '%s/ns:WholeProgramOptimization' % self.propertygroup[setting],
-                namespaces=self.ns)
-            if gl:
-                if 'true' in gl[0].text:
-                    self.settings[setting][cl_flags] += ' /GL'
-                    self.settings[setting][ln_flags] += ' /LTCG'
-                    send('WholeProgramOptimization for {0}'.format(setting), 'ok')
-            else:
-                send('No WholeProgramOptimization for {0}'.format(setting), '')
+            self.set_flag(setting,
+                          '{0}/ns:WholeProgramOptimization'.format(self.propertygroup[setting]),
+                          flag_values)
 
     def set_link_incremental(self):
         """
@@ -220,19 +240,46 @@ class Flags(object):
 
         """
 
+        flag_values = {'true' : {ln_flags: ' /INCREMENTAL'},
+                       'false': {ln_flags: ' /INCREMENTAL:NO'},
+                       default_value: {cl_flags: '', ln_flags: ''}}
+
         for setting in self.settings:
-            s = self.propertygroup[setting].replace(' and @Label="Configuration"','')
-            gl = self.tree.xpath('%s/ns:LinkIncremental' 
-                                 % self.propertygroup[setting].replace(' and @Label="Configuration"',''),
-                namespaces=self.ns)
-            if gl:
-                if 'true' in gl[0].text:
-                    self.settings[setting][ln_flags] += ' /INCREMENTAL'
-                if 'false' in gl[0].text:
-                    self.settings[setting][ln_flags] += ' /INCREMENTAL:NO'
-                send('LinkIncremental for {0}'.format(setting), 'ok')
-            else:
-                send('No LinkIncremental for {0}'.format(setting), '')
+            self.set_flag(setting, '{0}/ns:LinkIncremental'
+                        .format(self.propertygroup[setting].replace(' and @Label="Configuration"','')),
+                      flag_values)
+
+    def set_force_conformance_in_for_loop_scope(self):
+        """
+        Set flag: ForceConformanceInForLoopScope
+
+        """
+
+        flag_values = {'true' : {cl_flags: ' /Zc:forScope'},
+                       'false': {cl_flags: ' /Zc:forScope-'},
+                       default_value: {cl_flags: ' /Zc:forScope'}}
+
+        for setting in self.settings:
+            self.set_flag(setting,
+                          '{0}/ns:ClCompile/ns:ForceConformanceInForLoopScope'
+                          .format(self.definitiongroups[setting]),
+                          flag_values)
+
+    def set_remove_unreferenced_code_data(self):
+        """
+        Set flag: RemoveUnreferencedCodeData
+
+        """
+
+        flag_values = {'true' : {cl_flags: ' /Zc:inline'},
+                       'false': {cl_flags: ''},
+                       default_value: {cl_flags: ' /Zc:inline'}}
+
+        for setting in self.settings:
+            self.set_flag(setting,
+                          '{0}/ns:ClCompile/ns:RemoveUnreferencedCodeData'
+                          .format(self.definitiongroups[setting]),
+                          flag_values)
 
     def set_use_debug_libraries(self):
         """
