@@ -169,29 +169,35 @@ class Flags(object):
         # Define FLAGS for Windows
 
         # from propertygroup
-        self.set_whole_program_optimization()
+        #   compilation
         self.set_use_debug_libraries()
+        self.set_whole_program_optimization()
+        #   linking
+        self.set_generate_debug_information()
+        self.set_link_incremental()
 
         # from definitiongroups
+        #   compilation
         self.set_optimization()
         self.set_intrinsic_functions()
         self.set_string_pooling()
         self.set_runtime_library()
         self.set_function_level_linking()
         self.set_warning_level()
+        self.set_warning_as_errors()
         self.set_debug_information_format()
         self.set_floating_point_model()
         self.set_runtime_type_info()
+        self.set_disable_specific_warnings()
         self.set_additional_options()
         self.set_exception_handling()
         self.set_buffer_security_check()
-
-        #link options
-        self.set_generate_debug_information()
+        self.set_diagnostics_format()
+        self.set_treatwchar_t_as_built_in_type()
 
     def set_whole_program_optimization(self):
         """
-        Set Whole Program Optimization flag: /GL
+        Set Whole Program Optimization flag: /GL and /LTCG
 
         """
 
@@ -203,9 +209,30 @@ class Flags(object):
             if gl:
                 if 'true' in gl[0].text:
                     self.settings[setting][cl_flags] += ' /GL'
+                    self.settings[setting][ln_flags] += ' /LTCG'
                     send('WholeProgramOptimization for {0}'.format(setting), 'ok')
             else:
                 send('No WholeProgramOptimization for {0}'.format(setting), '')
+
+    def set_link_incremental(self):
+        """
+        Set LinkIncremental flag: /INCREMENTAL
+
+        """
+
+        for setting in self.settings:
+            s = self.propertygroup[setting].replace(' and @Label="Configuration"','')
+            gl = self.tree.xpath('%s/ns:LinkIncremental' 
+                                 % self.propertygroup[setting].replace(' and @Label="Configuration"',''),
+                namespaces=self.ns)
+            if gl:
+                if 'true' in gl[0].text:
+                    self.settings[setting][ln_flags] += ' /INCREMENTAL'
+                if 'false' in gl[0].text:
+                    self.settings[setting][ln_flags] += ' /INCREMENTAL:NO'
+                send('LinkIncremental for {0}'.format(setting), 'ok')
+            else:
+                send('No LinkIncremental for {0}'.format(setting), '')
 
     def set_use_debug_libraries(self):
         """
@@ -241,13 +268,46 @@ class Flags(object):
             else:  # pragma: no cover
                 send('No Warning level.', '')
 
+    def set_warning_as_errors(self):
+        """
+        Set TreatWarningAsError /WX
+
+        """
+        for setting in self.settings:
+            wx = self.tree.xpath('{0}/ns:ClCompile/ns:TreatWarningAsError'.format(self.definitiongroups[setting])
+                                     ,namespaces=self.ns)
+            if wx:
+                if 'true' in wx[0].text:
+                    self.settings[setting][cl_flags] += ' /WX'
+                send('TreatWarningAsError for {0} : {1}'.format(setting, wx[0].text), 'ok')
+            else:
+                send('No TreatWarningAsError for {0}'.format(setting), '')
+
+    def set_disable_specific_warnings(self):
+        """
+        Set DisableSpecificWarnings
+
+        """
+        for setting in self.settings:
+            specwarn = self.tree.xpath('{0}/ns:ClCompile/ns:DisableSpecificWarnings'
+                                       .format(self.definitiongroups[setting])
+                                       ,namespaces=self.ns)
+            if specwarn:
+                for sw in specwarn[0].text.strip().split(";"):
+                    if sw != '%(DisableSpecificWarnings)':
+                        self.settings[setting][cl_flags] += ' /wd{0}'.format(sw)
+                send('DisableSpecificWarnings for {0} : {1}'.format(setting, specwarn[0].text.strip()), 'ok')
+            else:
+                send('No Additional Options for {0}'.format(setting), '')
+
     def set_additional_options(self):
         """
         Set Additional options
 
         """
         for setting in self.settings:
-            addOpt = self.tree.xpath('{0}/ns:ClCompile/ns:AdditionalOptions'.format(self.definitiongroups[setting])
+            addOpt = self.tree.xpath('{0}/ns:ClCompile/ns:AdditionalOptions'
+                                     .format(self.definitiongroups[setting])
                                      ,namespaces=self.ns)
             if addOpt:
                 for opt in addOpt[0].text.strip().split(" "):
@@ -512,6 +572,51 @@ class Flags(object):
                 self.settings[setting][cl_flags] += ' /GS'
                 send('BufferSecurityCheck for {0}'.format(setting), 'ok')
 
+    def set_diagnostics_format(self):
+        """
+        Set DiagnosticsFormat flag : /GS
+        
+        """
+
+        for setting in self.settings:
+            gs = self.tree.find(
+                '%s/ns:ClCompile/ns:DiagnosticsFormat' % self.definitiongroups[setting],
+                namespaces=self.ns
+            )
+            if gs is not None:
+                if 'Classic' in gs.text:
+                    self.settings[setting][cl_flags] += ' /diagnostics:classic'
+                    send('No BufferSecurityCheck for {0}'.format(setting), '')
+                if 'Column' in gs.text:
+                    self.settings[setting][cl_flags] += ' /diagnostics:column'
+                    send('No BufferSecurityCheck for {0}'.format(setting), '')
+                if 'Caret' in gs.text:
+                    self.settings[setting][cl_flags] += ' /diagnostics:caret'
+                    send('No BufferSecurityCheck for {0}'.format(setting), '')
+            else:
+                self.settings[setting][cl_flags] += ' /diagnostics:classic'
+                send('BufferSecurityCheck for {0}'.format(setting), 'ok')
+
+    def set_treatwchar_t_as_built_in_type(self):
+        """
+        Set TreatWChar_tAsBuiltInType /Zc:wchar_t
+
+        """
+        for setting in self.settings:
+            ch = self.tree.xpath('{0}/ns:ClCompile/ns:TreatWChar_tAsBuiltInType'
+                                 .format(self.definitiongroups[setting])
+                                     ,namespaces=self.ns)
+            if ch:
+                if 'false' in ch[0].text:
+                    self.settings[setting][cl_flags] += ' /Zc:wchar_t-'
+                    send('TreatWChar_tAsBuiltInType for {0} : {1}'.format(setting, ch), 'ok')
+                if 'true' in ch[0].text:
+                    self.settings[setting][cl_flags] += ' /Zc:wchar_t'
+                    send('TreatWChar_tAsBuiltInType for {0} : {1}'.format(setting, ch), 'ok')
+            else:
+                self.settings[setting][cl_flags] += ' /Zc:wchar_t'
+                send('TreatWChar_tAsBuiltInType for {0}: {1}'.format(setting, ch), '')
+
     def write_defines_and_flags(self):
         """
         Get and write Preprocessor Macros definitions
@@ -529,13 +634,22 @@ class Flags(object):
             )
             cmake.write('\n    if(MSVC)')
             cmake.write(
-                '\n        target_compile_options(${{PROJECT_NAME}} PRIVATE {0})'.format(
-                    self.settings[setting][cl_flags])
+                '\n        target_compile_options(${{PROJECT_NAME}} PRIVATE {0})'
+                .format(self.settings[setting][cl_flags])
             )
             if len(self.settings[setting][ln_flags]) != 0:
-                cmake.write(
-                    '\n        set_target_properties(${{PROJECT_NAME}} PROPERTIES LINK_FLAGS {0})'.format(
-                        self.settings[setting][ln_flags])
-                )
+                configurationtype = self.tree.xpath(
+                    '%s/ns:ConfigurationType' % self.propertygroup[setting],
+                    namespaces=self.ns)
+                if 'StaticLibrary' in configurationtype[0].text:
+                    cmake.write(
+                        '\n        set_target_properties(${{PROJECT_NAME}} PROPERTIES STATIC_LIBRARY_FLAGS "{0}")'
+                        .format(self.settings[setting][ln_flags])
+                    )
+                else:
+                    cmake.write(
+                        '\n        set_target_properties(${{PROJECT_NAME}} PROPERTIES LINK_FLAGS "{0}")'
+                        .format(self.settings[setting][ln_flags])
+                    )
             cmake.write('\n    endif()\n')
             cmake.write('\nendif()\n')
