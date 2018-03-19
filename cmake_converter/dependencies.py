@@ -63,7 +63,7 @@ class Dependencies(object):
         if incl_dir is not None:
             self.cmake.write('# Include directories \n')
             inc_dir = incl_dir.text.replace('$(ProjectDir)', './')
-            inc_dir = incl_dir.text.replace(';%(AdditionalIncludeDirectories)', '')
+            inc_dir = inc_dir.replace(';%(AdditionalIncludeDirectories)', '')
             for i in inc_dir.split(';'):
                 i = i.replace('\\', '/')
                 i = re.sub(r'\$\((.+?)\)', r'$ENV{\1}', i)
