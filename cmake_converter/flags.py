@@ -757,6 +757,7 @@ class Flags(object):
             self.cmake.write(' ${SRC_FILES} ${HEADERS_FILES}')
             self.cmake.write(')\n')
             self.cmake.write('endif()\n')
+        self.cmake.write('\n')
 
     def write_defines_and_flags(self):
         """
@@ -798,5 +799,5 @@ class Flags(object):
                         '\n        set_target_properties(${{PROJECT_NAME}} PROPERTIES LINK_FLAGS "{0}")'
                         .format(self.settings[setting][ln_flags])
                     )
-            cmake.write('\n    endif()\n')
+            cmake.write('\n    endif()')
             cmake.write('\nendif()\n')
