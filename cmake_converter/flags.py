@@ -142,17 +142,17 @@ class Flags(object):
             if define is not None:
                 for preproc in define.text.split(";"):
                     if preproc != '%(PreprocessorDefinitions)' and preproc != 'WIN32':
-                        self.settings[setting][defines] += '    -D%s \n' % preproc
+                        self.settings[setting][defines] += '-D%s;' % preproc
                 # Unicode
                 characterSet = self.tree.xpath(
                     '{0}/ns:CharacterSet'.format(self.propertygroup[setting]),
                     namespaces=self.ns)
                 if characterSet is not None:
                     if 'Unicode' in characterSet[0].text:
-                        self.settings[setting][defines] += '    -DUNICODE\n'
-                        self.settings[setting][defines] += '    -D_UNICODE\n'
+                        self.settings[setting][defines] += '-DUNICODE;'
+                        self.settings[setting][defines] += '-D_UNICODE;'
                     if 'MultiByte' in characterSet[0].text:
-                        self.settings[setting][defines] += '    -D_MBCS\n'
+                        self.settings[setting][defines] += '-D_MBCS;'
                 send('PreprocessorDefinitions for {0}'.format(setting), 'ok')
 
     def do_precompiled_headers(self, files):
@@ -729,7 +729,7 @@ class Flags(object):
             return
 
         pch = self.settings[setting]['PrecompiledHeaderFile']
-        self.cmake.write('\n    ADD_PRECOMPILED_HEADER("{0}" "{1}" SRC_FILES)'
+        self.cmake.write('\nADD_PRECOMPILED_HEADER("{0}" "{1}" SRC_FILES)'
                     .format(pch, pch.replace('.h', '.cpp')))
 
     def write_target_artefact(self):
@@ -737,27 +737,27 @@ class Flags(object):
         Add Library or Executable target
 
         """
-
-        for setting in self.settings:
-            conf = setting.split('|')[0].upper()
-            self.cmake.write('\nif(CMAKE_BUILD_TYPE STREQUAL {0}_BUILD_TYPE)'.format(conf))
-            self.write_precompiled_headers(setting)
-            configurationtype = self.tree.xpath(
-                    '{0}/ns:ConfigurationType'.format(self.propertygroup[setting]),
-                    namespaces=self.ns)
-            if configurationtype[0].text == 'DynamicLibrary':
-                self.cmake.write('\n    add_library(${PROJECT_NAME} SHARED')
-                send('CMake will build a SHARED Library.', '')
-            elif configurationtype[0].text == 'StaticLibrary':  # pragma: no cover
-                self.cmake.write('\n    add_library(${PROJECT_NAME} STATIC')
-                send('CMake will build a STATIC Library.', '')
-            else:  # pragma: no cover
-                self.cmake.write('\n    add_executable(${PROJECT_NAME} ')
-                send('CMake will build an EXECUTABLE.', '')
-            self.cmake.write(' ${SRC_FILES} ${HEADERS_FILES}')
-            self.cmake.write(')\n')
-            self.cmake.write('endif()\n')
-        self.cmake.write('\n')
+        setting = ''
+        for s in self.settings:
+            conf = s.split('|')[0].upper()
+            setting = s
+ 
+        self.cmake.write('\n# Warning: pch and target are the same for every configuration')
+        self.write_precompiled_headers(setting)
+        configurationtype = self.tree.xpath(
+                '{0}/ns:ConfigurationType'.format(self.propertygroup[setting]),
+                namespaces=self.ns)
+        if configurationtype[0].text == 'DynamicLibrary':
+            self.cmake.write('\nadd_library(${PROJECT_NAME} SHARED')
+            send('CMake will build a SHARED Library.', '')
+        elif configurationtype[0].text == 'StaticLibrary':  # pragma: no cover
+            self.cmake.write('\nadd_library(${PROJECT_NAME} STATIC')
+            send('CMake will build a STATIC Library.', '')
+        else:  # pragma: no cover
+            self.cmake.write('\nadd_executable(${PROJECT_NAME} ')
+            send('CMake will build an EXECUTABLE.', '')
+        self.cmake.write(' ${SRC_FILES} ${HEADERS_FILES}')
+        self.cmake.write(')\n')
 
     def write_defines_and_flags(self):
         """
@@ -774,30 +774,34 @@ class Flags(object):
         )
 
         cmake.write('\n# Configuration settings of target\n')
+        cmake.write('target_compile_definitions(${PROJECT_NAME} PRIVATE')
         for setting in self.settings:
             conf = setting.split('|')[0].upper()
-            cmake.write('\nif(CMAKE_BUILD_TYPE STREQUAL {0}_BUILD_TYPE)\n'.format(conf))
             cmake.write(
-                '    target_compile_definitions(${{PROJECT_NAME}} PRIVATE \n{0}    )'.format(
-                    self.settings[setting][defines])
+                '\n$<$<CONFIG:{0}>: {1}>'.format(conf, self.settings[setting][defines].strip().replace('\n',';'))
             )
-            cmake.write('\n    if(MSVC)')
-            cmake.write(
-                '\n        target_compile_options(${{PROJECT_NAME}} PRIVATE {0})'
-                .format(self.settings[setting][cl_flags])
+
+        cmake.write('\n)\nif(MSVC)')
+        cmake.write('\n    target_compile_options(${PROJECT_NAME} PRIVATE')
+        for setting in self.settings:
+            conf = setting.split('|')[0].upper()
+            cmake.write('\n    $<$<CONFIG:{0}>: {1}>'
+                .format(conf, self.settings[setting][cl_flags].strip().replace(' ', ';'))
             )
+        cmake.write('\n    )')
+        for setting in self.settings:
+            conf = setting.split('|')[0].upper()
             if len(self.settings[setting][ln_flags]) != 0:
                 configurationtype = self.tree.xpath('{0}/ns:ConfigurationType'
                                                     .format(self.propertygroup[setting]), namespaces=self.ns)
                 if 'StaticLibrary' in configurationtype[0].text:
                     cmake.write(
-                        '\n        set_target_properties(${{PROJECT_NAME}} PROPERTIES STATIC_LIBRARY_FLAGS "{0}")'
-                        .format(self.settings[setting][ln_flags])
+                        '\n    set_target_properties(${{PROJECT_NAME}} PROPERTIES STATIC_LIBRARY_FLAGS_{0} "{1}")'
+                        .format(conf, self.settings[setting][ln_flags])
                     )
                 else:
                     cmake.write(
-                        '\n        set_target_properties(${{PROJECT_NAME}} PROPERTIES LINK_FLAGS "{0}")'
-                        .format(self.settings[setting][ln_flags])
+                        '\n    set_target_properties(${{PROJECT_NAME}} PROPERTIES LINK_FLAGS_{0} "{1}")'
+                        .format(conf, self.settings[setting][ln_flags])
                     )
-            cmake.write('\n    endif()')
-            cmake.write('\nendif()\n')
+        cmake.write('\nendif()\n')
