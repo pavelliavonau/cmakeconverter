@@ -53,6 +53,7 @@ class Flags(object):
         self.definitiongroups = {}
         self.std = data['std']
         self.settings = {}
+        self.define_settings()
 
     def define_settings(self):
         """
@@ -67,6 +68,12 @@ class Flags(object):
                 self.settings[configuration_data] = {defines: '', cl_flags: '', ln_flags: ''}
 
         self.define_group_properties()
+
+    def get_configuration_type(self, setting):
+        configurationtype = self.tree.xpath(
+            '{0}/ns:ConfigurationType'.format(self.propertygroup[setting]),
+            namespaces=self.ns)
+        return configurationtype[0].text
 
     def define_flags(self):
         """
@@ -581,6 +588,9 @@ class Flags(object):
             )
             if deb is not None:
                 if 'true' in deb.text:
+                    conf_type = self.get_configuration_type(setting)
+                    if 'StaticLibrary' in conf_type:
+                        continue
                     self.settings[setting][ln_flags] += ' /DEBUG'
                     send('GenerateDebugInformation for {0}'.format(setting), 'ok')
             else:
@@ -744,13 +754,11 @@ class Flags(object):
  
         self.cmake.write('\n# Warning: pch and target are the same for every configuration')
         self.write_precompiled_headers(setting)
-        configurationtype = self.tree.xpath(
-                '{0}/ns:ConfigurationType'.format(self.propertygroup[setting]),
-                namespaces=self.ns)
-        if configurationtype[0].text == 'DynamicLibrary':
+        configurationtype = self.get_configuration_type(setting)
+        if configurationtype == 'DynamicLibrary':
             self.cmake.write('\nadd_library(${PROJECT_NAME} SHARED')
             send('CMake will build a SHARED Library.', '')
-        elif configurationtype[0].text == 'StaticLibrary':  # pragma: no cover
+        elif configurationtype == 'StaticLibrary':  # pragma: no cover
             self.cmake.write('\nadd_library(${PROJECT_NAME} STATIC')
             send('CMake will build a STATIC Library.', '')
         else:  # pragma: no cover
@@ -792,9 +800,8 @@ class Flags(object):
         for setting in self.settings:
             conf = setting.split('|')[0].upper()
             if len(self.settings[setting][ln_flags]) != 0:
-                configurationtype = self.tree.xpath('{0}/ns:ConfigurationType'
-                                                    .format(self.propertygroup[setting]), namespaces=self.ns)
-                if 'StaticLibrary' in configurationtype[0].text:
+                configurationtype = self.get_configuration_type(setting)
+                if 'StaticLibrary' in configurationtype:
                     cmake.write(
                         '\n    set_target_properties(${{PROJECT_NAME}} PROPERTIES STATIC_LIBRARY_FLAGS_{0} "{1}")'
                         .format(conf, self.settings[setting][ln_flags])

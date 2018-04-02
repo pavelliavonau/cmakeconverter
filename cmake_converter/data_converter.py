@@ -111,7 +111,6 @@ class DataConverter:
 
         if len(files.sources) != 0:
             all_flags = Flags(self.data)
-            all_flags.define_settings()
             all_flags.do_precompiled_headers(files)
             all_flags.define_flags()
             # Writing
