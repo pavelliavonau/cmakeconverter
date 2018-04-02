@@ -30,7 +30,7 @@ import os
 import re
 
 from cmake_converter.message import send
-from cmake_converter.data_files import get_vcxproj_data
+from cmake_converter.data_files import get_vcxproj_data, get_xml_data
 
 
 class Dependencies(object):
@@ -218,3 +218,18 @@ class Dependencies(object):
                     self.cmake.write('endif(MSVC)\n')
         else:  # pragma: no cover
             send('No dependencies.', '')
+
+    def extentions_targets_dependencies(self):
+        """
+        Other dependencies of project. Like nuget for example.
+
+        """
+        packages_xml = get_xml_data( os.path.join(os.path.dirname(self.cmake.name), 'packages.config') )
+        # External libraries
+        if packages_xml:
+            extension = packages_xml['tree'].xpath('/packages/package') #, namespaces=packages_xml['ns'])
+            for ref in extension:
+                id = ref.get('id')
+                version = ref.get('version')
+                name = '{0}.{1}'.format(id, version)
+                self.cmake.write('\nuse_package(${{PROJECT_NAME}} {0})'.format(name))

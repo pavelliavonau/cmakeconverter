@@ -125,6 +125,7 @@ class DataConverter:
 
         # Link with other dependencies
         depends.link_dependencies()
+        depends.extentions_targets_dependencies()
 
     def close_cmake_file(self):
         """

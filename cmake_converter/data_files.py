@@ -28,6 +28,7 @@
 from lxml import etree
 
 from cmake_converter.message import send
+import os
 
 
 def get_vcxproj_data(vs_project):
@@ -69,6 +70,53 @@ def get_vcxproj_data(vs_project):
         exit(1)
 
     return vcxproj
+
+def get_xml_data(xml_file):
+    """
+    Return xml data from "xml" file
+
+    :param xml_file: the xml file
+    :type xml_file: str
+    :return: dict with VS Project data
+    :rtype: dict
+    """
+
+    xml = {}
+    xml_file = '/'.join(xml_file.split('\\'))
+
+    if not os.path.exists(xml_file):
+        send(
+            '{0} file not exists. '.format(xml_file),
+            'error'
+        )
+        return None
+
+    try:
+        tree = etree.parse(xml_file)
+        namespace = str(tree.getroot().nsmap)
+        ns = {'ns': namespace.partition('\'')[-1].rpartition('\'')[0]}
+        xml['tree'] = tree
+        xml['ns'] = ns
+        #assert 'http://schemas.microsoft.com' in ns['ns']
+    except AssertionError:  # pragma: no cover
+        send(
+            '.xml file cannot be import, because this file does not seem to comply with'
+            ' Microsoft xml data !',
+            'error'
+        )
+        exit(1)
+    except (OSError, IOError):  # pragma: no cover
+        send(
+            '%s file cannot be import. '
+            'Please, verify you have rights to this directory or file exists !' % xml_file,
+            'error'
+        )
+        exit(1)
+    except etree.XMLSyntaxError:  # pragma: no cover
+        send('This file is not a ".xml" file or XML is broken !', 'error')
+        exit(1)
+
+    return xml
 
 
 def get_propertygroup(target_platform, attributes=''):
