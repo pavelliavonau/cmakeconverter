@@ -183,7 +183,7 @@ class Dependencies(object):
         references = self.tree.xpath('//ns:ProjectReference', namespaces=self.ns)
         if references:
             self.cmake.write('# Link with other targets.\n')
-            self.cmake.write('target_link_libraries(${PROJECT_NAME} ')
+            self.cmake.write('target_link_libraries(${PROJECT_NAME}')
             for ref in references:
                 ref_inc = ref.get('Include')
                 if ref_inc is None:
@@ -193,7 +193,7 @@ class Dependencies(object):
                 lib = self.get_dependency_target_name(reference)
                 if lib == 'g3log':
                     lib += 'ger'  # To get "g3logger"
-                self.cmake.write(lib + ' ')
+                self.cmake.write(' ' + lib)
                 message = 'External library found : %s' % path_to_reference
                 send(message, '')
             self.cmake.write(')\n')
