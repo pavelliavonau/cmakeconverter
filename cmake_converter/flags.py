@@ -82,7 +82,7 @@ class Flags(object):
         """
         self.define_windows_flags()
         self.define_defines()
-        self.define_linux_flags()
+        # self.define_linux_flags() # TODO: redo with generator expression for each setting(configuration)
 
     def define_linux_flags(self):
         """

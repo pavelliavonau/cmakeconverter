@@ -26,7 +26,6 @@
 """
 
 from cmake_converter.message import send
-from cmake_converter.data_files import get_propertygroup
 
 
 class ProjectVariables(object):
@@ -59,9 +58,6 @@ class ProjectVariables(object):
 
         """
 
-        # CMake Minimum required.
-        self.cmake.write('cmake_minimum_required(VERSION 3.0.0 FATAL_ERROR)\n\n')
-
         # Project Name
         self.cmake.write(
             '################### Variables. ####################\n'
@@ -83,7 +79,7 @@ class ProjectVariables(object):
                 'error'
             )
 
-        # PropertyGroup TODO: remove hard code
+        # PropertyGroup TODO: remove hard code of configurations
         # return
         # prop_deb_x86 = get_propertygroup('debug', 'x86')
         # prop_deb_x64 = get_propertygroup('debug', 'x64')
@@ -217,30 +213,6 @@ class ProjectVariables(object):
 
         return final_output
 
-    def add_cmake_project(self, language):
-        """
-        Add CMake Project
-
-        :param language: type of project language: cpp | c
-        :type language: list
-        """
-
-        cpp_extensions = ['cc', 'cp', 'cxx', 'cpp', 'CPP', 'c++', 'C']
-
-        available_language = {'c': 'C'}
-        available_language.update(dict.fromkeys(cpp_extensions, 'CXX'))
-
-        self.cmake.write('\n')
-        self.cmake.write(
-            '############## CMake Project ################\n'
-            '#        The main options of project        #\n'
-            '#############################################\n\n'
-        )
-        lang = 'cpp'
-        if len(language) is not 0:
-            lang = language[0]
-        self.cmake.write('project(${PROJECT_NAME} %s)\n\n' % available_language[lang].upper())
-
     def add_default_target(self):
         """
         Add default target release if not define.
@@ -255,7 +227,7 @@ class ProjectVariables(object):
             'endif(NOT CMAKE_BUILD_TYPE)\n\n'
         )
 
-    def add_artefact_target_outputs(self):
+    def add_artifact_target_outputs(self):
         """
         Add outputs for each artefacts CMake target
 

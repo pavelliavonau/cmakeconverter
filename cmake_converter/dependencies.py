@@ -131,6 +131,7 @@ class Dependencies(object):
                              '# Add Dependencies to project.                    #\n'
                              '###################################################\n\n')
             self.write_target_dependencies(references)
+            return # TODO: looks like wrong code
             self.cmake.write(
                 'option(BUILD_DEPENDS \n' +
                 '   "Build other CMake project." \n' +

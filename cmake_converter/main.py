@@ -30,23 +30,24 @@ import re
 import os
 
 from cmake_converter.data_converter import DataConverter
+from cmake_converter.data_files import get_cmake_lists
 
 
-def convert_project(data, vcxproj, cmake_dest_dir):
+def convert_project(converter_args, vcxproj_path, cmake_lists_destination_path):
     """
     Convert a ``vcxproj`` to a ``CMakeLists.txt``
 
-    :param data: input data of user
-    :type data: dict
-    :param vcxproj: input vcxproj
-    :type vcxproj: str
-    :param cmake_dest_dir: destinaton folder of CMakeLists.txt
-    :type cmake_dest_dir: str
+    :param converter_args: input data of user
+    :type converter_args: dict
+    :param vcxproj_path: input vcxproj
+    :type vcxproj_path: str
+    :param cmake_lists_destination_path: Destination folder of CMakeLists.txt
+    :type cmake_lists_destination_path: str
     """
 
     # Give data to DataConverter()
-    data_converter = DataConverter(data)
-    data_converter.init_files(vcxproj, cmake_dest_dir)
+    data_converter = DataConverter(converter_args)
+    data_converter.init_files(vcxproj_path, cmake_lists_destination_path)
     data_converter.create_data()
 
     # Close CMake file
@@ -59,7 +60,7 @@ def main():  # pragma: no cover
 
     """
 
-    data = {
+    converter_args = {
         'vcxproj': None,
         'cmake': None,
         'additional_code': None,
@@ -68,6 +69,7 @@ def main():  # pragma: no cover
         'cmake_output': None,
         'data': None,
         'std': None,
+        'is_converting_solution': False,
     }
 
     usage = "cmake-converter -p <vcxproj> [-c | -a | -D | -O | -i | -std]"
@@ -121,36 +123,52 @@ def main():  # pragma: no cover
     # Get args
     args = parser.parse_args()
 
-    # Prepare data
+    # Prepare converter_args
     if not args.project and not args.solution:
         parser.print_help()
         exit(0)
 
-    data['additional_code'] = args.additional
+    converter_args['additional_code'] = args.additional
     if args.dependencies:
-        data['dependencies'] = args.dependencies.split(':')
-    data['cmake_output'] = args.cmakeoutput
-    data['includes'] = args.include
+        converter_args['dependencies'] = args.dependencies.split(':')
+    converter_args['cmake_output'] = args.cmakeoutput
+    converter_args['includes'] = args.include
 
     if args.std:
-        data['std'] = args.std
+        converter_args['std'] = args.std
 
     if not args.solution:
         cmake_lists_path = os.path.dirname(args.project)
         if args.cmake:
             cmake_lists_path = args.cmake
-        convert_project(data, args.project, cmake_lists_path)
+        convert_project(converter_args, args.project, cmake_lists_path)
     else:
+        converter_args['is_converting_solution'] = True
         sln = open(args.solution)
-        slnpath = os.path.dirname(args.solution)
+        solution_path = os.path.dirname(args.solution)
         p = re.compile(r', "(.*\.vcxproj)"')
         projects = p.findall(sln.read())
         sln.close()
+
+        sln_cmake = get_cmake_lists(solution_path)
+        DataConverter.add_cmake_version_required(sln_cmake)
+        sln_cmake.write('project({0})\n\n'. format(os.path.splitext(os.path.basename(args.solution))[0]))
+        sln_cmake.write('################################################################################\n')
+        sln_cmake.write('# Additional Global Settings(add specific info there)\n')
+        sln_cmake.write('################################################################################\n')
+        sln_cmake.write('include(CMake/GlobalSettingsInclude.cmake)\n\n')
+        sln_cmake.write('################################################################################\n')
+        sln_cmake.write('# Sub-projects\n')
+        sln_cmake.write('################################################################################\n')
         for project in projects:
             project = '/'.join(project.split('\\'))
-            project_abs = os.path.join(slnpath, project)
-            convert_project(data, project_abs, os.path.dirname(project_abs))
+            project_abs = os.path.join(solution_path, project)
+            subdirectory = os.path.dirname(project_abs)
+            convert_project(converter_args, project_abs, subdirectory)
+            sln_cmake.write('add_subdirectory({0})\n'.format(os.path.basename(subdirectory)))
             print('\n')
+        sln_cmake.write('\n')
+        sln_cmake.close()
 
 
 if __name__ == "__main__":  # pragma: no cover

@@ -101,6 +101,30 @@ class ProjectFiles(object):
 
         send("C++ Extensions found: %s" % self.language, 'INFO')
 
+    def add_cmake_project(self, language):
+        """
+        Add CMake Project
+
+        :param language: type of project language: cpp | c
+        :type language: list
+        """
+
+        cpp_extensions = ['cc', 'cp', 'cxx', 'cpp', 'CPP', 'c++', 'C']
+
+        available_language = {'c': 'C'}
+        available_language.update(dict.fromkeys(cpp_extensions, 'CXX'))
+
+        self.cmake.write('\n')
+        self.cmake.write(
+            '############## CMake Project ################\n'
+            '#        The main options of project        #\n'
+            '#############################################\n\n'
+        )
+        lang = 'cpp'
+        if len(language) is not 0:
+            lang = language[0]
+        self.cmake.write('project(${PROJECT_NAME} %s)\n\n' % available_language[lang].upper())
+
     def write_header_files(self):
         """
         Write header files variables to file() cmake function

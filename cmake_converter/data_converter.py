@@ -64,7 +64,7 @@ class DataConverter:
                 send('This file is not a ".vcxproj". Be sure you give the right file', 'error')
                 exit(1)
 
-        # Cmake Porject (CMakeLists.txt)
+        # Cmake Project (CMakeLists.txt)
         if cmake_lists:
             if os.path.exists(cmake_lists):
                 self.data['cmake'] = get_cmake_lists(cmake_lists)
@@ -77,29 +77,40 @@ class DataConverter:
             )
             self.data['cmake'] = get_cmake_lists()
 
+    @staticmethod
+    def add_cmake_version_required(cmake_file):
+        """
+
+        :return:
+        """
+        cmake_file.write('cmake_minimum_required(VERSION 2.8.0 FATAL_ERROR)\n\n')
+
     def create_data(self):
         """
         Create the data and convert each part of "vcxproj" project
 
         """
 
+        if not self.data['is_converting_solution']:
+            self.add_cmake_version_required(self.data['cmake'])
+
         # Write variables
         variables = ProjectVariables(self.data)
         variables.add_project_variables()
-        variables.add_outputs_variables()
+        # variables.add_outputs_variables() # TODO: remove hard code of configuration names
 
         files = ProjectFiles(self.data)
         files.collects_source_files()
-        variables.add_cmake_project(files.language)
-        variables.add_default_target()
+        files.add_cmake_project(files.language)
+        # variables.add_default_target() # TODO: add conversion option to cmd line
 
         # Write Output Variables
-        variables.add_artefact_target_outputs()
+        # variables.add_artifact_target_outputs() # TODO: remove hard code of configuration names
 
         # Write Include Directories
-        depends = Dependencies(self.data)
+        dependencies = Dependencies(self.data)
         if self.data['includes']:
-            depends.write_include_dir()
+            dependencies.write_include_dir()
         else:
             send('Include Directories is not set.', '')
 
@@ -120,11 +131,11 @@ class DataConverter:
             all_flags.write_defines_and_flags()
 
         # Write Dependencies
-        depends.write_dependencies()
+        dependencies.write_dependencies()
 
         # Link with other dependencies
-        depends.link_dependencies()
-        depends.extentions_targets_dependencies()
+        dependencies.link_dependencies()
+        dependencies.extentions_targets_dependencies()
 
     def close_cmake_file(self):
         """
