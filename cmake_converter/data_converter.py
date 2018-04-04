@@ -125,8 +125,8 @@ class DataConverter:
             all_flags.do_precompiled_headers(files)
             all_flags.define_flags()
             # Writing
-            files.write_source_files()
             all_flags.write_precompiled_headers_macro()
+            files.write_source_files()
             all_flags.write_target_artefact()
             all_flags.write_defines_and_flags()
 

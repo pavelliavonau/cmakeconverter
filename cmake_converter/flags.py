@@ -720,13 +720,13 @@ class Flags(object):
             cmake.write('\nMACRO(ADD_PRECOMPILED_HEADER PrecompiledHeader PrecompiledSource SourcesVar)')
             cmake.write('\n    if(MSVC)')
             cmake.write('\n        set(PrecompiledBinary "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.pch")')
-            cmake.write('\n        SET(Sources ${${SourcesVar}})')
-
             cmake.write('\n        SET_SOURCE_FILES_PROPERTIES(${PrecompiledSource}')
-            cmake.write('\n                                    PROPERTIES COMPILE_FLAGS "/Yc\\"${PrecompiledHeader}\\" /Fp\\"${PrecompiledBinary}\\""')
+            cmake.write('\n                                    PROPERTIES COMPILE_FLAGS "/Yc\\"${PrecompiledHeader}\\"'
+                        ' /Fp\\"${PrecompiledBinary}\\""')
             cmake.write('\n                                               OBJECT_OUTPUTS "${PrecompiledBinary}")')
-            cmake.write('\n        SET_SOURCE_FILES_PROPERTIES(${Sources}')
-            cmake.write('\n                                    PROPERTIES COMPILE_FLAGS "/Yu\\"${PrecompiledHeader}\\" /FI\\"${PrecompiledHeader}\\" /Fp\\"${PrecompiledBinary}\\""')
+            cmake.write('\n        SET_SOURCE_FILES_PROPERTIES(${${SourcesVar}}')
+            cmake.write('\n                                    PROPERTIES COMPILE_FLAGS "/Yu\\"${PrecompiledHeader}\\"'
+                        ' /FI\\"${PrecompiledHeader}\\" /Fp\\"${PrecompiledBinary}\\""')
             cmake.write('\n                                               OBJECT_DEPENDS "${PrecompiledBinary}")')
             cmake.write('\n    endif()')
             cmake.write('\n    LIST(INSERT ${SourcesVar} 0 ${PrecompiledSource})')
@@ -739,7 +739,7 @@ class Flags(object):
             return
 
         pch = self.settings[setting]['PrecompiledHeaderFile']
-        self.cmake.write('\nADD_PRECOMPILED_HEADER("{0}" "{1}" SRC_FILES)'
+        self.cmake.write('\nADD_PRECOMPILED_HEADER("{0}" "{1}" SRC_FILES)\n'
                     .format(pch, pch.replace('.h', '.cpp')))
 
     def write_target_artefact(self):
@@ -775,11 +775,11 @@ class Flags(object):
         cmake = self.cmake
 
         
-        self.cmake.write(
-            '################# Flags ################\n'
-            '# Defines Flags for Windows and Linux. #\n'
-            '########################################\n\n'
-        )
+        # self.cmake.write(
+        #     '################# Flags ################\n'
+        #     '# Defines Flags for Windows and Linux. #\n'
+        #     '########################################\n\n'
+        # )
 
         cmake.write('\n# Configuration settings of target\n')
         cmake.write('target_compile_definitions(${PROJECT_NAME} PRIVATE')

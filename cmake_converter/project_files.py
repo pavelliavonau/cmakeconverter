@@ -119,11 +119,11 @@ class ProjectFiles(object):
         available_language.update(dict.fromkeys(cpp_extensions, 'CXX'))
 
         self.cmake.write('\n')
-        self.cmake.write(
-            '############## CMake Project ################\n'
-            '#        The main options of project        #\n'
-            '#############################################\n\n'
-        )
+        # self.cmake.write(
+        #     '############## CMake Project ################\n'
+        #     '#        The main options of project        #\n'
+        #     '#############################################\n\n'
+        # )
         lang = 'cpp'
         if len(language) is not 0:
             lang = language[0]
@@ -141,7 +141,7 @@ class ProjectFiles(object):
                 self.cmake.write('    %s\n' % os.path.join(hdrs_dir, header_file))
 
         self.cmake.write(')\n')
-        self.cmake.write('source_group("Headers" FILES ${HEADERS_FILES})\n\n')
+        self.cmake.write('source_group("Headers" FILES ${HEADERS_FILES})\n')
 
     def write_source_files(self):
         """
@@ -156,7 +156,7 @@ class ProjectFiles(object):
 
         self.cmake.write(')\n')
 
-        self.cmake.write('source_group("Sources" FILES ${SRC_FILES})\n\n')
+        self.cmake.write('source_group("Sources" FILES ${SRC_FILES})\n')
 
     def add_additional_code(self, file_to_add):
         """

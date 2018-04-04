@@ -59,11 +59,11 @@ class ProjectVariables(object):
         """
 
         # Project Name
-        self.cmake.write(
-            '################### Variables. ####################\n'
-            '# Change if you want modify path or other values. #\n'
-            '###################################################\n\n'
-        )
+        # self.cmake.write(
+        #     '################### Variables. ####################\n'
+        #     '# Change if you want modify path or other values. #\n'
+        #     '###################################################\n\n'
+        # )
         root_projectname = self.tree.xpath('//ns:RootNamespace', namespaces=self.ns)
         project = False
         if root_projectname:
