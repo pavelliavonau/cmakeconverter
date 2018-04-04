@@ -74,11 +74,12 @@ class Dependencies(object):
 
     def get_dependency_target_name(self, vs_project):
         """
-        Return dependency of target
+        Return dependency target name of VS Project
 
         :param vs_project: vcxproj
         :return:
         """
+
         # VS Project (.vcxproj)
         if vs_project:
             vcxproj_xml = get_vcxproj_data(
@@ -92,38 +93,12 @@ class Dependencies(object):
 
         return ''
 
-    def write_dependencies2(self):
-        """
-        Add dependencies to project
-
-        """
-
-        references = self.tree.xpath('//ns:ProjectReference', namespaces=self.ns)
-        references_found = []
-        if references:
-            for ref in references:
-                if ref is None:
-                    continue
-
-                ref_inc = ref.get('Include')
-                if ref_inc is None:
-                    continue
-
-                if ref_inc not in references_found:
-                    references_found.append(ref_inc)
-
-            if references_found:
-                self.cmake.write('add_dependencies(${PROJECT_NAME}')
-                for ref_found in references_found:
-                    self.cmake.write(' %s' % self.get_dependency_target_name(ref_found))
-
-                self.cmake.write(')\n\n')
-
     def write_dependencies(self):
         """
         Write on "CMakeLists.txt" subdirectories or link directories for external libraries.
 
         """
+
         references = self.tree.xpath('//ns:ProjectReference', namespaces=self.ns)
         if references:
             self.cmake.write('################### Dependencies ##################\n'
@@ -144,9 +119,9 @@ class Dependencies(object):
                     reference = str(ref.get('Include'))
                     path_to_reference = os.path.splitext(ntpath.basename(reference))[0]
                     self.cmake.write(
-                        '   add_subdirectory(platform/cmake/%s ${CMAKE_BINARY_DIR}/%s)\n' % (
-                            path_to_reference, path_to_reference
-                        )
+                        '   add_subdirectory(${%s_DIR}/%s ${CMAKE_BINARY_DIR}/%s)\n' %
+                        (path_to_reference, path_to_reference,
+                         path_to_reference)
                     )
             else:
                 self.cmake.write('if(BUILD_DEPENDS)\n')
@@ -170,6 +145,33 @@ class Dependencies(object):
             self.cmake.write('endif()\n\n')
         else:  # pragma: no cover
             send('No link needed.', '')
+
+    def add_dependencies(self):
+        """
+        Add dependencies to CMake project
+
+        """
+
+        references = self.tree.xpath('//ns:ProjectReference', namespaces=self.ns)
+        references_found = []
+        if references:
+            for ref in references:
+                if ref is None:
+                    continue
+
+                ref_inc = ref.get('Include')
+                if ref_inc is None:
+                    continue
+
+                if ref_inc not in references_found:
+                    references_found.append(ref_inc)
+
+            if references_found:
+                self.cmake.write('add_dependencies(${PROJECT_NAME}')
+                for ref_found in references_found:
+                    self.cmake.write(' %s' % self.get_dependency_target_name(ref_found))
+
+                self.cmake.write(')\n\n')
 
     def link_dependencies(self):
         """

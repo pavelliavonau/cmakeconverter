@@ -112,7 +112,7 @@ class DataConverter:
 
         # Write and add Files
         files.write_source_files()
-        if len(files.sources) != 0:
+        if files.sources:
             files.add_target_artefact()
             # Write Flags
             all_flags = Flags(self.data)
@@ -120,7 +120,7 @@ class DataConverter:
             # Write Macro
             all_flags.write_defines_and_flags()
 
-        depends.write_dependencies2()
+        depends.add_dependencies()
 
         # Link with other dependencies
         depends.link_dependencies()

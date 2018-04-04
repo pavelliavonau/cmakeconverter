@@ -35,6 +35,7 @@ from cmake_converter.data_files import get_propertygroup, get_definitiongroup
 cl_flags = 'cl_flags'
 defines = 'defines'
 
+
 class Flags(object):
     """
         Class who check and create compilation flags
@@ -46,19 +47,23 @@ class Flags(object):
         self.tree = data['vcxproj']['tree']
         self.ns = data['vcxproj']['ns']
         self.cmake = data['cmake']
+        self.propertygroup = {}
+        self.definitiongroups = {}
+        self.settings = {}
         self.define_settings()
-        self.propertygroup = { }
-        self.definitiongroups = { }
-
         self.std = data['std']
 
     def define_settings(self):
-        self.settings = {}
+        """
+        Define settings of project for each configuration
+
+        """
+
         configuration_nodes = self.tree.xpath('//ns:ProjectConfiguration', namespaces=self.ns)
         if configuration_nodes:
             for configuration_node in configuration_nodes:
                 configuration_data = str(configuration_node.get('Include'))
-                self.settings[configuration_data] = {defines : '', cl_flags : ''}
+                self.settings[configuration_data] = {defines: '', cl_flags: ''}
 
     def write_flags(self):
         """
@@ -144,7 +149,9 @@ class Flags(object):
                     if preproc != '%(PreprocessorDefinitions)' and preproc != 'WIN32':
                         self.settings[setting][defines] += '   -D%s \n' % preproc
                 # Unicode
-                unicode = self.tree.find("{0}/ns:CharacterSet".format(self.definitiongroups[setting]), namespaces=self.ns)
+                unicode = self.tree.find(
+                    "{0}/ns:CharacterSet".format(self.definitiongroups[setting]), namespaces=self.ns
+                )
                 if unicode is not None:
                     if 'Unicode' in unicode.text:
                         self.settings[setting][defines] += '   -DUNICODE\n'
@@ -358,11 +365,17 @@ class Flags(object):
 
         cmake.write('\n# Preprocessor definitions\n')
         for setting in self.settings:
-            def_str = self.settings[setting][defines]
+            # def_str = self.settings[setting][defines]
             conf = setting.split('|')[0].upper()
             cmake.write('\nif(CMAKE_BUILD_TYPE STREQUAL {0}_BUILD_TYPE)\n'.format(conf))
-            cmake.write('    target_compile_definitions(${{PROJECT_NAME}} PRIVATE \n{0}    )'.format(self.settings[setting][defines]))
+            cmake.write(
+                '    target_compile_definitions(${{PROJECT_NAME}} PRIVATE \n{0}    )'
+                .format(self.settings[setting][defines])
+            )
             cmake.write('\n    if(MSVC)')
-            cmake.write('\n        target_compile_options(${{PROJECT_NAME}} PRIVATE {0})'.format(self.settings[setting][cl_flags]))
+            cmake.write(
+                '\n        target_compile_options(${{PROJECT_NAME}} PRIVATE {0})'
+                .format(self.settings[setting][cl_flags])
+            )
             cmake.write('\n    endif()\n')
             cmake.write('\nendif()\n')

@@ -39,7 +39,7 @@ class TestDependencies(unittest2.TestCase):
         'cmake': cmake_lists_test,
         'cmake_output': None,
         'vcxproj': vs_project,
-        'dependencies': None,
+        'dependencies': [],
         'includes': None,
         'additional_code': None,
         'std': None,
@@ -84,10 +84,7 @@ class TestDependencies(unittest2.TestCase):
         cmakelists_test = open('CMakeLists.txt')
         content_test = cmakelists_test.read()
 
-        self.assertTrue(
-            'add_subdirectory(platform/cmake/g3log ${CMAKE_BINARY_DIR}/g3log' in content_test)
-        self.assertTrue(
-            'add_subdirectory(platform/cmake/zlib ${CMAKE_BINARY_DIR}/zlib' in content_test)
+        self.assertTrue('add_subdirectory' not in content_test)
 
         cmakelists_test.close()
 
@@ -105,7 +102,8 @@ class TestDependencies(unittest2.TestCase):
         self.assertTrue(
             'add_subdirectory(external/zlib/cmake/ ${CMAKE_BINARY_DIR}/lib1)' in content_test)
         self.assertTrue(
-            'add_subdirectory(../../external/g3log/cmake/ ${CMAKE_BINARY_DIR}/lib2)' in content_test)
+            'add_subdirectory(../../external/g3log/cmake/ ${CMAKE_BINARY_DIR}/lib2)' in content_test
+        )
 
         cmakelists_test.close()
 

@@ -75,17 +75,17 @@ def get_propertygroup(target_platform, attributes=''):
     """
     Return "propertygroup" value for wanted platform and target
 
-    :param target: wanted target: debug | release
-    :type target: str
-    :param platform: wanted platform: x86 | x64
-    :type platform: str
-    :param attributes: attributes to add to namespace
+    :param target_platform: wanted target (Debug|Win32, Release|x64, ...)
+    :type target_platform: str
+
+    :param attributes: attributes to add to namespace (@Label="Configuration", ...)
     :type attributes: str
     :return: "propertygroup" value
     :rtype: str
     """
-    prop = \
-        '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'{0}\'"{1}]'.format(target_platform, attributes)
+
+    prop = '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'{0}\'"{1}]'\
+        .format(target_platform, attributes)
 
     return prop
 
@@ -94,10 +94,8 @@ def get_definitiongroup(target_platform):
     """
     Return ItemDefinitionGroup namespace depends on platform and target
 
-    :param target: wanted target: debug | release
-    :type target: str
-    :param platform: wanted platform: x86 | x64
-    :type platform: str
+    :param target_platform: wanted target (Debug|Win32, Release|x64, ...)
+    :type target_platform: str
     :return: wanted ItemDefinitionGroup namespace
     :rtype: str
     """

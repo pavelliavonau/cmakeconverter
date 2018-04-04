@@ -25,6 +25,9 @@
      Manage creation of CMake variables that will be used during compilation
 """
 
+import os
+import ntpath
+
 from cmake_converter.message import send
 from cmake_converter.data_files import get_propertygroup
 
@@ -42,6 +45,7 @@ class ProjectVariables(object):
         self.tree = data['vcxproj']['tree']
         self.ns = data['vcxproj']['ns']
         self.output = data['cmake_output']
+        self.dependencies = data['dependencies']
         self.vs_outputs = {
             'debug': {
                 'x86': None,
@@ -53,7 +57,7 @@ class ProjectVariables(object):
             }
         }
 
-    def add_project_variables(self):
+    def add_project_variables(self):  # pylint: disable=too-many-locals
         """
         Add main CMake project variables
 
@@ -83,7 +87,22 @@ class ProjectVariables(object):
                 'error'
             )
 
+        if not self.dependencies:
+            references = self.tree.xpath('//ns:ProjectReference', namespaces=self.ns)
+            if references:
+                self.cmake.write('# Dependencies variables\n')
+                for ref in references:
+                    reference = str(ref.get('Include'))
+                    path_to_reference = os.path.splitext(ntpath.basename(reference))[0]
+                    self.cmake.write(
+                        'set(%s_DIR %s)\n' % (
+                            path_to_reference.upper(),
+                            reference.replace('\\', '/').replace('.vcxproj', ''))
+                    )
+            self.cmake.write('\n')
+
         # PropertyGroup TODO: remove hard code
+        # pylint: disable=unreachable
         return
         prop_deb_x86 = get_propertygroup('debug', 'x86')
         prop_deb_x64 = get_propertygroup('debug', 'x64')

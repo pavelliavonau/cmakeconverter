@@ -52,50 +52,18 @@ class TestDataFiles(unittest2.TestCase):
     def test_get_propertygroup(self):
         """Get Property Group"""
 
-        under_test = get_propertygroup('debug', 'x86')
+        under_test = get_propertygroup('Release|x64', 'and @Label="Configuration"')
         self.assertTrue('PropertyGroup' in under_test)
 
-        self.assertTrue('Debug' in under_test)
-        self.assertTrue('Win32' in under_test)
-
-        under_test = get_propertygroup('debug', 'x64')
-
-        self.assertTrue('Debug' in under_test)
-        self.assertTrue('x64' in under_test)
-
-        under_test = get_propertygroup('release', 'x86')
-
-        self.assertTrue('Release' in under_test)
-        self.assertTrue('Win32' in under_test)
-
-        under_test = get_propertygroup('release', 'x64')
-
-        self.assertTrue('Release' in under_test)
-        self.assertTrue('x64' in under_test)
+        self.assertTrue('Release|x64' in under_test)
 
     def test_get_definitiongroup(self):
         """Get Definition Group"""
 
-        under_test = get_definitiongroup('debug', 'x86')
+        under_test = get_definitiongroup('Release|Win32')
+
         self.assertTrue('ItemDefinitionGroup' in under_test)
-
-        self.assertTrue('Debug' in under_test)
-        self.assertTrue('Win32' in under_test)
-
-        under_test = get_definitiongroup('debug', 'x64')
-
-        self.assertTrue('Debug' in under_test)
-        self.assertTrue('x64' in under_test)
-
-        under_test = get_definitiongroup('release', 'x86')
-
-        self.assertTrue('Release' in under_test)
-        self.assertTrue('Win32' in under_test)
-
-        under_test = get_definitiongroup('release', 'x64')
-
-        self.assertTrue('Release' in under_test)
-        self.assertTrue('x64' in under_test)
+        self.assertTrue('Release|Win32' in under_test)
 
     def test_get_cmakelists(self):
         """Get CMakeLists.txt"""
