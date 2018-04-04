@@ -160,13 +160,17 @@ def main():  # pragma: no cover
         sln_cmake.write('################################################################################\n')
         sln_cmake.write('# Sub-projects\n')
         sln_cmake.write('################################################################################\n')
+        subdirectories = []
         for project in projects:
             project = '/'.join(project.split('\\'))
             project_abs = os.path.join(solution_path, project)
             subdirectory = os.path.dirname(project_abs)
             convert_project(converter_args, project_abs, subdirectory)
-            sln_cmake.write('add_subdirectory({0})\n'.format(os.path.basename(subdirectory)))
+            subdirectories.append(os.path.basename(subdirectory))
             print('\n')
+        subdirectories.sort(key=str.lower)
+        for subdirectory in subdirectories:
+            sln_cmake.write('add_subdirectory({0})\n'.format(subdirectory))
         sln_cmake.write('\n')
         sln_cmake.close()
 

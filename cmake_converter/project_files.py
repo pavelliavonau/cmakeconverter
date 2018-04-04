@@ -85,6 +85,8 @@ class ProjectFiles(object):
                 if cxx_file not in self.sources[cpp_path]:
                     self.sources[cpp_path].append(self.get_real_file_name(filelists[cpp_path],
                                                                           cpp_path, cxx_file))
+        for source_path in self.sources:
+            self.sources[source_path].sort(key=str.lower)
 
         # Headers Dir
         for header in self.headerfiles:
@@ -98,6 +100,8 @@ class ProjectFiles(object):
             if header_file not in self.headers[header_path]:
                 self.headers[header_path].append(self.get_real_file_name(filelists[header_path],
                                                                         header_path, header_file))
+        for header_path in self.headers:
+            self.headers[header_path].sort(key=str.lower)
 
         send("C++ Extensions found: %s" % self.language, 'INFO')
 
