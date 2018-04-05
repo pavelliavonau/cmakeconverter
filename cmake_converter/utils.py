@@ -99,7 +99,4 @@ def get_title(title, text):
     for n in range(offset):
         bottom_text = '%s#' % bottom_text
 
-    print(title)
-    print(text)
-    print(bottom_text)
     return '%s\n%s\n%s\n\n' % (title, text, bottom_text)
