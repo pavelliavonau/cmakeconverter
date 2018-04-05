@@ -121,7 +121,7 @@ def get_cmake_lists(cmake_path=None):
         send('CMakeLists will be build in current directory.', '')
         cmake = open('CMakeLists.txt', 'w')
     else:
-        send('CmakeLists.txt will be build in : ' + str(cmake_path), 'warn')
+        send('CMakeLists.txt will be build in : ' + str(cmake_path), 'warn')
         if cmake_path[-1:] == '/' or cmake_path[-1:] == '\\':
             cmake = open(str(cmake_path) + 'CMakeLists.txt', 'w')
         else:

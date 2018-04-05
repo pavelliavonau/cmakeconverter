@@ -27,8 +27,6 @@
 
 import os
 
-from os import path
-
 from cmake_converter.message import send
 from cmake_converter.data_files import get_propertygroup, get_definitiongroup
 
@@ -90,7 +88,7 @@ class Flags(object):
 
         if self.std:
             if self.std in self.available_std:
-                send('Cmake will use C++ std %s.' % self.std, 'info')
+                send('CMake will use C++ std %s.' % self.std, 'info')
                 linux_flags = '-std=%s' % self.std
             else:
                 send(
@@ -107,7 +105,7 @@ class Flags(object):
                 reference = str(ref.get('Include'))
                 if '\\' in reference:
                     reference = reference.replace('\\', '/')
-                lib = os.path.splitext(path.basename(reference))[0]
+                lib = os.path.splitext(os.path.basename(reference))[0]
 
                 if (lib == 'lemon' or lib == 'zlib') and '-fPIC' not in linux_flags:
                     linux_flags += ' -fPIC'

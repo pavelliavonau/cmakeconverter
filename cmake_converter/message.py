@@ -38,21 +38,21 @@ def send(message, status):  # pragma: no cover
     :type status: str
     """
 
-    FAIL = ''
-    WARN = ''
-    OK = ''
-    ENDC = ''
+    fail = ''
+    warn = ''
+    ok = ''
+    endc = ''
 
     if os.name == 'posix':
-        FAIL += '\033[91m'
-        OK += '\033[34m'
-        ENDC += '\033[0m'
-        WARN += '\033[93m'
+        fail += '\033[91m'
+        ok += '\033[34m'
+        endc += '\033[0m'
+        warn += '\033[93m'
     if status == 'error':
-        print('ERR  : ' + FAIL + message + ENDC)
+        print('ERR  : ' + fail + message + endc)
     elif status == 'warn':
-        print('WARN : ' + WARN + message + ENDC)
+        print('WARN : ' + warn + message + endc)
     elif status == 'ok':
-        print('OK   : ' + OK + message + ENDC)
+        print('OK   : ' + ok + message + endc)
     else:
         print('INFO : ' + message)

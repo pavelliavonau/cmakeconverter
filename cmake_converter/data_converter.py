@@ -43,7 +43,6 @@ class DataConverter:
 
     def __init__(self, data):
         self.data = data
-        self.paths_found = []
 
     def init_files(self, vs_project, cmake_lists):
         """
@@ -65,7 +64,7 @@ class DataConverter:
                 send('This file is not a ".vcxproj". Be sure you give the right file', 'error')
                 exit(1)
 
-        # Cmake Porject (CMakeLists.txt)
+        # CMake Porject (CMakeLists.txt)
         if cmake_lists:
             if os.path.exists(cmake_lists):
                 self.data['cmake'] = get_cmake_lists(cmake_lists)

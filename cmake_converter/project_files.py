@@ -47,7 +47,7 @@ class ProjectFiles(object):
 
     def collects_source_files(self):
         """
-        Write the project variables in CMakeLists.txt file
+        Collects the project source files in CMakeLists.txt file
 
         """
 
