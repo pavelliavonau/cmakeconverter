@@ -39,6 +39,7 @@ class TestDataConverter(unittest2.TestCase):
         'vcxproj': None,
         'dependencies': None,
         'includes': None,
+        'include_cmake': None,
         'additional_code': None,
         'std': None,
     }
@@ -52,6 +53,7 @@ class TestDataConverter(unittest2.TestCase):
             'vcxproj': None,
             'dependencies': None,
             'includes': None,
+            'include_cmake': None,
             'additional_code': None,
             'std': None,
         }

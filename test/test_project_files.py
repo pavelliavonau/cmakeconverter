@@ -153,3 +153,17 @@ class TestProjectFiles(unittest2.TestCase):
         self.assertTrue('${SRC_FILES}' in content_test)
 
         cmakelists_test.close()
+
+    def test_add_include_cmake(self):
+        """Add Include CMake File"""
+
+        self.data_test['cmake'] = get_cmake_lists(self.cur_dir)
+        under_test = ProjectFiles(self.data_test)
+
+        under_test.add_include_cmake('path/to/file.cmake')
+        self.data_test['cmake'].close()
+
+        cmakelists_test = open('%s/CMakeLists.txt' % self.cur_dir)
+        content_test = cmakelists_test.read()
+
+        self.assertTrue('include("path/to/file.cmake")' in content_test)
