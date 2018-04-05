@@ -76,11 +76,12 @@ class Dependencies(object):
         """
         Return dependency target name of VS Project
 
-        :param vs_project: vcxproj
-        :return:
+        :param vs_project: the .vcxproj file
+        :type vs_project: str
+        :return: project name or empty string
+        :rtype: str
         """
 
-        # VS Project (.vcxproj)
         if vs_project:
             vcxproj_xml = get_vcxproj_data(
                 os.path.join(os.path.dirname(self.cmake.name), vs_project)
@@ -119,8 +120,8 @@ class Dependencies(object):
                     reference = str(ref.get('Include'))
                     path_to_reference = os.path.splitext(ntpath.basename(reference))[0]
                     self.cmake.write(
-                        '   add_subdirectory(${%s_DIR}/%s ${CMAKE_BINARY_DIR}/%s)\n' %
-                        (path_to_reference, path_to_reference,
+                        '   add_subdirectory(${%s_DIR} ${CMAKE_BINARY_DIR}/%s)\n' %
+                        (path_to_reference.upper(),
                          path_to_reference)
                     )
             else:
@@ -140,7 +141,7 @@ class Dependencies(object):
                 reference = str(ref.get('Include'))
                 path_to_reference = os.path.splitext(ntpath.basename(reference))[0]
                 self.cmake.write(
-                    '   link_directories(dependencies/%s/build/)\n' % path_to_reference
+                    '   link_directories(dependencies/%s)\n' % path_to_reference
                 )
             self.cmake.write('endif()\n\n')
         else:  # pragma: no cover

@@ -85,7 +85,12 @@ class ProjectFiles(object):
 
         """
 
-        self.cmake.write('\n############ Source Files #############\n')
+        self.cmake.write(
+            '################# Files & Target ##################\n'
+            '# Files of project and target to build            #\n'
+            '###################################################\n\n'
+        )
+        self.cmake.write('# Source Files\n')
         self.cmake.write('set(SRC_FILES\n')
 
         for src_dir in self.sources:
@@ -96,7 +101,7 @@ class ProjectFiles(object):
 
         self.cmake.write('source_group("Sources" FILES ${SRC_FILES})\n\n')
 
-        self.cmake.write('\n############ Header Files #############\n')
+        self.cmake.write('# Header Files\n')
         self.cmake.write('set(HEADERS_FILES\n')
 
         for hdrs_dir in self.headers:
@@ -114,7 +119,7 @@ class ProjectFiles(object):
         :type file_to_add: str
         """
 
-        if file_to_add != '':
+        if file_to_add:
             try:
                 fc = open(file_to_add)
                 self.cmake.write('############# Additional Code #############\n')
@@ -123,7 +128,7 @@ class ProjectFiles(object):
                 for line in fc:
                     self.cmake.write(line)
                 fc.close()
-                self.cmake.write('\n')
+                self.cmake.write('\n\n')
                 send('File of Code is added = ' + file_to_add, 'warn')
             except OSError as e:
                 send(str(e), 'error')

@@ -43,6 +43,7 @@ class DataConverter:
 
     def __init__(self, data):
         self.data = data
+        self.paths_found = []
 
     def init_files(self, vs_project, cmake_lists):
         """
