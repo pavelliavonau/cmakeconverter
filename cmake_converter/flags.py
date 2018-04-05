@@ -356,21 +356,24 @@ class Flags(object):
         Get and write Preprocessor Macros definitions
 
         """
-        cmake = self.cmake
 
-        cmake.write('\n# Preprocessor definitions\n')
+        self.cmake.write('\n# Preprocessor definitions\n')
+        written_conf = []
+
         for setting in self.settings:
-            # def_str = self.settings[setting][defines]
-            conf = setting.split('|')[0].upper()
-            cmake.write('\nif(CMAKE_BUILD_TYPE STREQUAL {0}_BUILD_TYPE)\n'.format(conf))
-            cmake.write(
-                '    target_compile_definitions(${{PROJECT_NAME}} PRIVATE \n{0}    )'
-                .format(self.settings[setting][defines])
-            )
-            cmake.write('\n    if(MSVC)')
-            cmake.write(
-                '\n        target_compile_options(${{PROJECT_NAME}} PRIVATE {0})'
-                .format(self.settings[setting][cl_flags])
-            )
-            cmake.write('\n    endif()\n')
-            cmake.write('\nendif()\n')
+            conf = setting.split('|')[0].capitalize()
+            if conf not in written_conf:
+                self.cmake.write('\nif(CMAKE_BUILD_TYPE STREQUAL "{0}")\n'.format(conf))
+                self.cmake.write(
+                    '    target_compile_definitions(${{PROJECT_NAME}} PRIVATE \n{0}    )'
+                    .format(self.settings[setting][defines])
+                )
+                self.cmake.write('\n    if(MSVC)')
+                self.cmake.write(
+                    '\n        target_compile_options(${{PROJECT_NAME}} PRIVATE {0})'
+                    .format(self.settings[setting][cl_flags])
+                )
+                self.cmake.write('\n    endif()\n')
+                self.cmake.write('\nendif()\n')
+
+            written_conf.append(conf)
