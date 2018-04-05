@@ -54,11 +54,7 @@ class TestProjectVariables(unittest2.TestCase):
         self.assertTrue(under_test.ns)
         self.assertTrue(under_test.cmake)
         self.assertFalse(under_test.output)
-        self.assertIsNotNone(under_test.vs_outputs)
-
-        # Class var are not None due to other tests
-        self.assertIsNotNone(under_test.out_deb)
-        self.assertIsNotNone(under_test.out_rel)
+        self.assertIsNotNone(under_test.cmake_outputs)
 
     def test_add_project_variables(self):
         """Add Project Variables"""
@@ -82,34 +78,33 @@ class TestProjectVariables(unittest2.TestCase):
         """Add Outputs Variables"""
 
         # TODO If NO output is given
-        # self.data_test['cmake'] = get_cmake_lists(self.cur_dir)
+        self.data_test['cmake'] = get_cmake_lists(self.cur_dir)
         under_test = ProjectVariables(self.data_test)
-        #
-        # under_test.add_project_variables()
-        # under_test.add_outputs_variables()
-        #
-        # self.data_test['cmake'].close()
-        #
-        # cmakelists_test = open('%s/CMakeLists.txt' % self.cur_dir)
-        # content_test = cmakelists_test.read()
-        #
-        # self.assertTrue('OUTPUT_DEBUG ../../../build/vc2017_x64d/bin/', content_test)
-        # self.assertTrue('OUTPUT_REL ../../../build/vc2017_x64/bin/' in content_test)
-        #
-        # cmakelists_test.close()
 
-        # If output is given
-        under_test.output = '../output_binaries'
-        under_test.cmake = get_cmake_lists(self.cur_dir)
-        under_test.add_outputs_variables()
+        under_test.add_output_variables()
 
-        under_test.cmake.close()
+        self.data_test['cmake'].close()
 
         cmakelists_test = open('%s/CMakeLists.txt' % self.cur_dir)
         content_test = cmakelists_test.read()
 
-        self.assertTrue('OUTPUT_DEBUG ../output_binaries/${CMAKE_BUILD_TYPE}', content_test)
-        self.assertTrue('OUTPUT_REL ../output_binaries/${CMAKE_BUILD_TYPE}' in content_test)
+        self.assertTrue('OUTPUT_DEBUG ../../../build/vc2017_x64d/bin/', content_test)
+        self.assertTrue('OUTPUT_RELEASE ../../../build/vc2017_x64/bin/' in content_test)
+
+        cmakelists_test.close()
+
+        # If output is given
+        # under_test.output = '../output_binaries'
+        # under_test.cmake = get_cmake_lists(self.cur_dir)
+        # under_test.add_outputs_directories()
+        #
+        # under_test.cmake.close()
+        #
+        # cmakelists_test = open('%s/CMakeLists.txt' % self.cur_dir)
+        # content_test = cmakelists_test.read()
+        #
+        # self.assertTrue('OUTPUT_DEBUG ../output_binaries/${CMAKE_BUILD_TYPE}', content_test)
+        # self.assertTrue('OUTPUT_REL ../output_binaries/${CMAKE_BUILD_TYPE}' in content_test)
 
         cmakelists_test.close()
 
@@ -167,7 +162,7 @@ class TestProjectVariables(unittest2.TestCase):
         self.data_test['cmake'] = get_cmake_lists(self.cur_dir)
         under_test = ProjectVariables(self.data_test)
 
-        under_test.add_artefact_target_outputs()
+        under_test.add_cmake_output_directories()
 
         self.data_test['cmake'].close()
 

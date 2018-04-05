@@ -86,7 +86,6 @@ class DataConverter:
         # Write variables
         variables = ProjectVariables(self.data)
         variables.add_project_variables()
-        variables.add_outputs_variables()
 
         files = ProjectFiles(self.data)
         files.collects_source_files()
@@ -94,7 +93,7 @@ class DataConverter:
         variables.add_default_target()
 
         # Write Output Variables
-        variables.add_artefact_target_outputs()
+        variables.add_cmake_output_directories()
 
         # Write Include Directories
         depends = Dependencies(self.data)

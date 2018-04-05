@@ -37,25 +37,14 @@ class ProjectVariables(object):
         Class who defines all the CMake variables to be used by the project
     """
 
-    out_deb = False
-    out_rel = False
-
     def __init__(self, data):
         self.cmake = data['cmake']
         self.tree = data['vcxproj']['tree']
         self.ns = data['vcxproj']['ns']
         self.output = data['cmake_output']
         self.dependencies = data['dependencies']
-        self.vs_outputs = {
-            'debug': {
-                'x86': None,
-                'x64': None
-            },
-            'release': {
-                'x86': None,
-                'x64': None
-            }
-        }
+        self.cmake_outputs = {}
+        self.configurations = []
 
     def add_project_variables(self):  # pylint: disable=too-many-locals
         """
@@ -68,29 +57,39 @@ class ProjectVariables(object):
 
         # Project Name
         self.cmake.write(
-            '################### Variables. ####################\n'
+            '################### Variables #####################\n'
             '# Change if you want modify path or other values. #\n'
             '###################################################\n\n'
         )
         root_projectname = self.tree.xpath('//ns:RootNamespace', namespaces=self.ns)
         project = False
+        self.cmake.write('# Project name\n')
         if root_projectname:
             projectname = root_projectname[0]
             if projectname.text:
-                self.cmake.write('set(PROJECT_NAME ' + projectname.text + ')\n')
+                self.cmake.write('set(PROJECT_NAME ' + projectname.text + ')\n\n')
                 project = True
         if not project:  # pragma: no cover
-            self.cmake.write('set(PROJECT_NAME <PLEASE SET YOUR PROJECT NAME !!>)\n')
+            self.cmake.write('set(PROJECT_NAME <PLEASE SET YOUR PROJECT NAME !!>)\n\n')
             send(
                 'No PROJECT NAME found or define. '
                 'Please set [PROJECT_NAME] variable in CMakeLists.txt.',
                 'error'
             )
 
+        self.add_dependencies_variables()
+        self.add_output_variables()
+
+    def add_dependencies_variables(self):
+        """
+        Add dependencies variables
+
+        """
+
         if not self.dependencies:
             references = self.tree.xpath('//ns:ProjectReference', namespaces=self.ns)
             if references:
-                self.cmake.write('# Dependencies variables\n')
+                self.cmake.write('# Dependencies\n')
                 for ref in references:
                     reference = str(ref.get('Include'))
                     path_to_reference = os.path.splitext(ntpath.basename(reference))[0]
@@ -101,110 +100,65 @@ class ProjectVariables(object):
                     )
             self.cmake.write('\n')
 
-        # PropertyGroup TODO: remove hard code
-        # pylint: disable=unreachable
-        return
-        prop_deb_x86 = get_propertygroup('debug', 'x86')
-        prop_deb_x64 = get_propertygroup('debug', 'x64')
-        prop_rel_x86 = get_propertygroup('release', 'x86')
-        prop_rel_x64 = get_propertygroup('release', 'x64')
-
-        if not self.vs_outputs['debug']['x86']:
-            self.vs_outputs['debug']['x86'] = self.tree.find(
-                '%s//ns:OutDir' % prop_deb_x86, namespaces=self.ns
-            )
-            if self.vs_outputs['debug']['x86'] is None:
-                vs_output_debug_x86 = self.tree.xpath(
-                    '//ns:PropertyGroup[@Label="UserMacros"]/ns:OutDir', namespaces=self.ns
-                )
-                if vs_output_debug_x86:
-                    self.vs_outputs['debug']['x86'] = vs_output_debug_x86[0]
-        if not self.vs_outputs['debug']['x64']:
-            self.vs_outputs['debug']['x64'] = self.tree.find(
-                '%s/ns:OutDir' % prop_deb_x64, namespaces=self.ns
-            )
-            if self.vs_outputs['debug']['x64'] is None:
-                vs_output_debug_x64 = self.tree.xpath(
-                    '//ns:PropertyGroup[@Label="UserMacros"]/ns:OutDir', namespaces=self.ns
-                )
-                if vs_output_debug_x64:
-                    self.vs_outputs['debug']['x64'] = vs_output_debug_x64[0]
-        if not self.vs_outputs['release']['x86']:
-            self.vs_outputs['release']['x86'] = self.tree.find(
-                '%s//ns:OutDir' % prop_rel_x86, namespaces=self.ns
-            )
-            if self.vs_outputs['release']['x86'] is None:
-                vs_output_release_x86 = self.tree.xpath(
-                    '//ns:PropertyGroup[@Label="UserMacros"]/ns:OutDir', namespaces=self.ns
-                )
-                if vs_output_release_x86:
-                    self.vs_outputs['release']['x86'] = vs_output_release_x86[0]
-        if not self.vs_outputs['release']['x64']:
-            self.vs_outputs['release']['x64'] = self.tree.find(
-                '%s//ns:OutDir' % prop_rel_x64, namespaces=self.ns
-            )
-            if self.vs_outputs['release']['x64'] is None:
-                vs_output_release_x64 = self.tree.xpath(
-                    '//ns:PropertyGroup[@Label="UserMacros"]/ns:OutDir', namespaces=self.ns
-                )
-                if vs_output_release_x64:
-                    self.vs_outputs['release']['x64'] = vs_output_release_x64[0]
-
-    def add_outputs_variables(self):
+    def add_output_variables(self):
         """
-        Add Outputs Variables
+        Add output variables
 
         """
-
-        output_deb_x86 = ''
-        output_deb_x64 = ''
-        output_rel_x86 = ''
-        output_rel_x64 = ''
 
         if not self.output:
-            if self.vs_outputs['debug']['x86'] is not None:
-                output_deb_x86 = self.cleaning_output(self.vs_outputs['debug']['x86'].text)
-            if self.vs_outputs['debug']['x64'] is not None:
-                output_deb_x64 = self.cleaning_output(self.vs_outputs['debug']['x64'].text)
-            if self.vs_outputs['release']['x86'] is not None:
-                output_rel_x86 = self.cleaning_output(self.vs_outputs['release']['x86'].text)
-            if self.vs_outputs['release']['x64'] is not None:
-                output_rel_x64 = self.cleaning_output(self.vs_outputs['release']['x64'].text)
+            # Get configurations
+            configuration_nodes = self.tree.xpath('//ns:ProjectConfiguration', namespaces=self.ns)
+            target_plaforms = []
+            if configuration_nodes:
+                for configuration_node in configuration_nodes:
+                    configuration_data = str(configuration_node.get('Include'))
+                    target_plaforms.append(configuration_data)
+
+            for target_platform in target_plaforms:
+                property_grp = get_propertygroup(target_platform)
+                output = self.tree.find(
+                    '%s//ns:OutDir' % property_grp, namespaces=self.ns
+                )
+                if output is not None:
+                    output = output.text.replace('$(ProjectDir)', '').replace('\\', '/')
+                    output = self.cleaning_output(output)
+                    self.cmake_outputs[target_platform] = output
         else:
-            if self.output[-1:] == '/' or self.output[-1:] == '\\':
-                build_type = '${CMAKE_BUILD_TYPE}'
-            else:
-                build_type = '/${CMAKE_BUILD_TYPE}'
-            output_deb_x86 = self.output + build_type
-            output_deb_x64 = self.output + build_type
-            output_rel_x86 = self.output + build_type
-            output_rel_x64 = self.output + build_type
+            # Remove slash/backslash if needed
+            if self.output.endswith('/') or self.output.endswith('\\'):
+                self.output = self.output[0:-1]
+            # Define only output for x64
+            self.cmake_outputs['Debug|x64'] = '/'.join([self.output, '${CMAKE_BUILD_TYPE}'])
+            self.cmake_outputs['Release|x64'] = '/'.join([self.output, '${CMAKE_BUILD_TYPE}'])
 
-        output_deb_x86 = output_deb_x86.strip().replace('\n', '')
-        output_deb_x64 = output_deb_x64.strip().replace('\n', '')
-        output_rel_x86 = output_rel_x86.strip().replace('\n', '')
-        output_rel_x64 = output_rel_x64.strip().replace('\n', '')
+        output_debug = ''
+        output_release = ''
 
-        self.cmake.write('# Output Variables\n')
-        if output_deb_x64 or output_deb_x86:
-            debug_output = output_deb_x64 if output_deb_x64 else output_deb_x86
-            send('Output Debug = %s' % debug_output, 'ok')
-            self.cmake.write('set(OUTPUT_DEBUG ' + debug_output + ')\n')
-            ProjectVariables.out_deb = True
-        else:  # pragma: no cover
-            send('No Output Debug define. Use [Debug/bin] by default !', 'warn')
-            self.cmake.write('set(OUTPUT_DEBUG Debug/bin)\n')
-            ProjectVariables.out_deb = True
+        for output in self.cmake_outputs:
+            if 'Debug' in output:
+                if 'x64' in output:
+                    output_debug = self.cmake_outputs[output]
+                if 'Win32' in output and not output_debug:
+                    output_debug = self.cmake_outputs[output]
+            if 'Release' in output:
+                if 'x64' in output:
+                    output_release = self.cmake_outputs[output]
+                if 'Win32' in output and not output_release:
+                    output_release = self.cmake_outputs[output]
 
-        if output_rel_x64 or output_rel_x86:
-            release_output = output_rel_x64 if output_rel_x64 else output_rel_x86
-            send('Output Release = ' + release_output, 'ok')
-            self.cmake.write('set(OUTPUT_REL ' + release_output + ')\n')
-            ProjectVariables.out_rel = True
-        else:  # pragma: no cover
-            send('No Output Release define. Use [Release/bin] by default !', 'warn')
-            self.cmake.write('set(OUTPUT_RELEASE Release/bin)\n')
-            ProjectVariables.out_rel = True
+        # In case converter can't find output, assign default
+        if not output_debug:
+            output_debug = '${CMAKE_BUILD_TYPE}/bin'
+        if not output_release:
+            output_release = '${CMAKE_BUILD_TYPE}/bin'
+
+        self.cmake.write('# Outputs\n')
+        self.cmake.write('set(OUTPUT_DEBUG %s)\n' % output_debug)
+        self.cmake.write('set(OUTPUT_RELEASE %s)\n' % output_release)
+
+        send('Following output define for Release: %s' % output_release, 'INFO')
+        send('Following output define for Debug: %s' % output_debug, 'INFO')
 
     @staticmethod
     def cleaning_output(output):
@@ -218,23 +172,20 @@ class ProjectVariables(object):
         """
 
         variables_to_remove = [
-            '$(SolutionDir)', '$(Platform)', '$(Configuration)', '$(ProjectDir)'
+            '$(SolutionDir)', '$(Platform)', '$(Configuration)', '$(ProjectDir)', '$(SolutionName)',
         ]
+        slash_to_remove = ['/-/', '/_/', '//']
         output = output.replace('\\', '/')
-        split_output = output.split('/')
 
         for var in variables_to_remove:
-            if var in split_output:
-                split_output.remove(var)
+            output = output.replace(var, '')
+        for slash in slash_to_remove:
+            output = output.replace(slash, '/')
 
-        final_output = '/'.join(split_output)
+        if output == '/':
+            output = './'
 
-        # Case path is relative
-        for var in variables_to_remove:
-            if '%s..' % var in final_output:
-                final_output = final_output.replace('%s..' % var, '..')
-
-        return final_output
+        return output
 
     def add_cmake_project(self, language):
         """
@@ -274,39 +225,35 @@ class ProjectVariables(object):
             'endif(NOT CMAKE_BUILD_TYPE)\n\n'
         )
 
-    def add_artefact_target_outputs(self):
+    def add_cmake_output_directories(self):
         """
-        Add outputs for each artefacts CMake target
+        Add output directory for each artefacts CMake target
 
         """
 
-        if ProjectVariables.out_deb or ProjectVariables.out_rel:
-            self.cmake.write('############## Artefacts Output #################\n')
-            self.cmake.write('# Defines outputs , depending Debug or Release. #\n')
-            self.cmake.write('#################################################\n\n')
-            if ProjectVariables.out_deb:
-                self.cmake.write('if(CMAKE_BUILD_TYPE STREQUAL "Debug")\n')
-                self.cmake.write(
-                    '  set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${OUTPUT_DEBUG}")\n'
-                )
-                self.cmake.write(
-                    '  set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${OUTPUT_DEBUG}")\n'
-                )
-                self.cmake.write(
-                    '  set(CMAKE_EXECUTABLE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${OUTPUT_DEBUG}")'
-                    '\n'
-                )
-            if ProjectVariables.out_rel:
-                self.cmake.write('else()\n')
-                self.cmake.write(
-                    '  set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${OUTPUT_REL}")\n'
-                )
-                self.cmake.write(
-                    '  set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${OUTPUT_REL}")\n'
-                )
-                self.cmake.write(
-                    '  set(CMAKE_EXECUTABLE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${OUTPUT_REL}")\n'
-                )
-                self.cmake.write('endif()\n\n')
-        else:  # pragma: no cover
-            send('No Output found or define. CMake will use current directory as output !', 'warn')
+        self.cmake.write('############## Artefacts Output #################\n')
+        self.cmake.write('# Defines outputs , depending Debug or Release. #\n')
+        self.cmake.write('#################################################\n\n')
+
+        self.cmake.write('if(CMAKE_BUILD_TYPE STREQUAL "Debug")\n')
+        self.cmake.write(
+            '  set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${OUTPUT_DEBUG}")\n'
+        )
+        self.cmake.write(
+            '  set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${OUTPUT_DEBUG}")\n'
+        )
+        self.cmake.write(
+            '  set(CMAKE_EXECUTABLE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${OUTPUT_DEBUG}")'
+            '\n'
+        )
+        self.cmake.write('else()\n')
+        self.cmake.write(
+            '  set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${OUTPUT_REL}")\n'
+        )
+        self.cmake.write(
+            '  set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${OUTPUT_REL}")\n'
+        )
+        self.cmake.write(
+            '  set(CMAKE_EXECUTABLE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${OUTPUT_REL}")\n'
+        )
+        self.cmake.write('endif()\n\n')
