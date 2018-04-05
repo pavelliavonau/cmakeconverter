@@ -69,6 +69,16 @@ class Flags(object):
 
         self.define_group_properties()
 
+    @staticmethod
+    def get_setting_name(setting):
+        return setting.split('|')[0]
+
+    def get_cmake_configuration_types(self):
+        configuration_types = []
+        for setting in self.settings:
+            configuration_types.append(self.get_setting_name(setting))
+        return configuration_types
+
     def get_configuration_type(self, setting):
         configurationtype = self.tree.xpath(
             '{0}/ns:ConfigurationType'.format(self.propertygroup[setting]),
@@ -749,7 +759,7 @@ class Flags(object):
         """
         setting = ''
         for s in self.settings:
-            conf = s.split('|')[0].upper()
+            conf = self.get_setting_name(s).upper()
             setting = s
  
         self.cmake.write('\n# Warning: pch and target are the same for every configuration')
@@ -784,7 +794,7 @@ class Flags(object):
         cmake.write('\n# Configuration settings of target\n')
         cmake.write('target_compile_definitions(${PROJECT_NAME} PRIVATE')
         for setting in self.settings:
-            conf = setting.split('|')[0].upper()
+            conf = self.get_setting_name(setting).upper()
             cmake.write(
                 '\n$<$<CONFIG:{0}>: {1}>'.format(conf, self.settings[setting][defines].strip().replace('\n',';'))
             )
@@ -792,16 +802,16 @@ class Flags(object):
         cmake.write('\n)\nif(MSVC)')
         cmake.write('\n    target_compile_options(${PROJECT_NAME} PRIVATE')
         for setting in self.settings:
-            conf = setting.split('|')[0].upper()
+            conf = self.get_setting_name(setting).upper()
             cmake.write('\n    $<$<CONFIG:{0}>: {1}>'
                 .format(conf, self.settings[setting][cl_flags].strip().replace(' ', ';'))
             )
         cmake.write('\n    )')
         for setting in self.settings:
-            conf = setting.split('|')[0].upper()
+            conf = self.get_setting_name(setting).upper()
             if len(self.settings[setting][ln_flags]) != 0:
-                configurationtype = self.get_configuration_type(setting)
-                if 'StaticLibrary' in configurationtype:
+                configuration_type = self.get_configuration_type(setting)
+                if 'StaticLibrary' in configuration_type:
                     cmake.write(
                         '\n    set_target_properties(${{PROJECT_NAME}} PROPERTIES STATIC_LIBRARY_FLAGS_{0} "{1}")'
                         .format(conf, self.settings[setting][ln_flags])

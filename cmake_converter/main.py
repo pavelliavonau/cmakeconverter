@@ -70,6 +70,7 @@ def main():  # pragma: no cover
         'data': None,
         'std': None,
         'is_converting_solution': False,
+        'configuration_types': set(),
     }
 
     usage = "cmake-converter -p <vcxproj> [-c | -a | -D | -O | -i | -std]"
@@ -157,9 +158,6 @@ def main():  # pragma: no cover
         sln_cmake.write('# Additional Global Settings(add specific info there)\n')
         sln_cmake.write('################################################################################\n')
         sln_cmake.write('include(CMake/GlobalSettingsInclude.cmake)\n\n')
-        sln_cmake.write('################################################################################\n')
-        sln_cmake.write('# Sub-projects\n')
-        sln_cmake.write('################################################################################\n')
         subdirectories = []
         for project in projects:
             project = '/'.join(project.split('\\'))
@@ -168,6 +166,17 @@ def main():  # pragma: no cover
             convert_project(converter_args, project_abs, subdirectory)
             subdirectories.append(os.path.basename(subdirectory))
             print('\n')
+        # TODO: try to write configuration types for each project locally due possible difference.
+        sln_cmake.write('################################################################################\n')
+        sln_cmake.write('# Global configuration types\n')
+        sln_cmake.write('################################################################################\n')
+        sln_cmake.write('set(CMAKE_CONFIGURATION_TYPES\n')
+        for configuration_type in converter_args['configuration_types']:
+            sln_cmake.write('    \"{0}\"\n'.format(configuration_type))
+        sln_cmake.write('    CACHE TYPE INTERNAL FORCE\n)\n\n')
+        sln_cmake.write('################################################################################\n')
+        sln_cmake.write('# Sub-projects\n')
+        sln_cmake.write('################################################################################\n')
         subdirectories.sort(key=str.lower)
         for subdirectory in subdirectories:
             sln_cmake.write('add_subdirectory({0})\n'.format(subdirectory))

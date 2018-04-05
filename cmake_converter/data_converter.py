@@ -129,6 +129,8 @@ class DataConverter:
             files.write_source_files()
             all_flags.write_target_artefact()
             all_flags.write_defines_and_flags()
+            for configuration_type in all_flags.get_cmake_configuration_types():
+                self.data['configuration_types'].add(configuration_type)
 
         # Write Dependencies
         dependencies.write_dependencies()
