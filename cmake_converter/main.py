@@ -66,6 +66,7 @@ def main():  # pragma: no cover
         'includes': None,
         'dependencies': None,
         'cmake_output': None,
+        'include_cmake': None,
         'data': None,
         'std': None,
     }
@@ -113,6 +114,11 @@ def main():  # pragma: no cover
         dest='include', action="store_true", default=False
     )
     parser.add_argument(
+        '-I', '--includecmake',
+        help='add Include directive to given file in CMakeLists.txt.',
+        dest='includecmake'
+    )
+    parser.add_argument(
         '-std', '--std',
         help='choose your C++ std version. Default : c++11',
         dest='std'
@@ -127,6 +133,7 @@ def main():  # pragma: no cover
         exit(0)
 
     data['additional_code'] = args.additional
+    data['include_cmake'] = args.includecmake
     if args.dependencies:
         data['dependencies'] = args.dependencies.split(':')
     data['cmake_output'] = args.cmakeoutput

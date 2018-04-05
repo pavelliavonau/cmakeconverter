@@ -64,7 +64,7 @@ class DataConverter:
                 message('This file is not a ".vcxproj". Be sure you give the right file', 'error')
                 exit(1)
 
-        # CMake Porject (CMakeLists.txt)
+        # CMake Project (CMakeLists.txt)
         if cmake_lists:
             if os.path.exists(cmake_lists):
                 self.data['cmake'] = get_cmake_lists(cmake_lists)
@@ -92,6 +92,10 @@ class DataConverter:
         variables.add_cmake_project(files.language)
         variables.add_default_target()
 
+        # Include ".cmake" file
+        if self.data['include_cmake']:
+            files.add_include_cmake(self.data['include_cmake'])
+
         # Write Output Variables
         variables.add_cmake_output_directories()
 
@@ -105,7 +109,7 @@ class DataConverter:
         # Write Dependencies
         depends.write_dependencies()
 
-        # Add additional code or not
+        # Add additional code
         if self.data['additional_code'] is not None:
             files.add_additional_code(self.data['additional_code'])
 

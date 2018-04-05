@@ -94,7 +94,6 @@ class ProjectFiles(object):
         for src_dir in self.sources:
             for src_file in self.sources[src_dir]:
                 self.cmake.write('    %s\n' % os.path.join(src_dir, src_file))
-
         self.cmake.write(')\n')
 
         self.cmake.write('source_group("Sources" FILES ${SRC_FILES})\n\n')
@@ -109,17 +108,28 @@ class ProjectFiles(object):
         self.cmake.write(')\n')
         self.cmake.write('source_group("Headers" FILES ${HEADERS_FILES})\n\n')
 
-    def add_additional_code(self, file_to_add):
+    def add_include_cmake(self, filename):
+        """
+        Add include directive for filename
+
+        :param filename: name of file to include
+        :type filename: str
+        """
+
+        self.cmake.write('include("%s")\n\n' % filename)
+        message('File of Code is added = ' + filename, 'warn')
+
+    def add_additional_code(self, filename):
         """
         Add additional file with CMake code inside
 
-        :param file_to_add: the file who contains CMake code
-        :type file_to_add: str
+        :param filename: the file who contains CMake code
+        :type filename: str
         """
 
-        if file_to_add:
+        if filename:
             try:
-                fc = open(file_to_add)
+                fc = open(filename)
                 title = get_title('Additional Code', 'Provides from an external file')
                 self.cmake.write(title)
 
@@ -127,11 +137,11 @@ class ProjectFiles(object):
                     self.cmake.write(line)
                 fc.close()
                 self.cmake.write('\n\n')
-                message('File of Code is added = ' + file_to_add, 'warn')
+                message('File of Code is added = ' + filename, 'warn')
             except OSError as e:
                 message(str(e), 'error')
                 message(
-                    'Wrong data file ! Code was not added, please verify file name or path !',
+                    'Wrong data file ! Code was not added, please check given file !',
                     'error'
                 )
 
