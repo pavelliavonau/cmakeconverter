@@ -28,12 +28,12 @@
 import os
 
 
-def send(message, status):  # pragma: no cover
+def message(text, status):  # pragma: no cover
     """
     Displays a message while the script is running
 
-    :param message: content of the message
-    :type message: str
+    :param text: content of the message
+    :type text: str
     :param status: level of the message (change color)
     :type status: str
     """
@@ -49,10 +49,57 @@ def send(message, status):  # pragma: no cover
         endc += '\033[0m'
         warn += '\033[93m'
     if status == 'error':
-        print('ERR  : ' + fail + message + endc)
+        print('ERR  : ' + fail + text + endc)
     elif status == 'warn':
-        print('WARN : ' + warn + message + endc)
+        print('WARN : ' + warn + text + endc)
     elif status == 'ok':
-        print('OK   : ' + ok + message + endc)
+        print('OK   : ' + ok + text + endc)
     else:
-        print('INFO : ' + message)
+        print('INFO : ' + text)
+
+
+def get_title(title, text):
+    """
+    Return formatted title for writing
+
+    :param title: main title text
+    :type title: str
+    :param text: text related to title
+    :type text: str
+    :return:
+    """
+
+    offset = 52
+    text_offset = (offset / 2) - len(title)
+
+    i = 0
+    title_sharp = ''
+    while i < text_offset:
+        title_sharp = '%s#' % title_sharp
+        i += 1
+
+    title = '%s %s ' % (title_sharp, title)
+    i = len(title)
+    while i < offset:
+        title = '%s#' % title
+        i += 1
+
+    text = '# %s' % text
+
+    i = len(text)
+    while i < offset:
+        if i < offset - 1:
+            text = '%s ' % text
+        else:
+            text = '%s#' % text
+            break
+        i += 1
+
+    bottom_text = ''
+    for n in range(offset):
+        bottom_text = '%s#' % bottom_text
+
+    print(title)
+    print(text)
+    print(bottom_text)
+    return '%s\n%s\n%s\n\n' % (title, text, bottom_text)

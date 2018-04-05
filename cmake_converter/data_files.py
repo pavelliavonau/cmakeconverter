@@ -27,7 +27,7 @@
 
 from lxml import etree
 
-from cmake_converter.message import send
+from cmake_converter.utils import message
 
 
 def get_vcxproj_data(vs_project):
@@ -51,21 +51,21 @@ def get_vcxproj_data(vs_project):
         vcxproj['ns'] = ns
         assert 'http://schemas.microsoft.com' in ns['ns']
     except AssertionError:  # pragma: no cover
-        send(
+        message(
             '.vcxproj file cannot be import, because this file does not seem to comply with'
             ' Microsoft xml data !',
             'error'
         )
         exit(1)
     except (OSError, IOError):  # pragma: no cover
-        send(
+        message(
             '.vcxproj file cannot be import. '
             'Please, verify you have rights to this directory or file exists !',
             'error'
         )
         exit(1)
     except etree.XMLSyntaxError:  # pragma: no cover
-        send('This file is not a ".vcxproj" file or XML is broken !', 'error')
+        message('This file is not a ".vcxproj" file or XML is broken !', 'error')
         exit(1)
 
     return vcxproj
@@ -118,10 +118,10 @@ def get_cmake_lists(cmake_path=None):
     """
 
     if not cmake_path:
-        send('CMakeLists will be build in current directory.', '')
+        message('CMakeLists will be build in current directory.', '')
         cmake = open('CMakeLists.txt', 'w')
     else:
-        send('CMakeLists.txt will be build in : ' + str(cmake_path), 'warn')
+        message('CMakeLists.txt will be build in : ' + str(cmake_path), 'warn')
         if cmake_path[-1:] == '/' or cmake_path[-1:] == '\\':
             cmake = open(str(cmake_path) + 'CMakeLists.txt', 'w')
         else:

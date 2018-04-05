@@ -28,7 +28,7 @@
 import os
 import ntpath
 
-from cmake_converter.message import send
+from cmake_converter.utils import message, get_title
 from cmake_converter.data_files import get_propertygroup
 
 
@@ -56,11 +56,9 @@ class ProjectVariables(object):
         self.cmake.write('cmake_minimum_required(VERSION 3.0.0 FATAL_ERROR)\n\n')
 
         # Project Name
-        self.cmake.write(
-            '################### Variables #####################\n'
-            '# Change if you want modify path or other values. #\n'
-            '###################################################\n\n'
-        )
+        title = get_title('Variables', 'Change if you want modify path or other values')
+        self.cmake.write(title)
+
         root_projectname = self.tree.xpath('//ns:RootNamespace', namespaces=self.ns)
         project = False
         self.cmake.write('# Project name\n')
@@ -71,7 +69,7 @@ class ProjectVariables(object):
                 project = True
         if not project:  # pragma: no cover
             self.cmake.write('set(PROJECT_NAME <PLEASE SET YOUR PROJECT NAME !!>)\n\n')
-            send(
+            message(
                 'No PROJECT NAME found or define. '
                 'Please set [PROJECT_NAME] variable in CMakeLists.txt.',
                 'error'
@@ -157,8 +155,8 @@ class ProjectVariables(object):
         self.cmake.write('set(OUTPUT_DEBUG %s)\n' % output_debug)
         self.cmake.write('set(OUTPUT_RELEASE %s)\n' % output_release)
 
-        send('Following output define for Release: %s' % output_release, 'INFO')
-        send('Following output define for Debug: %s' % output_debug, 'INFO')
+        message('Following output define for Release: %s' % output_release, 'INFO')
+        message('Following output define for Debug: %s' % output_debug, 'INFO')
 
     @staticmethod
     def cleaning_output(output):
@@ -201,11 +199,8 @@ class ProjectVariables(object):
         available_language.update(dict.fromkeys(cpp_extensions, 'CXX'))
 
         self.cmake.write('\n')
-        self.cmake.write(
-            '############## CMake Project ################\n'
-            '#        The main options of project        #\n'
-            '#############################################\n\n'
-        )
+        title = get_title('CMake Project', 'The main options of project')
+        self.cmake.write(title)
         lang = 'cpp'
         if len(language) is not 0:
             lang = language[0]
@@ -231,9 +226,8 @@ class ProjectVariables(object):
 
         """
 
-        self.cmake.write('############## Artefacts Output #################\n')
-        self.cmake.write('# Defines outputs , depending Debug or Release. #\n')
-        self.cmake.write('#################################################\n\n')
+        title = get_title('Artefacts Output', 'Defines outputs , depending Debug or Release')
+        self.cmake.write(title)
 
         self.cmake.write('if(CMAKE_BUILD_TYPE STREQUAL "Debug")\n')
         self.cmake.write(

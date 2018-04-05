@@ -27,7 +27,7 @@
 
 import os
 
-from cmake_converter.message import send
+from cmake_converter.utils import message, get_title
 from cmake_converter.data_files import get_propertygroup, get_definitiongroup
 
 cl_flags = 'cl_flags'
@@ -69,11 +69,8 @@ class Flags(object):
 
         """
 
-        self.cmake.write(
-            '################# Flags ################\n'
-            '# Defines Flags for Windows and Linux. #\n'
-            '########################################\n\n'
-        )
+        title = get_title('Flags', 'Defines Flags for Windows and Linux')
+        self.cmake.write(title)
 
         self.define_group_properties()
         self.define_windows_flags()
@@ -88,16 +85,16 @@ class Flags(object):
 
         if self.std:
             if self.std in self.available_std:
-                send('CMake will use C++ std %s.' % self.std, 'info')
+                message('CMake will use C++ std %s.' % self.std, 'info')
                 linux_flags = '-std=%s' % self.std
             else:
-                send(
+                message(
                     'C++ std %s version does not exist. CMake will use "c++11" instead' % self.std,
                     'warn'
                 )
                 linux_flags = '-std=c++11'
         else:
-            send('No C++ std version specified. CMake will use "c++11" by default.', 'info')
+            message('No C++ std version specified. CMake will use "c++11" by default.', 'info')
             linux_flags = '-std=c++11'
         references = self.tree.xpath('//ns:ProjectReference', namespaces=self.ns)
         if references:
@@ -154,7 +151,7 @@ class Flags(object):
                     if 'Unicode' in unicode.text:
                         self.settings[setting][defines] += '   -DUNICODE\n'
                         self.settings[setting][defines] += '   -D_UNICODE\n'
-                send('PreprocessorDefinitions for {0}'.format(setting), 'ok')
+                message('PreprocessorDefinitions for {0}'.format(setting), 'ok')
 
     def define_windows_flags(self):
         """
@@ -189,9 +186,9 @@ class Flags(object):
             lvl = ' /W' + warning.text[-1:]
             for setting in self.settings:
                 self.settings[setting][cl_flags] += lvl
-            send('Warning : ' + warning.text, 'ok')
+            message('Warning : ' + warning.text, 'ok')
         else:  # pragma: no cover
-            send('No Warning level.', '')
+            message('No Warning level.', '')
 
     def set_whole_program_optimization(self):
         """
@@ -207,9 +204,9 @@ class Flags(object):
             if gl:
                 if 'true' in gl[0].text:
                     self.settings[setting][cl_flags] += ' /GL'
-                    send('WholeProgramOptimization for {0}'.format(setting), 'ok')
+                    message('WholeProgramOptimization for {0}'.format(setting), 'ok')
             else:
-                send('No WholeProgramOptimization for {0}'.format(setting), '')
+                message('No WholeProgramOptimization for {0}'.format(setting), '')
 
     def set_use_debug_libraries(self):
         """
@@ -224,9 +221,9 @@ class Flags(object):
             if md:
                 if 'true' in md[0].text:
                     self.settings[setting][cl_flags] += ' /MD'
-                    send('UseDebugLibrairies for {0}'.format(setting), 'ok')
+                    message('UseDebugLibrairies for {0}'.format(setting), 'ok')
             else:
-                send('No UseDebugLibrairies for {0}'.format(setting), '')
+                message('No UseDebugLibrairies for {0}'.format(setting), '')
 
     def set_runtime_library(self):
         """
@@ -243,9 +240,9 @@ class Flags(object):
             if mdd is not None:
                 if 'MultiThreadedDebugDLL' in mdd.text:
                     self.settings[setting][cl_flags] += ' /MDd'
-                    send('RuntimeLibrary for {0}'.format(setting), 'ok')
+                    message('RuntimeLibrary for {0}'.format(setting), 'ok')
             else:
-                send('No RuntimeLibrary for {0}'.format(setting), '')
+                message('No RuntimeLibrary for {0}'.format(setting), '')
 
     def set_optimization(self):
         """
@@ -261,9 +258,9 @@ class Flags(object):
             if opt is not None:
                 if 'Disabled' in opt.text:
                     self.settings[setting][cl_flags] += ' /Od'
-                    send('Optimization for {0}'.format(setting), 'ok')
+                    message('Optimization for {0}'.format(setting), 'ok')
             else:
-                send('No Optimization for {0}'.format(setting), '')
+                message('No Optimization for {0}'.format(setting), '')
 
     def set_intrinsic_functions(self):
         """
@@ -279,9 +276,9 @@ class Flags(object):
             if oi is not None:
                 if 'true' in oi.text:
                     self.settings[setting][cl_flags] += ' /Oi'
-                    send('IntrinsicFunctions for {0}'.format(setting), 'ok')
+                    message('IntrinsicFunctions for {0}'.format(setting), 'ok')
             else:
-                send('No IntrinsicFunctions for {0}'.format(setting), '')
+                message('No IntrinsicFunctions for {0}'.format(setting), '')
 
     def set_runtime_type_info(self):
         """
@@ -297,9 +294,9 @@ class Flags(object):
             if gr is not None:
                 if 'true' in gr.text:
                     self.settings[setting][cl_flags] += ' /GR'
-                    send('RuntimeTypeInfo for {0}'.format(setting), 'ok')
+                    message('RuntimeTypeInfo for {0}'.format(setting), 'ok')
             else:
-                send('No RuntimeTypeInfo for {0}'.format(setting), '')
+                message('No RuntimeTypeInfo for {0}'.format(setting), '')
 
     def set_function_level_linking(self):
         """
@@ -314,9 +311,9 @@ class Flags(object):
             if gy is not None:
                 if 'true' in gy.text:
                     self.settings[setting][cl_flags] += ' /Gy'
-                    send('FunctionLevelLinking for {0}'.format(setting), 'ok')
+                    message('FunctionLevelLinking for {0}'.format(setting), 'ok')
             else:
-                send('No FunctionLevelLinking for {0}'.format(setting), '')
+                message('No FunctionLevelLinking for {0}'.format(setting), '')
 
     def set_generate_debug_information(self):
         """
@@ -332,9 +329,9 @@ class Flags(object):
             if zi is not None:
                 if 'true' in zi.text:
                     self.settings[setting][cl_flags] += ' /Zi'
-                    send('GenerateDebugInformation for {0}'.format(setting), 'ok')
+                    message('GenerateDebugInformation for {0}'.format(setting), 'ok')
             else:
-                send('No GenerateDebugInformation for {0}'.format(setting), '')
+                message('No GenerateDebugInformation for {0}'.format(setting), '')
 
     def set_exception_handling(self):
         """
@@ -349,10 +346,10 @@ class Flags(object):
             )
             if ehs is not None:
                 if 'false' in ehs.text:
-                    send('No ExceptionHandling for {0}'.format(setting), '')
+                    message('No ExceptionHandling for {0}'.format(setting), '')
             else:
                 self.settings[setting][cl_flags] += ' /EHsc'
-                send('ExceptionHandling for {0}'.format(setting), 'ok')
+                message('ExceptionHandling for {0}'.format(setting), 'ok')
 
     def write_defines_and_flags(self):
         """

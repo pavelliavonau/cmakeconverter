@@ -31,7 +31,7 @@ from cmake_converter.data_files import get_vcxproj_data, get_cmake_lists
 
 from cmake_converter.dependencies import Dependencies
 from cmake_converter.flags import Flags
-from cmake_converter.message import send
+from cmake_converter.utils import message
 from cmake_converter.project_files import ProjectFiles
 from cmake_converter.project_variables import ProjectVariables
 
@@ -58,10 +58,10 @@ class DataConverter:
         if vs_project:
             temp_path = os.path.splitext(vs_project)
             if temp_path[1] == '.vcxproj':
-                send('Project to convert = ' + vs_project, '')
+                message('Project to convert = ' + vs_project, '')
                 self.data['vcxproj'] = get_vcxproj_data(vs_project)
             else:  # pragma: no cover
-                send('This file is not a ".vcxproj". Be sure you give the right file', 'error')
+                message('This file is not a ".vcxproj". Be sure you give the right file', 'error')
                 exit(1)
 
         # CMake Porject (CMakeLists.txt)
@@ -70,7 +70,7 @@ class DataConverter:
                 self.data['cmake'] = get_cmake_lists(cmake_lists)
 
         if not self.data['cmake']:
-            send(
+            message(
                 'CMakeLists.txt path is not set. '
                 'He will be generated in current directory.',
                 'warn'
@@ -100,7 +100,7 @@ class DataConverter:
         if self.data['includes']:
             depends.write_include_dir()
         else:
-            send('Include Directories is not set.', '')
+            message('Include Directories is not set.', '')
 
         # Write Dependencies
         depends.write_dependencies()

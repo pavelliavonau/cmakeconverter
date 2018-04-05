@@ -27,7 +27,7 @@
 
 import os
 
-from cmake_converter.message import send
+from cmake_converter.utils import message, get_title
 
 
 class ProjectFiles(object):
@@ -77,7 +77,7 @@ class ProjectFiles(object):
             if header_file not in self.headers[header_path]:
                 self.headers[header_path].append(header_file)
 
-        send("C++ Extensions found: %s" % self.language, 'INFO')
+        message("C++ Extensions found: %s" % self.language, 'INFO')
 
     def write_source_files(self):
         """
@@ -85,11 +85,9 @@ class ProjectFiles(object):
 
         """
 
-        self.cmake.write(
-            '################# Files & Target ##################\n'
-            '# Files of project and target to build            #\n'
-            '###################################################\n\n'
-        )
+        title = get_title('Files & Target', 'Files of project and target to build')
+        self.cmake.write(title)
+
         self.cmake.write('# Source Files\n')
         self.cmake.write('set(SRC_FILES\n')
 
@@ -122,17 +120,17 @@ class ProjectFiles(object):
         if file_to_add:
             try:
                 fc = open(file_to_add)
-                self.cmake.write('############# Additional Code #############\n')
-                self.cmake.write('# Provides from external file.            #\n')
-                self.cmake.write('###########################################\n\n')
+                title = get_title('Additional Code', 'Provides from an external file')
+                self.cmake.write(title)
+
                 for line in fc:
                     self.cmake.write(line)
                 fc.close()
                 self.cmake.write('\n\n')
-                send('File of Code is added = ' + file_to_add, 'warn')
+                message('File of Code is added = ' + file_to_add, 'warn')
             except OSError as e:
-                send(str(e), 'error')
-                send(
+                message(str(e), 'error')
+                message(
                     'Wrong data file ! Code was not added, please verify file name or path !',
                     'error'
                 )
@@ -147,14 +145,14 @@ class ProjectFiles(object):
         if configurationtype.text == 'DynamicLibrary':
             self.cmake.write('# Add library to build.\n')
             self.cmake.write('add_library(${PROJECT_NAME} SHARED\n')
-            send('CMake will build a SHARED Library.', '')
+            message('CMake will build a SHARED Library.', '')
         elif configurationtype.text == 'StaticLibrary':  # pragma: no cover
             self.cmake.write('# Add library to build.\n')
             self.cmake.write('add_library(${PROJECT_NAME} STATIC\n')
-            send('CMake will build a STATIC Library.', '')
+            message('CMake will build a STATIC Library.', '')
         else:  # pragma: no cover
             self.cmake.write('# Add executable to build.\n')
             self.cmake.write('add_executable(${PROJECT_NAME} \n')
-            send('CMake will build an EXECUTABLE.', '')
+            message('CMake will build an EXECUTABLE.', '')
         self.cmake.write('   ${SRC_FILES} ${HEADERS_FILES}\n')
         self.cmake.write(')\n\n')

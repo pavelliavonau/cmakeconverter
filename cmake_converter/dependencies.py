@@ -29,7 +29,7 @@ import ntpath
 import os
 import re
 
-from cmake_converter.message import send
+from cmake_converter.utils import message, get_title
 from cmake_converter.data_files import get_vcxproj_data
 
 
@@ -67,10 +67,10 @@ class Dependencies(object):
                 i = i.replace('\\', '/')
                 i = re.sub(r'\$\((.+?)\)', r'$ENV{\1}', i)
                 self.cmake.write('include_directories(%s)\n' % i)
-                send('Include Directories found : %s' % i, 'warn')
+                message('Include Directories found : %s' % i, 'warn')
             self.cmake.write('\n')
         else:  # pragma: no cover
-            send('Include Directories not found for this project.', 'warn')
+            message('Include Directories not found for this project.', 'warn')
 
     def get_dependency_target_name(self, vs_project):
         """
@@ -102,9 +102,9 @@ class Dependencies(object):
 
         references = self.tree.xpath('//ns:ProjectReference', namespaces=self.ns)
         if references:
-            self.cmake.write('################### Dependencies ##################\n'
-                             '# Add Dependencies to project.                    #\n'
-                             '###################################################\n\n')
+            title = get_title('Dependencies', 'Add Dependencies to project')
+            self.cmake.write(title)
+
             self.cmake.write(
                 'option(BUILD_DEPENDS \n' +
                 '   "Build other CMake project." \n' +
@@ -130,7 +130,7 @@ class Dependencies(object):
                 for ref in self.dependencies:
                     self.cmake.write(
                         '   add_subdirectory(%s ${CMAKE_BINARY_DIR}/lib%s)\n' % (ref, str(d)))
-                    send(
+                    message(
                         'Add manually dependencies : %s. Will be build in "lib%s/" !' % (
                             ref, str(d)),
                         'warn'
@@ -145,7 +145,7 @@ class Dependencies(object):
                 )
             self.cmake.write('endif()\n\n')
         else:  # pragma: no cover
-            send('No link needed.', '')
+            message('No link needed.', '')
 
     def add_dependencies(self):
         """
@@ -195,8 +195,8 @@ class Dependencies(object):
                 if lib == 'g3log':
                     lib += 'ger'  # To get "g3logger"
                 self.cmake.write(lib + ' ')
-                message = 'External library found : %s' % path_to_reference
-                send(message, '')
+                msg = 'External library found : %s' % path_to_reference
+                message(msg, '')
             self.cmake.write(')\n')
 
         # Additional Dependencies
@@ -204,7 +204,7 @@ class Dependencies(object):
         if dependencies:
             listdepends = dependencies[0].text.replace('%(AdditionalDependencies)', '')
             if listdepends != '':
-                send('Additional Dependencies = %s' % listdepends, 'ok')
+                message('Additional Dependencies = %s' % listdepends, 'ok')
                 windepends = []
                 for d in listdepends.split(';'):
                     if d != '%(AdditionalDependencies)':
@@ -218,4 +218,4 @@ class Dependencies(object):
                     self.cmake.write(')\n')
                     self.cmake.write('endif(MSVC)\n')
         else:  # pragma: no cover
-            send('No dependencies.', '')
+            message('No dependencies.', '')
