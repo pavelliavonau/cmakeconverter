@@ -85,7 +85,7 @@ class ProjectFiles(object):
 
         """
 
-        title = get_title('Files & Target', 'Files of project and target to build')
+        title = get_title('Files & Targets', 'Files of project and target to build')
         self.cmake.write(title)
 
         self.cmake.write('# Source Files\n')

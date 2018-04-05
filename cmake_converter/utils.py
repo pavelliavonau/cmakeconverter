@@ -66,7 +66,8 @@ def get_title(title, text):
     :type title: str
     :param text: text related to title
     :type text: str
-    :return:
+    :return: formatted title
+    :rtype: str
     """
 
     offset = 52
@@ -96,7 +97,7 @@ def get_title(title, text):
         i += 1
 
     bottom_text = ''
-    for n in range(offset):
+    for _ in range(offset):
         bottom_text = '%s#' % bottom_text
 
     return '%s\n%s\n%s\n\n' % (title, text, bottom_text)
