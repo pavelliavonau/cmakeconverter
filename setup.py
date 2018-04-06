@@ -43,6 +43,7 @@ from cmake_converter import __name__ as __pkg_name__
 install_requires = [
     'lxml',
     'docopt',
+    'colorama',
 ]
 
 
