@@ -82,16 +82,7 @@ class Dependencies(object):
         """
         # VS Project (.vcxproj)
         if vs_project:
-            vcxproj_xml = get_vcxproj_data(
-                os.path.join(os.path.dirname(self.cmake.name), vs_project)
-            )
-            root_projectname = vcxproj_xml['tree'].xpath('//ns:RootNamespace', namespaces=self.ns)
-
-            if root_projectname:
-                projectname = root_projectname[0]
-                if projectname.text:
-                    return projectname.text
-
+            return os.path.splitext(ntpath.basename(vs_project))[0]
         return ''
 
     def write_target_dependencies(self, references):

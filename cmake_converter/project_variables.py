@@ -41,6 +41,7 @@ class ProjectVariables(object):
         self.tree = data['vcxproj']['tree']
         self.ns = data['vcxproj']['ns']
         self.output = data['cmake_output']
+        self.project_name = data['project_name']
         self.vs_outputs = {
             'debug': {
                 'x86': None,
@@ -64,14 +65,9 @@ class ProjectVariables(object):
         #     '# Change if you want modify path or other values. #\n'
         #     '###################################################\n\n'
         # )
-        root_projectname = self.tree.xpath('//ns:RootNamespace', namespaces=self.ns)
-        project = False
-        if root_projectname:
-            projectname = root_projectname[0]
-            if projectname.text:
-                self.cmake.write('set(PROJECT_NAME ' + projectname.text + ')\n')
-                project = True
-        if not project:  # pragma: no cover
+        if not self.project_name == '':
+            self.cmake.write('set(PROJECT_NAME ' + self.project_name + ')\n')
+        else:
             self.cmake.write('set(PROJECT_NAME <PLEASE SET YOUR PROJECT NAME !!>)\n')
             send(
                 'No PROJECT NAME found or define. '
