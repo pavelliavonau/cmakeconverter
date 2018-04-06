@@ -61,6 +61,11 @@ class DataConverter:
             if temp_path[1] == '.vcxproj':
                 send('Project to convert = ' + vs_project, '')
                 self.data['vcxproj'] = get_vcxproj_data(vs_project)
+                project_name_node = self.data['vcxproj']['tree'].xpath('//ns:ProjectName', namespaces=self.data['vcxproj']['ns'])
+                if project_name_node:
+                    projectname = project_name_node[0]
+                    if projectname.text:
+                        project_name = projectname.text
                 self.data['project_name'] = project_name
             else:  # pragma: no cover
                 send('This file is not a ".vcxproj". Be sure you give the right file', 'error')
