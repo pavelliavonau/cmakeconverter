@@ -57,9 +57,11 @@ def take_name_from_list_case_ignore(search_list, name_to_search):
             real_name = item
             break
 
-    search_list.remove(real_name)
-
     if real_name == '':
+        if '.h' in name_to_search:
+            print('WARNING: {0} header file not  at filesystem. Ignoring but check it!!\n'.format(name_to_search))
+            return ''
         raise ValueError('Filename {0} not found at filesystem.'.format(name_to_search))
     else:
+        search_list.remove(real_name)
         return real_name
