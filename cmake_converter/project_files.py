@@ -117,7 +117,7 @@ class ProjectFiles(object):
         """
 
         self.cmake.write('include("%s")\n\n' % filename)
-        message('File of Code is added = ' + filename, 'warn')
+        message('File "%s" is included in CMakeLists.txt' % filename, 'warn')
 
     def add_additional_code(self, filename):
         """

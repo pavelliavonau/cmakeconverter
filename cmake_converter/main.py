@@ -47,7 +47,6 @@ CMake-Converter command line interface::
         -I, --includecmake=file     Add Include directive for given file in CMakeLists.txt.
         -S, --std=std               Choose your C++ std version. [default: c++11]
 
-
     Use cases:
         Display help message:
             cmake-converter (-h | --help)
@@ -61,8 +60,6 @@ CMake-Converter command line interface::
             cmake-converter -p ../msvc/foo/foo.vcxproj -c ../cmake/foo -S c++17
 
     Hint and tips:
-        The solution conversion is still in BETA and may therefore have some problems !
-
         It is important to check that the generated CMake files are working properly before using
         them in production.
 
@@ -74,6 +71,12 @@ CMake-Converter command line interface::
 
         If your project is in the following path: "../msvc/foo", your CMakeLists file should have
         the same tree level. The same is to be done for the files to include !
+
+    Solutions conversion:
+        The solution conversion is still in BETA and may therefore have some problems ! Your Visual
+        Studio projects must each have their respective folders for the conversion to work.
+
+        Note that the "dependencies" parameter is not recommended when converting the solution !
 """
 
 import re
@@ -98,6 +101,9 @@ def convert_project(data, vcxproj, cmake_lists):
     :type cmake_lists: str
     """
 
+    _, proj = os.path.split(vcxproj)
+    message('---> Convert a new project: [%s] ---' % proj, 'done')
+
     # Give data to DataConverter()
     data_converter = DataConverter(data)
     data_converter.init_files(vcxproj, cmake_lists)
@@ -105,6 +111,8 @@ def convert_project(data, vcxproj, cmake_lists):
 
     # Close CMake file
     data_converter.close_cmake_file()
+
+    message('---> Project [%s] is converted ! ---\n' % proj, 'done')
 
 
 def main():  # pragma: no cover
@@ -147,11 +155,18 @@ def main():  # pragma: no cover
         p = re.compile(r', "(.*\.vcxproj)"')
         projects = p.findall(sln.read())
         sln.close()
+        if data['cmake']:
+            message('CMake output is not used during solution conversion !', 'info')
+        if data['dependencies']:
+            message(
+                'The "dependencies" parameter is not recommended when converting a solution!',
+                'warn'
+            )
         for project in projects:
             project = '/'.join(project.split('\\'))
             project_abs = os.path.join(slnpath, project)
+            data['project'] = project_abs
             convert_project(data, project_abs, os.path.dirname(project_abs))
-            print('\n')
 
 
 if __name__ == "__main__":  # pragma: no cover

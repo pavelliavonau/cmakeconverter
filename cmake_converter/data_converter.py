@@ -58,7 +58,7 @@ class DataConverter:
         # VS Project (.vcxproj)
         temp_path = os.path.splitext(vs_project)
         if temp_path[1] == '.vcxproj':
-            message('Project to convert = %s' % vs_project, '')
+            message('Path to project = %s' % vs_project, '')
             self.data['vcxproj'] = get_vcxproj_data(vs_project)
         else:  # pragma: no cover
             message('This file is not a ".vcxproj". Be sure you give the right file', 'error')

@@ -25,7 +25,13 @@
      Manage sending messages during module execution
 """
 
-import os
+import colorama
+
+DONE = colorama.Fore.GREEN + colorama.Style.BRIGHT
+OK = colorama.Fore.CYAN + colorama.Style.BRIGHT
+WARN = colorama.Fore.YELLOW + colorama.Style.BRIGHT
+FAIL = colorama.Fore.RED + colorama.Style.BRIGHT
+ENDC = colorama.Fore.RESET + colorama.Style.RESET_ALL
 
 
 def message(text, status):  # pragma: no cover
@@ -38,22 +44,14 @@ def message(text, status):  # pragma: no cover
     :type status: str
     """
 
-    fail = ''
-    warn = ''
-    ok = ''
-    endc = ''
-
-    if os.name == 'posix':
-        fail += '\033[91m'
-        ok += '\033[34m'
-        endc += '\033[0m'
-        warn += '\033[93m'
     if status == 'error':
-        print('ERR  : ' + fail + text + endc)
+        print('ERR  : ' + FAIL + text + ENDC)
     elif status == 'warn':
-        print('WARN : ' + warn + text + endc)
+        print('WARN : ' + WARN + text + ENDC)
     elif status == 'ok':
-        print('OK   : ' + ok + text + endc)
+        print('OK   : ' + OK + text + ENDC)
+    elif status == 'done':
+        print(DONE + text + ENDC)
     else:
         print('INFO : ' + text)
 
