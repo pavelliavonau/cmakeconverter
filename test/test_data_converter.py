@@ -23,6 +23,7 @@ import os
 import unittest2
 
 from cmake_converter.data_converter import DataConverter
+from cmake_converter.data_files import get_cmake_lists
 
 
 class TestDataConverter(unittest2.TestCase):
@@ -94,17 +95,70 @@ class TestDataConverter(unittest2.TestCase):
 
         old_cmake.close()
         new_cmake.close()
-    #
-    # def test_close_cmake_file(self):
-    #     """Close CMake File"""
-    #
-    #     under_test = DataConverter(self.data_test)
-    #
-    #     under_test.init_files(self.vs_project, '')
-    #     under_test.create_data()
-    #
-    #     self.assertFalse(under_test.data['cmake'].closed)
-    #
-    #     under_test.close_cmake_file()
-    #
-    #     self.assertTrue(under_test.data['cmake'].closed)
+
+    def test_receive_wrong_cmake_path(self):
+        """Wrong CMake Path Write in Current Directory"""
+
+        data_test = {
+            'cmake': None,
+            'cmake_output': None,
+            'vcxproj': None,
+            'dependencies': None,
+            'includes': None,
+            'include_cmake': None,
+            'additional_code': None,
+            'std': None,
+        }
+        under_test = DataConverter(data_test)
+        under_test.init_files(self.vs_project, '/wrong/path/to/cmake')
+
+        # CMakeLists.txt is created in the current directory
+        self.assertEqual('CMakeLists.txt', under_test.data['cmake'].name)
+
+    def test_close_cmake_file(self):
+        """Close CMake File"""
+
+        under_test = DataConverter(self.data_test)
+
+        under_test.init_files(self.vs_project, '')
+        under_test.create_data()
+
+        self.assertFalse(under_test.data['cmake'].closed)
+
+        under_test.close_cmake_file()
+
+        self.assertTrue(under_test.data['cmake'].closed)
+
+    def test_inclusion_of_cmake_is_written(self):
+        """Inclusion of ".cmake" File is Written"""
+
+        data_test = {
+            'cmake': './',
+            'cmakeoutput': '',
+            'vcxproj': self.vs_project,
+            'project': self.vs_project,
+            'dependencies': [],
+            'include': '../../test.txt',
+            'includecmake': '../../test.cmake',
+            'additional': '',
+            'std': '',
+        }
+        under_test = DataConverter(data_test)
+        under_test.init_files(self.vs_project, '.')
+        under_test.data['cmake'] = get_cmake_lists('./')
+
+        under_test.create_data()
+        under_test.close_cmake_file()
+
+        cmakelists_test = open('CMakeLists.txt')
+
+        content_test = cmakelists_test.read()
+
+        # Includes are added
+        self.assertTrue('Include files and directories' in content_test)
+        self.assertTrue('../../test.cmake' in content_test)
+
+        # File "test.txt" is not added because it does not exist
+        self.assertTrue('../../test.txt' not in content_test)
+
+        cmakelists_test.close()
