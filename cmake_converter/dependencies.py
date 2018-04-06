@@ -42,7 +42,8 @@ class Dependencies(object):
         self.cmake = data['cmake']
         self.tree = data['vcxproj']['tree']
         self.ns = data['vcxproj']['ns']
-        self.dependencies = data['dependencies']
+        self.origin_project = data['project']
+        self.custom_dependencies = data['dependencies']
 
     def write_include_dir(self):
         """
@@ -84,7 +85,7 @@ class Dependencies(object):
 
         if vs_project:
             vcxproj_xml = get_vcxproj_data(
-                os.path.join(os.path.dirname(self.cmake.name), vs_project)
+                os.path.join(os.path.dirname(self.origin_project), vs_project)
             )
             root_projectname = vcxproj_xml['tree'].xpath('//ns:RootNamespace', namespaces=self.ns)
             if root_projectname:
@@ -114,7 +115,8 @@ class Dependencies(object):
             self.cmake.write(
                 '# Dependencies : disable BUILD_DEPENDS to link with lib already build.\n'
             )
-            if self.dependencies is None:
+
+            if not self.custom_dependencies:
                 self.cmake.write('if(BUILD_DEPENDS)\n')
                 for ref in references:
                     reference = str(ref.get('Include'))
@@ -127,7 +129,7 @@ class Dependencies(object):
             else:
                 self.cmake.write('if(BUILD_DEPENDS)\n')
                 d = 1
-                for ref in self.dependencies:
+                for ref in self.custom_dependencies:
                     self.cmake.write(
                         '   add_subdirectory(%s ${CMAKE_BINARY_DIR}/lib%s)\n' % (ref, str(d)))
                     message(
@@ -225,4 +227,4 @@ class Dependencies(object):
                     self.cmake.write(')\n')
                     self.cmake.write('endif(MSVC)\n')
         else:  # pragma: no cover
-            message('No dependencies.', '')
+            message('No Additional dependencies.', '')

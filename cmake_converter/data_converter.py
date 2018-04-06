@@ -26,6 +26,7 @@
 """
 
 import os
+import time
 
 from cmake_converter.data_files import get_vcxproj_data, get_cmake_lists
 
@@ -58,7 +59,7 @@ class DataConverter:
         if vs_project:
             temp_path = os.path.splitext(vs_project)
             if temp_path[1] == '.vcxproj':
-                message('Project to convert = ' + vs_project, '')
+                message('Project to convert = %s' % vs_project, '')
                 self.data['vcxproj'] = get_vcxproj_data(vs_project)
             else:  # pragma: no cover
                 message('This file is not a ".vcxproj". Be sure you give the right file', 'error')
@@ -76,6 +77,21 @@ class DataConverter:
                 'warn'
             )
             self.data['cmake'] = get_cmake_lists()
+
+        self.write_cmake_headers(vs_project)
+
+    def write_cmake_headers(self, vs_project):
+        """
+        Write generation informations and set CMake version
+
+        """
+
+        current_time = time.strftime("%H:%M:%S, %a %d %b ")
+        self.data['cmake'].write('# File generated at : %s\n' % current_time)
+        self.data['cmake'].write('# Converted Project : %s\n' % vs_project)
+
+        # CMake Minimum required.
+        self.data['cmake'].write('cmake_minimum_required(VERSION 3.0.0 FATAL_ERROR)\n\n')
 
     def create_data(self):
         """
@@ -95,15 +111,15 @@ class DataConverter:
         # Write Output Variables
         variables.add_cmake_output_directories()
 
-        if self.data['include_cmake'] or self.data['includes']:
+        if self.data['includecmake'] or self.data['include']:
             title = get_title('Includes', 'Include files and directories')
             self.data['cmake'].write(title)
         # Include ".cmake" file
-        if self.data['include_cmake']:
-            files.add_include_cmake(self.data['include_cmake'])
+        if self.data['includecmake']:
+            files.add_include_cmake(self.data['includecmake'])
         # Write Include Directories
         depends = Dependencies(self.data)
-        if self.data['includes']:
+        if self.data['include']:
             depends.write_include_dir()
         else:
             message('Include Directories is not set.', '')
@@ -112,8 +128,8 @@ class DataConverter:
         depends.write_dependencies()
 
         # Add additional code
-        if self.data['additional_code'] is not None:
-            files.add_additional_code(self.data['additional_code'])
+        if self.data['additional'] is not None:
+            files.add_additional_code(self.data['additional'])
 
         # Write and add Files
         files.write_source_files()

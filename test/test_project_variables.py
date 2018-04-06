@@ -32,16 +32,16 @@ class TestProjectVariables(unittest2.TestCase):
     """
 
     cur_dir = os.path.dirname(os.path.realpath(__file__))
-    vcxproj_data_test = get_vcxproj_data('%s/test_files/project_test.vcxproj' % cur_dir)
+    vcxproj_data_test = get_vcxproj_data('%s/datatest/foo.vcxproj' % cur_dir)
     cmake_lists_test = get_cmake_lists(cur_dir)
 
     data_test = {
         'cmake': cmake_lists_test,
-        'cmake_output': None,
+        'cmakeoutput': None,
         'vcxproj': vcxproj_data_test,
         'dependencies': None,
-        'includes': None,
-        'additional_code': None,
+        'include': None,
+        'additional': None,
         'std': None,
     }
 

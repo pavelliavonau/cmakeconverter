@@ -35,8 +35,8 @@ class TestUtils(unittest2.TestCase):
         under_test = get_title('Title', 'text of title')
 
         self.assertEqual(
-            '##################### Title ########################\n'
-            '# text of title                                    #\n'
-            '####################################################\n\n',
+            '######################### Title ############################\n'
+            '# text of title                                            #\n'
+            '############################################################\n\n',
             under_test
         )

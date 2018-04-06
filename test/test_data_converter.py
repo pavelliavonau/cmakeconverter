@@ -31,16 +31,17 @@ class TestDataConverter(unittest2.TestCase):
     """
 
     cur_dir = os.path.dirname(os.path.realpath(__file__))
-    vs_project = '%s/test_files/project_test.vcxproj' % cur_dir
+    vs_project = '%s/datatest/foo.vcxproj' % cur_dir
 
     data_test = {
         'cmake': None,
-        'cmake_output': None,
+        'cmakeoutput': None,
         'vcxproj': None,
+        'project': vs_project,
         'dependencies': None,
-        'includes': None,
-        'include_cmake': None,
-        'additional_code': None,
+        'include': None,
+        'includecmake': None,
+        'additional': None,
         'std': None,
     }
 

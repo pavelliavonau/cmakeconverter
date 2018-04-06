@@ -34,7 +34,7 @@ class TestDataFiles(unittest2.TestCase):
     """
 
     cur_dir = os.path.dirname(os.path.realpath(__file__))
-    vs_project = '%s/test_files/project_test.vcxproj' % cur_dir
+    vs_project = '%s/datatest/foo.vcxproj' % cur_dir
 
     def test_get_vcxproj_data(self):
         """Get VS Project Data"""

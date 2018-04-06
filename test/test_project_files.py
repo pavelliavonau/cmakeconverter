@@ -32,7 +32,7 @@ class TestProjectFiles(unittest2.TestCase):
     """
 
     cur_dir = os.path.dirname(os.path.realpath(__file__))
-    vcxproj_data_test = get_vcxproj_data('%s/test_files/project_test.vcxproj' % cur_dir)
+    vcxproj_data_test = get_vcxproj_data('%s/datatest/foo.vcxproj' % cur_dir)
     cmake_lists_test = get_cmake_lists(cur_dir)
 
     data_test = {
@@ -111,7 +111,7 @@ class TestProjectFiles(unittest2.TestCase):
 
         # When file exist, code is added
         under_test.cmake = get_cmake_lists(self.cur_dir)
-        under_test.add_additional_code('%s/test_files/additional_code_test.cmake' % self.cur_dir)
+        under_test.add_additional_code('%s/datatest/additional_code_test.cmake' % self.cur_dir)
 
         under_test.cmake.close()
 

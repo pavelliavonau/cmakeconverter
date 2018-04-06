@@ -70,14 +70,12 @@ def get_title(title, text):
     :rtype: str
     """
 
-    offset = 52
+    offset = 60
     text_offset = (offset / 2) - len(title)
 
-    i = 0
     title_sharp = ''
-    while i < text_offset:
+    for _ in range(int(text_offset)):
         title_sharp = '%s#' % title_sharp
-        i += 1
 
     title = '%s %s ' % (title_sharp, title)
     i = len(title)

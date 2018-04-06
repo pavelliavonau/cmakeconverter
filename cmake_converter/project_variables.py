@@ -41,7 +41,7 @@ class ProjectVariables(object):
         self.cmake = data['cmake']
         self.tree = data['vcxproj']['tree']
         self.ns = data['vcxproj']['ns']
-        self.output = data['cmake_output']
+        self.output = data['cmakeoutput']
         self.dependencies = data['dependencies']
         self.cmake_outputs = {}
         self.configurations = []
@@ -51,9 +51,6 @@ class ProjectVariables(object):
         Add main CMake project variables
 
         """
-
-        # CMake Minimum required.
-        self.cmake.write('cmake_minimum_required(VERSION 3.0.0 FATAL_ERROR)\n\n')
 
         # Project Name
         title = get_title('Variables', 'Change if you want modify path or other values')
@@ -226,7 +223,7 @@ class ProjectVariables(object):
 
         """
 
-        title = get_title('Artefacts Output', 'Defines outputs , depending Debug or Release')
+        title = get_title('Artefacts Output', 'Defines outputs , depending BUILD TYPE')
         self.cmake.write(title)
 
         self.cmake.write('if(CMAKE_BUILD_TYPE STREQUAL "Debug")\n')

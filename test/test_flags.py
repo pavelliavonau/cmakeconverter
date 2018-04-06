@@ -32,7 +32,7 @@ class TestFlags(unittest2.TestCase):
     """
 
     cur_dir = os.path.dirname(os.path.realpath(__file__))
-    vs_project = get_vcxproj_data('%s/test_files/project_test.vcxproj' % cur_dir)
+    vs_project = get_vcxproj_data('%s/datatest/foo.vcxproj' % cur_dir)
     cmake_lists_test = get_cmake_lists('./')
 
     data_test = {

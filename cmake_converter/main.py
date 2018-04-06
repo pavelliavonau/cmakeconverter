@@ -20,15 +20,69 @@
 # along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
 """
-    Main
-    ====
-     Manage script arguments and launch
+CMake-Converter command line interface::
+
+    Usage:
+        cmake-converter [-h]
+        cmake-converter [-V]
+        cmake-converter (-s solution | -p project) [-i]
+                        [-c cmake]
+                        [-D dependency:dependency:...]
+                        [-O cmakeoutput]
+                        [-a codefile]
+                        [-I cmakefile]
+                        [-S std]
+
+    Options:
+        -h, --help                  Show this help message and exit
+        -V, --version               Show application version
+        -s, --solution=solution     Path to a MSVC solution (.sln) (BETA)
+        -p, --project=project       Path to a MSVC project (.vcxproj)
+        -c, --cmake=cmake           Specify output of generated CMakeLists.txt
+        -D, --dependencies=dep      Replace dependencies found in ".vcxproj" file, separated by
+                                    colons
+        -O, --cmakeoutput=output    Define output of artefact produces by CMake.
+        -i, --include               Add include directories in CMakeLists.txt. [default: False]
+        -a, --additional=file       Import cmake code from any file to generated CMakeLists.txt.
+        -I, --includecmake=file     Add Include directive for given file in CMakeLists.txt.
+        -S, --std=std               Choose your C++ std version. [default: c++11]
+
+
+    Use cases:
+        Display help message:
+            cmake-converter (-h | --help)
+        Display current version:
+            cmake-converter (-V | --version)
+        Convert an MSVC project and defines output of artefacts:
+            cmake-converter -p ../msvc/foo/foo.vcxproj -c ../cmake/foo -O ../build/compiler
+        Convert an MSVC project and add ".cmake" file:
+            cmake-converter -p ../msvc/foo/foo.vcxproj -I ../cmake/foo/file.cmake
+        Convert an MSVC project with specific STD version:
+            cmake-converter -p ../msvc/foo/foo.vcxproj -c ../cmake/foo -S c++17
+
+    Hint and tips:
+        The solution conversion is still in BETA and may therefore have some problems !
+
+        It is important to check that the generated CMake files are working properly before using
+        them in production.
+
+        CMake Converter only manage Debug and Release build types. You can provide the build type
+        by add "-DCMAKE_BUILD_TYPE=<BUILD_TYPE>" to cmake command.
+
+        CMake-Converter will try to respect as much as possible the data of your MSVC project.
+        However, it is necessary to pay attention to the relative paths of the files.
+
+        If your project is in the following path: "../msvc/foo", your CMakeLists file should have
+        the same tree level. The same is to be done for the files to include !
 """
 
-import argparse
 import re
 import os
 
+from docopt import docopt, DocoptExit
+
+from cmake_converter import __version__
+from cmake_converter.utils import message
 from cmake_converter.data_converter import DataConverter
 
 
@@ -59,97 +113,37 @@ def main():  # pragma: no cover
 
     """
 
-    data = {
-        'vcxproj': None,
-        'cmake': None,
-        'additional_code': None,
-        'includes': None,
-        'dependencies': None,
-        'cmake_output': None,
-        'include_cmake': None,
-        'data': None,
-        'std': None,
-    }
+    # Get command line parameters
+    args = None
+    try:
+        args = docopt(__doc__, version=__version__)
+    except DocoptExit as exp:
+        message("Command line parsing error:\n%s." % exp, 'error')
+        print("~~~~~~~~~~~~~~~~~~~~~~~~~~")
+        print("Exiting with error code: 64")
+        exit(64)
 
-    usage = "cmake-converter -p <vcxproj> [-c | -a | -D | -O | -i | -std]"
-    # Init parser
-    parser = argparse.ArgumentParser(
-        usage=usage,
-        description='Convert Visual Studio projects (.vcxproj) to CMakeLists.txt'
-    )
-    parser.add_argument(
-        '-s', '--solution',
-        help='valid solution file. i.e.: ../../my.sln',
-        dest='solution'
-    )
-    parser.add_argument(
-        '-p', '--project',
-        help='[required] valid vcxproj file. i.e.: ../../mylib.vcxproj',
-        dest='project'
-    )
-    parser.add_argument(
-        '-c', '--cmake',
-        help='define output of CMakeLists.txt file',
-        dest='cmake'
-    )
-    parser.add_argument(
-        '-a', '--additional',
-        help='import cmake code from file.cmake to your final CMakeLists.txt',
-        dest='additional'
-    )
-    parser.add_argument(
-        '-D', '--dependencies',
-        help='replace dependencies found in .vcxproj, separated by colons. '
-             'i.e.: external/zlib/cmake/:../../external/g3log/cmake/',
-        dest='dependencies'
-    )
-    parser.add_argument(
-        '-O', '--cmakeoutput',
-        help='define output of artefact produces by CMake.',
-        dest='cmakeoutput'
-    )
-    parser.add_argument(
-        '-i', '--include',
-        help='add include directories in CMakeLists.txt. Default : False',
-        dest='include', action="store_true", default=False
-    )
-    parser.add_argument(
-        '-I', '--includecmake',
-        help='add Include directive to given file in CMakeLists.txt.',
-        dest='includecmake'
-    )
-    parser.add_argument(
-        '-std', '--std',
-        help='choose your C++ std version. Default : c++11',
-        dest='std'
-    )
-
-    # Get args
-    args = parser.parse_args()
+    # Check input file
+    if not args['--project'] and not args['--solution']:
+        message('You must specify a project or solution !', 'warn')
+        print(__doc__)
+        exit(2)
 
     # Prepare data
-    if not args.project and not args.solution:
-        parser.print_help()
-        exit(0)
+    data = {}
+    for key in args:
+        data[key.replace('--', '')] = args[key]
 
-    data['additional_code'] = args.additional
-    data['include_cmake'] = args.includecmake
-    if args.dependencies:
-        data['dependencies'] = args.dependencies.split(':')
-    data['cmake_output'] = args.cmakeoutput
-    data['includes'] = args.include
-
-    if args.std:
-        data['std'] = args.std
-
-    if not args.solution:
-        cmake_lists_path = os.path.dirname(args.project)
-        if args.cmake:
-            cmake_lists_path = args.cmake
-        convert_project(data, args.project, cmake_lists_path)
+    # Convert
+    if not data['solution']:
+        if data['cmake']:
+            cmake_lists_path = data['cmake']
+        else:
+            cmake_lists_path = os.path.dirname(data['project'])
+        convert_project(data, data['project'], cmake_lists_path)
     else:
-        sln = open(args.solution)
-        slnpath = os.path.dirname(args.solution)
+        sln = open(data['solution'])
+        slnpath = os.path.dirname(data['solution'])
         p = re.compile(r', "(.*\.vcxproj)"')
         projects = p.findall(sln.read())
         sln.close()

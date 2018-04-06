@@ -32,13 +32,14 @@ class TestDependencies(unittest2.TestCase):
     """
 
     cur_dir = os.path.dirname(os.path.realpath(__file__))
-    vs_project = get_vcxproj_data('%s/test_files/project_test.vcxproj' % cur_dir)
+    vs_project = get_vcxproj_data('%s/datatest/foo.vcxproj' % cur_dir)
     cmake_lists_test = get_cmake_lists('./')
 
     data_test = {
         'cmake': cmake_lists_test,
         'cmake_output': None,
         'vcxproj': vs_project,
+        'project': '%s/datatest/foo.vcxproj' % cur_dir,
         'dependencies': [],
         'includes': None,
         'additional_code': None,
@@ -53,7 +54,7 @@ class TestDependencies(unittest2.TestCase):
         self.assertTrue(under_test.cmake)
         self.assertTrue(under_test.tree)
         self.assertTrue(under_test.ns)
-        self.assertFalse(under_test.dependencies)
+        self.assertFalse(under_test.custom_dependencies)
 
     def test_write_include_dir(self):
         """Write Include Dirs"""
