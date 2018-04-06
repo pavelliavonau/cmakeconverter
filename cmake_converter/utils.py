@@ -46,3 +46,20 @@ def mkdir(folder):
     except PermissionError as e:
         print('Can\'t create [%s] directory for cmake !\n%s' % (folder, e))
         sys.exit(1)
+
+
+def take_name_from_list_case_ignore(search_list, name_to_search):
+    """
+    """
+    real_name = ''
+    for item in search_list:
+        if item.lower() == name_to_search.lower():
+            real_name = item
+            break
+
+    search_list.remove(real_name)
+
+    if real_name == '':
+        raise ValueError('Filename {0} not found at filesystem.'.format(name_to_search))
+    else:
+        return real_name

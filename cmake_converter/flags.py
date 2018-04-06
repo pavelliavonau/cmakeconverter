@@ -31,6 +31,7 @@ from os import path
 
 from cmake_converter.message import send
 from cmake_converter.data_files import get_propertygroup, get_definitiongroup
+from cmake_converter.utils import take_name_from_list_case_ignore
 
 cl_flags = 'cl_flags'
 ln_flags = 'ln_flags'
@@ -195,7 +196,8 @@ class Flags(object):
             if not project_has_pch and self.settings[setting]['PrecompiledHeader'] == 'Use':
                 for folder in files.sources:
                     pch_cpp = self.settings[setting]['PrecompiledHeaderFile'].replace('.h', '.cpp')
-                    files.sources[folder].remove(pch_cpp)
+                    real_pch_cpp = take_name_from_list_case_ignore(files.sources[folder], pch_cpp)
+                    self.settings[setting]['PrecompiledHeaderFile'] = real_pch_cpp.replace('.cpp', '.h')
                 project_has_pch = True
 
     def define_windows_flags(self):

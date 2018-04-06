@@ -28,7 +28,7 @@
 import os
 
 from cmake_converter.message import send
-
+from cmake_converter.utils import take_name_from_list_case_ignore
 
 class ProjectFiles(object):
     """
@@ -44,22 +44,6 @@ class ProjectFiles(object):
         self.language = []
         self.sources = {}
         self.headers = {}
-
-    def get_real_file_name(self, filelist, path, name):
-        """
-        """
-        real_name = ''
-        for item in filelist:
-            if item.lower() == name.lower():
-                real_name = item
-                break;
-
-        filelist.remove(real_name)
-        
-        if real_name == '':
-            raise ValueError('Filename {0} not found at filesystem.'.format(name))
-        else:
-            return real_name
 
     def collects_source_files(self):
         """
@@ -83,8 +67,8 @@ class ProjectFiles(object):
                 if cpp_path not in self.sources:
                     self.sources = {cpp_path: []}
                 if cxx_file not in self.sources[cpp_path]:
-                    self.sources[cpp_path].append(self.get_real_file_name(filelists[cpp_path],
-                                                                          cpp_path, cxx_file))
+                    self.sources[cpp_path].append(take_name_from_list_case_ignore(filelists[cpp_path],
+                                                                                        cxx_file))
         for source_path in self.sources:
             self.sources[source_path].sort(key=str.lower)
 
@@ -98,8 +82,8 @@ class ProjectFiles(object):
             if header_path not in self.headers:
                 self.headers = {header_path: []}
             if header_file not in self.headers[header_path]:
-                self.headers[header_path].append(self.get_real_file_name(filelists[header_path],
-                                                                        header_path, header_file))
+                self.headers[header_path].append(take_name_from_list_case_ignore(filelists[header_path],
+                                                                                       header_file))
         for header_path in self.headers:
             self.headers[header_path].sort(key=str.lower)
 
