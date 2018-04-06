@@ -56,25 +56,22 @@ class DataConverter:
         """
 
         # VS Project (.vcxproj)
-        if vs_project:
-            temp_path = os.path.splitext(vs_project)
-            if temp_path[1] == '.vcxproj':
-                message('Project to convert = %s' % vs_project, '')
-                self.data['vcxproj'] = get_vcxproj_data(vs_project)
-            else:  # pragma: no cover
-                message('This file is not a ".vcxproj". Be sure you give the right file', 'error')
-                exit(1)
+        temp_path = os.path.splitext(vs_project)
+        if temp_path[1] == '.vcxproj':
+            message('Project to convert = %s' % vs_project, '')
+            self.data['vcxproj'] = get_vcxproj_data(vs_project)
+        else:  # pragma: no cover
+            message('This file is not a ".vcxproj". Be sure you give the right file', 'error')
+            exit(1)
 
         # CMake Project (CMakeLists.txt)
-        if cmake_lists:
-            if os.path.exists(cmake_lists):
-                self.data['cmake'] = get_cmake_lists(cmake_lists)
-
-        if not self.data['cmake']:
+        if os.path.exists(cmake_lists):
+            self.data['cmake'] = get_cmake_lists(cmake_lists)
+        else:
             message(
-                'CMakeLists.txt path is not set. '
+                'The path given for the CMakeLists does not exist ! '
                 'He will be generated in current directory.',
-                'warn'
+                'error'
             )
             self.data['cmake'] = get_cmake_lists()
 

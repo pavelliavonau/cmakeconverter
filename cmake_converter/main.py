@@ -86,7 +86,7 @@ from cmake_converter.utils import message
 from cmake_converter.data_converter import DataConverter
 
 
-def convert_project(data, vcxproj, cmake_dest_dir):
+def convert_project(data, vcxproj, cmake_lists):
     """
     Convert a ``vcxproj`` to a ``CMakeLists.txt``
 
@@ -94,13 +94,13 @@ def convert_project(data, vcxproj, cmake_dest_dir):
     :type data: dict
     :param vcxproj: input vcxproj
     :type vcxproj: str
-    :param cmake_dest_dir: destinaton folder of CMakeLists.txt
-    :type cmake_dest_dir: str
+    :param cmake_lists: destinaton folder of CMakeLists.txt
+    :type cmake_lists: str
     """
 
     # Give data to DataConverter()
     data_converter = DataConverter(data)
-    data_converter.init_files(vcxproj, cmake_dest_dir)
+    data_converter.init_files(vcxproj, cmake_lists)
     data_converter.create_data()
 
     # Close CMake file
