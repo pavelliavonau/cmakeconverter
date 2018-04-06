@@ -69,7 +69,6 @@ class TestProjectVariables(unittest2.TestCase):
         cmakelists_test = open('%s/CMakeLists.txt' % self.cur_dir)
         content_test = cmakelists_test.read()
 
-        self.assertTrue('cmake_minimum_required(VERSION 3.0.0 FATAL_ERROR)' in content_test)
         self.assertTrue('set(PROJECT_NAME core)' in content_test)
 
         cmakelists_test.close()
