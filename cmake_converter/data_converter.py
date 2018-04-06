@@ -31,7 +31,7 @@ from cmake_converter.data_files import get_vcxproj_data, get_cmake_lists
 
 from cmake_converter.dependencies import Dependencies
 from cmake_converter.flags import Flags
-from cmake_converter.utils import message
+from cmake_converter.utils import message, get_title
 from cmake_converter.project_files import ProjectFiles
 from cmake_converter.project_variables import ProjectVariables
 
@@ -92,13 +92,15 @@ class DataConverter:
         variables.add_cmake_project(files.language)
         variables.add_default_target()
 
-        # Include ".cmake" file
-        if self.data['include_cmake']:
-            files.add_include_cmake(self.data['include_cmake'])
-
         # Write Output Variables
         variables.add_cmake_output_directories()
 
+        if self.data['include_cmake'] or self.data['includes']:
+            title = get_title('Includes', 'Include files and directories')
+            self.data['cmake'].write(title)
+        # Include ".cmake" file
+        if self.data['include_cmake']:
+            files.add_include_cmake(self.data['include_cmake'])
         # Write Include Directories
         depends = Dependencies(self.data)
         if self.data['includes']:

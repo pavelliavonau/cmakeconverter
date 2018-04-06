@@ -194,6 +194,10 @@ class Dependencies(object):
                 lib = self.get_dependency_target_name(reference)
                 if lib == 'g3log':
                     lib += 'ger'  # To get "g3logger"
+
+                # Removes possible backslash and msvc variable
+                lib = lib.replace('\\', '/')
+                lib = lib.replace('$(ProjectDir)', '')
                 self.cmake.write(lib + ' ')
                 msg = 'External library found : %s' % path_to_reference
                 message(msg, '')
@@ -214,6 +218,9 @@ class Dependencies(object):
                     self.cmake.write('if(MSVC)\n')
                     self.cmake.write('   target_link_libraries(${PROJECT_NAME} ')
                     for dep in windepends:
+                        # Removes possible backslash and msvc variable
+                        dep = dep.replace('\\', '/')
+                        dep = dep.replace('$(ProjectDir)', '')
                         self.cmake.write(dep + ' ')
                     self.cmake.write(')\n')
                     self.cmake.write('endif(MSVC)\n')
