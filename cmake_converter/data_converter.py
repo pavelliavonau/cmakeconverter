@@ -61,6 +61,7 @@ class DataConverter:
             if temp_path[1] == '.vcxproj':
                 send('Project to convert = ' + vs_project, '')
                 self.data['vcxproj'] = get_vcxproj_data(vs_project)
+                self.data['vcxproj_path'] = vs_project
                 project_name_node = self.data['vcxproj']['tree'].xpath('//ns:ProjectName', namespaces=self.data['vcxproj']['ns'])
                 if project_name_node:
                     projectname = project_name_node[0]
@@ -74,7 +75,20 @@ class DataConverter:
         # Cmake Project (CMakeLists.txt)
         if cmake_lists:
             if os.path.exists(cmake_lists):
-                self.data['cmake'] = get_cmake_lists(cmake_lists)
+                cmake = get_cmake_lists(cmake_lists, 'r')
+                if cmake:
+                    file_text = cmake.read()
+                    cmake.close()
+                    if 'PROJECT_NAME {0}'.format(project_name) in file_text:
+                        self.data['cmake'] = get_cmake_lists(cmake_lists)  # updating
+                    else:
+                        send('CMakeLists.txt duplicate error!!', 'error')
+                        directory = cmake_lists + '/{0}_cmakelists'.format(project_name)
+                        if not os.path.exists(directory):
+                            os.makedirs(directory)
+                        self.data['cmake'] = get_cmake_lists(directory)
+                else:
+                    self.data['cmake'] = get_cmake_lists(cmake_lists)  # writing first time
 
         if not self.data['cmake']:
             send(

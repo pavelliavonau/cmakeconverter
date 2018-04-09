@@ -155,24 +155,32 @@ def get_definitiongroup(target_platform):
     return item
 
 
-def get_cmake_lists(cmake_path=None):
+def get_cmake_lists(cmake_path=None, open_type='w'):
     """
     Create CMakeLists.txt file in wanted "cmake_path"
 
-    :param cmake_path: path where CMakeLists.txt should be write
+    :param cmake_path: path where CMakeLists.txt should be open
     :type cmake_path: str
+    :param open_type: type that CMakeLists.txt should be opened
+    :type open_type: str
     :return: cmake file wrapper opened
     :rtype: _io.TextIOWrapper
     """
 
+    cmake = ''
     if not cmake_path:
-        send('CMakeLists will be build in current directory.', '')
-        cmake = open('CMakeLists.txt', 'w')
+        if open_type == 'w':
+            send('CMakeLists will be written at current directory.', '')
+        cmake = os.path.join(os.getcwd(), 'CMakeLists.txt')
     else:
-        send('CmakeLists.txt will be build in : ' + str(cmake_path), 'warn')
+        if open_type == 'w':
+            send('CmakeLists.txt will be written at : ' + str(cmake_path), 'warn')
         if cmake_path[-1:] == '/' or cmake_path[-1:] == '\\':
-            cmake = open(str(cmake_path) + 'CMakeLists.txt', 'w')
+            cmake = str(cmake_path) + 'CMakeLists.txt'
         else:
-            cmake = open(str(cmake_path) + '/CMakeLists.txt', 'w')
+            cmake = str(cmake_path) + '/CMakeLists.txt'
 
-    return cmake
+    if not os.path.exists(cmake) and open_type == 'r':
+        return None
+
+    return open(cmake, open_type)
