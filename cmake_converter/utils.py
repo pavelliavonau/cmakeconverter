@@ -20,9 +20,9 @@
 # along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
 """
-    Message
-    =======
-     Manage sending messages during module execution
+    Utils
+    =====
+    Utils manage function needed by converter
 """
 
 import colorama

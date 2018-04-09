@@ -36,15 +36,16 @@ Install from Pip
 
 Install cmake-converter as a standard python library::
 
-    sudo pip install cmake_converter
+    # If you're under Windows, use "pip" instead "pip3"
+    pip3 install cmake_converter
 
 Install from Source
 ~~~~~~~~~~~~~~~~~~~
 
 Simply clone this repository and type the following command to install it::
 
-    # Inside repository folder
-    sudo pip install .
+    # Inside repository folder. If you're under Windows, use "pip" instead "pip3"
+    pip3 install .
 
 Run & Convert
 ~~~~~~~~~~~~~
