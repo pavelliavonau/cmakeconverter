@@ -30,18 +30,19 @@ import os
 from cmake_converter.message import send
 from cmake_converter.utils import take_name_from_list_case_ignore
 
+
 class ProjectFiles(object):
     """
         Class who collect and store project files
     """
 
-    def __init__(self, data):
-        self.vcxproj_path = data['vcxproj_path']
-        self.tree = data['vcxproj']['tree']
-        self.ns = data['vcxproj']['ns']
-        self.cmake = data['cmake']
-        self.cppfiles = self.tree.xpath('//ns:ClCompile', namespaces=self.ns)
-        self.headerfiles = self.tree.xpath('//ns:ClInclude', namespaces=self.ns)
+    def __init__(self, context):
+        self.vcxproj_path = context['vcxproj_path']
+        self.tree = context['vcxproj']['tree']
+        self.ns = context['vcxproj']['ns']
+        self.cmake = context['cmake']
+        self.cpp_files = self.tree.xpath('//ns:ClCompile', namespaces=self.ns)
+        self.header_files = self.tree.xpath('//ns:ClInclude', namespaces=self.ns)
         self.language = []
         self.sources = {}
         self.headers = {}
@@ -56,7 +57,7 @@ class ProjectFiles(object):
         vcxproj_dir = os.path.dirname(self.vcxproj_path)
 
         # Cpp Dir
-        for cpp in self.cppfiles:
+        for cpp in self.cpp_files:
             if cpp.get('Include') is not None:
                 cxx = str(cpp.get('Include'))
                 cxx = '/'.join(cxx.split('\\'))
@@ -68,13 +69,12 @@ class ProjectFiles(object):
                 if cpp_path not in self.sources:
                     self.sources = {cpp_path: []}
                 if cxx_file not in self.sources[cpp_path]:
-                    self.sources[cpp_path].append(take_name_from_list_case_ignore(filelists[cpp_path],
-                                                                                        cxx_file))
+                    self.sources[cpp_path].append(take_name_from_list_case_ignore(filelists[cpp_path], cxx_file))
         for source_path in self.sources:
             self.sources[source_path].sort(key=str.lower)
 
         # Headers Dir
-        for header in self.headerfiles:
+        for header in self.header_files:
             h = str(header.get('Include'))
             h = '/'.join(h.split('\\'))
             header_path, header_file = os.path.split(h)
@@ -83,8 +83,7 @@ class ProjectFiles(object):
             if header_path not in self.headers:
                 self.headers = {header_path: []}
             if header_file not in self.headers[header_path]:
-                self.headers[header_path].append(take_name_from_list_case_ignore(filelists[header_path],
-                                                                                       header_file))
+                self.headers[header_path].append(take_name_from_list_case_ignore(filelists[header_path], header_file))
         for header_path in self.headers:
             self.headers[header_path].sort(key=str.lower)
 
@@ -121,9 +120,9 @@ class ProjectFiles(object):
         self.cmake.write('\n############ Header Files #############\n')
         self.cmake.write('set(HEADERS_FILES\n')
 
-        for hdrs_dir in self.headers:
-            for header_file in self.headers[hdrs_dir]:
-                self.cmake.write('    %s\n' % os.path.join(hdrs_dir, header_file).replace('\\', '/'))
+        for headers_dir in self.headers:
+            for header_file in self.headers[headers_dir]:
+                self.cmake.write('    %s\n' % os.path.join(headers_dir, header_file).replace('\\', '/'))
 
         self.cmake.write(')\n')
         self.cmake.write('source_group("Headers" FILES ${HEADERS_FILES})\n')

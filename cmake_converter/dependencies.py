@@ -38,11 +38,11 @@ class Dependencies(object):
         Class who find and write dependencies of project, additionnal directories...
     """
 
-    def __init__(self, data):
-        self.cmake = data['cmake']
-        self.tree = data['vcxproj']['tree']
-        self.ns = data['vcxproj']['ns']
-        self.dependencies = data['dependencies']
+    def __init__(self, context):
+        self.cmake = context['cmake']
+        self.tree = context['vcxproj']['tree']
+        self.ns = context['vcxproj']['ns']
+        self.dependencies = context['dependencies']
 
     def write_include_dir(self):
         """
@@ -73,7 +73,8 @@ class Dependencies(object):
         else:  # pragma: no cover
             send('Include Directories not found for this project.', 'warn')
 
-    def get_dependency_target_name(self, vs_project):
+    @staticmethod
+    def get_dependency_target_name(vs_project):
         """
         Return dependency of target
 
@@ -122,7 +123,7 @@ class Dependencies(object):
                              '# Add Dependencies to project.                    #\n'
                              '###################################################\n\n')
             self.write_target_dependencies(references)
-            return # TODO: looks like wrong code
+            return  # TODO: looks like wrong code
             self.cmake.write(
                 'option(BUILD_DEPENDS \n' +
                 '   "Build other CMake project." \n' +
@@ -211,7 +212,7 @@ class Dependencies(object):
         else:  # pragma: no cover
             send('No dependencies.', '')
 
-    def extentions_targets_dependencies(self):
+    def extensions_targets_dependencies(self):
         """
         Other dependencies of project. Like nuget for example.
 
@@ -219,7 +220,7 @@ class Dependencies(object):
         packages_xml = get_xml_data( os.path.join(os.path.dirname(self.cmake.name), 'packages.config') )
         # External libraries
         if packages_xml:
-            extension = packages_xml['tree'].xpath('/packages/package') #, namespaces=packages_xml['ns'])
+            extension = packages_xml['tree'].xpath('/packages/package')
             for ref in extension:
                 id = ref.get('id')
                 version = ref.get('version')

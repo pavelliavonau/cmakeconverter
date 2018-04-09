@@ -41,8 +41,8 @@ class DataConverter:
         Class who convert data to CMakeLists.txt.
     """
 
-    def __init__(self, data):
-        self.data = data
+    def __init__(self, context):
+        self.context = context
 
     def init_files(self, vs_project, cmake_lists):
         """
@@ -60,14 +60,15 @@ class DataConverter:
             project_name = os.path.basename(temp_path[0])
             if temp_path[1] == '.vcxproj':
                 send('Project to convert = ' + vs_project, '')
-                self.data['vcxproj'] = get_vcxproj_data(vs_project)
-                self.data['vcxproj_path'] = vs_project
-                project_name_node = self.data['vcxproj']['tree'].xpath('//ns:ProjectName', namespaces=self.data['vcxproj']['ns'])
+                self.context['vcxproj'] = get_vcxproj_data(vs_project)
+                self.context['vcxproj_path'] = vs_project
+                project_name_node = self.context['vcxproj']['tree'].xpath('//ns:ProjectName'
+                                                                          , namespaces=self.context['vcxproj']['ns'])
                 if project_name_node:
                     projectname = project_name_node[0]
                     if projectname.text:
                         project_name = projectname.text
-                self.data['project_name'] = project_name
+                self.context['project_name'] = project_name
             else:  # pragma: no cover
                 send('This file is not a ".vcxproj". Be sure you give the right file', 'error')
                 exit(1)
@@ -80,23 +81,22 @@ class DataConverter:
                     file_text = cmake.read()
                     cmake.close()
                     if 'PROJECT_NAME {0}'.format(project_name) in file_text:
-                        self.data['cmake'] = get_cmake_lists(cmake_lists)  # updating
+                        self.context['cmake'] = get_cmake_lists(cmake_lists)  # updating
                     else:
-                        send('CMakeLists.txt duplicate error!!', 'error')
                         directory = cmake_lists + '/{0}_cmakelists'.format(project_name)
                         if not os.path.exists(directory):
                             os.makedirs(directory)
-                        self.data['cmake'] = get_cmake_lists(directory)
+                        self.context['cmake'] = get_cmake_lists(directory)
                 else:
-                    self.data['cmake'] = get_cmake_lists(cmake_lists)  # writing first time
+                    self.context['cmake'] = get_cmake_lists(cmake_lists)  # writing first time
 
-        if not self.data['cmake']:
+        if not self.context['cmake']:
             send(
                 'CMakeLists.txt path is not set. '
                 'He will be generated in current directory.',
                 'warn'
             )
-            self.data['cmake'] = get_cmake_lists()
+            self.context['cmake'] = get_cmake_lists()
 
     @staticmethod
     def add_cmake_version_required(cmake_file):
@@ -112,15 +112,15 @@ class DataConverter:
 
         """
 
-        if not self.data['is_converting_solution']:
-            self.add_cmake_version_required(self.data['cmake'])
+        if not self.context['is_converting_solution']:
+            self.add_cmake_version_required(self.context['cmake'])
 
         # Write variables
-        variables = ProjectVariables(self.data)
+        variables = ProjectVariables(self.context)
         variables.add_project_variables()
         # variables.add_outputs_variables() # TODO: remove hard code of configuration names
 
-        files = ProjectFiles(self.data)
+        files = ProjectFiles(self.context)
         files.collects_source_files()
         files.add_cmake_project(files.language)
         # variables.add_default_target() # TODO: add conversion option to cmd line
@@ -129,20 +129,20 @@ class DataConverter:
         # variables.add_artifact_target_outputs() # TODO: remove hard code of configuration names
 
         # Write Include Directories
-        dependencies = Dependencies(self.data)
-        if self.data['includes']:
+        dependencies = Dependencies(self.context)
+        if self.context['includes']:
             dependencies.write_include_dir()
         else:
             send('Include Directories is not set.', '')
 
         # Add additional code or not
-        if self.data['additional_code'] is not None:
-            files.add_additional_code(self.data['additional_code'])
+        if self.context['additional_code'] is not None:
+            files.add_additional_code(self.context['additional_code'])
 
         files.write_header_files()
 
         if len(files.sources) != 0:
-            all_flags = Flags(self.data)
+            all_flags = Flags(self.context)
             all_flags.do_precompiled_headers(files)
             all_flags.define_flags()
             # Writing
@@ -151,14 +151,14 @@ class DataConverter:
             all_flags.write_target_artefact()
             all_flags.write_defines_and_flags()
             for configuration_type in all_flags.get_cmake_configuration_types():
-                self.data['configuration_types'].add(configuration_type)
+                self.context['configuration_types'].add(configuration_type)
 
         # Write Dependencies
         dependencies.write_dependencies()
 
         # Link with other dependencies
         dependencies.link_dependencies()
-        dependencies.extentions_targets_dependencies()
+        dependencies.extensions_targets_dependencies()
 
     def close_cmake_file(self):
         """
@@ -166,4 +166,4 @@ class DataConverter:
 
         """
 
-        self.data['cmake'].close()
+        self.context['cmake'].close()

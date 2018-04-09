@@ -46,13 +46,13 @@ class Flags(object):
 
     available_std = ['c++11', 'c++14', 'c++17']
 
-    def __init__(self, data):
-        self.tree = data['vcxproj']['tree']
-        self.ns = data['vcxproj']['ns']
-        self.cmake = data['cmake']
+    def __init__(self, context):
+        self.tree = context['vcxproj']['tree']
+        self.ns = context['vcxproj']['ns']
+        self.cmake = context['cmake']
         self.propertygroup = {}
         self.definitiongroups = {}
-        self.std = data['std']
+        self.std = context['std']
         self.settings = {}
         self.define_settings()
 

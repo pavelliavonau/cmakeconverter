@@ -33,12 +33,12 @@ from cmake_converter.data_converter import DataConverter
 from cmake_converter.data_files import get_cmake_lists
 
 
-def convert_project(converter_args, vcxproj_path, cmake_lists_destination_path):
+def convert_project(context, vcxproj_path, cmake_lists_destination_path):
     """
     Convert a ``vcxproj`` to a ``CMakeLists.txt``
 
-    :param converter_args: input data of user
-    :type converter_args: dict
+    :param context: input data of user
+    :type context: dict
     :param vcxproj_path: input vcxproj
     :type vcxproj_path: str
     :param cmake_lists_destination_path: Destination folder of CMakeLists.txt
@@ -46,7 +46,7 @@ def convert_project(converter_args, vcxproj_path, cmake_lists_destination_path):
     """
 
     # Give data to DataConverter()
-    data_converter = DataConverter(converter_args)
+    data_converter = DataConverter(context)
     data_converter.init_files(vcxproj_path, cmake_lists_destination_path)
     data_converter.create_data()
 
@@ -60,7 +60,7 @@ def main():  # pragma: no cover
 
     """
 
-    converter_args = {
+    context = {
         'vcxproj': None,
         'cmake': None,
         'additional_code': None,
@@ -124,27 +124,27 @@ def main():  # pragma: no cover
     # Get args
     args = parser.parse_args()
 
-    # Prepare converter_args
+    # Prepare context
     if not args.project and not args.solution:
         parser.print_help()
         exit(0)
 
-    converter_args['additional_code'] = args.additional
+    context['additional_code'] = args.additional
     if args.dependencies:
-        converter_args['dependencies'] = args.dependencies.split(':')
-    converter_args['cmake_output'] = args.cmakeoutput
-    converter_args['includes'] = args.include
+        context['dependencies'] = args.dependencies.split(':')
+    context['cmake_output'] = args.cmakeoutput
+    context['includes'] = args.include
 
     if args.std:
-        converter_args['std'] = args.std
+        context['std'] = args.std
 
     if not args.solution:
         cmake_lists_path = os.path.dirname(args.project)
         if args.cmake:
             cmake_lists_path = args.cmake
-        convert_project(converter_args, args.project, cmake_lists_path)
+        convert_project(context, args.project, cmake_lists_path)
     else:
-        converter_args['is_converting_solution'] = True
+        context['is_converting_solution'] = True
         sln = open(args.solution)
         solution_path = os.path.dirname(args.solution)
         p = re.compile(r', "(.*\.vcxproj)"')
@@ -159,8 +159,8 @@ def main():  # pragma: no cover
             project = '/'.join(project.split('\\'))
             project_abs = os.path.join(solution_path, project)
             subdirectory = os.path.dirname(project_abs)
-            convert_project(converter_args, project_abs, subdirectory)
-            cmake_dir = os.path.dirname(converter_args['cmake'].name)
+            convert_project(context, project_abs, subdirectory)
+            cmake_dir = os.path.dirname(context['cmake'].name)
             subdirectories.append(os.path.relpath(cmake_dir, solution_path))
             print('\n')
         # TODO: try to write configuration types for each project locally due possible difference.
@@ -168,7 +168,7 @@ def main():  # pragma: no cover
         sln_cmake.write('# Global configuration types\n')
         sln_cmake.write('################################################################################\n')
         sln_cmake.write('set(CMAKE_CONFIGURATION_TYPES\n')
-        configuration_types_list = list(converter_args['configuration_types'])
+        configuration_types_list = list(context['configuration_types'])
         configuration_types_list.sort(key=str.lower)
         for configuration_type in configuration_types_list:
             sln_cmake.write('    \"{0}\"\n'.format(configuration_type))

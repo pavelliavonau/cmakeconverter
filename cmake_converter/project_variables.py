@@ -36,12 +36,12 @@ class ProjectVariables(object):
     out_deb = False
     out_rel = False
 
-    def __init__(self, data):
-        self.cmake = data['cmake']
-        self.tree = data['vcxproj']['tree']
-        self.ns = data['vcxproj']['ns']
-        self.output = data['cmake_output']
-        self.project_name = data['project_name']
+    def __init__(self, context):
+        self.cmake = context['cmake']
+        self.tree = context['vcxproj']['tree']
+        self.ns = context['vcxproj']['ns']
+        self.output = context['cmake_output']
+        self.project_name = context['project_name']
         self.vs_outputs = {
             'debug': {
                 'x86': None,
