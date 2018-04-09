@@ -27,7 +27,7 @@ CMake-Converter command line interface::
         cmake-converter [-V]
         cmake-converter (-s solution | -p project) [-i]
                         [-c cmake]
-                        [-D dependency:dependency:...]
+                        [-D dependency...]
                         [-O cmakeoutput]
                         [-a codefile]
                         [-I cmakefile]
@@ -39,8 +39,8 @@ CMake-Converter command line interface::
         -s, --solution=solution     Path to a MSVC solution (.sln) (BETA)
         -p, --project=project       Path to a MSVC project (.vcxproj)
         -c, --cmake=cmake           Specify output of generated CMakeLists.txt
-        -D, --dependencies=dep      Replace dependencies found in ".vcxproj" file, separated by
-                                    colons
+        -D, --dependencies=dep      Replace dependencies found in ".vcxproj" file. This parameter,
+                                    can be used multiple times for each dependency.
         -O, --cmakeoutput=output    Define output of artefact produces by CMake.
         -i, --include               Add include directories in CMakeLists.txt. [default: False]
         -a, --additional=file       Import cmake code from any file to generated CMakeLists.txt.
@@ -115,7 +115,7 @@ def convert_project(data, vcxproj, cmake_lists):
     # Close CMake file
     data_converter.close_cmake_file()
 
-    message('---> Project [%s] is converted ! ---\n' % proj, 'done')
+    message('---> Project [%s] is converted ! ---\n' % proj, 'ok')
 
 
 def main():  # pragma: no cover
@@ -159,12 +159,16 @@ def main():  # pragma: no cover
         projects = p.findall(sln.read())
         sln.close()
         if data['cmake']:
-            message('CMake output is not used during solution conversion !', 'info')
+            message(
+                'You can\'t use "--cmake" parameter during solution conversion !',
+                'warn')
+            data['cmake'] = ''
         if data['dependencies']:
             message(
-                'The "dependencies" parameter is not recommended when converting a solution!',
+                'You can\'t use "--dependencies" parameter during solution conversion !',
                 'warn'
             )
+            data['dependencies'] = ''
         for project in projects:
             project = '/'.join(project.split('\\'))
             project_abs = os.path.join(slnpath, project)

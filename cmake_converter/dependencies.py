@@ -113,7 +113,7 @@ class Dependencies(object):
                 ')\n\n'
             )
             self.cmake.write(
-                '# Dependencies : disable BUILD_DEPENDS to link with lib already build.\n'
+                '# Dependencies : disable BUILD_DEPENDS to link with libraries already built.\n'
             )
 
             if not self.custom_dependencies:
