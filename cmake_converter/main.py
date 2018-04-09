@@ -73,10 +73,13 @@ CMake-Converter command line interface::
         the same tree level. The same is to be done for the files to include !
 
     Solutions conversion:
-        The solution conversion is still in BETA and may therefore have some problems ! Your Visual
-        Studio projects must each have their respective folders for the conversion to work.
+        The solution conversion is still in BETA and may therefore have some problems !
 
-        Note that the "dependencies" parameter is not recommended when converting the solution !
+        Your Visual Studio projects must each have their respective folders for the conversion
+        to work.
+
+        Note that the "--dependencies" and "--cmake" parameters are not used during solution
+        conversion !
 """
 
 import re

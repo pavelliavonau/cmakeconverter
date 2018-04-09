@@ -1,31 +1,39 @@
 .. _install:
 
 Install CMake Converter
-=======================
+***********************
 
 Requirements
-------------
+============
 
 You must have **Python 3** installed to make this library work.
 
-CMake Converter is **not compatible** with Python 2 !
+**Note:** CMake Converter is **not compatible** with Python 2 !
 
-Installation
-------------
+Installation (from Pip)
+=======================
 
-End user installation
-~~~~~~~~~~~~~~~~~~~~~
+You can install CMake-Converter as a standard python library, with ``pip3``::
 
-Install cmake-converter as a standard python library::
+    # If you're under Windows, use "pip" instead "pip3"
+    pip3 install cmake_converter
 
-    sudo pip install cmake_converter
+Installation (from Sources)
+===========================
 
-From Sources
-~~~~~~~~~~~~
+Clone and install
+-----------------
 
-To install CMake Converter, you've to clone this repository and make a pip install::
+To install from sources, you've to clone this repository and make a pip install::
 
-    # Inside CMake Converter repository folder
-    sudo pip install .
+    git clone https://github.com/algorys/cmakeconverter.git
+    cd cmakeconverter
+    # If you're under Windows, use "pip" instead "pip3"
+    pip3 install .
 
+External Libraries
+------------------
 
+You need to install Python modules that are listed in ``requirements.txt`` file with pip:
+
+.. literalinclude:: ../requirements.txt
