@@ -85,6 +85,25 @@ class ProjectFiles(object):
 
         """
 
+        def add_specific_sources(src_list, condition):
+            """
+            Add specific sources for platforms
+            :param src_list: list of source file
+            :type src_list: list
+            :param condition: condition to add in "if" statement
+            :type condition: str
+            """
+
+            self.cmake.write('if(%sMSVC)\n' % condition)
+            self.cmake.write('    set(SRC_FILES\n        ${SRC_FILES}\n')
+            while src_list:
+                self.cmake.write('        %s\n' % src_list.pop())
+            self.cmake.write('    )\n')
+            self.cmake.write('endif()\n')
+
+        windows_sources = []
+        linux_sources = []
+
         title = get_title('Files & Targets', 'Files of project and target to build')
         self.cmake.write(title)
 
@@ -93,8 +112,21 @@ class ProjectFiles(object):
 
         for src_dir in self.sources:
             for src_file in self.sources[src_dir]:
-                self.cmake.write('    %s\n' % os.path.join(src_dir, src_file))
+                if src_file in ['crashhandler_windows.cpp', 'stacktrace_windows.cpp']:
+                    windows_sources.append(os.path.join(src_dir, src_file))
+                    if 'crashhandler_windows.cpp' in src_file:
+                        linux_sources.append(
+                            os.path.join(src_dir, src_file.replace('windows', 'unix'))
+                        )
+                else:
+                    self.cmake.write('    %s\n' % os.path.join(src_dir, src_file))
         self.cmake.write(')\n')
+
+        # Manage specific sources (Currently only used for g3log)
+        if windows_sources:
+            add_specific_sources(windows_sources, '')
+        if linux_sources:
+            add_specific_sources(linux_sources, 'NOT ')
 
         self.cmake.write('source_group("Sources" FILES ${SRC_FILES})\n\n')
 

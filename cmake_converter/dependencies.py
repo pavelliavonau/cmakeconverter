@@ -161,6 +161,8 @@ class Dependencies(object):
 
         references = self.tree.xpath('//ns:ProjectReference', namespaces=self.ns)
         references_found = []
+        fpic_references = []
+
         if references:
             for ref in references:
                 if ref is None:
@@ -174,14 +176,27 @@ class Dependencies(object):
                     references_found.append(ref_inc)
 
             if references_found:
+                self.cmake.write('# Project dependencies\n')
                 self.cmake.write('add_dependencies(${PROJECT_NAME}')
                 for ref_found in references_found:
                     target_name = self.get_dependency_target_name(ref_found)
                     if 'g3log' in target_name:
                         target_name = '%sger' % target_name
+                        fpic_references.append(target_name)
+                    if 'zlib' in target_name:
+                        fpic_references.append(target_name)
                     self.cmake.write(' %s' % target_name)
 
                 self.cmake.write(')\n\n')
+
+                if fpic_references:
+                    self.cmake.write('# Specific target properties\n')
+                    self.cmake.write('if(NOT MSVC)\n')
+                    for ref in fpic_references:
+                        self.cmake.write(
+                            '    set_target_properties(%s PROPERTIES COMPILE_FLAGS "-fPIC")\n' % ref
+                        )
+                    self.cmake.write('endif()\n\n')
 
     def link_dependencies(self):
         """

@@ -362,8 +362,8 @@ class Flags(object):
 
         for setting in self.settings:
             conf = setting.split('|')[0].capitalize()
-            if conf not in written_conf:
-                self.cmake.write('\nif(CMAKE_BUILD_TYPE STREQUAL "{0}")\n'.format(conf))
+            if conf not in written_conf and conf in ['Debug', 'Release']:
+                self.cmake.write('if(CMAKE_BUILD_TYPE STREQUAL "{0}")\n'.format(conf))
                 self.cmake.write(
                     '    target_compile_definitions(${{PROJECT_NAME}} PRIVATE \n{0}    )'
                     .format(self.settings[setting][defines])
@@ -374,6 +374,6 @@ class Flags(object):
                     .format(self.settings[setting][cl_flags])
                 )
                 self.cmake.write('\n    endif()\n')
-                self.cmake.write('\nendif()\n')
+                self.cmake.write('endif()\n\n')
 
             written_conf.append(conf)
