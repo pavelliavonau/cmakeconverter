@@ -107,14 +107,9 @@ class Dependencies(object):
             self.cmake.write(title)
 
             self.cmake.write(
-                'option(BUILD_DEPENDS \n' +
-                '   "Build other CMake project." \n' +
-                '   ON \n' +
-                ')\n\n'
+                '# Dependencies: disable BUILD_DEPENDS to link with libraries already built\n'
             )
-            self.cmake.write(
-                '# Dependencies : disable BUILD_DEPENDS to link with libraries already built.\n'
-            )
+            self.cmake.write('option(BUILD_DEPENDS "Build other CMake project." ON)\n\n')
 
             if not self.custom_dependencies:
                 self.cmake.write('if(BUILD_DEPENDS)\n')
@@ -147,7 +142,7 @@ class Dependencies(object):
                 reference = str(ref.get('Include'))
                 path_to_reference = os.path.splitext(ntpath.basename(reference))[0]
                 self.cmake.write(
-                    '   link_directories(dependencies/%s)\n' % path_to_reference
+                    '   link_directories(${DEPENDENCIES_DIR}/%s)\n' % path_to_reference
                 )
             self.cmake.write('endif()\n\n')
         else:  # pragma: no cover

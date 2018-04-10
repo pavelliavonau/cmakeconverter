@@ -59,24 +59,26 @@ class ProjectVariables(object):
         root_projectname = self.tree.xpath('//ns:RootNamespace', namespaces=self.ns)
         project = False
         self.cmake.write('# Project\n')
+        self.cmake.write(
+            'get_filename_component(PROJECT_DIR "${CMAKE_CURRENT_SOURCE_DIR}" ABSOLUTE)\n'
+        )
+        self.cmake.write('set(DEPENDENCIES_DIR ${PROJECT_DIR}/dependencies)\n')
+
         if root_projectname:
             projectname = root_projectname[0]
             if projectname.text:
                 if 'g3log' in projectname.text:
                     projectname.text = '%sger' % projectname.text
-                self.cmake.write('set(PROJECT_NAME ' + projectname.text + ')\n')
+                self.cmake.write('set(PROJECT_NAME ' + projectname.text + ')\n\n')
                 project = True
         if not project:  # pragma: no cover
-            self.cmake.write('set(PROJECT_NAME <PLEASE SET YOUR PROJECT NAME !!>)\n')
+            self.cmake.write('set(PROJECT_NAME <PLEASE SET YOUR PROJECT NAME !!>)\n\n')
             message(
                 'No PROJECT NAME found or define. '
                 'Please set [PROJECT_NAME] variable in CMakeLists.txt.',
                 'error'
             )
 
-        self.cmake.write(
-            'get_filename_component(PROJECT_DIR "${CMAKE_CURRENT_SOURCE_DIR}" ABSOLUTE)\n\n'
-        )
         self.add_dependencies_variables()
         self.add_output_variables()
 

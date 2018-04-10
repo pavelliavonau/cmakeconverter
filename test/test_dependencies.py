@@ -86,8 +86,9 @@ class TestDependencies(unittest2.TestCase):
         cmakelists_test = open('CMakeLists.txt')
         content_test = cmakelists_test.read()
 
+        print(content_test)
         self.assertTrue('add_subdirectory("${G3LOGGER_DIR}"' in content_test)
-        self.assertTrue('link_directories(dependencies/g3log)' in content_test)
+        self.assertTrue('link_directories(${DEPENDENCIES_DIR}/g3log)' in content_test)
 
         cmakelists_test.close()
 
@@ -108,7 +109,7 @@ class TestDependencies(unittest2.TestCase):
         self.assertTrue(
             'add_subdirectory(../../external/g3log/cmake/ ${CMAKE_BINARY_DIR}/lib2)' in content_test
         )
-        self.assertTrue('link_directories(dependencies/g3log)' in content_test)
+        self.assertTrue('link_directories(${DEPENDENCIES_DIR}/g3log)' in content_test)
 
         cmakelists_test.close()
 
