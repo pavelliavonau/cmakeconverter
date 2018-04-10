@@ -179,8 +179,8 @@ def main():  # pragma: no cover
         sln_cmake.write('if(MSVC)\n')
         sln_cmake.write('  # remove default flags provided with CMake for MSVC\n')
         sln_cmake.write('  set(CMAKE_CXX_FLAGS "")\n')
-        sln_cmake.write('  set(CMAKE_CXX_FLAGS_RELEASE "")\n')
-        sln_cmake.write('  set(CMAKE_CXX_FLAGS_DEBUG "")\n')
+        for configuration_type in configuration_types_list:
+            sln_cmake.write('  set(CMAKE_CXX_FLAGS_{0} "")\n'.format(configuration_type.upper()))
         sln_cmake.write('endif()\n\n')
         sln_cmake.write('################################################################################\n')
         sln_cmake.write('# Global linker options\n')
@@ -191,6 +191,16 @@ def main():  # pragma: no cover
         sln_cmake.write('  set(CMAKE_MODULE_LINKER_FLAGS "")\n')
         sln_cmake.write('  set(CMAKE_SHARED_LINKER_FLAGS "")\n')
         sln_cmake.write('  set(CMAKE_STATIC_LINKER_FLAGS "")\n')
+        for configuration_type in configuration_types_list:
+            ct_upper = configuration_type.upper()
+            sln_cmake.write(
+                '  set(CMAKE_EXE_LINKER_FLAGS_{0} \"${{CMAKE_EXE_LINKER_FLAGS}}\")\n'.format(ct_upper))
+            sln_cmake.write(
+                '  set(CMAKE_MODULE_LINKER_FLAGS_{0} \"${{CMAKE_MODULE_LINKER_FLAGS}}\")\n'.format(ct_upper))
+            sln_cmake.write(
+                '  set(CMAKE_SHARED_LINKER_FLAGS_{0} \"${{CMAKE_SHARED_LINKER_FLAGS}}\")\n'.format(ct_upper))
+            sln_cmake.write(
+                '  set(CMAKE_STATIC_LINKER_FLAGS_{0} \"${{CMAKE_STATIC_LINKER_FLAGS}}\")\n'.format(ct_upper))
         sln_cmake.write('endif()\n\n')
         sln_cmake.write('################################################################################\n')
         sln_cmake.write('# Additional Global Settings(add specific info there)\n')
