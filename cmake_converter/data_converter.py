@@ -107,6 +107,7 @@ class DataConverter:
 
         # Write Output Variables
         variables.add_cmake_output_directories()
+        variables.write_project_messages()
 
         # Add includes files & directories
         if self.data['includecmake'] or self.data['include']:
@@ -139,9 +140,10 @@ class DataConverter:
             # Write Macro
             all_flags.write_defines_and_flags()
 
-        depends.add_dependencies()
-
         # Link with other dependencies
+        title = get_title('Link & Dependencies', 'Add project dependencies and Link to project')
+        self.data['cmake'].write(title)
+        depends.add_dependencies()
         depends.link_dependencies()
 
     def close_cmake_file(self):

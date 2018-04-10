@@ -121,11 +121,15 @@ class Dependencies(object):
                 for ref in references:
                     reference = str(ref.get('Include'))
                     path_to_reference = os.path.splitext(ntpath.basename(reference))[0]
+                    if 'g3log' in path_to_reference:
+                        path_to_reference = '%sger' % path_to_reference
+                    self.cmake.write('  if(NOT TARGET %s)\n' % path_to_reference)
                     self.cmake.write(
-                        '   add_subdirectory(${%s_DIR} ${CMAKE_BINARY_DIR}/%s)\n' %
+                        '    add_subdirectory("${%s_DIR}" ${CMAKE_BINARY_DIR}/%s)\n' %
                         (path_to_reference.upper(),
                          path_to_reference)
                     )
+                    self.cmake.write('  endif()\n')
             else:
                 self.cmake.write('if(BUILD_DEPENDS)\n')
                 d = 1
@@ -172,7 +176,10 @@ class Dependencies(object):
             if references_found:
                 self.cmake.write('add_dependencies(${PROJECT_NAME}')
                 for ref_found in references_found:
-                    self.cmake.write(' %s' % self.get_dependency_target_name(ref_found))
+                    target_name = self.get_dependency_target_name(ref_found)
+                    if 'g3log' in target_name:
+                        target_name = '%sger' % target_name
+                    self.cmake.write(' %s' % target_name)
 
                 self.cmake.write(')\n\n')
 

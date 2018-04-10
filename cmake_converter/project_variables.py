@@ -58,20 +58,25 @@ class ProjectVariables(object):
 
         root_projectname = self.tree.xpath('//ns:RootNamespace', namespaces=self.ns)
         project = False
-        self.cmake.write('# Project name\n')
+        self.cmake.write('# Project\n')
         if root_projectname:
             projectname = root_projectname[0]
             if projectname.text:
-                self.cmake.write('set(PROJECT_NAME ' + projectname.text + ')\n\n')
+                if 'g3log' in projectname.text:
+                    projectname.text = '%sger' % projectname.text
+                self.cmake.write('set(PROJECT_NAME ' + projectname.text + ')\n')
                 project = True
         if not project:  # pragma: no cover
-            self.cmake.write('set(PROJECT_NAME <PLEASE SET YOUR PROJECT NAME !!>)\n\n')
+            self.cmake.write('set(PROJECT_NAME <PLEASE SET YOUR PROJECT NAME !!>)\n')
             message(
                 'No PROJECT NAME found or define. '
                 'Please set [PROJECT_NAME] variable in CMakeLists.txt.',
                 'error'
             )
 
+        self.cmake.write(
+            'get_filename_component(PROJECT_DIR "${CMAKE_CURRENT_SOURCE_DIR}" ABSOLUTE)\n\n'
+        )
         self.add_dependencies_variables()
         self.add_output_variables()
 
@@ -88,10 +93,13 @@ class ProjectVariables(object):
                 for ref in references:
                     reference = str(ref.get('Include'))
                     path_to_reference = os.path.splitext(ntpath.basename(reference))[0]
+                    lib_path = '/'.join(reference.split('\\')[0:-1])
+                    if 'g3log' in path_to_reference:
+                        path_to_reference = '%sger' % path_to_reference
                     self.cmake.write(
                         'set(%s_DIR %s)\n' % (
                             path_to_reference.upper(),
-                            reference.replace('\\', '/').replace('.vcxproj', ''))
+                            lib_path)
                     )
             self.cmake.write('\n')
 
@@ -124,8 +132,8 @@ class ProjectVariables(object):
             if self.output.endswith('/') or self.output.endswith('\\'):
                 self.output = self.output[0:-1]
             # Define only output for x64
-            self.cmake_outputs['Debug|x64'] = '/'.join([self.output, '${CMAKE_BUILD_TYPE}'])
-            self.cmake_outputs['Release|x64'] = '/'.join([self.output, '${CMAKE_BUILD_TYPE}'])
+            self.cmake_outputs['Debug|x64'] = '/'.join([self.output, '${PROJECT_DIR}'])
+            self.cmake_outputs['Release|x64'] = '/'.join([self.output, '${PROJECT_DIR}'])
 
         output_debug = ''
         output_release = ''
@@ -144,9 +152,9 @@ class ProjectVariables(object):
 
         # In case converter can't find output, assign default
         if not output_debug:
-            output_debug = '${CMAKE_BUILD_TYPE}/bin'
+            output_debug = '${PROJECT_DIR}/bin'
         if not output_release:
-            output_release = '${CMAKE_BUILD_TYPE}/bin'
+            output_release = '${PROJECT_DIR}/bin'
 
         self.cmake.write('# Outputs\n')
         self.cmake.write('set(OUTPUT_DEBUG %s)\n' % output_debug)
@@ -228,23 +236,41 @@ class ProjectVariables(object):
 
         self.cmake.write('if(CMAKE_BUILD_TYPE STREQUAL "Debug")\n')
         self.cmake.write(
-            '  set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${OUTPUT_DEBUG}")\n'
+            '  set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PROJECT_DIR}/${OUTPUT_DEBUG}")\n'
         )
         self.cmake.write(
-            '  set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${OUTPUT_DEBUG}")\n'
+            '  set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${PROJECT_DIR}/${OUTPUT_DEBUG}")\n'
         )
         self.cmake.write(
-            '  set(CMAKE_EXECUTABLE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${OUTPUT_DEBUG}")'
+            '  set(CMAKE_EXECUTABLE_OUTPUT_DIRECTORY "${PROJECT_DIR}/${OUTPUT_DEBUG}")'
             '\n'
         )
         self.cmake.write('else()\n')
         self.cmake.write(
-            '  set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${OUTPUT_REL}")\n'
+            '  set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PROJECT_DIR}/${OUTPUT_RELEASE}")\n'
         )
         self.cmake.write(
-            '  set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${OUTPUT_REL}")\n'
+            '  set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${PROJECT_DIR}/${OUTPUT_RELEASE}")\n'
         )
         self.cmake.write(
-            '  set(CMAKE_EXECUTABLE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/${OUTPUT_REL}")\n'
+            '  set(CMAKE_EXECUTABLE_OUTPUT_DIRECTORY "${PROJECT_DIR}/${OUTPUT_RELEASE}")\n'
         )
         self.cmake.write('endif()\n\n')
+
+    def write_project_messages(self):
+        """
+        Write some messages for project to inform user during cmake generation
+
+        """
+
+        self.cmake.write('# Messages\n')
+        self.cmake.write(
+            'message("${PROJECT_NAME}: MAIN PROJECT: ${CMAKE_PROJECT_NAME}")\n'
+        )
+        self.cmake.write(
+            'message("${PROJECT_NAME}: CURR PROJECT: ${CMAKE_CURRENT_SOURCE_DIR}")\n'
+        )
+        self.cmake.write(
+            'message("${PROJECT_NAME}: CURR BIN DIR: ${CMAKE_CURRENT_BINARY_DIR}")\n'
+        )
+        self.cmake.write('\n')
