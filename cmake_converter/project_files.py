@@ -85,7 +85,7 @@ class ProjectFiles(object):
 
         """
 
-        def add_specific_sources(src_list, condition):
+        def add_specific_sources(src_list, condition):  # pragma: no cover
             """
             Add specific sources for platforms
             :param src_list: list of source file
