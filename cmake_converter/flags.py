@@ -30,8 +30,7 @@ import os
 from os import path
 
 from cmake_converter.message import send
-from cmake_converter.data_files import get_propertygroup, get_definitiongroup
-from cmake_converter.utils import take_name_from_list_case_ignore
+from cmake_converter.utils import take_name_from_list_case_ignore, get_configuration_type
 
 cl_flags = 'cl_flags'
 ln_flags = 'ln_flags'
@@ -47,28 +46,14 @@ class Flags(object):
     available_std = ['c++11', 'c++14', 'c++17']
 
     def __init__(self, context):
+        self.context = context
         self.tree = context['vcxproj']['tree']
         self.ns = context['vcxproj']['ns']
         self.cmake = context['cmake']
-        self.propertygroup = {}
-        self.definitiongroups = {}
+        self.propertygroup = context['property_groups']
+        self.definitiongroups = context['definition_groups']
         self.std = context['std']
-        self.settings = {}
-        self.define_settings()
-
-    def define_settings(self):
-        """
-        Define the settings of vcxproj
-
-        """
-
-        configuration_nodes = self.tree.xpath('//ns:ProjectConfiguration', namespaces=self.ns)
-        if configuration_nodes:
-            for configuration_node in configuration_nodes:
-                configuration_data = str(configuration_node.get('Include'))
-                self.settings[configuration_data] = {defines: '', cl_flags: '', ln_flags: ''}
-
-        self.define_group_properties()
+        self.settings = context['settings']
 
     @staticmethod
     def get_setting_name(setting):
@@ -79,12 +64,6 @@ class Flags(object):
         for setting in self.settings:
             configuration_types.append(self.get_setting_name(setting))
         return configuration_types
-
-    def get_configuration_type(self, setting):
-        configurationtype = self.tree.xpath(
-            '{0}/ns:ConfigurationType'.format(self.propertygroup[setting]),
-            namespaces=self.ns)
-        return configurationtype[0].text
 
     def define_flags(self):
         """
@@ -131,20 +110,6 @@ class Flags(object):
         self.cmake.write('       set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")\n')
         self.cmake.write('   endif()\n')
         self.cmake.write('endif(NOT MSVC)\n\n')
-
-    def define_group_properties(self):
-        """
-        Define the PropertyGroups and DefinitionGroups of XML properties
-
-        """
-
-        for setting in self.settings:
-            self.propertygroup[setting] = get_propertygroup(
-                setting, ' and @Label="Configuration"')
-
-        # ItemDefinitionGroup
-        for setting in self.settings:
-            self.definitiongroups[setting] = get_definitiongroup(setting)
 
     def define_defines(self):
         """
@@ -600,7 +565,7 @@ class Flags(object):
             )
             if deb is not None:
                 if 'true' in deb.text:
-                    conf_type = self.get_configuration_type(setting)
+                    conf_type = get_configuration_type(setting, self.context)
                     if 'StaticLibrary' in conf_type:
                         continue
                     self.settings[setting][ln_flags] += ' /DEBUG'
@@ -766,7 +731,7 @@ class Flags(object):
  
         self.cmake.write('\n# Warning: pch and target are the same for every configuration')
         self.write_precompiled_headers(setting)
-        configurationtype = self.get_configuration_type(setting)
+        configurationtype = get_configuration_type(setting, self.context)
         if configurationtype == 'DynamicLibrary':
             self.cmake.write('\nadd_library(${PROJECT_NAME} SHARED')
             send('CMake will build a SHARED Library.', '')
@@ -812,7 +777,7 @@ class Flags(object):
         for setting in self.settings:
             conf = self.get_setting_name(setting).upper()
             if len(self.settings[setting][ln_flags]) != 0:
-                configuration_type = self.get_configuration_type(setting)
+                configuration_type = get_configuration_type(setting, self.context)
                 if 'StaticLibrary' in configuration_type:
                     cmake.write(
                         '\n    set_target_properties(${{PROJECT_NAME}} PROPERTIES STATIC_LIBRARY_FLAGS_{0} "{1}")'

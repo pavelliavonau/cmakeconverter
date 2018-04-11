@@ -65,3 +65,10 @@ def take_name_from_list_case_ignore(search_list, name_to_search):
     else:
         search_list.remove(real_name)
         return real_name
+
+
+def get_configuration_type(setting, context):
+    configurationtype = context['vcxproj']['tree'].xpath(
+        '{0}/ns:ConfigurationType'.format(context['property_groups'][setting]),
+        namespaces=context['vcxproj']['ns'])
+    return configurationtype[0].text

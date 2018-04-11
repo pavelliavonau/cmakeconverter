@@ -27,7 +27,7 @@
 
 import os
 
-from cmake_converter.data_files import get_vcxproj_data, get_cmake_lists
+from cmake_converter.data_files import get_vcxproj_data, get_cmake_lists, get_propertygroup, get_definitiongroup
 
 from cmake_converter.dependencies import Dependencies
 from cmake_converter.flags import Flags
@@ -106,6 +106,36 @@ class DataConverter:
         """
         cmake_file.write('cmake_minimum_required(VERSION 2.8.0 FATAL_ERROR)\n\n')
 
+    @staticmethod
+    def define_settings(context):
+        """
+        Define the settings of vcxproj
+
+        """
+
+        settings = {}
+        property_groups = {}
+        definition_groups = {}
+        tree = context['vcxproj']['tree']
+        ns = context['vcxproj']['ns']
+        configuration_nodes = tree.xpath('//ns:ProjectConfiguration', namespaces=ns)
+        if configuration_nodes:
+            for configuration_node in configuration_nodes:
+                configuration_data = str(configuration_node.get('Include'))
+                settings[configuration_data] = {'defines': '', 'cl_flags': '', 'ln_flags': ''}
+
+        for setting in settings:
+            property_groups[setting] = get_propertygroup(
+                setting, ' and @Label="Configuration"')
+
+        # ItemDefinitionGroup
+        for setting in settings:
+            definition_groups[setting] = get_definitiongroup(setting)
+
+        context['settings'] = settings
+        context['property_groups'] = property_groups
+        context['definition_groups'] = definition_groups
+
     def create_data(self):
         """
         Create the data and convert each part of "vcxproj" project
@@ -115,10 +145,11 @@ class DataConverter:
         if not self.context['is_converting_solution']:
             self.add_cmake_version_required(self.context['cmake'])
 
+        self.define_settings(self.context)
         # Write variables
         variables = ProjectVariables(self.context)
         variables.add_project_variables()
-        # variables.add_outputs_variables() # TODO: remove hard code of configuration names
+        variables.find_outputs_variables()
 
         files = ProjectFiles(self.context)
         files.collects_source_files()
@@ -149,6 +180,7 @@ class DataConverter:
             all_flags.write_precompiled_headers_macro()
             files.write_source_files()
             all_flags.write_target_artefact()
+            variables.add_artifact_target_outputs(self.context)
             all_flags.write_defines_and_flags()
             for configuration_type in all_flags.get_cmake_configuration_types():
                 self.context['configuration_types'].add(configuration_type)
