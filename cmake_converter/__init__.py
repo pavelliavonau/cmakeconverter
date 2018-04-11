@@ -30,7 +30,7 @@
 VERSION = (1, 2, 0)
 __application__ = u"CMake-Converter"
 __short_version__ = '.'.join((str(each) for each in VERSION[:2]))
-__version__ = '.'.join((str(each) for each in VERSION[:4])) + '-dev'
+__version__ = '.'.join((str(each) for each in VERSION[:4]))
 __author__ = u"Estrada Matthieu"
 __copyright__ = u"2016-2017 - %s" % __author__
 __license__ = u"GNU Affero General Public License, version 3"
