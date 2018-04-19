@@ -80,6 +80,13 @@ class ProjectVariables(object):
                     if vs_output_debug_x64:
                         self.vs_outputs[conf][arch] = vs_output_debug_x64[0]
 
+            output_name = '$(ProjectName)'  # default
+            output_name_node = self.tree.find(
+                    '{0}/ns:TargetName'.format(prop), namespaces=self.ns)
+            if output_name_node is not None:
+                output_name = output_name_node.text
+            self.settings[setting]['output_name'] = self.cleaning_output(output_name)
+
     def find_outputs_variables(self):
         """
         Add Outputs Variables
@@ -127,7 +134,8 @@ class ProjectVariables(object):
             '$(SolutionDir)': '${CMAKE_SOURCE_DIR}/',
             '$(Platform)': 'x64',
             '$(Configuration)': '$<CONFIG>',
-            '$(ProjectDir)': '${CMAKE_CURRENT_SOURCE_DIR}'
+            '$(ProjectDir)': '${CMAKE_CURRENT_SOURCE_DIR}',
+            '$(ProjectName)': '${PROJECT_NAME}'
             }
         output = output.replace('\\', '/')
 
@@ -168,7 +176,7 @@ class ProjectVariables(object):
             conf = setting.split('|')[0]
             out = context['settings'][setting]['out_dir']
             self.cmake.write('    \"$<$<CONFIG:{0}>:{1}>\"\n'.format(conf, out))
-        self.cmake.write(')\n\n')
+        self.cmake.write(')\n')
 
         configuration_type = get_configuration_type(setting, context)
         if configuration_type == 'DynamicLibrary' or configuration_type == 'StaticLibrary':
@@ -182,3 +190,13 @@ class ProjectVariables(object):
         else:
             self.cmake.write(
                 'set_target_properties(${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${OUT_DIR}")\n')
+
+        self.cmake.write('\nstring(CONCAT TARGET_NAME\n')
+        for setting in context['settings']:
+            conf = setting.split('|')[0]
+            out = context['settings'][setting]['output_name']
+            self.cmake.write('    \"$<$<CONFIG:{0}>:{1}>\"\n'.format(conf, out))
+        self.cmake.write(')\n')
+
+        self.cmake.write(
+            'set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME ${TARGET_NAME})\n')
