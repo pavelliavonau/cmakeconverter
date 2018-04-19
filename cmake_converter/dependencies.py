@@ -43,6 +43,8 @@ class Dependencies(object):
         self.tree = context['vcxproj']['tree']
         self.ns = context['vcxproj']['ns']
         self.dependencies = context['dependencies']
+        self.settings = context['settings']
+        self.definition_groups = context['definition_groups']
 
     def write_include_dir(self):
         """
@@ -50,28 +52,33 @@ class Dependencies(object):
 
         """
 
-        incl_dir = self.tree.find(
-            '//ns:ItemGroup/ns:ClCompile/ns:AdditionalIncludeDirectories',
-            namespaces=self.ns
-        )
-        if incl_dir is None:
+        has_include_dirs = False
+        for setting in self.settings:
             incl_dir = self.tree.find(
-                '//ns:ItemDefinitionGroup/ns:ClCompile/ns:AdditionalIncludeDirectories',
+                '{0}/ns:ClCompile/ns:AdditionalIncludeDirectories'.format(self.definition_groups[setting]),
                 namespaces=self.ns
             )
 
-        if incl_dir is not None:
-            self.cmake.write('# Include directories \n')
-            inc_dir = incl_dir.text.replace('$(ProjectDir)', './')
-            inc_dir = inc_dir.replace(';%(AdditionalIncludeDirectories)', '')
-            for i in inc_dir.split(';'):
-                i = i.replace('\\', '/')
-                i = re.sub(r'\$\((.+?)\)', r'$ENV{\1}', i)
-                self.cmake.write('include_directories(%s)\n' % i)
-                send('Include Directories found : %s' % i, 'warn')
-            self.cmake.write('\n')
-        else:  # pragma: no cover
-            send('Include Directories not found for this project.', 'warn')
+            if incl_dir is not None:
+                if not has_include_dirs:
+                    self.cmake.write('include_directories(\n')
+                    has_include_dirs = True
+
+                inc_dir = incl_dir.text.replace('$(ProjectDir)', './')
+                inc_dir = inc_dir.replace(';%(AdditionalIncludeDirectories)', '')
+                dirs = []
+                for i in inc_dir.split(';'):
+                    i = i.replace('\\', '/')
+                    i = re.sub(r'\$\((.+?)\)', r'$ENV{\1}', i)
+                    dirs.append(i)
+                s = ';'.join(dirs)
+                self.cmake.write('$<$<CONFIG:{0}>: {1}>'.format(setting.split('|')[0], s))
+                send('Include Directories found : %s' % s, 'warn')
+                self.cmake.write('\n')
+            else:  # pragma: no cover
+                send('Include Directories not found for this project.', 'warn')
+        if has_include_dirs:
+            self.cmake.write(')\n')
 
     @staticmethod
     def get_dependency_target_name(vs_project):
