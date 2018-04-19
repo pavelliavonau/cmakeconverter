@@ -174,6 +174,8 @@ class ProjectVariables(object):
         if configuration_type == 'DynamicLibrary' or configuration_type == 'StaticLibrary':
             self.cmake.write(
                 'set_target_properties(${PROJECT_NAME} PROPERTIES ARCHIVE_OUTPUT_DIRECTORY "${OUT_DIR}")\n')
+            self.cmake.write(
+                'set_target_properties(${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${OUT_DIR}")\n')
             # TODO: do we really need LIBRARY_OUTPUT_DIRECTORY here?
             self.cmake.write(
                 'set_target_properties(${PROJECT_NAME} PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${OUT_DIR}")\n')
