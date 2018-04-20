@@ -27,7 +27,7 @@
 
 from cmake_converter.message import send
 from cmake_converter.data_files import get_propertygroup
-from cmake_converter.utils import get_configuration_type
+from cmake_converter.utils import get_configuration_type, write_property_of_settings
 
 
 class ProjectVariables(object):
@@ -74,11 +74,11 @@ class ProjectVariables(object):
                     '%s/ns:OutDir' % prop, namespaces=self.ns
                 )
                 if self.vs_outputs[conf][arch] is None:
-                    vs_output_debug_x64 = self.tree.xpath(
+                    vs_output = self.tree.xpath(
                         '//ns:PropertyGroup[@Label="UserMacros"]/ns:OutDir', namespaces=self.ns
                     )
-                    if vs_output_debug_x64:
-                        self.vs_outputs[conf][arch] = vs_output_debug_x64[0]
+                    if vs_output:
+                        self.vs_outputs[conf][arch] = vs_output[0]
 
             output_name = '$(ProjectName)'  # default
             output_name_node = self.tree.find(
@@ -171,12 +171,10 @@ class ProjectVariables(object):
         if len(context['settings']) == 0:
             return
 
-        self.cmake.write('\nstring(CONCAT OUT_DIR\n')
-        for setting in context['settings']:
-            conf = self.settings[setting]['conf']
-            out = context['settings'][setting]['out_dir']
-            self.cmake.write('    \"$<$<CONFIG:{0}>:{1}>\"\n'.format(conf, out))
-        self.cmake.write(')\n')
+        write_property_of_settings(self.cmake, self.settings, '\nstring(CONCAT OUT_DIR', ')', 'out_dir')
+
+        for setting in self.settings:
+            break
 
         configuration_type = get_configuration_type(setting, context)
         if configuration_type == 'DynamicLibrary' or configuration_type == 'StaticLibrary':
@@ -192,12 +190,6 @@ class ProjectVariables(object):
             self.cmake.write(
                 'set_target_properties(${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${OUT_DIR}")\n')
 
-        self.cmake.write('\nstring(CONCAT TARGET_NAME\n')
-        for setting in context['settings']:
-            conf = self.settings[setting]['conf']
-            out = context['settings'][setting]['output_name']
-            self.cmake.write('    \"$<$<CONFIG:{0}>:{1}>\"\n'.format(conf, out))
-        self.cmake.write(')\n')
-
+        write_property_of_settings(self.cmake, self.settings, '\nstring(CONCAT TARGET_NAME', ')', 'output_name')
         self.cmake.write(
             'set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME ${TARGET_NAME})\n')

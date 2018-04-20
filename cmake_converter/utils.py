@@ -72,3 +72,18 @@ def get_configuration_type(setting, context):
         '{0}/ns:ConfigurationType'.format(context['property_groups'][setting]),
         namespaces=context['vcxproj']['ns'])
     return configurationtype[0].text
+
+
+def write_property_of_settings(cmake_file, settings, begin_text, end_text, property_name):
+    has_property_value = False
+    for setting in settings:
+        conf = settings[setting]['conf']
+        if property_name in settings[setting]:
+            if settings[setting][property_name] != '':
+                if not has_property_value:
+                    cmake_file.write('{0}\n'.format(begin_text))
+                    has_property_value = True
+                property_value = settings[setting][property_name]
+                cmake_file.write('    $<$<CONFIG:{0}>: {1}>\n'.format(conf, property_value))
+    if has_property_value:
+        cmake_file.write('{0}\n'.format(end_text))

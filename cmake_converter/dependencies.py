@@ -31,6 +31,7 @@ import re
 
 from cmake_converter.message import send
 from cmake_converter.data_files import get_vcxproj_data, get_xml_data
+from cmake_converter.utils import write_property_of_settings
 
 
 class Dependencies(object):
@@ -52,7 +53,6 @@ class Dependencies(object):
 
         """
 
-        has_include_dirs = False
         for setting in self.settings:
             incl_dir = self.tree.find(
                 '{0}/ns:ClCompile/ns:AdditionalIncludeDirectories'.format(self.definition_groups[setting]),
@@ -60,10 +60,6 @@ class Dependencies(object):
             )
 
             if incl_dir is not None:
-                if not has_include_dirs:
-                    self.cmake.write('include_directories(\n')
-                    has_include_dirs = True
-
                 inc_dir = incl_dir.text.replace('$(ProjectDir)', './')
                 inc_dir = inc_dir.replace(';%(AdditionalIncludeDirectories)', '')
                 dirs = []
@@ -71,14 +67,13 @@ class Dependencies(object):
                     i = i.replace('\\', '/')
                     i = re.sub(r'\$\((.+?)\)', r'$ENV{\1}', i)
                     dirs.append(i)
-                s = ';'.join(dirs)
-                self.cmake.write('$<$<CONFIG:{0}>: {1}>'.format(self.settings[setting]['conf'], s))
-                send('Include Directories found : %s' % s, 'warn')
-                self.cmake.write('\n')
+                inc_dirs = ';'.join(dirs)
+                self.settings[setting]['inc_dirs'] = inc_dirs
+                send('Include Directories found : %s' % inc_dirs, 'warn')
             else:  # pragma: no cover
                 send('Include Directories not found for this project.', 'warn')
-        if has_include_dirs:
-            self.cmake.write(')\n')
+
+        write_property_of_settings(self.cmake, self.settings, 'include_directories(', ')', 'inc_dirs')
 
     @staticmethod
     def get_dependency_target_name(vs_project):

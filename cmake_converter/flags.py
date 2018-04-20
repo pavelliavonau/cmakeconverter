@@ -30,7 +30,7 @@ import os
 from os import path
 
 from cmake_converter.message import send
-from cmake_converter.utils import take_name_from_list_case_ignore, get_configuration_type
+from cmake_converter.utils import take_name_from_list_case_ignore, get_configuration_type, write_property_of_settings
 
 cl_flags = 'cl_flags'
 ln_flags = 'ln_flags'
@@ -757,34 +757,29 @@ class Flags(object):
         #     '########################################\n\n'
         # )
 
-        cmake.write('\n# Configuration settings of target\n')
-        cmake.write('target_compile_definitions(${PROJECT_NAME} PRIVATE')
+        # normalize
         for setting in self.settings:
-            conf = self.get_setting_name(setting).upper()
-            cmake.write(
-                '\n$<$<CONFIG:{0}>: {1}>'.format(conf, self.settings[setting][defines].strip().replace('\n',';'))
-            )
+            self.settings[setting][cl_flags] = self.settings[setting][cl_flags].strip().replace(' ', ';')
+            self.settings[setting][defines] = self.settings[setting][defines].strip().replace('\n', ';')
 
-        cmake.write('\n)\nif(MSVC)')
-        cmake.write('\n    target_compile_options(${PROJECT_NAME} PRIVATE')
-        for setting in self.settings:
-            conf = self.get_setting_name(setting).upper()
-            cmake.write('\n    $<$<CONFIG:{0}>: {1}>'
-                .format(conf, self.settings[setting][cl_flags].strip().replace(' ', ';'))
-            )
-        cmake.write('\n    )')
+        cmake.write('\n# Configuration settings of target\n')
+        write_property_of_settings(cmake, self.settings, 'target_compile_definitions(${PROJECT_NAME} PRIVATE', ')',
+                                   defines)
+        cmake.write('if(MSVC)\n')
+        write_property_of_settings(cmake, self.settings, '    target_compile_options(${PROJECT_NAME} PRIVATE', '    )',
+                                   cl_flags)
         for setting in self.settings:
             conf = self.get_setting_name(setting).upper()
             if len(self.settings[setting][ln_flags]) != 0:
                 configuration_type = get_configuration_type(setting, self.context)
                 if 'StaticLibrary' in configuration_type:
                     cmake.write(
-                        '\n    set_target_properties(${{PROJECT_NAME}} PROPERTIES STATIC_LIBRARY_FLAGS_{0} "{1}")'
+                        '    set_target_properties(${{PROJECT_NAME}} PROPERTIES STATIC_LIBRARY_FLAGS_{0} "{1}")\n'
                         .format(conf, self.settings[setting][ln_flags])
                     )
                 else:
                     cmake.write(
-                        '\n    set_target_properties(${{PROJECT_NAME}} PROPERTIES LINK_FLAGS_{0} "{1}")'
+                        '    set_target_properties(${{PROJECT_NAME}} PROPERTIES LINK_FLAGS_{0} "{1}")\n'
                         .format(conf, self.settings[setting][ln_flags])
                     )
-        cmake.write('\nendif()\n')
+        cmake.write('endif()\n')
