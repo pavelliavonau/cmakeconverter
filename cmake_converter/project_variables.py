@@ -62,8 +62,8 @@ class ProjectVariables(object):
 
         for setting in self.settings:
             prop = get_propertygroup(setting)
-            conf = setting.split('|')[0]
-            arch = setting.split('|')[1]
+            conf = self.settings[setting]['conf']
+            arch = self.settings[setting]['arch']
             if conf not in self.vs_outputs:
                 self.vs_outputs[conf] = {}
             if arch not in self.vs_outputs[conf]:
@@ -94,8 +94,8 @@ class ProjectVariables(object):
         """
 
         for setting in self.settings:
-            conf = setting.split('|')[0]
-            arch = setting.split('|')[1]
+            conf = self.settings[setting]['conf']
+            arch = self.settings[setting]['arch']
 
             output_path = '$(SolutionDir)$(Platform)/$(Configuration)/'  # default value
 
@@ -173,7 +173,7 @@ class ProjectVariables(object):
 
         self.cmake.write('\nstring(CONCAT OUT_DIR\n')
         for setting in context['settings']:
-            conf = setting.split('|')[0]
+            conf = self.settings[setting]['conf']
             out = context['settings'][setting]['out_dir']
             self.cmake.write('    \"$<$<CONFIG:{0}>:{1}>\"\n'.format(conf, out))
         self.cmake.write(')\n')
@@ -194,7 +194,7 @@ class ProjectVariables(object):
 
         self.cmake.write('\nstring(CONCAT TARGET_NAME\n')
         for setting in context['settings']:
-            conf = setting.split('|')[0]
+            conf = self.settings[setting]['conf']
             out = context['settings'][setting]['output_name']
             self.cmake.write('    \"$<$<CONFIG:{0}>:{1}>\"\n'.format(conf, out))
         self.cmake.write(')\n')

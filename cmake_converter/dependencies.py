@@ -72,7 +72,7 @@ class Dependencies(object):
                     i = re.sub(r'\$\((.+?)\)', r'$ENV{\1}', i)
                     dirs.append(i)
                 s = ';'.join(dirs)
-                self.cmake.write('$<$<CONFIG:{0}>: {1}>'.format(setting.split('|')[0], s))
+                self.cmake.write('$<$<CONFIG:{0}>: {1}>'.format(self.settings[setting]['conf'], s))
                 send('Include Directories found : %s' % s, 'warn')
                 self.cmake.write('\n')
             else:  # pragma: no cover

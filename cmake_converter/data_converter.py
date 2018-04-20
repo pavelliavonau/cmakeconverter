@@ -122,7 +122,15 @@ class DataConverter:
         if configuration_nodes:
             for configuration_node in configuration_nodes:
                 configuration_data = str(configuration_node.get('Include'))
-                settings[configuration_data] = {'defines': '', 'cl_flags': '', 'ln_flags': ''}
+                conf_arch = configuration_data.split('|')
+                conf = conf_arch[0]
+                arch = conf_arch[1]
+                settings[configuration_data] = {'defines': '',
+                                                'cl_flags': '',
+                                                'ln_flags': '',
+                                                'conf': conf,
+                                                'arch': arch,
+                                                }
 
         for setting in settings:
             property_groups[setting] = get_propertygroup(

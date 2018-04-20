@@ -55,9 +55,8 @@ class Flags(object):
         self.std = context['std']
         self.settings = context['settings']
 
-    @staticmethod
-    def get_setting_name(setting):
-        return setting.split('|')[0]
+    def get_setting_name(self, setting):
+        return self.settings[setting]['conf']
 
     def get_cmake_configuration_types(self):
         configuration_types = []
