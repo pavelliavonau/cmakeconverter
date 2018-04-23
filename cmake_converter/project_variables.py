@@ -132,7 +132,7 @@ class ProjectVariables(object):
 
         variables_to_replace = {
             '$(SolutionDir)': '${CMAKE_SOURCE_DIR}/',
-            '$(Platform)': 'x64',
+            '$(Platform)': '${CMAKE_VS_PLATFORM_NAME}',
             '$(Configuration)': '$<CONFIG>',
             '$(ProjectDir)': '${CMAKE_CURRENT_SOURCE_DIR}',
             '$(ProjectName)': '${PROJECT_NAME}'

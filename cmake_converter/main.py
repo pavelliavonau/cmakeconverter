@@ -163,6 +163,13 @@ def main():  # pragma: no cover
             cmake_dir = os.path.dirname(context['cmake'].name)
             subdirectories.append(os.path.relpath(cmake_dir, solution_path))
             print('\n')
+        sln_cmake.write('################################################################################\n')
+        sln_cmake.write('# Set target arch type if empty. Visual studio solution generator provides it. #\n')
+        sln_cmake.write('################################################################################\n')
+        sln_cmake.write('if(NOT CMAKE_VS_PLATFORM_NAME)\n')
+        sln_cmake.write('    set(CMAKE_VS_PLATFORM_NAME "x64")\n')
+        sln_cmake.write('endif()\n')
+        sln_cmake.write('message(\"${CMAKE_VS_PLATFORM_NAME} architecture in use\")\n\n')
         # TODO: try to write configuration types for each project locally due possible difference.
         sln_cmake.write('################################################################################\n')
         sln_cmake.write('# Global configuration types\n')

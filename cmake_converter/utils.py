@@ -74,22 +74,37 @@ def get_configuration_type(setting, context):
     return configurationtype[0].text
 
 
-def write_property_of_settings(cmake_file, settings, begin_text, end_text, property_name):
+def write_property_of_settings(cmake_file, settings, begin_text, end_text, property_name, indent=''):
     width = 0
+    settings_of_arch = {}
     for setting in settings:
-        length = len('$<$<CONFIG:{0}>'.format(settings[setting]['conf']))
+        length = len('    $<$<CONFIG:{0}>'.format(settings[setting]['conf']))
         if length > width:
             width = length
-    has_property_value = False
-    for setting in settings:
-        conf = settings[setting]['conf']
-        if property_name in settings[setting]:
-            if settings[setting][property_name] != '':
-                if not has_property_value:
-                    cmake_file.write('{0}\n'.format(begin_text))
-                    has_property_value = True
-                property_value = settings[setting][property_name]
-                config_expr_begin = '$<$<CONFIG:{0}>'.format(conf)
-                cmake_file.write('    {0:>{width}}:{1}>\n'.format(config_expr_begin, property_value, width=width))
-    if has_property_value:
-        cmake_file.write('{0}\n'.format(end_text))
+        arch = settings[setting]['arch']
+        if arch not in settings_of_arch:
+            settings_of_arch[arch] = {}
+        settings_of_arch[arch][setting] = settings[setting]
+
+    first_arch = True
+    for arch in settings_of_arch:
+        if first_arch:
+            cmake_file.write('{0}if(\"${{CMAKE_VS_PLATFORM_NAME}}\" STREQUAL \"{1}\")\n'.format(indent, arch))
+        else:
+            cmake_file.write('{0}elseif(\"${{CMAKE_VS_PLATFORM_NAME}}\" STREQUAL \"{1}\")\n'.format(indent, arch))
+        has_property_value = False
+        for setting in settings_of_arch[arch]:
+            conf = settings[setting]['conf']
+            if property_name in settings[setting]:
+                if settings[setting][property_name] != '':
+                    if not has_property_value:
+                        cmake_file.write('    {0}\n'.format(begin_text))
+                        has_property_value = True
+                    property_value = settings[setting][property_name]
+                    config_expr_begin = '$<$<CONFIG:{0}>'.format(conf)
+                    cmake_file.write('{0}    {1:>{width}}:{2}>\n'.format(indent, config_expr_begin, property_value, width=width))
+        if has_property_value:
+            cmake_file.write('    {0}\n'.format(end_text))
+    cmake_file.write('{0}else()\n'.format(indent))
+    cmake_file.write('{0}    message(SEND_ERROR "${{CMAKE_VS_PLATFORM_NAME}} arch is not supported!!")\n'.format(indent))
+    cmake_file.write('{0}endif()\n'.format(indent))

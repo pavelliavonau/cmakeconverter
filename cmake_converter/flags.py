@@ -767,19 +767,39 @@ class Flags(object):
                                    defines)
         cmake.write('if(MSVC)\n')
         write_property_of_settings(cmake, self.settings, '    target_compile_options(${PROJECT_NAME} PRIVATE', '    )',
-                                   cl_flags)
+                                   cl_flags, indent='    ')
+
+        settings_of_arch = {}
         for setting in self.settings:
-            conf = self.get_setting_name(setting).upper()
-            if len(self.settings[setting][ln_flags]) != 0:
-                configuration_type = get_configuration_type(setting, self.context)
-                if 'StaticLibrary' in configuration_type:
-                    cmake.write(
-                        '    set_target_properties(${{PROJECT_NAME}} PROPERTIES STATIC_LIBRARY_FLAGS_{0} "{1}")\n'
-                        .format(conf, self.settings[setting][ln_flags])
-                    )
-                else:
-                    cmake.write(
-                        '    set_target_properties(${{PROJECT_NAME}} PROPERTIES LINK_FLAGS_{0} "{1}")\n'
-                        .format(conf, self.settings[setting][ln_flags])
-                    )
+            arch = self.settings[setting]['arch']
+            if arch not in settings_of_arch:
+                settings_of_arch[arch] = {}
+            settings_of_arch[arch][setting] = self.settings[setting]
+
+        first_arch = True
+        for arch in settings_of_arch:
+            if first_arch:
+                cmake.write('    if(\"${{CMAKE_VS_PLATFORM_NAME}}\" STREQUAL \"{0}\")\n'.format(arch))
+            else:
+                cmake.write('    elseif(\"${{CMAKE_VS_PLATFORM_NAME}}\" STREQUAL \"{0}\")\n'.format(arch))
+
+            for setting in settings_of_arch[arch]:
+                conf = self.settings[setting]['conf']
+                if len(self.settings[setting][ln_flags]) != 0:
+                    configuration_type = get_configuration_type(setting, self.context)
+                    if 'StaticLibrary' in configuration_type:
+                        cmake.write(
+                            '        set_target_properties(${{PROJECT_NAME}}'
+                            ' PROPERTIES STATIC_LIBRARY_FLAGS_{0} "{1}")\n'
+                            .format(conf, self.settings[setting][ln_flags])
+                        )
+                    else:
+                        cmake.write(
+                            '        set_target_properties(${{PROJECT_NAME}} PROPERTIES LINK_FLAGS_{0} "{1}")\n'
+                            .format(conf, self.settings[setting][ln_flags])
+                        )
+        cmake.write('    else()\n')
+        cmake.write(
+            '         message(SEND_ERROR "${CMAKE_VS_PLATFORM_NAME} arch is not supported!!")\n')
+        cmake.write('    endif()\n')
         cmake.write('endif()\n\n')
