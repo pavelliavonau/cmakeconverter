@@ -167,13 +167,6 @@ class DataConverter:
         # Write Output Variables
         # variables.add_artifact_target_outputs() # TODO: remove hard code of configuration names
 
-        # Write Include Directories
-        dependencies = Dependencies(self.context)
-        if self.context['includes']:
-            dependencies.write_include_dir()
-        else:
-            send('Include Directories is not set.', '')
-
         # Add additional code or not
         if self.context['additional_code'] is not None:
             files.add_additional_code(self.context['additional_code'])
@@ -189,16 +182,18 @@ class DataConverter:
             files.write_source_files()
             all_flags.write_target_artefact()
             variables.add_artifact_target_outputs(self.context)
+            dependencies = Dependencies(self.context)
+            dependencies.write_include_dir()
             all_flags.write_defines_and_flags()
             for configuration_type in all_flags.get_cmake_configuration_types():
                 self.context['configuration_types'].add(configuration_type)
 
-        # Write Dependencies
-        dependencies.write_dependencies()
+            # Write Dependencies
+            dependencies.write_dependencies()
 
-        # Link with other dependencies
-        dependencies.link_dependencies()
-        dependencies.extensions_targets_dependencies()
+            # Link with other dependencies
+            dependencies.link_dependencies()
+            dependencies.extensions_targets_dependencies()
 
     def close_cmake_file(self):
         """

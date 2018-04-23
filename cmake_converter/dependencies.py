@@ -46,12 +46,16 @@ class Dependencies(object):
         self.dependencies = context['dependencies']
         self.settings = context['settings']
         self.definition_groups = context['definition_groups']
+        self.includes = context['includes']
 
     def write_include_dir(self):
         """
         Write on "CMakeLists.txt" include directories required for compilation.
 
         """
+        if not self.includes:
+            send('Include Directories is not set.', '')
+            return
 
         for setting in self.settings:
             incl_dir = self.tree.find(
@@ -73,7 +77,8 @@ class Dependencies(object):
             else:  # pragma: no cover
                 send('Include Directories not found for this project.', 'warn')
 
-        write_property_of_settings(self.cmake, self.settings, 'include_directories(', ')', 'inc_dirs')
+        write_property_of_settings(self.cmake, self.settings, 'target_include_directories(${PROJECT_NAME} PRIVATE ',
+                                   ')\n', 'inc_dirs')
 
     @staticmethod
     def get_dependency_target_name(vs_project):
