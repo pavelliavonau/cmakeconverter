@@ -164,9 +164,6 @@ class DataConverter:
         files.add_cmake_project(files.language)
         # variables.add_default_target() # TODO: add conversion option to cmd line
 
-        # Write Output Variables
-        # variables.add_artifact_target_outputs() # TODO: remove hard code of configuration names
-
         # Add additional code or not
         if self.context['additional_code'] is not None:
             files.add_additional_code(self.context['additional_code'])
