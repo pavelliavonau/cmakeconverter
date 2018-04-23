@@ -66,7 +66,7 @@ class Dependencies(object):
                 for i in inc_dir.split(';'):
                     i = i.replace('\\', '/')
                     i = re.sub(r'\$\((.+?)\)', r'$ENV{\1}', i)
-                    dirs.append(i)
+                    dirs.append('${CMAKE_CURRENT_SOURCE_DIR}/' + i)
                 inc_dirs = ';'.join(dirs)
                 self.settings[setting]['inc_dirs'] = inc_dirs
                 send('Include Directories found : %s' % inc_dirs, 'warn')
