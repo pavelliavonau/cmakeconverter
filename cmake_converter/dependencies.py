@@ -126,7 +126,7 @@ class Dependencies(object):
         """
         references = self.tree.xpath('//ns:ProjectReference', namespaces=self.ns)
         if references:
-            self.cmake.write('\n################### Dependencies ##################\n'
+            self.cmake.write('################### Dependencies ##################\n'
                              '# Add Dependencies to project.                    #\n'
                              '###################################################\n\n')
             self.write_target_dependencies(references)

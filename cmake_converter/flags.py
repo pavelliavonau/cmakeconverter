@@ -693,20 +693,22 @@ class Flags(object):
 
         if need_pch_macro:
             cmake = self.cmake
-            cmake.write('\nMACRO(ADD_PRECOMPILED_HEADER PrecompiledHeader PrecompiledSource SourcesVar)')
-            cmake.write('\n    if(MSVC)')
-            cmake.write('\n        set(PrecompiledBinary "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.pch")')
-            cmake.write('\n        SET_SOURCE_FILES_PROPERTIES(${PrecompiledSource}')
-            cmake.write('\n                                    PROPERTIES COMPILE_FLAGS "/Yc\\"${PrecompiledHeader}\\"'
-                        ' /Fp\\"${PrecompiledBinary}\\""')
-            cmake.write('\n                                               OBJECT_OUTPUTS "${PrecompiledBinary}")')
-            cmake.write('\n        SET_SOURCE_FILES_PROPERTIES(${${SourcesVar}}')
-            cmake.write('\n                                    PROPERTIES COMPILE_FLAGS "/Yu\\"${PrecompiledHeader}\\"'
-                        ' /FI\\"${PrecompiledHeader}\\" /Fp\\"${PrecompiledBinary}\\""')
-            cmake.write('\n                                               OBJECT_DEPENDS "${PrecompiledBinary}")')
-            cmake.write('\n    endif()')
-            cmake.write('\n    LIST(INSERT ${SourcesVar} 0 ${PrecompiledSource})')
-            cmake.write('\nENDMACRO(ADD_PRECOMPILED_HEADER)\n')
+            cmake.write(
+                'MACRO(ADD_PRECOMPILED_HEADER PrecompiledHeader PrecompiledSource SourcesVar)\n'
+                '    if(MSVC)\n'
+                '        set(PrecompiledBinary "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.pch")\n'
+                '        SET_SOURCE_FILES_PROPERTIES(${PrecompiledSource}\n'
+                '                                    PROPERTIES COMPILE_FLAGS "/Yc\\"${PrecompiledHeader}\\"'
+                ' /Fp\\"${PrecompiledBinary}\\""\n'
+                '                                               OBJECT_OUTPUTS "${PrecompiledBinary}")\n'
+                '        SET_SOURCE_FILES_PROPERTIES(${${SourcesVar}}\n'
+                '                                    PROPERTIES COMPILE_FLAGS "/Yu\\"${PrecompiledHeader}\\"'
+                ' /FI\\"${PrecompiledHeader}\\" /Fp\\"${PrecompiledBinary}\\""\n'
+                '                                               OBJECT_DEPENDS "${PrecompiledBinary}")\n'
+                '    endif()\n'
+                '    LIST(INSERT ${SourcesVar} 0 ${PrecompiledSource})\n'
+                'ENDMACRO(ADD_PRECOMPILED_HEADER)\n\n'
+            )
 
     def write_precompiled_headers(self, setting):
         """
@@ -715,8 +717,7 @@ class Flags(object):
             return
 
         pch = self.settings[setting]['PrecompiledHeaderFile']
-        self.cmake.write('\nADD_PRECOMPILED_HEADER("{0}" "{1}" SRC_FILES)\n'
-                    .format(pch, pch.replace('.h', '.cpp')))
+        self.cmake.write('ADD_PRECOMPILED_HEADER("{0}" "{1}" SRC_FILES)\n'.format(pch, pch.replace('.h', '.cpp')))
 
     def write_target_artefact(self):
         """
@@ -728,7 +729,7 @@ class Flags(object):
             conf = self.get_setting_name(s).upper()
             setting = s
  
-        self.cmake.write('\n# Warning: pch and target are the same for every configuration')
+        self.cmake.write('# Warning: pch and target are the same for every configuration\n')
         self.write_precompiled_headers(setting)
         configurationtype = get_configuration_type(setting, self.context)
         if configurationtype == 'DynamicLibrary':
@@ -762,8 +763,7 @@ class Flags(object):
             self.settings[setting][cl_flags] = self.settings[setting][cl_flags].strip().replace(' ', ';')
             self.settings[setting][defines] = self.settings[setting][defines].strip().replace('\n', ';')
 
-        cmake.write('\n# Configuration settings of target\n')
-        write_property_of_settings(cmake, self.settings, 'target_compile_definitions(${PROJECT_NAME} PRIVATE', ')',
+        write_property_of_settings(cmake, self.settings, 'target_compile_definitions(${PROJECT_NAME} PRIVATE', ')\n',
                                    defines)
         cmake.write('if(MSVC)\n')
         write_property_of_settings(cmake, self.settings, '    target_compile_options(${PROJECT_NAME} PRIVATE', '    )',
@@ -782,4 +782,4 @@ class Flags(object):
                         '    set_target_properties(${{PROJECT_NAME}} PROPERTIES LINK_FLAGS_{0} "{1}")\n'
                         .format(conf, self.settings[setting][ln_flags])
                     )
-        cmake.write('endif()\n')
+        cmake.write('endif()\n\n')

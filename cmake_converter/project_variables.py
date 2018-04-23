@@ -186,10 +186,11 @@ class ProjectVariables(object):
             # TODO: do we really need LIBRARY_OUTPUT_DIRECTORY here?
             self.cmake.write(
                 'set_target_properties(${PROJECT_NAME} PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${OUT_DIR}")\n')
+            self.cmake.write('\n')
         else:
             self.cmake.write(
-                'set_target_properties(${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${OUT_DIR}")\n')
+                'set_target_properties(${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${OUT_DIR}")\n\n')
 
-        write_property_of_settings(self.cmake, self.settings, '\nstring(CONCAT TARGET_NAME', ')', 'output_name')
+        write_property_of_settings(self.cmake, self.settings, 'string(CONCAT TARGET_NAME', ')', 'output_name')
         self.cmake.write(
-            'set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME ${TARGET_NAME})\n')
+            'set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME ${TARGET_NAME})\n\n')

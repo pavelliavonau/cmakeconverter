@@ -102,7 +102,7 @@ class ProjectFiles(object):
         available_language = {'c': 'C'}
         available_language.update(dict.fromkeys(cpp_extensions, 'CXX'))
 
-        self.cmake.write('\n')
+        # self.cmake.write('\n')
         # self.cmake.write(
         #     '############## CMake Project ################\n'
         #     '#        The main options of project        #\n'
@@ -117,7 +117,7 @@ class ProjectFiles(object):
         """
         Write header files variables to file() cmake function
         """
-        self.cmake.write('\n############ Header Files #############\n')
+        self.cmake.write('############ Header Files #############\n')
         self.cmake.write('set(HEADERS_FILES\n')
 
         for headers_dir in self.headers:
@@ -125,13 +125,13 @@ class ProjectFiles(object):
                 self.cmake.write('    %s\n' % os.path.join(headers_dir, header_file).replace('\\', '/'))
 
         self.cmake.write(')\n')
-        self.cmake.write('source_group("Headers" FILES ${HEADERS_FILES})\n')
+        self.cmake.write('source_group("Headers" FILES ${HEADERS_FILES})\n\n')
 
     def write_source_files(self):
         """
         Write source files variables to file() cmake function
         """
-        self.cmake.write('\n############ Source Files #############\n')
+        self.cmake.write('############ Source Files #############\n')
         self.cmake.write('set(SRC_FILES\n')
 
         for src_dir in self.sources:
@@ -139,8 +139,7 @@ class ProjectFiles(object):
                 self.cmake.write('    %s\n' % os.path.join(src_dir, src_file).replace('\\', '/'))
 
         self.cmake.write(')\n')
-
-        self.cmake.write('source_group("Sources" FILES ${SRC_FILES})\n')
+        self.cmake.write('source_group("Sources" FILES ${SRC_FILES})\n\n')
 
     def add_additional_code(self, file_to_add):
         """
