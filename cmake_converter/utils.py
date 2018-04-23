@@ -75,6 +75,11 @@ def get_configuration_type(setting, context):
 
 
 def write_property_of_settings(cmake_file, settings, begin_text, end_text, property_name):
+    width = 0
+    for setting in settings:
+        length = len('$<$<CONFIG:{0}>'.format(settings[setting]['conf']))
+        if length > width:
+            width = length
     has_property_value = False
     for setting in settings:
         conf = settings[setting]['conf']
@@ -84,6 +89,7 @@ def write_property_of_settings(cmake_file, settings, begin_text, end_text, prope
                     cmake_file.write('{0}\n'.format(begin_text))
                     has_property_value = True
                 property_value = settings[setting][property_name]
-                cmake_file.write('    $<$<CONFIG:{0}>: {1}>\n'.format(conf, property_value))
+                config_expr_begin = '$<$<CONFIG:{0}>'.format(conf)
+                cmake_file.write('    {0:>{width}}:{1}>\n'.format(config_expr_begin, property_value, width=width))
     if has_property_value:
         cmake_file.write('{0}\n'.format(end_text))
