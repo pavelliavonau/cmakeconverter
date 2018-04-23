@@ -717,7 +717,7 @@ class Flags(object):
             return
 
         pch = self.settings[setting]['PrecompiledHeaderFile']
-        self.cmake.write('ADD_PRECOMPILED_HEADER("{0}" "{1}" SRC_FILES)\n'.format(pch, pch.replace('.h', '.cpp')))
+        self.cmake.write('ADD_PRECOMPILED_HEADER("{0}" "{1}" SRC_FILES)\n\n'.format(pch, pch.replace('.h', '.cpp')))
 
     def write_target_artefact(self):
         """
@@ -733,16 +733,16 @@ class Flags(object):
         self.write_precompiled_headers(setting)
         configurationtype = get_configuration_type(setting, self.context)
         if configurationtype == 'DynamicLibrary':
-            self.cmake.write('\nadd_library(${PROJECT_NAME} SHARED')
+            self.cmake.write('add_library(${PROJECT_NAME} SHARED')
             send('CMake will build a SHARED Library.', '')
         elif configurationtype == 'StaticLibrary':  # pragma: no cover
-            self.cmake.write('\nadd_library(${PROJECT_NAME} STATIC')
+            self.cmake.write('add_library(${PROJECT_NAME} STATIC')
             send('CMake will build a STATIC Library.', '')
         else:  # pragma: no cover
-            self.cmake.write('\nadd_executable(${PROJECT_NAME} ')
+            self.cmake.write('add_executable(${PROJECT_NAME} ')
             send('CMake will build an EXECUTABLE.', '')
         self.cmake.write(' ${SRC_FILES} ${HEADERS_FILES}')
-        self.cmake.write(')\n')
+        self.cmake.write(')\n\n')
 
     def write_defines_and_flags(self):
         """
@@ -763,8 +763,9 @@ class Flags(object):
             self.settings[setting][cl_flags] = self.settings[setting][cl_flags].strip().replace(' ', ';')
             self.settings[setting][defines] = self.settings[setting][defines].strip().replace('\n', ';')
 
-        write_property_of_settings(cmake, self.settings, 'target_compile_definitions(${PROJECT_NAME} PRIVATE', ')\n',
+        write_property_of_settings(cmake, self.settings, 'target_compile_definitions(${PROJECT_NAME} PRIVATE', ')',
                                    defines)
+        cmake.write('\n')
         cmake.write('if(MSVC)\n')
         write_property_of_settings(cmake, self.settings, '    target_compile_options(${PROJECT_NAME} PRIVATE', '    )',
                                    cl_flags, indent='    ')

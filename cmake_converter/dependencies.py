@@ -78,7 +78,8 @@ class Dependencies(object):
                 send('Include Directories not found for this project.', 'warn')
 
         write_property_of_settings(self.cmake, self.settings, 'target_include_directories(${PROJECT_NAME} PRIVATE ',
-                                   ')\n', 'inc_dirs')
+                                   ')', 'inc_dirs')
+        self.cmake.write('\n')
 
     @staticmethod
     def get_dependency_target_name(vs_project):

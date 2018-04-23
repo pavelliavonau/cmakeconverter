@@ -171,7 +171,7 @@ class ProjectVariables(object):
         if len(context['settings']) == 0:
             return
 
-        write_property_of_settings(self.cmake, self.settings, '\nstring(CONCAT OUT_DIR', ')', 'out_dir')
+        write_property_of_settings(self.cmake, self.settings, 'string(CONCAT OUT_DIR', ')', 'out_dir')
 
         for setting in self.settings:
             break
