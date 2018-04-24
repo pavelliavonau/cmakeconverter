@@ -793,12 +793,12 @@ class Flags(object):
                         cmake.write(
                             '        set_target_properties(${{PROJECT_NAME}}'
                             ' PROPERTIES STATIC_LIBRARY_FLAGS_{0} "{1}")\n'
-                            .format(conf, self.settings[setting][ln_flags])
+                            .format(conf.upper(), self.settings[setting][ln_flags])
                         )
                     else:
                         cmake.write(
                             '        set_target_properties(${{PROJECT_NAME}} PROPERTIES LINK_FLAGS_{0} "{1}")\n'
-                            .format(conf, self.settings[setting][ln_flags])
+                            .format(conf.upper(), self.settings[setting][ln_flags])
                         )
         cmake.write('    else()\n')
         cmake.write(
