@@ -34,6 +34,7 @@ from cmake_converter.flags import Flags
 from cmake_converter.message import send
 from cmake_converter.project_files import ProjectFiles
 from cmake_converter.project_variables import ProjectVariables
+from cmake_converter.utils import get_global_project_name_from_vcxproj_file
 
 
 class DataConverter:
@@ -62,12 +63,9 @@ class DataConverter:
                 send('Project to convert = ' + vs_project, '')
                 self.context['vcxproj'] = get_vcxproj_data(vs_project)
                 self.context['vcxproj_path'] = vs_project
-                project_name_node = self.context['vcxproj']['tree'].xpath('//ns:ProjectName'
-                                                                          , namespaces=self.context['vcxproj']['ns'])
-                if project_name_node:
-                    projectname = project_name_node[0]
-                    if projectname.text:
-                        project_name = projectname.text
+                project_name_value = get_global_project_name_from_vcxproj_file(self.context['vcxproj'])
+                if project_name_value:
+                    project_name = project_name_value
                 self.context['project_name'] = project_name
             else:  # pragma: no cover
                 send('This file is not a ".vcxproj". Be sure you give the right file', 'error')

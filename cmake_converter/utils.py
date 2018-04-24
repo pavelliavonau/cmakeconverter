@@ -112,3 +112,13 @@ def write_property_of_settings(cmake_file, settings, begin_text, end_text, prope
     cmake_file.write('{0}else()\n'.format(indent))
     cmake_file.write('{0}    message(WARNING "${{CMAKE_VS_PLATFORM_NAME}} arch is not supported!")\n'.format(indent))
     cmake_file.write('{0}endif()\n'.format(indent))
+
+
+def get_global_project_name_from_vcxproj_file(vcxproj):
+    project_name_node = vcxproj['tree'].xpath('//ns:ProjectName', namespaces=vcxproj['ns'])
+    project_name = None
+    if project_name_node:
+        project_name_value = project_name_node[0]
+        if project_name_value.text:
+            project_name = project_name_value.text
+    return project_name

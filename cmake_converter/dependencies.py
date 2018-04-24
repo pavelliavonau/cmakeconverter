@@ -31,7 +31,7 @@ import re
 
 from cmake_converter.message import send
 from cmake_converter.data_files import get_vcxproj_data, get_xml_data
-from cmake_converter.utils import write_property_of_settings
+from cmake_converter.utils import write_property_of_settings, get_global_project_name_from_vcxproj_file
 
 
 class Dependencies(object):
@@ -47,6 +47,7 @@ class Dependencies(object):
         self.settings = context['settings']
         self.definition_groups = context['definition_groups']
         self.includes = context['includes']
+        self.vcxproj_path = context['vcxproj_path']
 
     def write_include_dir(self):
         """
@@ -90,9 +91,12 @@ class Dependencies(object):
         :return:
         """
         # VS Project (.vcxproj)
-        if vs_project:
+        vcxproj = get_vcxproj_data(vs_project)
+        project_name = get_global_project_name_from_vcxproj_file(vcxproj)
+        if project_name:
+            return project_name
+        else:
             return os.path.splitext(ntpath.basename(vs_project))[0]
-        return ''
 
     def write_target_dependencies(self, references):
         """
@@ -116,7 +120,10 @@ class Dependencies(object):
             if references_found:
                 self.cmake.write('add_dependencies(${PROJECT_NAME}')
                 for ref_found in references_found:
-                    self.cmake.write(' %s' % self.get_dependency_target_name(ref_found))
+                    project_name = self.get_dependency_target_name(os.path.join(os.path.dirname(self.vcxproj_path),
+                                                                                ref_found))
+                    self.cmake.write(' {0}'
+                                     .format(project_name))
 
                 self.cmake.write(')\n\n')
 
@@ -191,7 +198,7 @@ class Dependencies(object):
                     continue
                 reference = str(ref_inc)
                 path_to_reference = os.path.splitext(ntpath.basename(reference))[0]
-                lib = self.get_dependency_target_name(reference)
+                lib = self.get_dependency_target_name(os.path.join(os.path.dirname(self.vcxproj_path), reference))
                 if lib == 'g3log':
                     lib += 'ger'  # To get "g3logger"
                 self.cmake.write(' ' + lib)
