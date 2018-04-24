@@ -362,6 +362,7 @@ class Flags(object):
                                        ,namespaces=self.ns)
             if specwarn:
                 for sw in specwarn[0].text.strip().split(";"):
+                    sw = sw.strip()
                     if sw != '%(DisableSpecificWarnings)':
                         self.settings[setting][cl_flags] += ' /wd{0}'.format(sw)
                 send('DisableSpecificWarnings for {0} : {1}'.format(setting, specwarn[0].text.strip()), 'ok')
