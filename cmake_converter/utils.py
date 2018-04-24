@@ -103,9 +103,10 @@ def write_property_of_settings(cmake_file, settings, begin_text, end_text, prope
                         has_property_value = True
                     property_value = settings[setting][property_name]
                     config_expr_begin = '$<$<CONFIG:{0}>'.format(conf)
-                    cmake_file.write('{0}    {1:>{width}}:{2}>\n'.format(indent, config_expr_begin, property_value, width=width))
+                    cmake_file.write('{0}    {1:>{width}}:{2}>\n'.format(indent, config_expr_begin, property_value,
+                                                                         width=width))
         if has_property_value:
             cmake_file.write('    {0}\n'.format(end_text))
     cmake_file.write('{0}else()\n'.format(indent))
-    cmake_file.write('{0}    message(SEND_ERROR "${{CMAKE_VS_PLATFORM_NAME}} arch is not supported!!")\n'.format(indent))
+    cmake_file.write('{0}    message(WARNING "${{CMAKE_VS_PLATFORM_NAME}} arch is not supported!")\n'.format(indent))
     cmake_file.write('{0}endif()\n'.format(indent))

@@ -171,6 +171,7 @@ class ProjectVariables(object):
         if len(context['settings']) == 0:
             return
 
+        self.cmake.write('set(OUT_DIR ${CMAKE_SOURCE_DIR}/${CMAKE_VS_PLATFORM_NAME}/$<CONFIG>)\n')
         write_property_of_settings(self.cmake, self.settings, 'string(CONCAT OUT_DIR', ')', 'out_dir')
 
         for setting in self.settings:
@@ -179,18 +180,19 @@ class ProjectVariables(object):
         configuration_type = get_configuration_type(setting, context)
         if configuration_type == 'DynamicLibrary' or configuration_type == 'StaticLibrary':
             self.cmake.write(
-                'set_target_properties(${PROJECT_NAME} PROPERTIES ARCHIVE_OUTPUT_DIRECTORY "${OUT_DIR}")\n')
+                'set_target_properties(${PROJECT_NAME} PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${OUT_DIR})\n')
             if configuration_type == 'DynamicLibrary':
                 self.cmake.write(
-                    'set_target_properties(${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${OUT_DIR}")\n')
+                    'set_target_properties(${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${OUT_DIR})\n')
             # TODO: do we really need LIBRARY_OUTPUT_DIRECTORY here?
             self.cmake.write(
-                'set_target_properties(${PROJECT_NAME} PROPERTIES LIBRARY_OUTPUT_DIRECTORY "${OUT_DIR}")\n')
+                'set_target_properties(${PROJECT_NAME} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${OUT_DIR})\n')
             self.cmake.write('\n')
         else:
             self.cmake.write(
-                'set_target_properties(${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${OUT_DIR}")\n\n')
+                'set_target_properties(${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${OUT_DIR})\n\n')
 
+        self.cmake.write('set(TARGET_NAME ${PROJECT_NAME})\n')
         write_property_of_settings(self.cmake, self.settings, 'string(CONCAT TARGET_NAME', ')', 'output_name')
         self.cmake.write(
             'set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME ${TARGET_NAME})\n\n')

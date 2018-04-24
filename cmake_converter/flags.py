@@ -331,8 +331,8 @@ class Flags(object):
 
         """
         for setting in self.settings:
-            wx = self.tree.xpath('{0}/ns:ClCompile/ns:TreatWarningAsError'.format(self.definitiongroups[setting])
-                                     ,namespaces=self.ns)
+            wx = self.tree.xpath('{0}/ns:ClCompile/ns:TreatWarningAsError'.format(self.definitiongroups[setting]),
+                                 namespaces=self.ns)
             if wx:
                 if 'true' in wx[0].text:
                     self.settings[setting][cl_flags] += ' /WX'
@@ -802,6 +802,6 @@ class Flags(object):
                         )
         cmake.write('    else()\n')
         cmake.write(
-            '         message(SEND_ERROR "${CMAKE_VS_PLATFORM_NAME} arch is not supported!!")\n')
+            '         message(WARNING "${CMAKE_VS_PLATFORM_NAME} arch is not supported!")\n')
         cmake.write('    endif()\n')
         cmake.write('endif()\n\n')
