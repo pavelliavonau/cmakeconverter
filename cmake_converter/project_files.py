@@ -63,7 +63,7 @@ class ProjectFiles(object):
                     # Case files are beside the VS Project
                     cpp_path = './'
                 if cpp_path not in self.sources:
-                    self.sources = {cpp_path: []}
+                    self.sources[cpp_path] = []
                 if cxx_file not in self.sources[cpp_path]:
                     self.sources[cpp_path].append(cxx_file)
 
@@ -73,7 +73,7 @@ class ProjectFiles(object):
             h = '/'.join(h.split('\\'))
             header_path, header_file = os.path.split(h)
             if header_path not in self.headers:
-                self.headers = {header_path: []}
+                self.headers[header_path] = []
             if header_file not in self.headers[header_path]:
                 self.headers[header_path].append(header_file)
 
