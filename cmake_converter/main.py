@@ -170,6 +170,7 @@ def main():  # pragma: no cover
         sln_cmake.write('    set(CMAKE_VS_PLATFORM_NAME "x64")\n')
         sln_cmake.write('endif()\n')
         sln_cmake.write('message(\"${CMAKE_VS_PLATFORM_NAME} architecture in use\")\n\n')
+
         # TODO: try to write configuration types for each project locally due possible difference.
         sln_cmake.write('################################################################################\n')
         sln_cmake.write('# Global configuration types\n')
@@ -180,6 +181,7 @@ def main():  # pragma: no cover
         for configuration_type in configuration_types_list:
             sln_cmake.write('    \"{0}\"\n'.format(configuration_type))
         sln_cmake.write('    CACHE TYPE INTERNAL FORCE\n)\n\n')
+
         sln_cmake.write('################################################################################\n')
         sln_cmake.write('# Global compiler options\n')
         sln_cmake.write('################################################################################\n')
@@ -189,6 +191,7 @@ def main():  # pragma: no cover
         for configuration_type in configuration_types_list:
             sln_cmake.write('  set(CMAKE_CXX_FLAGS_{0} "")\n'.format(configuration_type.upper()))
         sln_cmake.write('endif()\n\n')
+
         sln_cmake.write('################################################################################\n')
         sln_cmake.write('# Global linker options\n')
         sln_cmake.write('################################################################################\n')
@@ -209,10 +212,19 @@ def main():  # pragma: no cover
             sln_cmake.write(
                 '  set(CMAKE_STATIC_LINKER_FLAGS_{0} \"${{CMAKE_STATIC_LINKER_FLAGS}}\")\n'.format(ct_upper))
         sln_cmake.write('endif()\n\n')
+
+        sln_cmake.write('################################################################################\n')
+        sln_cmake.write('# Nuget packages function stub.\n')
+        sln_cmake.write('################################################################################\n')
+        sln_cmake.write('function(use_package TARGET PACKAGE)\n')
+        sln_cmake.write('    message(WARNING "No implementation of use_package. Create yours.")\n')
+        sln_cmake.write('endfunction()\n\n')
+
         sln_cmake.write('################################################################################\n')
         sln_cmake.write('# Additional Global Settings(add specific info there)\n')
         sln_cmake.write('################################################################################\n')
         sln_cmake.write('include(CMake/GlobalSettingsInclude.cmake)\n\n')
+
         sln_cmake.write('################################################################################\n')
         sln_cmake.write('# Sub-projects\n')
         sln_cmake.write('################################################################################\n')
