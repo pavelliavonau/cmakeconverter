@@ -92,6 +92,7 @@ def write_property_of_settings(cmake_file, settings, begin_text, end_text, prope
             cmake_file.write('{0}if(\"${{CMAKE_VS_PLATFORM_NAME}}\" STREQUAL \"{1}\")\n'.format(indent, arch))
         else:
             cmake_file.write('{0}elseif(\"${{CMAKE_VS_PLATFORM_NAME}}\" STREQUAL \"{1}\")\n'.format(indent, arch))
+        first_arch = False
         has_property_value = False
         for setting in settings_of_arch[arch]:
             conf = settings[setting]['conf']

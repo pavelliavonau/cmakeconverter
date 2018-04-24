@@ -783,7 +783,7 @@ class Flags(object):
                 cmake.write('    if(\"${{CMAKE_VS_PLATFORM_NAME}}\" STREQUAL \"{0}\")\n'.format(arch))
             else:
                 cmake.write('    elseif(\"${{CMAKE_VS_PLATFORM_NAME}}\" STREQUAL \"{0}\")\n'.format(arch))
-
+            first_arch = False
             for setting in settings_of_arch[arch]:
                 conf = self.settings[setting]['conf']
                 if len(self.settings[setting][ln_flags]) != 0:
