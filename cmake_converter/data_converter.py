@@ -125,7 +125,7 @@ class DataConverter:
                 conf_arch = configuration_data.split('|')
                 conf = conf_arch[0]
                 arch = conf_arch[1]
-                settings[configuration_data] = {'defines': '',
+                settings[configuration_data] = {'defines': [],
                                                 'cl_flags': '',
                                                 'ln_flags': '',
                                                 'conf': conf,

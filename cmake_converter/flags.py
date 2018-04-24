@@ -124,17 +124,17 @@ class Flags(object):
             if define is not None:
                 for preproc in define.text.split(";"):
                     if preproc != '%(PreprocessorDefinitions)' and preproc != 'WIN32':
-                        self.settings[setting][defines] += '-D%s;' % preproc
+                        self.settings[setting][defines].append(preproc)
                 # Unicode
                 characterSet = self.tree.xpath(
                     '{0}/ns:CharacterSet'.format(self.propertygroup[setting]),
                     namespaces=self.ns)
                 if characterSet is not None:
                     if 'Unicode' in characterSet[0].text:
-                        self.settings[setting][defines] += '-DUNICODE;'
-                        self.settings[setting][defines] += '-D_UNICODE;'
+                        self.settings[setting][defines].append('UNICODE')
+                        self.settings[setting][defines].append('_UNICODE')
                     if 'MultiByte' in characterSet[0].text:
-                        self.settings[setting][defines] += '-D_MBCS;'
+                        self.settings[setting][defines].append('_MBCS')
                 send('PreprocessorDefinitions for {0}'.format(setting), 'ok')
 
     def do_precompiled_headers(self, files):
@@ -761,10 +761,10 @@ class Flags(object):
         # normalize
         for setting in self.settings:
             self.settings[setting][cl_flags] = self.settings[setting][cl_flags].strip().replace(' ', ';')
-            self.settings[setting][defines] = self.settings[setting][defines].strip().replace('\n', ';')
+            self.settings[setting]['defines_str'] = ';'.join(self.settings[setting][defines])  # .strip().replace('\n', ';')
 
         write_property_of_settings(cmake, self.settings, 'target_compile_definitions(${PROJECT_NAME} PRIVATE', ')',
-                                   defines)
+                                   'defines_str')
         cmake.write('\n')
         cmake.write('if(MSVC)\n')
         write_property_of_settings(cmake, self.settings, '    target_compile_options(${PROJECT_NAME} PRIVATE', '    )',
