@@ -566,7 +566,7 @@ class Flags(object):
             if deb is not None:
                 if 'true' in deb.text:
                     conf_type = get_configuration_type(setting, self.context)
-                    if 'StaticLibrary' in conf_type:
+                    if conf_type and 'StaticLibrary' in conf_type:
                         continue
                     self.settings[setting][ln_flags] += ' /DEBUG'
                     send('GenerateDebugInformation for {0}'.format(setting), 'ok')
@@ -727,23 +727,28 @@ class Flags(object):
         """
         setting = ''
         for s in self.settings:
-            conf = self.get_setting_name(s).upper()
             setting = s
  
         self.cmake.write('# Warning: pch and target are the same for every configuration\n')
         self.write_precompiled_headers(setting)
-        configurationtype = get_configuration_type(setting, self.context)
-        if configurationtype == 'DynamicLibrary':
-            self.cmake.write('add_library(${PROJECT_NAME} SHARED')
-            send('CMake will build a SHARED Library.', '')
-        elif configurationtype == 'StaticLibrary':  # pragma: no cover
-            self.cmake.write('add_library(${PROJECT_NAME} STATIC')
-            send('CMake will build a STATIC Library.', '')
-        else:  # pragma: no cover
-            self.cmake.write('add_executable(${PROJECT_NAME} ')
-            send('CMake will build an EXECUTABLE.', '')
-        self.cmake.write(' ${SRC_FILES} ${HEADERS_FILES}')
-        self.cmake.write(')\n\n')
+
+        configurationtype = None
+        for s in self.settings:
+            configurationtype = get_configuration_type(s, self.context)
+            if configurationtype:
+                break
+        if configurationtype:
+            if configurationtype == 'DynamicLibrary':
+                self.cmake.write('add_library(${PROJECT_NAME} SHARED')
+                send('CMake will build a SHARED Library.', '')
+            elif configurationtype == 'StaticLibrary':  # pragma: no cover
+                self.cmake.write('add_library(${PROJECT_NAME} STATIC')
+                send('CMake will build a STATIC Library.', '')
+            else:  # pragma: no cover
+                self.cmake.write('add_executable(${PROJECT_NAME} ')
+                send('CMake will build an EXECUTABLE.', '')
+            self.cmake.write(' ${SRC_FILES} ${HEADERS_FILES}')
+            self.cmake.write(')\n\n')
 
     def write_defines_and_flags(self):
         """
@@ -789,17 +794,18 @@ class Flags(object):
                 conf = self.settings[setting]['conf']
                 if len(self.settings[setting][ln_flags]) != 0:
                     configuration_type = get_configuration_type(setting, self.context)
-                    if 'StaticLibrary' in configuration_type:
-                        cmake.write(
-                            '        set_target_properties(${{PROJECT_NAME}}'
-                            ' PROPERTIES STATIC_LIBRARY_FLAGS_{0} "{1}")\n'
-                            .format(conf.upper(), self.settings[setting][ln_flags])
-                        )
-                    else:
-                        cmake.write(
-                            '        set_target_properties(${{PROJECT_NAME}} PROPERTIES LINK_FLAGS_{0} "{1}")\n'
-                            .format(conf.upper(), self.settings[setting][ln_flags])
-                        )
+                    if configuration_type:
+                        if 'StaticLibrary' in configuration_type:
+                            cmake.write(
+                                '        set_target_properties(${{PROJECT_NAME}}'
+                                ' PROPERTIES STATIC_LIBRARY_FLAGS_{0} "{1}")\n'
+                                .format(conf.upper(), self.settings[setting][ln_flags])
+                            )
+                        else:
+                            cmake.write(
+                                '        set_target_properties(${{PROJECT_NAME}} PROPERTIES LINK_FLAGS_{0} "{1}")\n'
+                                .format(conf.upper(), self.settings[setting][ln_flags])
+                            )
         cmake.write('    else()\n')
         cmake.write(
             '         message(WARNING "${CMAKE_VS_PLATFORM_NAME} arch is not supported!")\n')
