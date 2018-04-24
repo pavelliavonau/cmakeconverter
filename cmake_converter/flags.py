@@ -329,7 +329,7 @@ class Flags(object):
         for setting in self.settings:
             warning = self.tree.xpath('{0}/ns:ClCompile/ns:WarningLevel'.format(self.definitiongroups[setting])
                                       , namespaces=self.ns)
-            if warning[0].text != '':
+            if warning and warning[0].text != '':
                 lvl = ' /W' + warning[0].text[-1:]
                 self.settings[setting][cl_flags] += lvl
                 send('Warning for {0} : {1}'.format(setting, lvl), 'ok')
