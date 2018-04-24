@@ -67,7 +67,7 @@ class ProjectFiles(object):
                 if cpp_path not in filelists:
                     filelists[cpp_path] = os.listdir(os.path.join(vcxproj_dir, cpp_path))
                 if cpp_path not in self.sources:
-                    self.sources = {cpp_path: []}
+                    self.sources[cpp_path] = []
                 if cxx_file not in self.sources[cpp_path]:
                     self.sources[cpp_path].append(take_name_from_list_case_ignore(filelists[cpp_path], cxx_file))
         for source_path in self.sources:
@@ -81,7 +81,7 @@ class ProjectFiles(object):
             if header_path not in filelists:
                 filelists[header_path] = os.listdir(os.path.join(vcxproj_dir, header_path))
             if header_path not in self.headers:
-                self.headers = {header_path: []}
+                self.headers[header_path] = []
             if header_file not in self.headers[header_path]:
                 self.headers[header_path].append(take_name_from_list_case_ignore(filelists[header_path], header_file))
         for header_path in self.headers:
@@ -120,7 +120,13 @@ class ProjectFiles(object):
         self.cmake.write('############ Header Files #############\n')
         self.cmake.write('set(HEADERS_FILES\n')
 
+        if '' in self.headers:
+            for header_file in self.headers['']:
+                self.cmake.write('    {0}\n'.format(header_file))
+
         for headers_dir in self.headers:
+            if headers_dir == '':
+                continue
             for header_file in self.headers[headers_dir]:
                 self.cmake.write('    %s\n' % os.path.join(headers_dir, header_file).replace('\\', '/'))
 
@@ -134,7 +140,13 @@ class ProjectFiles(object):
         self.cmake.write('############ Source Files #############\n')
         self.cmake.write('set(SRC_FILES\n')
 
+        if '' in self.sources:
+            for src_file in self.sources['']:
+                self.cmake.write('    {0}\n'.format(src_file))
+
         for src_dir in self.sources:
+            if src_dir == '':
+                continue
             for src_file in self.sources[src_dir]:
                 self.cmake.write('    %s\n' % os.path.join(src_dir, src_file).replace('\\', '/'))
 

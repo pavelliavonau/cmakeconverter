@@ -158,10 +158,11 @@ class Flags(object):
                 self.settings[setting]['PrecompiledHeaderFile'] = flag_value
 
             if not project_has_pch and self.settings[setting]['PrecompiledHeader'] == 'Use':
-                for folder in files.sources:
-                    pch_cpp = self.settings[setting]['PrecompiledHeaderFile'].replace('.h', '.cpp')
-                    real_pch_cpp = take_name_from_list_case_ignore(files.sources[folder], pch_cpp)
-                    self.settings[setting]['PrecompiledHeaderFile'] = real_pch_cpp.replace('.cpp', '.h')
+                pch_path, pch_file = os.path.split(self.settings[setting]['PrecompiledHeaderFile'])
+                # for folder in files.sources:
+                pch_cpp = self.settings[setting]['PrecompiledHeaderFile'].replace('.h', '.cpp')
+                real_pch_cpp = take_name_from_list_case_ignore(files.sources[pch_path], pch_cpp)
+                self.settings[setting]['PrecompiledHeaderFile'] = real_pch_cpp.replace('.cpp', '.h')
                 project_has_pch = True
 
     def define_windows_flags(self):
