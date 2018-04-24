@@ -158,10 +158,21 @@ class Flags(object):
                 self.settings[setting]['PrecompiledHeaderFile'] = flag_value
 
             if not project_has_pch and self.settings[setting]['PrecompiledHeader'] == 'Use':
-                pch_path, pch_file = os.path.split(self.settings[setting]['PrecompiledHeaderFile'])
-                # for folder in files.sources:
+                pch_flag_value = self.settings[setting]['PrecompiledHeaderFile']
+                found = False
+                founded_pch_h_path = ''
+                for headers_path in files.headers:
+                    for header in files.headers[headers_path]:
+                        if header.lower() == pch_flag_value.lower():
+                            found = True
+                            founded_pch_h_path = headers_path
+                        if found:
+                            break
+                    if found:
+                        break
+
                 pch_cpp = self.settings[setting]['PrecompiledHeaderFile'].replace('.h', '.cpp')
-                real_pch_cpp = take_name_from_list_case_ignore(files.sources[pch_path], pch_cpp)
+                real_pch_cpp = take_name_from_list_case_ignore(files.sources[founded_pch_h_path], pch_cpp)
                 self.settings[setting]['PrecompiledHeaderFile'] = real_pch_cpp.replace('.cpp', '.h')
                 project_has_pch = True
 
