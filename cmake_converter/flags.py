@@ -232,7 +232,7 @@ class Flags(object):
         if values is not None:
             for key in values:
                 value = values[key]
-                if not key in self.settings[setting]:
+                if key not in self.settings[setting]:
                     self.settings[setting][key] = ''
                 self.settings[setting][key] += value
                 flags_message += value
@@ -322,8 +322,8 @@ class Flags(object):
 
         """
         for setting in self.settings:
-            warning = self.tree.xpath('{0}/ns:ClCompile/ns:WarningLevel'.format(self.definitiongroups[setting])
-                                      , namespaces=self.ns)
+            warning = self.tree.xpath('{0}/ns:ClCompile/ns:WarningLevel'.format(self.definitiongroups[setting]),
+                                      namespaces=self.ns)
             if warning and warning[0].text != '':
                 lvl = ' /W' + warning[0].text[-1:]
                 self.settings[setting][cl_flags] += lvl
@@ -370,12 +370,12 @@ class Flags(object):
         """
         for setting in self.settings:
             add_opt = self.tree.xpath('{0}/ns:ClCompile/ns:AdditionalOptions'
-                                     .format(self.definitiongroups[setting]), namespaces=self.ns)
+                                      .format(self.definitiongroups[setting]), namespaces=self.ns)
             if add_opt:
                 for opt in add_opt[0].text.strip().split(" "):
                     if opt != '%(AdditionalOptions)':
                         self.settings[setting][cl_flags] += ' {0}'.format(opt)
-                send('Additional Options for {0} : {1}'.format(setting, opt), 'ok')
+                    send('Additional Options for {0} : {1}'.format(setting, opt), 'ok')
             else:
                 send('No Additional Options for {0}'.format(setting), '')
 
@@ -390,46 +390,46 @@ class Flags(object):
             mdd_value = self.tree.find(
                 '{0}/ns:ClCompile/ns:RuntimeLibrary'.format(self.definitiongroups[setting]), namespaces=self.ns)
 
-            MDd = ' /MDd'
-            MD  = ' /MD'
-            MTd = ' /MTd'
-            MT  = ' /MT'
+            mdd = ' /MDd'
+            m_d = ' /MD'
+            mtd = ' /MTd'
+            m_t = ' /MT'
 
             if 'use_debug_libs' in self.settings[setting]:
                 if self.settings[setting]['use_debug_libs']:
-                    MD = ' /MDd'
-                    MT  = ' /MTd'
+                    m_d = ' /MDd'
+                    m_t = ' /MTd'
                 else:
-                    MDd = ' /MD'
-                    MTd  = ' /MT'
+                    mdd = ' /MD'
+                    mtd = ' /MT'
 
             if mdd_value is not None:
                 if 'MultiThreadedDebugDLL' == mdd_value.text:
-                    self.settings[setting][cl_flags] += MDd
+                    self.settings[setting][cl_flags] += mdd
                     send('RuntimeLibrary for {0}'.format(setting), 'ok')
                     continue
 
                 if 'MultiThreadedDLL' == mdd_value.text:
-                    self.settings[setting][cl_flags] += MD
+                    self.settings[setting][cl_flags] += m_d
                     send('RuntimeLibrary for {0}'.format(setting), 'ok')
                     continue
 
                 if 'MultiThreaded' == mdd_value.text:
-                    self.settings[setting][cl_flags] += MT
+                    self.settings[setting][cl_flags] += m_t
                     send('RuntimeLibrary for {0}'.format(setting), 'ok')
                     continue
 
                 if 'MultiThreadedDebug' == mdd_value.text:
-                    self.settings[setting][cl_flags] += MTd
+                    self.settings[setting][cl_flags] += mtd
                     send('RuntimeLibrary for {0}'.format(setting), 'ok')
                     continue
             else:
                 if 'use_debug_libs' in self.settings[setting]:
                     if self.settings[setting]['use_debug_libs']:
-                        self.settings[setting][cl_flags] += MTd if 'static' in setting else MDd
+                        self.settings[setting][cl_flags] += mtd if 'static' in setting else mdd
                         send('RuntimeLibrary for {0}'.format(setting), 'ok')
                     else:
-                        self.settings[setting][cl_flags] += MT if 'static' in setting else MD
+                        self.settings[setting][cl_flags] += m_t if 'static' in setting else m_d
                         send('RuntimeLibrary for {0}'.format(setting), 'ok')
                 else:
                     send('No RuntimeLibrary for {0}'.format(setting), '')
@@ -665,8 +665,7 @@ class Flags(object):
         """
         for setting in self.settings:
             ch = self.tree.xpath('{0}/ns:ClCompile/ns:TreatWChar_tAsBuiltInType'
-                                 .format(self.definitiongroups[setting])
-                                     ,namespaces=self.ns)
+                                 .format(self.definitiongroups[setting]), namespaces=self.ns)
             if ch:
                 if 'false' in ch[0].text:
                     self.settings[setting][cl_flags] += ' /Zc:wchar_t-'
@@ -733,16 +732,16 @@ class Flags(object):
         self.cmake.write('# Warning: pch and target are the same for every configuration\n')
         self.write_precompiled_headers(setting)
 
-        configurationtype = None
+        configuration_type = None
         for s in self.settings:
-            configurationtype = get_configuration_type(s, self.context)
-            if configurationtype:
+            configuration_type = get_configuration_type(s, self.context)
+            if configuration_type:
                 break
-        if configurationtype:
-            if configurationtype == 'DynamicLibrary':
+        if configuration_type:
+            if configuration_type == 'DynamicLibrary':
                 self.cmake.write('add_library(${PROJECT_NAME} SHARED')
                 send('CMake will build a SHARED Library.', '')
-            elif configurationtype == 'StaticLibrary':  # pragma: no cover
+            elif configuration_type == 'StaticLibrary':  # pragma: no cover
                 self.cmake.write('add_library(${PROJECT_NAME} STATIC')
                 send('CMake will build a STATIC Library.', '')
             else:  # pragma: no cover
@@ -758,7 +757,6 @@ class Flags(object):
         """
         cmake = self.cmake
 
-        
         # self.cmake.write(
         #     '################# Flags ################\n'
         #     '# Defines Flags for Windows and Linux. #\n'
@@ -768,7 +766,7 @@ class Flags(object):
         # normalize
         for setting in self.settings:
             self.settings[setting][cl_flags] = self.settings[setting][cl_flags].strip().replace(' ', ';')
-            self.settings[setting]['defines_str'] = ';'.join(self.settings[setting][defines])  # .strip().replace('\n', ';')
+            self.settings[setting]['defines_str'] = ';'.join(self.settings[setting][defines])
 
         write_property_of_settings(cmake, self.settings, 'target_compile_definitions(${PROJECT_NAME} PRIVATE', ')',
                                    'defines_str')
