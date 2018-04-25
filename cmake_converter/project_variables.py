@@ -171,8 +171,8 @@ class ProjectVariables(object):
         if len(context['settings']) == 0:
             return
 
-        self.cmake.write('set(OUT_DIR ${CMAKE_SOURCE_DIR}/${CMAKE_VS_PLATFORM_NAME}/$<CONFIG>)\n')
-        write_property_of_settings(self.cmake, self.settings, 'string(CONCAT OUT_DIR', ')', 'out_dir')
+        write_property_of_settings(self.cmake, self.settings, 'string(CONCAT OUT_DIR', ')'
+                                   , 'out_dir', '', '${CMAKE_SOURCE_DIR}/${CMAKE_VS_PLATFORM_NAME}/$<CONFIG>')
 
         for setting in self.settings:
             break
@@ -193,7 +193,7 @@ class ProjectVariables(object):
                 self.cmake.write(
                     'set_target_properties(${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${OUT_DIR})\n\n')
 
-        self.cmake.write('set(TARGET_NAME ${PROJECT_NAME})\n')
-        write_property_of_settings(self.cmake, self.settings, 'string(CONCAT TARGET_NAME', ')', 'output_name')
+        write_property_of_settings(self.cmake, self.settings, 'string(CONCAT TARGET_NAME', ')'
+                                   , 'output_name', '', '${PROJECT_NAME}')
         self.cmake.write(
             'set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME ${TARGET_NAME})\n\n')

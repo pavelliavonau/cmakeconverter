@@ -785,7 +785,7 @@ class Flags(object):
                                    'defines_str')
         cmake.write('\n')
         cmake.write('if(MSVC)\n')
-        write_property_of_settings(cmake, self.settings, '    target_compile_options(${PROJECT_NAME} PRIVATE', '    )',
+        write_property_of_settings(cmake, self.settings, 'target_compile_options(${PROJECT_NAME} PRIVATE', ')',
                                    cl_flags, indent='    ')
 
         settings_of_arch = {}
