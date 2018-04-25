@@ -126,34 +126,33 @@ class Flags(object):
                     if preproc != '%(PreprocessorDefinitions)' and preproc != 'WIN32':
                         self.settings[setting][defines].append(preproc)
                 # Unicode
-                characterSet = self.tree.xpath(
+                character_set = self.tree.xpath(
                     '{0}/ns:CharacterSet'.format(self.propertygroup[setting]),
                     namespaces=self.ns)
-                if characterSet is not None:
-                    if 'Unicode' in characterSet[0].text:
+                if character_set is not None:
+                    if 'Unicode' in character_set[0].text:
                         self.settings[setting][defines].append('UNICODE')
                         self.settings[setting][defines].append('_UNICODE')
-                    if 'MultiByte' in characterSet[0].text:
+                    if 'MultiByte' in character_set[0].text:
                         self.settings[setting][defines].append('_MBCS')
                 send('PreprocessorDefinitions for {0}'.format(setting), 'ok')
 
     def do_precompiled_headers(self, files):
         project_has_pch = False
         for setting in self.settings:
-            PrecompiledHeader_values = {'Use': {'PrecompiledHeader': 'Use'},
-                                        'NotUsing': {'PrecompiledHeader': 'NotUsing'},
-                                        'Create': {'PrecompiledHeader': 'Create'},
-                                        default_value: {'PrecompiledHeader': 'NotUsing'}}
+            precompiled_header_values = {'Use': {'PrecompiledHeader': 'Use'},
+                                         'NotUsing': {'PrecompiledHeader': 'NotUsing'},
+                                         'Create': {'PrecompiledHeader': 'Create'},
+                                         default_value: {'PrecompiledHeader': 'NotUsing'}}
             self.set_flag(setting,
                           '{0}/ns:ClCompile/ns:PrecompiledHeader'
                           .format(self.definitiongroups[setting]),
-                          PrecompiledHeader_values)
+                          precompiled_header_values)
 
-            PrecompiledHeaderFile_values = {default_value: {'PrecompiledHeaderFile': 'stdafx.h'}}
+            precompiled_header_file_values = {default_value: {'PrecompiledHeaderFile': 'stdafx.h'}}
             flag_value = self.set_flag(setting,
-                          '{0}/ns:ClCompile/ns:PrecompiledHeaderFile'
-                          .format(self.definitiongroups[setting]),
-                          PrecompiledHeaderFile_values)
+                                       '{0}/ns:ClCompile/ns:PrecompiledHeaderFile'
+                                       .format(self.definitiongroups[setting]), precompiled_header_file_values)
             if flag_value != '':
                 self.settings[setting]['PrecompiledHeaderFile'] = flag_value
 
@@ -248,7 +247,7 @@ class Flags(object):
 
         """
 
-        flag_values = {'true' : {ln_flags: ' /LTCG', cl_flags: ' /GL'}}
+        flag_values = {'true': {ln_flags: ' /LTCG', cl_flags: ' /GL'}}
 
         for setting in self.settings:
             self.set_flag(setting,
@@ -261,14 +260,13 @@ class Flags(object):
 
         """
 
-        flag_values = {'true' : {ln_flags: ' /INCREMENTAL'},
+        flag_values = {'true':  {ln_flags: ' /INCREMENTAL'},
                        'false': {ln_flags: ' /INCREMENTAL:NO'},
                        default_value: {cl_flags: '', ln_flags: ''}}
 
         for setting in self.settings:
             self.set_flag(setting, '{0}/ns:LinkIncremental'
-                        .format(self.propertygroup[setting].replace(' and @Label="Configuration"','')),
-                      flag_values)
+                          .format(self.propertygroup[setting].replace(' and @Label="Configuration"', '')), flag_values)
 
     def set_force_conformance_in_for_loop_scope(self):
         """
@@ -276,7 +274,7 @@ class Flags(object):
 
         """
 
-        flag_values = {'true' : {cl_flags: ' /Zc:forScope'},
+        flag_values = {'true':  {cl_flags: ' /Zc:forScope'},
                        'false': {cl_flags: ' /Zc:forScope-'},
                        default_value: {cl_flags: ' /Zc:forScope'}}
 
@@ -292,7 +290,7 @@ class Flags(object):
 
         """
 
-        flag_values = {'true' : {cl_flags: ' /Zc:inline'},
+        flag_values = {'true':  {cl_flags: ' /Zc:inline'},
                        'false': {cl_flags: ''},
                        default_value: {cl_flags: ' /Zc:inline'}}
 
@@ -308,10 +306,7 @@ class Flags(object):
 
         """
         for setting in self.settings:
-            md = self.tree.xpath(
-                '%s/ns:UseDebugLibraries' % self.propertygroup[setting],
-                namespaces=self.ns
-            )
+            md = self.tree.xpath('{0}/ns:UseDebugLibraries'.format(self.propertygroup[setting]), namespaces=self.ns)
             if md:
                 if 'true' in md[0].text:
                     self.settings[setting]['use_debug_libs'] = True
@@ -358,8 +353,7 @@ class Flags(object):
         """
         for setting in self.settings:
             specwarn = self.tree.xpath('{0}/ns:ClCompile/ns:DisableSpecificWarnings'
-                                       .format(self.definitiongroups[setting])
-                                       ,namespaces=self.ns)
+                                       .format(self.definitiongroups[setting]), namespaces=self.ns)
             if specwarn:
                 for sw in specwarn[0].text.strip().split(";"):
                     sw = sw.strip()
@@ -375,11 +369,10 @@ class Flags(object):
 
         """
         for setting in self.settings:
-            addOpt = self.tree.xpath('{0}/ns:ClCompile/ns:AdditionalOptions'
-                                     .format(self.definitiongroups[setting])
-                                     ,namespaces=self.ns)
-            if addOpt:
-                for opt in addOpt[0].text.strip().split(" "):
+            add_opt = self.tree.xpath('{0}/ns:ClCompile/ns:AdditionalOptions'
+                                     .format(self.definitiongroups[setting]), namespaces=self.ns)
+            if add_opt:
+                for opt in add_opt[0].text.strip().split(" "):
                     if opt != '%(AdditionalOptions)':
                         self.settings[setting][cl_flags] += ' {0}'.format(opt)
                 send('Additional Options for {0} : {1}'.format(setting, opt), 'ok')
@@ -394,10 +387,8 @@ class Flags(object):
 
         # RuntimeLibrary
         for setting in self.settings:
-            mdd = self.tree.find(
-                '%s/ns:ClCompile/ns:RuntimeLibrary' % self.definitiongroups[setting],
-                namespaces=self.ns
-            )
+            mdd_value = self.tree.find(
+                '{0}/ns:ClCompile/ns:RuntimeLibrary'.format(self.definitiongroups[setting]), namespaces=self.ns)
 
             MDd = ' /MDd'
             MD  = ' /MD'
@@ -412,23 +403,23 @@ class Flags(object):
                     MDd = ' /MD'
                     MTd  = ' /MT'
 
-            if mdd is not None:
-                if 'MultiThreadedDebugDLL' == mdd.text:
+            if mdd_value is not None:
+                if 'MultiThreadedDebugDLL' == mdd_value.text:
                     self.settings[setting][cl_flags] += MDd
                     send('RuntimeLibrary for {0}'.format(setting), 'ok')
                     continue
 
-                if 'MultiThreadedDLL' == mdd.text:
+                if 'MultiThreadedDLL' == mdd_value.text:
                     self.settings[setting][cl_flags] += MD
                     send('RuntimeLibrary for {0}'.format(setting), 'ok')
                     continue
 
-                if 'MultiThreaded' == mdd.text:
+                if 'MultiThreaded' == mdd_value.text:
                     self.settings[setting][cl_flags] += MT
                     send('RuntimeLibrary for {0}'.format(setting), 'ok')
                     continue
 
-                if 'MultiThreadedDebug' == mdd.text:
+                if 'MultiThreadedDebug' == mdd_value.text:
                     self.settings[setting][cl_flags] += MTd
                     send('RuntimeLibrary for {0}'.format(setting), 'ok')
                     continue
@@ -451,9 +442,7 @@ class Flags(object):
 
         for setting in self.settings:
             sp = self.tree.find(
-                '%s/ns:ClCompile/ns:StringPooling' % self.definitiongroups[setting],
-                namespaces=self.ns
-            )
+                '{0}/ns:ClCompile/ns:StringPooling'.format(self.definitiongroups[setting]), namespaces=self.ns)
             if sp is not None:
                 if 'true' in sp.text:
                     self.settings[setting][cl_flags] += ' /GF'
