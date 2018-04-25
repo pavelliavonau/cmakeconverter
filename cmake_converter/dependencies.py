@@ -216,7 +216,7 @@ class Dependencies(object):
                 for d in listdepends.split(';'):
                     if d != '%(AdditionalDependencies)':
                         if os.path.splitext(d)[1] == '.lib':
-                            windepends.append(d)
+                            windepends.append(d.replace('.lib', ''))
                 if windepends:
                     self.cmake.write('if(MSVC)\n')
                     self.cmake.write('   target_link_libraries(${PROJECT_NAME} ')
