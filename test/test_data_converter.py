@@ -22,7 +22,7 @@
 import os
 import unittest2
 
-from cmake_converter.data_converter import DataConverter
+from cmake_converter.data_converter import CPPConverter
 
 
 class TestDataConverter(unittest2.TestCase):
@@ -56,7 +56,7 @@ class TestDataConverter(unittest2.TestCase):
             'std': None,
         }
 
-        under_test = DataConverter(data_test)
+        under_test = CPPConverter(data_test)
 
         self.assertTrue(under_test.context)
         self.assertIsNone(under_test.context['cmake'])
@@ -74,7 +74,7 @@ class TestDataConverter(unittest2.TestCase):
     def test_create_data(self):
         """Data Converter Create Data"""
 
-        under_test = DataConverter(self.data_test)
+        under_test = CPPConverter(self.data_test)
         self.assertTrue(under_test.context)
 
         under_test.init_files(self.vs_project, self.cur_dir)

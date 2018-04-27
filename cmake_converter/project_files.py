@@ -41,8 +41,17 @@ class ProjectFiles(object):
         self.tree = context['vcxproj']['tree']
         self.ns = context['vcxproj']['ns']
         self.cmake = context['cmake']
-        self.cpp_files = self.tree.xpath('//ns:ClCompile', namespaces=self.ns)
-        self.header_files = self.tree.xpath('//ns:ClInclude', namespaces=self.ns)
+        if '.vcxproj' in self.vcxproj_path:
+            self.source_files = self.tree.xpath('//ns:ClCompile', namespaces=self.ns)
+            self.header_files = self.tree.xpath('//ns:ClInclude', namespaces=self.ns)
+            self.source_file_attr = 'Include'
+        elif '.vfproj' in self.vcxproj_path:
+            self.source_files = self.tree.xpath('/VisualStudioProject/Files/Filter/File')
+            self.header_files = []
+            self.source_file_attr = 'RelativePath'
+        else:
+            send("Unsupported project type in ProjectFiles class: {0}".format(self.vcxproj_path), 'ERROR')
+
         self.language = []
         self.sources = {}
         self.headers = {}
@@ -57,9 +66,9 @@ class ProjectFiles(object):
         vcxproj_dir = os.path.dirname(self.vcxproj_path)
 
         # Cpp Dir
-        for cpp in self.cpp_files:
-            if cpp.get('Include') is not None:
-                cxx = str(cpp.get('Include'))
+        for cpp in self.source_files:
+            if cpp.get(self.source_file_attr) is not None:
+                cxx = str(cpp.get(self.source_file_attr))
                 cxx = '/'.join(cxx.split('\\'))
                 if not cxx.rpartition('.')[-1] in self.language:
                     self.language.append(cxx.rpartition('.')[-1])
@@ -75,7 +84,7 @@ class ProjectFiles(object):
 
         # Headers Dir
         for header in self.header_files:
-            h = str(header.get('Include'))
+            h = str(header.get(self.source_file_attr))
             h = '/'.join(h.split('\\'))
             header_path, header_file = os.path.split(h)
             if header_path not in filelists:
@@ -87,7 +96,7 @@ class ProjectFiles(object):
         for header_path in self.headers:
             self.headers[header_path].sort(key=str.lower)
 
-        send("C++ Extensions found: %s" % self.language, 'INFO')
+        send("Source files extensions found: %s" % self.language, 'INFO')
 
     def add_cmake_project(self, language):
         """
@@ -102,6 +111,8 @@ class ProjectFiles(object):
         available_language = {'c': 'C'}
         available_language.update(dict.fromkeys(cpp_extensions, 'CXX'))
 
+        available_language['F90'] = 'Fortran'
+        available_language['F'] = 'Fortran'
         # self.cmake.write('\n')
         # self.cmake.write(
         #     '############## CMake Project ################\n'
@@ -111,12 +122,15 @@ class ProjectFiles(object):
         lang = 'cpp'
         if len(language) is not 0:
             lang = language[0]
-        self.cmake.write('project(${PROJECT_NAME} %s)\n\n' % available_language[lang].upper())
+        self.cmake.write('project(${PROJECT_NAME} %s)\n\n' % available_language[lang])
 
     def write_header_files(self):
         """
         Write header files variables to file() cmake function
         """
+        if len(self.headers) == 0:
+            return
+
         self.cmake.write('############ Header Files #############\n')
         self.cmake.write('set(HEADERS_FILES\n')
 

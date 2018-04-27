@@ -29,25 +29,31 @@ import argparse
 import re
 import os
 
-from cmake_converter.data_converter import DataConverter
+from cmake_converter.data_converter import DataConverter, CPPConverter, FortranProjectConverter
 from cmake_converter.data_files import get_cmake_lists
 
 
-def convert_project(context, vcxproj_path, cmake_lists_destination_path):
+def convert_project(context, xml_project_path, cmake_lists_destination_path):
     """
     Convert a ``vcxproj`` to a ``CMakeLists.txt``
 
     :param context: input data of user
     :type context: dict
-    :param vcxproj_path: input vcxproj
-    :type vcxproj_path: str
+    :param xml_project_path: input xml_proj
+    :type xml_project_path: str
     :param cmake_lists_destination_path: Destination folder of CMakeLists.txt
     :type cmake_lists_destination_path: str
     """
 
     # Give data to DataConverter()
-    data_converter = DataConverter(context)
-    data_converter.init_files(vcxproj_path, cmake_lists_destination_path)
+    data_converter = None
+    if 'vcxproj' in xml_project_path:
+        data_converter = CPPConverter(context)
+    if 'vfproj' in xml_project_path:
+        data_converter = FortranProjectConverter(context)
+    if data_converter is None:
+        return  # unknown project type
+    data_converter.init_files(xml_project_path, cmake_lists_destination_path)
     data_converter.create_data()
 
     # Close CMake file
@@ -147,7 +153,7 @@ def main():  # pragma: no cover
         context['is_converting_solution'] = True
         sln = open(args.solution)
         solution_path = os.path.dirname(args.solution)
-        p = re.compile(r', "(.*\.vcxproj)"')
+        p = re.compile(r', "(.*\.(vcxproj|vfproj))"')
         projects = p.findall(sln.read())
         sln.close()
 
@@ -155,9 +161,9 @@ def main():  # pragma: no cover
         DataConverter.add_cmake_version_required(sln_cmake)
         sln_cmake.write('project({0})\n\n'. format(os.path.splitext(os.path.basename(args.solution))[0]))
         subdirectories = []
-        for project in projects:
-            project = '/'.join(project.split('\\'))
-            project_abs = os.path.join(solution_path, project)
+        for project_path, project_type in projects:
+            project_path = '/'.join(project_path.split('\\'))
+            project_abs = os.path.join(solution_path, project_path)
             subdirectory = os.path.dirname(project_abs)
             convert_project(context, project_abs, subdirectory)
             cmake_dir = os.path.dirname(context['cmake'].name)

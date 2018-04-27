@@ -60,6 +60,12 @@ class ProjectVariables(object):
                 'error'
             )
 
+    def find_outputs_variables(self):
+        """
+        Add Outputs Variables
+
+        """
+
         for setting in self.settings:
             prop = get_propertygroup(setting)
             conf = self.settings[setting]['conf']
@@ -86,12 +92,6 @@ class ProjectVariables(object):
             if output_name_node is not None:
                 output_name = output_name_node.text
             self.settings[setting]['output_name'] = self.cleaning_output(output_name)
-
-    def find_outputs_variables(self):
-        """
-        Add Outputs Variables
-
-        """
 
         for setting in self.settings:
             conf = self.settings[setting]['conf']

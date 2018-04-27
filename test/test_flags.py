@@ -22,7 +22,7 @@
 import os
 import unittest2
 
-from cmake_converter.flags import Flags
+from cmake_converter.flags import CPPFlags
 from cmake_converter.data_files import get_vcxproj_data, get_cmake_lists
 
 
@@ -50,7 +50,7 @@ class TestFlags(unittest2.TestCase):
 
         self.data_test['cmake'] = get_cmake_lists('./')
         self.data_test['std'] = 'c++17'
-        under_test = Flags(self.data_test)
+        under_test = CPPFlags(self.data_test)
         under_test.define_linux_flags()
         self.data_test['cmake'].close()
 
@@ -62,7 +62,7 @@ class TestFlags(unittest2.TestCase):
 
         self.data_test['cmake'] = get_cmake_lists('./')
         self.data_test['std'] = 'c++19'
-        under_test = Flags(self.data_test)
+        under_test = CPPFlags(self.data_test)
         under_test.define_linux_flags()
         self.data_test['cmake'].close()
 
@@ -75,7 +75,7 @@ class TestFlags(unittest2.TestCase):
     def test_define_group_properties(self):
         """Define XML Groups Properties"""
 
-        under_test = Flags(self.data_test)
+        under_test = CPPFlags(self.data_test)
 
         self.assertFalse(under_test.propertygroup)
         self.assertFalse(under_test.definitiongroups)

@@ -40,20 +40,90 @@ default_value = 'default_value'
 
 class Flags(object):
     """
-        Class who check and create compilation flags
-    """
 
-    available_std = ['c++11', 'c++14', 'c++17']
+    """
 
     def __init__(self, context):
         self.context = context
         self.tree = context['vcxproj']['tree']
         self.ns = context['vcxproj']['ns']
         self.cmake = context['cmake']
+        self.settings = context['settings']
+
+    def write_defines_and_flags(self):
+        """
+        Get and write Preprocessor Macros definitions
+
+        """
+        cmake = self.cmake
+
+        # self.cmake.write(
+        #     '################# Flags ################\n'
+        #     '# Defines Flags for Windows and Linux. #\n'
+        #     '########################################\n\n'
+        # )
+
+        # normalize
+        for setting in self.settings:
+            self.settings[setting][cl_flags] = self.settings[setting][cl_flags].strip().replace(' ', ';')
+            self.settings[setting]['defines_str'] = ';'.join(self.settings[setting][defines])
+
+        write_property_of_settings(cmake, self.settings, 'target_compile_definitions(${PROJECT_NAME} PRIVATE', ')',
+                                   'defines_str')
+        cmake.write('\n')
+        cmake.write('if(MSVC)\n')
+        write_property_of_settings(cmake, self.settings, 'target_compile_options(${PROJECT_NAME} PRIVATE', ')',
+                                   cl_flags, indent='    ')
+
+        settings_of_arch = {}
+        for setting in self.settings:
+            arch = self.settings[setting]['arch']
+            if arch not in settings_of_arch:
+                settings_of_arch[arch] = {}
+            settings_of_arch[arch][setting] = self.settings[setting]
+
+        first_arch = True
+        for arch in settings_of_arch:
+            if first_arch:
+                cmake.write('    if(\"${{CMAKE_VS_PLATFORM_NAME}}\" STREQUAL \"{0}\")\n'.format(arch))
+            else:
+                cmake.write('    elseif(\"${{CMAKE_VS_PLATFORM_NAME}}\" STREQUAL \"{0}\")\n'.format(arch))
+            first_arch = False
+            for setting in settings_of_arch[arch]:
+                conf = self.settings[setting]['conf']
+                if len(self.settings[setting][ln_flags]) != 0:
+                    configuration_type = get_configuration_type(setting, self.context)
+                    if configuration_type:
+                        if 'StaticLibrary' in configuration_type:
+                            cmake.write(
+                                '        set_target_properties(${{PROJECT_NAME}}'
+                                ' PROPERTIES STATIC_LIBRARY_FLAGS_{0} "{1}")\n'
+                                .format(conf.upper(), self.settings[setting][ln_flags])
+                            )
+                        else:
+                            cmake.write(
+                                '        set_target_properties(${{PROJECT_NAME}} PROPERTIES LINK_FLAGS_{0} "{1}")\n'
+                                .format(conf.upper(), self.settings[setting][ln_flags])
+                            )
+        cmake.write('    else()\n')
+        cmake.write(
+            '         message(WARNING "${CMAKE_VS_PLATFORM_NAME} arch is not supported!")\n')
+        cmake.write('    endif()\n')
+        cmake.write('endif()\n\n')
+
+
+class CPPFlags(Flags):
+    """
+        Class who check and create compilation flags
+    """
+
+    available_std = ['c++11', 'c++14', 'c++17']
+
+    def __init__(self, context):
+        Flags.__init__(self, context)
         self.propertygroup = context['property_groups']
         self.definitiongroups = context['definition_groups']
         self.std = context['std']
-        self.settings = context['settings']
 
     def get_setting_name(self, setting):
         return self.settings[setting]['conf']
@@ -720,7 +790,7 @@ class Flags(object):
         pch = self.settings[setting]['PrecompiledHeaderFile']
         self.cmake.write('ADD_PRECOMPILED_HEADER("{0}" "{1}" SRC_FILES)\n\n'.format(pch, pch.replace('.h', '.cpp')))
 
-    def write_target_artefact(self):
+    def write_target_artifact(self):
         """
         Add Library or Executable target
 
@@ -750,6 +820,47 @@ class Flags(object):
             self.cmake.write(' ${SRC_FILES} ${HEADERS_FILES}')
             self.cmake.write(')\n\n')
 
+
+class FortranFlags(Flags):
+    """
+
+    """
+
+    def define_flags(self):
+        """
+        Parse all flags properties and write them inside "CMakeLists.txt" file
+
+        """
+        self.set_source_file_format()
+        self.set_local_variable_storage()
+        self.set_additional_options()
+
+    def set_source_file_format(self):
+        for setting in self.settings:
+            opt = self.settings[setting]['VFFortranCompilerTool'].get('SourceFileFormat')
+            if opt == 'fileFormatFree':
+                self.settings[setting][cl_flags].append('/free')
+
+    def set_local_variable_storage(self):
+        for setting in self.settings:
+            opt = self.settings[setting]['VFFortranCompilerTool'].get('LocalVariableStorage')
+            if opt == 'localStorageAutomatic':
+                self.settings[setting][cl_flags].append('/Qauto')
+
+    def set_additional_options(self):
+        """
+        Set Additional options
+
+        """
+        for setting in self.settings:
+            add_opt = self.settings[setting]['VFFortranCompilerTool'].get('AdditionalOptions').strip()\
+                .replace('\\', '/').split(' ')
+            if add_opt:
+                self.settings[setting][cl_flags].append(';'.join(add_opt))
+                send('Additional Options for {0} : {1}'.format(setting, str(add_opt)), 'ok')
+            else:
+                send('No Additional Options for {0}'.format(setting), '')
+
     def write_defines_and_flags(self):
         """
         Get and write Preprocessor Macros definitions
@@ -757,23 +868,17 @@ class Flags(object):
         """
         cmake = self.cmake
 
-        # self.cmake.write(
-        #     '################# Flags ################\n'
-        #     '# Defines Flags for Windows and Linux. #\n'
-        #     '########################################\n\n'
-        # )
-
         # normalize
         for setting in self.settings:
-            self.settings[setting][cl_flags] = self.settings[setting][cl_flags].strip().replace(' ', ';')
             self.settings[setting]['defines_str'] = ';'.join(self.settings[setting][defines])
+            self.settings[setting]['cl_str'] = ';'.join(self.settings[setting][cl_flags])
 
         write_property_of_settings(cmake, self.settings, 'target_compile_definitions(${PROJECT_NAME} PRIVATE', ')',
                                    'defines_str')
         cmake.write('\n')
-        cmake.write('if(MSVC)\n')
+        cmake.write('if(${CMAKE_Fortran_COMPILER_ID} STREQUAL "Intel")\n')
         write_property_of_settings(cmake, self.settings, 'target_compile_options(${PROJECT_NAME} PRIVATE', ')',
-                                   cl_flags, indent='    ')
+                                   'cl_str', indent='    ')
 
         settings_of_arch = {}
         for setting in self.settings:
@@ -798,15 +903,26 @@ class Flags(object):
                             cmake.write(
                                 '        set_target_properties(${{PROJECT_NAME}}'
                                 ' PROPERTIES STATIC_LIBRARY_FLAGS_{0} "{1}")\n'
-                                .format(conf.upper(), self.settings[setting][ln_flags])
+                                    .format(conf.upper(), self.settings[setting][ln_flags])
                             )
                         else:
                             cmake.write(
                                 '        set_target_properties(${{PROJECT_NAME}} PROPERTIES LINK_FLAGS_{0} "{1}")\n'
-                                .format(conf.upper(), self.settings[setting][ln_flags])
+                                    .format(conf.upper(), self.settings[setting][ln_flags])
                             )
         cmake.write('    else()\n')
         cmake.write(
             '         message(WARNING "${CMAKE_VS_PLATFORM_NAME} arch is not supported!")\n')
         cmake.write('    endif()\n')
         cmake.write('endif()\n\n')
+
+    def write_target_artifact(self):
+        """
+        Add Library or Executable target
+
+        """
+
+        send('CMake will build a STATIC Library.', '')
+        self.cmake.write('add_library(${PROJECT_NAME} STATIC')
+        self.cmake.write(' ${SRC_FILES}')
+        self.cmake.write(')\n\n')

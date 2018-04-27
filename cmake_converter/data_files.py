@@ -71,6 +71,7 @@ def get_vcxproj_data(vs_project):
 
     return vcxproj
 
+
 def get_xml_data(xml_file):
     """
     Return xml data from "xml" file

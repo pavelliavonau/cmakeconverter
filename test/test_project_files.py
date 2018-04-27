@@ -53,7 +53,7 @@ class TestProjectFiles(unittest2.TestCase):
         self.assertTrue(under_test.tree)
         self.assertTrue(under_test.ns)
         self.assertTrue(under_test.cmake)
-        self.assertTrue(under_test.cpp_files)
+        self.assertTrue(under_test.source_files)
         self.assertTrue(under_test.header_files)
 
         self.assertFalse(under_test.language)
