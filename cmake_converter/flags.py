@@ -821,7 +821,7 @@ class CPPFlags(Flags):
             else:  # pragma: no cover
                 self.cmake.write('add_executable(${PROJECT_NAME} ')
                 send('CMake will build an EXECUTABLE.', '')
-            self.cmake.write(' ${SRC_FILES} ${HEADERS_FILES}')
+            self.cmake.write(' ${SRC_FILES}')
             self.cmake.write(')\n\n')
 
 
