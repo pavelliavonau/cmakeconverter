@@ -188,7 +188,7 @@ class CPPFlags(Flags):
         # PreprocessorDefinitions
         for setting in self.settings:
             define = self.tree.find(
-                '%s/ns:ClCompile/ns:PreprocessorDefinitions' % self.definitiongroups[setting],
+                '{0}/ns:ClCompile/ns:PreprocessorDefinitions'.format(self.definitiongroups[setting]),
                 namespaces=self.ns
             )
             if define is not None:
@@ -395,30 +395,32 @@ class CPPFlags(Flags):
         Set Warning level for Windows: /W
 
         """
+        flag_values = {'Level1': {cl_flags: ' /W1'},
+                       'Level2': {cl_flags: ' /W2'},
+                       'Level3': {cl_flags: ' /W3'},
+                       'Level4': {cl_flags: ' /W4'},
+                       default_value: {cl_flags: ''}}
+
         for setting in self.settings:
-            warning = self.tree.xpath('{0}/ns:ClCompile/ns:WarningLevel'.format(self.definitiongroups[setting]),
-                                      namespaces=self.ns)
-            if warning and warning[0].text != '':
-                lvl = ' /W' + warning[0].text[-1:]
-                self.settings[setting][cl_flags] += lvl
-                send('Warning for {0} : {1}'.format(setting, lvl), 'ok')
-            else:  # pragma: no cover
-                send('No Warning level.', '')
+            self.set_flag(setting,
+                          '{0}/ns:ClCompile/ns:WarningLevel'
+                          .format(self.definitiongroups[setting]),
+                          flag_values)
 
     def set_warning_as_errors(self):
         """
         Set TreatWarningAsError /WX
 
         """
+        flag_values = {'true': {cl_flags: ' /WX'},
+                       'false': {cl_flags: ''},
+                       default_value: {cl_flags: ''}}
+
         for setting in self.settings:
-            wx = self.tree.xpath('{0}/ns:ClCompile/ns:TreatWarningAsError'.format(self.definitiongroups[setting]),
-                                 namespaces=self.ns)
-            if wx:
-                if 'true' in wx[0].text:
-                    self.settings[setting][cl_flags] += ' /WX'
-                send('TreatWarningAsError for {0} : {1}'.format(setting, wx[0].text), 'ok')
-            else:
-                send('No TreatWarningAsError for {0}'.format(setting), '')
+            self.set_flag(setting,
+                          '{0}/ns:ClCompile/ns:TreatWarningAsError'
+                          .format(self.definitiongroups[setting]),
+                          flag_values)
 
     def set_disable_specific_warnings(self):
         """
@@ -426,14 +428,15 @@ class CPPFlags(Flags):
 
         """
         for setting in self.settings:
-            specwarn = self.tree.xpath('{0}/ns:ClCompile/ns:DisableSpecificWarnings'
+            specific_warnings_node = self.tree.xpath('{0}/ns:ClCompile/ns:DisableSpecificWarnings'
                                        .format(self.definitiongroups[setting]), namespaces=self.ns)
-            if specwarn:
-                for sw in specwarn[0].text.strip().split(";"):
+            if specific_warnings_node:
+                for sw in specific_warnings_node[0].text.strip().split(";"):
                     sw = sw.strip()
                     if sw != '%(DisableSpecificWarnings)':
                         self.settings[setting][cl_flags] += ' /wd{0}'.format(sw)
-                send('DisableSpecificWarnings for {0} : {1}'.format(setting, specwarn[0].text.strip()), 'ok')
+                send('DisableSpecificWarnings for {0} : {1}'.format(setting, specific_warnings_node[0].text.strip()),
+                     'ok')
             else:
                 send('No Additional Options for {0}'.format(setting), '')
 
@@ -447,7 +450,8 @@ class CPPFlags(Flags):
                                       .format(self.definitiongroups[setting]), namespaces=self.ns)
             if add_opt:
                 for opt in add_opt[0].text.strip().split(" "):
-                    if opt != '%(AdditionalOptions)':
+                    opt = opt.strip()
+                    if opt != '' and opt != '%(AdditionalOptions)':
                         self.settings[setting][cl_flags] += ' {0}'.format(opt)
                     send('Additional Options for {0} : {1}'.format(setting, opt), 'ok')
             else:
@@ -513,119 +517,92 @@ class CPPFlags(Flags):
         Set StringPooling flag: /GF
 
         """
+        flag_values = {'true': {cl_flags: ' /GF'},
+                       'false': {cl_flags: ' /GF-'},
+                       default_value: {cl_flags: ''}}
 
         for setting in self.settings:
-            sp = self.tree.find(
-                '{0}/ns:ClCompile/ns:StringPooling'.format(self.definitiongroups[setting]), namespaces=self.ns)
-            if sp is not None:
-                if 'true' in sp.text:
-                    self.settings[setting][cl_flags] += ' /GF'
-                if 'false' in sp.text:
-                    self.settings[setting][cl_flags] += ' /GF-'
-                send('StringPooling for {0}'.format(setting), 'ok')
-            else:
-                send('No StringPooling for {0}'.format(setting), '')
+            self.set_flag(setting,
+                          '{0}/ns:ClCompile/ns:StringPooling'
+                          .format(self.definitiongroups[setting]),
+                          flag_values)
 
     def set_optimization(self):
         """
         Set Optimization flag: /Od
 
         """
+        flag_values = {'Disabled': {cl_flags: ' /Od'},
+                       'MinSpace': {cl_flags: ' /O1'},
+                       'MaxSpeed': {cl_flags: ' /O2'},
+                       'Full': {cl_flags: ' /Ox'},
+                       default_value: {cl_flags: ''}}
 
         for setting in self.settings:
-            opt = self.tree.find(
-                '%s/ns:ClCompile/ns:Optimization' % self.definitiongroups[setting],
-                namespaces=self.ns
-            )
-            if opt is not None:
-                if 'Disabled' in opt.text:
-                    self.settings[setting][cl_flags] += ' /Od'
-                    send('Optimization for {0}'.format(setting), 'ok')
-                if 'MinSpace' in opt.text:
-                    self.settings[setting][cl_flags] += ' /O1'
-                    send('Optimization for {0}'.format(setting), 'ok')
-                if 'MaxSpeed' in opt.text:
-                    self.settings[setting][cl_flags] += ' /O2'
-                    send('Optimization for {0}'.format(setting), 'ok')
-                if 'Full' in opt.text:
-                    self.settings[setting][cl_flags] += ' /Ox'
-                    send('Optimization for {0}'.format(setting), 'ok')
-            else:
-                send('No Optimization for {0}'.format(setting), '')
+            self.set_flag(setting,
+                          '{0}/ns:ClCompile/ns:Optimization'
+                          .format(self.definitiongroups[setting]),
+                          flag_values)
 
     def set_intrinsic_functions(self):
         """
         Set Intrinsic Functions flag: /Oi
 
         """
+        flag_values = {'true': {cl_flags: ' /Oi'},
+                       'false': {cl_flags: ''},
+                       default_value: {cl_flags: ''}}
 
         for setting in self.settings:
-            oi = self.tree.find(
-                '%s/ns:ClCompile/ns:IntrinsicFunctions' % self.definitiongroups[setting],
-                namespaces=self.ns
-            )
-            if oi is not None:
-                if 'true' in oi.text:
-                    self.settings[setting][cl_flags] += ' /Oi'
-                    send('IntrinsicFunctions for {0}'.format(setting), 'ok')
-            else:
-                send('No IntrinsicFunctions for {0}'.format(setting), '')
+            self.set_flag(setting,
+                          '{0}/ns:ClCompile/ns:IntrinsicFunctions'
+                          .format(self.definitiongroups[setting]),
+                          flag_values)
 
     def set_runtime_type_info(self):
         """
         Set RuntimeTypeInfo flag: /GR
 
         """
-        # RuntimeTypeInfo
+        flag_values = {'true': {cl_flags: ' /GR'},
+                       'false': {cl_flags: ''},
+                       default_value: {cl_flags: ''}}
+
         for setting in self.settings:
-            gr = self.tree.find(
-                '%s/ns:ClCompile/ns:RuntimeTypeInfo' % self.definitiongroups[setting],
-                namespaces=self.ns
-            )
-            if gr is not None:
-                if 'true' in gr.text:
-                    self.settings[setting][cl_flags] += ' /GR'
-                    send('RuntimeTypeInfo for {0}'.format(setting), 'ok')
-            else:
-                send('No RuntimeTypeInfo for {0}'.format(setting), '')
+            self.set_flag(setting,
+                          '{0}/ns:ClCompile/ns:RuntimeTypeInfo'
+                          .format(self.definitiongroups[setting]),
+                          flag_values)
 
     def set_function_level_linking(self):
         """
         Set FunctionLevelLinking flag: /Gy
 
         """
+        flag_values = {'true': {cl_flags: ' /Gy'},
+                       'false': {cl_flags: ''},
+                       default_value: {cl_flags: ''}}
+
         for setting in self.settings:
-            gy = self.tree.find(
-                '%s/ns:ClCompile/ns:FunctionLevelLinking' % self.definitiongroups[setting],
-                namespaces=self.ns
-            )
-            if gy is not None:
-                if 'true' in gy.text:
-                    self.settings[setting][cl_flags] += ' /Gy'
-                    send('FunctionLevelLinking for {0}'.format(setting), 'ok')
-            else:
-                send('No FunctionLevelLinking for {0}'.format(setting), '')
+            self.set_flag(setting,
+                          '{0}/ns:ClCompile/ns:FunctionLevelLinking'
+                          .format(self.definitiongroups[setting]),
+                          flag_values)
 
     def set_debug_information_format(self):
         """
         Set GenerateDebugInformation flag: /Zi
 
         """
+        flag_values = {'ProgramDatabase': {cl_flags: ' /Zi'},
+                       'EditAndContinue': {cl_flags: ' /ZI'},
+                       default_value: {cl_flags: ''}}
 
         for setting in self.settings:
-            zi = self.tree.find(
-                '%s/ns:ClCompile/ns:DebugInformationFormat' % self.definitiongroups[setting],
-                namespaces=self.ns
-            )
-            if zi is not None:
-                if 'ProgramDatabase' in zi.text:
-                    self.settings[setting][cl_flags] += ' /Zi'
-                    send('GenerateDebugInformation for {0} is {1}'.format(setting, ' /Zi'), 'ok')
-                if 'EditAndContinue' in zi.text:
-                    self.settings[setting][cl_flags] += ' /ZI'
-                    send('GenerateDebugInformation for {0} is {1}'.format(setting, ' /ZI'), 'ok')
-            else:
-                send('No GenerateDebugInformation for {0}'.format(setting), '')
+            self.set_flag(setting,
+                          '{0}/ns:ClCompile/ns:DebugInformationFormat'
+                          .format(self.definitiongroups[setting]),
+                          flag_values)
 
     def set_generate_debug_information(self):
         """
@@ -635,7 +612,7 @@ class CPPFlags(Flags):
 
         for setting in self.settings:
             deb = self.tree.find(
-                '%s/ns:Link/ns:GenerateDebugInformation' % self.definitiongroups[setting],
+                '{0}/ns:Link/ns:GenerateDebugInformation'.format(self.definitiongroups[setting]),
                 namespaces=self.ns
             )
             if deb is not None:
@@ -653,103 +630,72 @@ class CPPFlags(Flags):
         Set FloatingPointModel flag: /fp
 
         """
+        flag_values = {'Precise': {cl_flags: ' /fp:precise'},
+                       'Strict': {cl_flags: ' /fp:strict'},
+                       'Fast': {cl_flags: ' /fp:fast'},
+                       default_value: {cl_flags: ' /fp:precise'}}
 
         for setting in self.settings:
-            fp = self.tree.find(
-                '%s/ns:ClCompile/ns:FloatingPointModel' % self.definitiongroups[setting],
-                namespaces=self.ns
-            )
-            if fp is not None:
-                if 'Precise' in fp.text:
-                    self.settings[setting][cl_flags] += ' /fp:precise'
-                if 'Strict' in fp.text:
-                    self.settings[setting][cl_flags] += ' /fp:strict'
-                if 'Fast' in fp.text:
-                    self.settings[setting][cl_flags] += ' /fp:fast'
-                send('FloatingPointModel for {0} is {1}'.format(setting, fp.text), '')
-            else:
-                self.settings[setting][cl_flags] += ' /fp:precise'
-                send('FloatingPointModel for {0} is {1}'.format(setting, '/fp:precise'), 'ok')
+            self.set_flag(setting, '{0}/ns:ClCompile/ns:FloatingPointModel'
+                          .format(self.definitiongroups[setting]),
+                          flag_values)
 
     def set_exception_handling(self):
         """
         Set ExceptionHandling flag: /EHsc
 
         """
+        flag_values = {'false': {cl_flags: ''},
+                       'true': {cl_flags: ' /EHsc'},
+                       default_value: {cl_flags: ' /EHsc'}}
 
         for setting in self.settings:
-            ehs = self.tree.find(
-                '%s/ns:ClCompile/ns:ExceptionHandling' % self.definitiongroups[setting],
-                namespaces=self.ns
-            )
-            if ehs is not None:
-                if 'false' in ehs.text:
-                    send('No ExceptionHandling for {0}'.format(setting), '')
-            else:
-                self.settings[setting][cl_flags] += ' /EHsc'
-                send('ExceptionHandling for {0}'.format(setting), 'ok')
+            self.set_flag(setting, '{0}/ns:ClCompile/ns:ExceptionHandling'
+                          .format(self.definitiongroups[setting]),
+                          flag_values)
 
     def set_buffer_security_check(self):
         """
         Set BufferSecurityCheck flag: /GS
 
         """
+        flag_values = {'false': {cl_flags: ''},
+                       'true': {cl_flags: ' /GS'},
+                       default_value: {cl_flags: ' /GS'}}
 
         for setting in self.settings:
-            gs = self.tree.find(
-                '%s/ns:ClCompile/ns:BufferSecurityCheck' % self.definitiongroups[setting],
-                namespaces=self.ns
-            )
-            if gs is not None:
-                if 'false' in gs.text:
-                    send('No BufferSecurityCheck for {0}'.format(setting), '')
-            else:
-                self.settings[setting][cl_flags] += ' /GS'
-                send('BufferSecurityCheck for {0}'.format(setting), 'ok')
+            self.set_flag(setting, '{0}/ns:ClCompile/ns:BufferSecurityCheck'
+                          .format(self.definitiongroups[setting]),
+                          flag_values)
 
     def set_diagnostics_format(self):
         """
         Set DiagnosticsFormat flag : /GS
         
         """
+        flag_values = {'Classic': {cl_flags: ' /diagnostics:classic'},
+                       'Column': {cl_flags: ' /diagnostics:column'},
+                       'Caret': {cl_flags: ' /diagnostics:caret'},
+                       default_value: {cl_flags: ' /diagnostics:classic'}}
 
         for setting in self.settings:
-            gs = self.tree.find(
-                '%s/ns:ClCompile/ns:DiagnosticsFormat' % self.definitiongroups[setting],
-                namespaces=self.ns
-            )
-            if gs is not None:
-                if 'Classic' in gs.text:
-                    self.settings[setting][cl_flags] += ' /diagnostics:classic'
-                    send('No BufferSecurityCheck for {0}'.format(setting), '')
-                if 'Column' in gs.text:
-                    self.settings[setting][cl_flags] += ' /diagnostics:column'
-                    send('No BufferSecurityCheck for {0}'.format(setting), '')
-                if 'Caret' in gs.text:
-                    self.settings[setting][cl_flags] += ' /diagnostics:caret'
-                    send('No BufferSecurityCheck for {0}'.format(setting), '')
-            else:
-                self.settings[setting][cl_flags] += ' /diagnostics:classic'
-                send('BufferSecurityCheck for {0}'.format(setting), 'ok')
+            self.set_flag(setting, '{0}/ns:ClCompile/ns:DiagnosticsFormat'
+                          .format(self.definitiongroups[setting]),
+                          flag_values)
 
     def set_treatwchar_t_as_built_in_type(self):
         """
         Set TreatWChar_tAsBuiltInType /Zc:wchar_t
 
         """
+        flag_values = {'false': {cl_flags: ' /Zc:wchar_t-'},
+                       'true': {cl_flags: ' /Zc:wchar_t'},
+                       default_value: {cl_flags: ' /Zc:wchar_t'}}
+
         for setting in self.settings:
-            ch = self.tree.xpath('{0}/ns:ClCompile/ns:TreatWChar_tAsBuiltInType'
-                                 .format(self.definitiongroups[setting]), namespaces=self.ns)
-            if ch:
-                if 'false' in ch[0].text:
-                    self.settings[setting][cl_flags] += ' /Zc:wchar_t-'
-                    send('TreatWChar_tAsBuiltInType for {0} : {1}'.format(setting, ch), 'ok')
-                if 'true' in ch[0].text:
-                    self.settings[setting][cl_flags] += ' /Zc:wchar_t'
-                    send('TreatWChar_tAsBuiltInType for {0} : {1}'.format(setting, ch), 'ok')
-            else:
-                self.settings[setting][cl_flags] += ' /Zc:wchar_t'
-                send('TreatWChar_tAsBuiltInType for {0}: {1}'.format(setting, ch), '')
+            self.set_flag(setting, '{0}/ns:ClCompile/ns:TreatWChar_tAsBuiltInType'
+                          .format(self.definitiongroups[setting]),
+                          flag_values)
     
     def setting_has_pch(self, setting):
         """
