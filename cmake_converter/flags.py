@@ -208,7 +208,7 @@ class CPPFlags(Flags):
                 send('PreprocessorDefinitions for {0}'.format(setting), 'ok')
 
     def do_precompiled_headers(self, files):
-        project_has_pch = False
+        precompiled_header_path = ''
         for setting in self.settings:
             precompiled_header_values = {'Use': {'PrecompiledHeader': 'Use'},
                                          'NotUsing': {'PrecompiledHeader': 'NotUsing'},
@@ -226,7 +226,7 @@ class CPPFlags(Flags):
             if flag_value != '':
                 self.settings[setting]['PrecompiledHeaderFile'] = flag_value
 
-            if not project_has_pch and self.settings[setting]['PrecompiledHeader'] == 'Use':
+            if self.settings[setting]['PrecompiledHeader'] == 'Use':
                 pch_flag_value = self.settings[setting]['PrecompiledHeaderFile']
                 found = False
                 founded_pch_h_path = ''
@@ -240,10 +240,14 @@ class CPPFlags(Flags):
                     if found:
                         break
 
-                pch_cpp = self.settings[setting]['PrecompiledHeaderFile'].replace('.h', '.cpp')
-                real_pch_cpp = take_name_from_list_case_ignore(files.sources[founded_pch_h_path], pch_cpp)
-                self.settings[setting]['PrecompiledHeaderFile'] = real_pch_cpp.replace('.cpp', '.h')
-                project_has_pch = True
+                if precompiled_header_path == '':
+                    pch_cpp = self.settings[setting]['PrecompiledHeaderFile'].replace('.h', '.cpp')
+                    real_pch_cpp = take_name_from_list_case_ignore(files.sources[founded_pch_h_path], pch_cpp)
+                    if founded_pch_h_path != '':
+                        founded_pch_h_path += '/'
+                    real_pch_cpp = founded_pch_h_path + real_pch_cpp
+                    precompiled_header_path = real_pch_cpp.replace('.cpp', '.h')
+                self.settings[setting]['PrecompiledHeaderFile'] = precompiled_header_path
 
     def define_windows_flags(self):
         """
@@ -788,7 +792,7 @@ class CPPFlags(Flags):
             return
 
         pch = self.settings[setting]['PrecompiledHeaderFile']
-        self.cmake.write('ADD_PRECOMPILED_HEADER("{0}" "{1}" SRC_FILES)\n\n'.format(pch, pch.replace('.h', '.cpp')))
+        self.cmake.write('ADD_PRECOMPILED_HEADER("{0}" "{1}" SRC_FILES)\n\n'.format(os.path.basename(pch), pch.replace('.h', '.cpp')))
 
     def write_target_artifact(self):
         """
