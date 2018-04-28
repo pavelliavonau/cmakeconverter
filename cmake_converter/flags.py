@@ -783,6 +783,7 @@ class FortranFlags(Flags):
         """
         self.set_source_file_format()
         self.set_local_variable_storage()
+        self.set_real_kind()
         self.set_additional_options()
 
     def set_source_file_format(self):
@@ -796,6 +797,14 @@ class FortranFlags(Flags):
             opt = self.settings[setting]['VFFortranCompilerTool'].get('LocalVariableStorage')
             if opt == 'localStorageAutomatic':
                 self.settings[setting][cl_flags].append('/Qauto')
+
+    def set_real_kind(self):
+        for setting in self.settings:
+            opt = self.settings[setting]['VFFortranCompilerTool'].get('RealKIND')
+            if opt == 'realKIND8':
+                self.settings[setting][cl_flags].append('/real_size:64')
+            if opt == 'realKIND16':
+                self.settings[setting][cl_flags].append('/real_size:128')
 
     def set_additional_options(self):
         """
