@@ -128,3 +128,33 @@ def get_global_project_name_from_vcxproj_file(vcxproj):
         if project_name_value.text:
             project_name = project_name_value.text
     return project_name
+
+
+def cleaning_output(output):
+    """
+    Clean Output string by remove VS Project Variables
+
+    :param output: Output to clean
+    :type output: str
+    :return: clean output
+    :rtype: str
+    """
+
+    variables_to_replace = {
+        '$(SolutionDir)': '${CMAKE_SOURCE_DIR}/',
+        '$(Platform)': '${CMAKE_VS_PLATFORM_NAME}',
+        '$(Configuration)': '$<CONFIG>',
+        '$(ConfigurationName)': '$<CONFIG>',
+        '$(ProjectDir)': '${CMAKE_CURRENT_SOURCE_DIR}',
+        '$(ProjectName)': '${PROJECT_NAME}'
+        }
+    output = output.replace('\\', '/')
+
+    for var in variables_to_replace:
+        if var in output:
+            output = output.replace(var, variables_to_replace[var])
+
+    if '%s..' % var in output:
+        output = output.replace('%s..' % var, '..')
+
+    return output

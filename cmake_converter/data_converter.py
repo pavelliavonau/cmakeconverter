@@ -34,7 +34,7 @@ from cmake_converter.dependencies import Dependencies
 from cmake_converter.flags import CPPFlags, FortranFlags
 from cmake_converter.message import send
 from cmake_converter.project_files import ProjectFiles
-from cmake_converter.project_variables import ProjectVariables
+from cmake_converter.project_variables import VCXProjectVariables, VFProjectVariables
 from cmake_converter.utils import get_global_project_name_from_vcxproj_file
 
 
@@ -167,7 +167,7 @@ class CPPConverter(DataConverter):
 
         self.define_settings(self.context)
         # Write variables
-        variables = ProjectVariables(self.context)
+        variables = VCXProjectVariables(self.context)
         variables.add_project_variables()
         variables.find_outputs_variables()
 
@@ -280,6 +280,15 @@ class FortranProjectConverter(DataConverter):
                                                 'conf': conf,
                                                 'arch': arch,
                                                 }
+
+                out_dir_node = configuration_node.get('OutputDirectory')
+                if out_dir_node:
+                    settings[configuration_data]['out_dir'] = out_dir_node
+
+                target_name_node = configuration_node.get('TargetName')
+                if target_name_node:
+                    settings[configuration_data]['output_name'] = target_name_node
+
                 tools = configuration_node.xpath('Tool')
                 for tool in tools:
                     tool_name = str(tool.get('Name'))
@@ -301,9 +310,9 @@ class FortranProjectConverter(DataConverter):
 
         self.define_settings(self.context)
         # Write variables
-        variables = ProjectVariables(self.context)
+        variables = VFProjectVariables(self.context)
         variables.add_project_variables()
-        # variables.find_outputs_variables()
+        variables.find_outputs_variables()
 
         files = ProjectFiles(self.context)
         files.collects_source_files()
@@ -320,5 +329,6 @@ class FortranProjectConverter(DataConverter):
             # Writing
             files.write_source_files()
             all_flags.write_target_artifact()
+            variables.add_artifact_target_outputs(self.context)
             all_flags.write_defines_and_flags()
 

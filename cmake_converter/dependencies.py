@@ -31,7 +31,7 @@ import re
 
 from cmake_converter.message import send
 from cmake_converter.data_files import get_vcxproj_data, get_xml_data
-from cmake_converter.utils import write_property_of_settings, get_global_project_name_from_vcxproj_file
+from cmake_converter.utils import write_property_of_settings, get_global_project_name_from_vcxproj_file, cleaning_output
 
 
 class Dependencies(object):
@@ -187,7 +187,7 @@ class Dependencies(object):
 
         """
 
-        # External libraries
+        # References to other targets in solution
         references = self.tree.xpath('//ns:ProjectReference', namespaces=self.ns)
         if references:
             self.cmake.write('# Link with other targets.\n')
@@ -209,19 +209,39 @@ class Dependencies(object):
         # Additional Dependencies
         dependencies = self.tree.xpath('//ns:AdditionalDependencies', namespaces=self.ns)
         if dependencies:
-            listdepends = dependencies[0].text.replace('%(AdditionalDependencies)', '')
-            if listdepends != '':
-                send('Additional Dependencies = %s' % listdepends, 'ok')
-                windepends = []
-                for d in listdepends.split(';'):
+            list_depends = dependencies[0].text.replace('%(AdditionalDependencies)', '')
+            if list_depends != '':
+                send('Additional Dependencies = %s' % list_depends, 'ok')
+                add_lib_dirs = []
+                for d in list_depends.split(';'):
                     if d != '%(AdditionalDependencies)':
                         if os.path.splitext(d)[1] == '.lib':
-                            windepends.append(d.replace('.lib', ''))
-                if windepends:
+                            add_lib_dirs.append(d.replace('.lib', ''))
+                if add_lib_dirs:
+                    self.cmake.write('# Link with other additional libraries.\n')
+                    self.cmake.write('target_link_libraries(${PROJECT_NAME}')
+                    for dep in add_lib_dirs:
+                        self.cmake.write(' ' + dep)
+                    self.cmake.write(')\n')
+        else:  # pragma: no cover
+            send('No dependencies.', '')
+
+        # Additional Library Directories
+        additional_library_directories = self.tree.xpath('//ns:AdditionalLibraryDirectories', namespaces=self.ns)
+        if additional_library_directories:
+            list_depends = additional_library_directories[0].text.replace('%(AdditionalLibraryDirectories)', '')
+            if list_depends != '':
+                send('Additional Library Directories = %s' % list_depends, 'ok')
+                add_lib_dirs = []
+                for d in list_depends.split(';'):
+                    d = d.strip()
+                    if d != '':
+                        add_lib_dirs.append(d)
+                if add_lib_dirs:
                     self.cmake.write('if(MSVC)\n')
-                    self.cmake.write('   target_link_libraries(${PROJECT_NAME} ')
-                    for dep in windepends:
-                        self.cmake.write(dep + ' ')
+                    self.cmake.write('   target_link_libraries(${PROJECT_NAME}')
+                    for dep in add_lib_dirs:
+                        self.cmake.write(' -LIBPATH:' + cleaning_output(dep))
                     self.cmake.write(')\n')
                     self.cmake.write('endif(MSVC)\n')
         else:  # pragma: no cover

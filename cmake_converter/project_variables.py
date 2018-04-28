@@ -27,14 +27,13 @@
 
 from cmake_converter.message import send
 from cmake_converter.data_files import get_propertygroup
-from cmake_converter.utils import get_configuration_type, write_property_of_settings
+from cmake_converter.utils import get_configuration_type, write_property_of_settings, cleaning_output
 
 
 class ProjectVariables(object):
     """
-        Class who defines all the CMake variables to be used by the project
-    """
 
+    """
     def __init__(self, context):
         self.cmake = context['cmake']
         self.tree = context['vcxproj']['tree']
@@ -42,7 +41,6 @@ class ProjectVariables(object):
         self.output = context['cmake_output']
         self.project_name = context['project_name']
         self.settings = context['settings']
-        self.vs_outputs = {}
 
     def add_project_variables(self):
         """
@@ -59,6 +57,71 @@ class ProjectVariables(object):
                 'Please set [PROJECT_NAME] variable in CMakeLists.txt.',
                 'error'
             )
+
+    def add_default_target(self):
+        """
+        Add default target release if not define.
+
+        """
+
+        self.cmake.write(
+            '# Define Release by default.\n'
+            'if(NOT CMAKE_BUILD_TYPE)\n'
+            '  set(CMAKE_BUILD_TYPE "Release")\n'
+            '  message(STATUS "Build type not specified: Use Release by default.")\n'
+            'endif(NOT CMAKE_BUILD_TYPE)\n\n'
+        )
+
+    def add_artifact_target_outputs(self, context):
+        """
+        Add outputs for each artefacts CMake target
+
+        """
+
+        if len(context['settings']) == 0:
+            return
+
+        write_property_of_settings(self.cmake, self.settings, 'string(CONCAT OUT_DIR', ')'
+                                   , 'out_dir', '', '${CMAKE_SOURCE_DIR}/${CMAKE_VS_PLATFORM_NAME}/$<CONFIG>')
+
+        for setting in self.settings:
+            break
+
+        configuration_type = ''
+        if 'vfproj' in context['vcxproj_path']:
+            configuration_type = 'StaticLibrary'
+        else:
+            configuration_type = get_configuration_type(setting, context)
+
+        if configuration_type:
+            if configuration_type == 'DynamicLibrary' or configuration_type == 'StaticLibrary':
+                self.cmake.write(
+                    'set_target_properties(${PROJECT_NAME} PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${OUT_DIR})\n')
+                if configuration_type == 'DynamicLibrary':
+                    self.cmake.write(
+                        'set_target_properties(${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${OUT_DIR})\n')
+                # TODO: do we really need LIBRARY_OUTPUT_DIRECTORY here?
+                self.cmake.write(
+                    'set_target_properties(${PROJECT_NAME} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${OUT_DIR})\n')
+                self.cmake.write('\n')
+            else:
+                self.cmake.write(
+                    'set_target_properties(${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${OUT_DIR})\n\n')
+
+        write_property_of_settings(self.cmake, self.settings, 'string(CONCAT TARGET_NAME', ')'
+                                   , 'output_name', '', '${PROJECT_NAME}')
+        self.cmake.write(
+            'set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME ${TARGET_NAME})\n\n')
+
+
+class VCXProjectVariables(ProjectVariables):
+    """
+        Class who defines all the CMake variables to be used by the project
+    """
+
+    def __init__(self, context):
+        ProjectVariables.__init__(self, context)
+        self.vs_outputs = {}
 
     def find_outputs_variables(self):
         """
@@ -91,7 +154,7 @@ class ProjectVariables(object):
                     '{0}/ns:TargetName'.format(prop), namespaces=self.ns)
             if output_name_node is not None:
                 output_name = output_name_node.text
-            self.settings[setting]['output_name'] = self.cleaning_output(output_name)
+            self.settings[setting]['output_name'] = cleaning_output(output_name)
 
         for setting in self.settings:
             conf = self.settings[setting]['conf']
@@ -101,9 +164,9 @@ class ProjectVariables(object):
 
             if not self.output:
                     if self.vs_outputs[conf][arch] is not None:
-                        output_path = self.cleaning_output(self.vs_outputs[conf][arch].text)
+                        output_path = cleaning_output(self.vs_outputs[conf][arch].text)
                     else:
-                        output_path = self.cleaning_output(output_path)
+                        output_path = cleaning_output(output_path)
             else:
                 if self.output[-1:] == '/' or self.output[-1:] == '\\':
                     build_type = '${CMAKE_BUILD_TYPE}'
@@ -119,81 +182,38 @@ class ProjectVariables(object):
             else:  # pragma: no cover
                 send('No Output found. Use [{0}/bin] by default !'.format(arch), 'warn')
 
-    @staticmethod
-    def cleaning_output(output):
+
+class VFProjectVariables(ProjectVariables):
+    """
+
+    """
+
+    def find_outputs_variables(self):
         """
-        Clean Output string by remove VS Project Variables
-
-        :param output: Output to clean
-        :type output: str
-        :return: clean output
-        :rtype: str
+             Add Outputs Variables
         """
-
-        variables_to_replace = {
-            '$(SolutionDir)': '${CMAKE_SOURCE_DIR}/',
-            '$(Platform)': '${CMAKE_VS_PLATFORM_NAME}',
-            '$(Configuration)': '$<CONFIG>',
-            '$(ProjectDir)': '${CMAKE_CURRENT_SOURCE_DIR}',
-            '$(ProjectName)': '${PROJECT_NAME}'
-            }
-        output = output.replace('\\', '/')
-
-        for var in variables_to_replace:
-            if var in output:
-                output = output.replace(var, variables_to_replace[var])
-
-        if '%s..' % var in output:
-            output = output.replace('%s..' % var, '..')
-
-        return output
-
-    def add_default_target(self):
-        """
-        Add default target release if not define.
-
-        """
-
-        self.cmake.write(
-            '# Define Release by default.\n'
-            'if(NOT CMAKE_BUILD_TYPE)\n'
-            '  set(CMAKE_BUILD_TYPE "Release")\n'
-            '  message(STATUS "Build type not specified: Use Release by default.")\n'
-            'endif(NOT CMAKE_BUILD_TYPE)\n\n'
-        )
-
-    def add_artifact_target_outputs(self, context):
-        """
-        Add outputs for each artefacts CMake target
-
-        """
-
-        if len(context['settings']) == 0:
-            return
-
-        write_property_of_settings(self.cmake, self.settings, 'string(CONCAT OUT_DIR', ')'
-                                   , 'out_dir', '', '${CMAKE_SOURCE_DIR}/${CMAKE_VS_PLATFORM_NAME}/$<CONFIG>')
 
         for setting in self.settings:
-            break
+            arch = self.settings[setting]['arch']
 
-        configuration_type = get_configuration_type(setting, context)
-        if configuration_type:
-            if configuration_type == 'DynamicLibrary' or configuration_type == 'StaticLibrary':
-                self.cmake.write(
-                    'set_target_properties(${PROJECT_NAME} PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${OUT_DIR})\n')
-                if configuration_type == 'DynamicLibrary':
-                    self.cmake.write(
-                        'set_target_properties(${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${OUT_DIR})\n')
-                # TODO: do we really need LIBRARY_OUTPUT_DIRECTORY here?
-                self.cmake.write(
-                    'set_target_properties(${PROJECT_NAME} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${OUT_DIR})\n')
-                self.cmake.write('\n')
+            output_path = '$(SolutionDir)$(Platform)/$(Configuration)/'  # default value
+
+            if not self.output:
+                if 'out_dir' in self.settings[setting]:
+                    output_path = cleaning_output(self.settings[setting]['out_dir'])
+                else:
+                    output_path = cleaning_output(output_path)
             else:
-                self.cmake.write(
-                    'set_target_properties(${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${OUT_DIR})\n\n')
+                if self.output[-1:] == '/' or self.output[-1:] == '\\':
+                    build_type = '${CMAKE_BUILD_TYPE}'
+                else:
+                    build_type = '/${CMAKE_BUILD_TYPE}'
+                output_path = self.output + build_type
 
-        write_property_of_settings(self.cmake, self.settings, 'string(CONCAT TARGET_NAME', ')'
-                                   , 'output_name', '', '${PROJECT_NAME}')
-        self.cmake.write(
-            'set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME ${TARGET_NAME})\n\n')
+            output_path = output_path.strip().replace('\n', '')
+            self.settings[setting]['out_dir'] = output_path
+
+            if output_path:
+                send('Output {0} = {1}'.format(setting, output_path), 'ok')
+            else:  # pragma: no cover
+                send('No Output found. Use [{0}/bin] by default !'.format(arch), 'warn')
