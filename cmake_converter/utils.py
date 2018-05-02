@@ -27,6 +27,7 @@
 
 import sys
 import os
+import glob
 
 
 def mkdir(folder):
@@ -130,6 +131,11 @@ def get_global_project_name_from_vcxproj_file(vcxproj):
     return project_name
 
 
+def set_unix_slash(win_path):
+    unix_path = win_path.strip().replace('\\', '/')
+    return unix_path
+
+
 def cleaning_output(output):
     """
     Clean Output string by remove VS Project Variables
@@ -148,13 +154,37 @@ def cleaning_output(output):
         '$(ProjectDir)': '${CMAKE_CURRENT_SOURCE_DIR}',
         '$(ProjectName)': '${PROJECT_NAME}'
         }
-    output = output.replace('\\', '/')
+
+    output = set_unix_slash(output)
 
     for var in variables_to_replace:
         if var in output:
             output = output.replace(var, variables_to_replace[var])
-
-    if '%s..' % var in output:
-        output = output.replace('%s..' % var, '..')
+    # TODO: Next action is strange. turned off
+    # if '%s..' % var in output:
+    #     output = output.replace('%s..' % var, '..')
 
     return output
+
+
+def get_actual_filename(name):
+    dirs = name.split('\\')
+    # disk letter
+    test_name = [dirs[0].upper()]
+    for d in dirs[1:]:
+        test_name += ["%s[%s]" % (d[:-1], d[-1])]
+    res = glob.glob('\\'.join(test_name))
+    if not res:
+        #File not found
+        return None
+    return res[0]
+
+
+def normalize_path(working_path, path_to_normalize):
+    joined_path = os.path.normpath(os.path.join(working_path, path_to_normalize.strip()))
+    actual_path_name = get_actual_filename(joined_path)
+    normal_path = set_unix_slash(os.path.relpath(actual_path_name, working_path))
+    if '.' in normal_path[:1]:
+        # add current directory for relative path (CMP0021)
+        normal_path = '${CMAKE_CURRENT_SOURCE_DIR}/' + normal_path
+    return normal_path

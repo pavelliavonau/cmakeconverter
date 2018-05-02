@@ -30,7 +30,8 @@ import os
 from os import path
 
 from cmake_converter.message import send
-from cmake_converter.utils import take_name_from_list_case_ignore, get_configuration_type, write_property_of_settings
+from cmake_converter.utils import take_name_from_list_case_ignore, get_configuration_type\
+    , write_property_of_settings, set_unix_slash
 
 cl_flags = 'cl_flags'
 ln_flags = 'ln_flags'
@@ -167,7 +168,7 @@ class CPPFlags(Flags):
             for ref in references:
                 reference = str(ref.get('Include'))
                 if '\\' in reference:
-                    reference = reference.replace('\\', '/')
+                    reference = set_unix_slash(reference)
                 lib = os.path.splitext(path.basename(reference))[0]
 
                 if (lib == 'lemon' or lib == 'zlib') and '-fPIC' not in linux_flags:
@@ -812,8 +813,8 @@ class FortranFlags(Flags):
 
         """
         for setting in self.settings:
-            add_opt = self.settings[setting]['VFFortranCompilerTool'].get('AdditionalOptions').strip()\
-                .replace('\\', '/').split(' ')
+            add_opt = self.settings[setting]['VFFortranCompilerTool'].get('AdditionalOptions')
+            add_opt = set_unix_slash(add_opt).split(' ')
             if add_opt:
                 self.settings[setting][cl_flags].append(';'.join(add_opt))
                 send('Additional Options for {0} : {1}'.format(setting, str(add_opt)), 'ok')

@@ -31,6 +31,7 @@ import os
 
 from cmake_converter.data_converter import DataConverter, CPPConverter, FortranProjectConverter
 from cmake_converter.data_files import get_cmake_lists
+from cmake_converter.utils import set_unix_slash
 
 
 def convert_project(context, xml_project_path, cmake_lists_destination_path):
@@ -236,7 +237,7 @@ def main():  # pragma: no cover
         sln_cmake.write('################################################################################\n')
         subdirectories.sort(key=str.lower)
         for subdirectory in subdirectories:
-            sln_cmake.write('add_subdirectory({0})\n'.format(subdirectory.replace('\\', '/')))
+            sln_cmake.write('add_subdirectory({0})\n'.format(set_unix_slash(subdirectory)))
         sln_cmake.write('\n')
         sln_cmake.close()
 

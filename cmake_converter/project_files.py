@@ -28,7 +28,7 @@
 import os
 
 from cmake_converter.message import send
-from cmake_converter.utils import take_name_from_list_case_ignore
+from cmake_converter.utils import take_name_from_list_case_ignore, normalize_path
 
 
 class ProjectFiles(object):
@@ -138,11 +138,13 @@ class ProjectFiles(object):
             for header_file in self.headers['']:
                 self.cmake.write('    {0}\n'.format(header_file))
 
+        working_path = os.path.dirname(self.vcxproj_path)
         for headers_dir in self.headers:
             if headers_dir == '':
                 continue
             for header_file in self.headers[headers_dir]:
-                self.cmake.write('    %s\n' % os.path.join(headers_dir, header_file).replace('\\', '/'))
+                self.cmake.write('    {0}\n'.format(normalize_path(working_path,
+                                                                   os.path.join(headers_dir, header_file))))
 
         self.cmake.write(')\n')
         self.cmake.write('source_group("Headers" FILES ${HEADERS_FILES})\n\n')
@@ -158,11 +160,13 @@ class ProjectFiles(object):
             for src_file in self.sources['']:
                 self.cmake.write('    {0}\n'.format(src_file))
 
+        working_path = os.path.dirname(self.vcxproj_path)
         for src_dir in self.sources:
             if src_dir == '':
                 continue
             for src_file in self.sources[src_dir]:
-                self.cmake.write('    %s\n' % os.path.join(src_dir, src_file).replace('\\', '/'))
+                self.cmake.write('    {0}\n'.format(normalize_path(working_path,
+                                                                   os.path.join(src_dir, src_file))))
 
         self.cmake.write(')\n')
         self.cmake.write('source_group("Sources" FILES ${SRC_FILES})\n\n')

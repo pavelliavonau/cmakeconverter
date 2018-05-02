@@ -31,7 +31,8 @@ import re
 
 from cmake_converter.message import send
 from cmake_converter.data_files import get_vcxproj_data, get_xml_data
-from cmake_converter.utils import write_property_of_settings, get_global_project_name_from_vcxproj_file, cleaning_output
+from cmake_converter.utils import write_property_of_settings, \
+    get_global_project_name_from_vcxproj_file, cleaning_output, normalize_path
 
 
 class Dependencies(object):
@@ -58,6 +59,8 @@ class Dependencies(object):
             send('Include Directories is not set.', '')
             return
 
+        working_path = os.path.dirname(self.vcxproj_path)
+
         for setting in self.settings:
             incl_dir = self.tree.find(
                 '{0}/ns:ClCompile/ns:AdditionalIncludeDirectories'.format(self.definition_groups[setting]),
@@ -69,9 +72,9 @@ class Dependencies(object):
                 inc_dir = inc_dir.replace(';%(AdditionalIncludeDirectories)', '')
                 dirs = []
                 for i in inc_dir.split(';'):
-                    i = i.replace('\\', '/')
+                    i = normalize_path(working_path, i)
                     i = re.sub(r'\$\((.+?)\)', r'$ENV{\1}', i)
-                    dirs.append('${CMAKE_CURRENT_SOURCE_DIR}/' + i)
+                    dirs.append(i)
                 inc_dirs = ';'.join(dirs)
                 self.settings[setting]['inc_dirs'] = inc_dirs
                 send('Include Directories found : %s' % inc_dirs, 'warn')
