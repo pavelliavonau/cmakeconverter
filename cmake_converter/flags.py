@@ -330,7 +330,7 @@ class CPPFlags(Flags):
 
         flag_values = {'true':  {ln_flags: '/INCREMENTAL'},
                        'false': {ln_flags: '/INCREMENTAL:NO'},
-                       default_value: {ln_flags: '/INCREMENTAL'}
+                       default_value: {}
                        }
 
         for setting in self.settings:
@@ -341,8 +341,11 @@ class CPPFlags(Flags):
                                   .format(self.propertygroup[setting].replace(' and @Label="Configuration"', '')),
                                   flag_values)
             if not value:
-                self.set_flag(setting, '//ns:LinkIncremental[@Condition="\'$(Configuration)|$(Platform)\'==\'{0}\'"]'
-                              .format(setting), flag_values)
+                value = self.set_flag(setting,
+                                      '//ns:LinkIncremental[@Condition="\'$(Configuration)|$(Platform)\'==\'{0}\'"]'
+                                      .format(setting), flag_values)
+            if not value:
+                self.settings[setting][ln_flags].append('/INCREMENTAL')  # default
 
     def set_force_conformance_in_for_loop_scope(self):
         """
