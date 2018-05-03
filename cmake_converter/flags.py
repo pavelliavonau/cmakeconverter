@@ -31,7 +31,7 @@ from os import path
 
 from cmake_converter.message import send
 from cmake_converter.utils import take_name_from_list_case_ignore, get_configuration_type\
-    , write_property_of_settings, set_unix_slash
+    , write_property_of_settings, set_unix_slash, normalize_path
 
 cl_flags = 'cl_flags'
 ln_flags = 'ln_flags'
@@ -776,6 +776,9 @@ class FortranFlags(Flags):
     """
 
     """
+    def __init__(self, context):
+        Flags.__init__(self, context)
+        self.vcxproj_path = context['vcxproj_path']
 
     def define_flags(self):
         """
@@ -813,10 +816,18 @@ class FortranFlags(Flags):
 
         """
         for setting in self.settings:
-            add_opt = self.settings[setting]['VFFortranCompilerTool'].get('AdditionalOptions')
-            add_opt = set_unix_slash(add_opt).split(' ')
-            if add_opt:
-                self.settings[setting][cl_flags].append(';'.join(add_opt))
+            add_opts = self.settings[setting]['VFFortranCompilerTool'].get('AdditionalOptions')
+            if add_opts:
+                add_opts = set_unix_slash(add_opts).split(' ')
+                ready_add_opts = []
+                for add_opt in add_opts:
+                    add_opt = add_opt.strip()
+                    if '/Qprof-dir' in add_opt:
+                        name_value = add_opt.split(':')
+                        add_opt = name_value[0] + ':' + normalize_path(os.path.dirname(self.vcxproj_path),
+                                                                       name_value[1])
+                    ready_add_opts.append(add_opt)
+                self.settings[setting][cl_flags].append(';'.join(ready_add_opts))
                 send('Additional Options for {0} : {1}'.format(setting, str(add_opt)), 'ok')
             else:
                 send('No Additional Options for {0}'.format(setting), '')
