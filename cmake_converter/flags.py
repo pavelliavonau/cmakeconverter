@@ -483,6 +483,8 @@ class CPPFlags(Flags):
                     mdd = '/MD'
                     mtd = '/MT'
 
+            conf_type = get_configuration_type(setting, self.context)
+
             if mdd_value is not None:
                 if 'MultiThreadedDebugDLL' == mdd_value.text:
                     self.settings[setting][cl_flags].append(mdd)
@@ -506,10 +508,10 @@ class CPPFlags(Flags):
             else:
                 if 'use_debug_libs' in self.settings[setting]:
                     if self.settings[setting]['use_debug_libs']:
-                        self.settings[setting][cl_flags].append(mtd if 'static' in setting else mdd)
+                        self.settings[setting][cl_flags].append(mtd if 'StaticLibrary' in conf_type else mdd)
                         send('RuntimeLibrary for {0}'.format(setting), 'ok')
                     else:
-                        self.settings[setting][cl_flags].append(m_t if 'static' in setting else m_d)
+                        self.settings[setting][cl_flags].append(m_t if 'StaticLibrary' in conf_type else m_d)
                         send('RuntimeLibrary for {0}'.format(setting), 'ok')
                 else:
                     send('No RuntimeLibrary for {0}'.format(setting), '')
