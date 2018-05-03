@@ -138,8 +138,8 @@ class CPPConverter(DataConverter):
                 conf = conf_arch[0]
                 arch = conf_arch[1]
                 settings[configuration_data] = {'defines': [],
-                                                'cl_flags': '',
-                                                'ln_flags': '',
+                                                'cl_flags': [],
+                                                'ln_flags': [],
                                                 'conf': conf,
                                                 'arch': arch,
                                                 }
@@ -193,7 +193,7 @@ class CPPConverter(DataConverter):
             variables.add_artifact_target_outputs(self.context)
             dependencies = Dependencies(self.context)
             dependencies.write_include_dir()
-            all_flags.write_defines_and_flags()
+            all_flags.write_defines_and_flags('MSVC')
             for configuration_type in all_flags.get_cmake_configuration_types():
                 self.context['configuration_types'].add(configuration_type)
 
@@ -276,7 +276,7 @@ class FortranProjectConverter(DataConverter):
                 arch = conf_arch[1]
                 settings[configuration_data] = {'defines': [],
                                                 'cl_flags': [],
-                                                'ln_flags': '',
+                                                'ln_flags': [],
                                                 'conf': conf,
                                                 'arch': arch,
                                                 }
@@ -330,5 +330,5 @@ class FortranProjectConverter(DataConverter):
             files.write_source_files()
             all_flags.write_target_artifact()
             variables.add_artifact_target_outputs(self.context)
-            all_flags.write_defines_and_flags()
+            all_flags.write_defines_and_flags('${CMAKE_Fortran_COMPILER_ID} STREQUAL "Intel"')
 

@@ -51,30 +51,24 @@ class Flags(object):
         self.cmake = context['cmake']
         self.settings = context['settings']
 
-    def write_defines_and_flags(self):
+    def write_defines_and_flags(self, compiler_check):
         """
         Get and write Preprocessor Macros definitions
 
         """
         cmake = self.cmake
 
-        # self.cmake.write(
-        #     '################# Flags ################\n'
-        #     '# Defines Flags for Windows and Linux. #\n'
-        #     '########################################\n\n'
-        # )
-
         # normalize
         for setting in self.settings:
-            self.settings[setting][cl_flags] = self.settings[setting][cl_flags].strip().replace(' ', ';')
             self.settings[setting]['defines_str'] = ';'.join(self.settings[setting][defines])
+            self.settings[setting]['cl_str'] = ';'.join(self.settings[setting][cl_flags])
 
         write_property_of_settings(cmake, self.settings, 'target_compile_definitions(${PROJECT_NAME} PRIVATE', ')',
                                    'defines_str')
         cmake.write('\n')
-        cmake.write('if(MSVC)\n')
+        cmake.write('if({0})\n'.format(compiler_check))
         write_property_of_settings(cmake, self.settings, 'target_compile_options(${PROJECT_NAME} PRIVATE', ')',
-                                   cl_flags, indent='    ')
+                                   'cl_str', indent='    ')
 
         settings_of_arch = {}
         for setting in self.settings:
@@ -92,19 +86,19 @@ class Flags(object):
             first_arch = False
             for setting in settings_of_arch[arch]:
                 conf = self.settings[setting]['conf']
-                if len(self.settings[setting][ln_flags]) != 0:
+                if self.settings[setting][ln_flags]:
                     configuration_type = get_configuration_type(setting, self.context)
                     if configuration_type:
                         if 'StaticLibrary' in configuration_type:
                             cmake.write(
                                 '        set_target_properties(${{PROJECT_NAME}}'
                                 ' PROPERTIES STATIC_LIBRARY_FLAGS_{0} "{1}")\n'
-                                .format(conf.upper(), self.settings[setting][ln_flags])
+                                .format(conf.upper(), ' '.join(self.settings[setting][ln_flags]))
                             )
                         else:
                             cmake.write(
                                 '        set_target_properties(${{PROJECT_NAME}} PROPERTIES LINK_FLAGS_{0} "{1}")\n'
-                                .format(conf.upper(), self.settings[setting][ln_flags])
+                                .format(conf.upper(), ' '.join(self.settings[setting][ln_flags]))
                             )
         cmake.write('    else()\n')
         cmake.write(
@@ -185,7 +179,6 @@ class CPPFlags(Flags):
         """
         DEFINES
         """
-
         # PreprocessorDefinitions
         for setting in self.settings:
             define = self.tree.find(
@@ -225,10 +218,10 @@ class CPPFlags(Flags):
                                        '{0}/ns:ClCompile/ns:PrecompiledHeaderFile'
                                        .format(self.definitiongroups[setting]), precompiled_header_file_values)
             if flag_value != '':
-                self.settings[setting]['PrecompiledHeaderFile'] = flag_value
+                self.settings[setting]['PrecompiledHeaderFile'] = [flag_value]
 
-            if self.settings[setting]['PrecompiledHeader'] == 'Use':
-                pch_flag_value = self.settings[setting]['PrecompiledHeaderFile']
+            if self.settings[setting]['PrecompiledHeader'][0] == 'Use':
+                pch_flag_value = self.settings[setting]['PrecompiledHeaderFile'][0]
                 found = False
                 founded_pch_h_path = ''
                 for headers_path in files.headers:
@@ -242,13 +235,13 @@ class CPPFlags(Flags):
                         break
 
                 if precompiled_header_path == '':
-                    pch_cpp = self.settings[setting]['PrecompiledHeaderFile'].replace('.h', '.cpp')
+                    pch_cpp = self.settings[setting]['PrecompiledHeaderFile'][0].replace('.h', '.cpp')
                     real_pch_cpp = take_name_from_list_case_ignore(files.sources[founded_pch_h_path], pch_cpp)
                     if founded_pch_h_path != '':
                         founded_pch_h_path += '/'
                     real_pch_cpp = founded_pch_h_path + real_pch_cpp
                     precompiled_header_path = real_pch_cpp.replace('.cpp', '.h')
-                self.settings[setting]['PrecompiledHeaderFile'] = precompiled_header_path
+                self.settings[setting]['PrecompiledHeaderFile'][0] = precompiled_header_path
 
     def define_windows_flags(self):
         """
@@ -308,8 +301,8 @@ class CPPFlags(Flags):
             for key in values:
                 value = values[key]
                 if key not in self.settings[setting]:
-                    self.settings[setting][key] = ''
-                self.settings[setting][key] += value
+                    self.settings[setting][key] = []
+                self.settings[setting][key].append(value)
                 flags_message += value
 
         flag_name = xpath.split(':')[-1]
@@ -322,7 +315,7 @@ class CPPFlags(Flags):
 
         """
 
-        flag_values = {'true': {ln_flags: ' /LTCG', cl_flags: ' /GL'}}
+        flag_values = {'true': {ln_flags: '/LTCG', cl_flags: '/GL'}}
 
         for setting in self.settings:
             self.set_flag(setting,
@@ -335,9 +328,9 @@ class CPPFlags(Flags):
 
         """
 
-        flag_values = {'true':  {ln_flags: ' /INCREMENTAL'},
-                       'false': {ln_flags: ' /INCREMENTAL:NO'},
-                       default_value: {cl_flags: '', ln_flags: ''}}
+        flag_values = {'true':  {ln_flags: '/INCREMENTAL'},
+                       'false': {ln_flags: '/INCREMENTAL:NO'}
+                       }
 
         for setting in self.settings:
             self.set_flag(setting, '{0}/ns:LinkIncremental'
@@ -349,9 +342,9 @@ class CPPFlags(Flags):
 
         """
 
-        flag_values = {'true':  {cl_flags: ' /Zc:forScope'},
-                       'false': {cl_flags: ' /Zc:forScope-'},
-                       default_value: {cl_flags: ' /Zc:forScope'}}
+        flag_values = {'true':  {cl_flags: '/Zc:forScope'},
+                       'false': {cl_flags: '/Zc:forScope-'},
+                       default_value: {cl_flags: '/Zc:forScope'}}
 
         for setting in self.settings:
             self.set_flag(setting,
@@ -365,9 +358,9 @@ class CPPFlags(Flags):
 
         """
 
-        flag_values = {'true':  {cl_flags: ' /Zc:inline'},
+        flag_values = {'true':  {cl_flags: '/Zc:inline'},
                        'false': {cl_flags: ''},
-                       default_value: {cl_flags: ' /Zc:inline'}}
+                       default_value: {cl_flags: '/Zc:inline'}}
 
         for setting in self.settings:
             self.set_flag(setting,
@@ -396,11 +389,11 @@ class CPPFlags(Flags):
         Set Warning level for Windows: /W
 
         """
-        flag_values = {'Level1': {cl_flags: ' /W1'},
-                       'Level2': {cl_flags: ' /W2'},
-                       'Level3': {cl_flags: ' /W3'},
-                       'Level4': {cl_flags: ' /W4'},
-                       default_value: {cl_flags: ''}}
+        flag_values = {'Level1': {cl_flags: '/W1'},
+                       'Level2': {cl_flags: '/W2'},
+                       'Level3': {cl_flags: '/W3'},
+                       'Level4': {cl_flags: '/W4'},
+                       default_value: {}}
 
         for setting in self.settings:
             self.set_flag(setting,
@@ -413,9 +406,9 @@ class CPPFlags(Flags):
         Set TreatWarningAsError /WX
 
         """
-        flag_values = {'true': {cl_flags: ' /WX'},
-                       'false': {cl_flags: ''},
-                       default_value: {cl_flags: ''}}
+        flag_values = {'true': {cl_flags: '/WX'},
+                       'false': {},
+                       default_value: {}}
 
         for setting in self.settings:
             self.set_flag(setting,
@@ -430,12 +423,12 @@ class CPPFlags(Flags):
         """
         for setting in self.settings:
             specific_warnings_node = self.tree.xpath('{0}/ns:ClCompile/ns:DisableSpecificWarnings'
-                                       .format(self.definitiongroups[setting]), namespaces=self.ns)
+                                                     .format(self.definitiongroups[setting]), namespaces=self.ns)
             if specific_warnings_node:
                 for sw in specific_warnings_node[0].text.strip().split(";"):
                     sw = sw.strip()
                     if sw != '%(DisableSpecificWarnings)':
-                        self.settings[setting][cl_flags] += ' /wd{0}'.format(sw)
+                        self.settings[setting][cl_flags].append('/wd{0}'.format(sw))
                 send('DisableSpecificWarnings for {0} : {1}'.format(setting, specific_warnings_node[0].text.strip()),
                      'ok')
             else:
@@ -453,7 +446,7 @@ class CPPFlags(Flags):
                 for opt in add_opt[0].text.strip().split(" "):
                     opt = opt.strip()
                     if opt != '' and opt != '%(AdditionalOptions)':
-                        self.settings[setting][cl_flags] += ' {0}'.format(opt)
+                        self.settings[setting][cl_flags].append(opt)
                     send('Additional Options for {0} : {1}'.format(setting, opt), 'ok')
             else:
                 send('No Additional Options for {0}'.format(setting), '')
@@ -469,46 +462,46 @@ class CPPFlags(Flags):
             mdd_value = self.tree.find(
                 '{0}/ns:ClCompile/ns:RuntimeLibrary'.format(self.definitiongroups[setting]), namespaces=self.ns)
 
-            mdd = ' /MDd'
-            m_d = ' /MD'
-            mtd = ' /MTd'
-            m_t = ' /MT'
+            mdd = '/MDd'
+            m_d = '/MD'
+            mtd = '/MTd'
+            m_t = '/MT'
 
             if 'use_debug_libs' in self.settings[setting]:
                 if self.settings[setting]['use_debug_libs']:
-                    m_d = ' /MDd'
-                    m_t = ' /MTd'
+                    m_d = '/MDd'
+                    m_t = '/MTd'
                 else:
-                    mdd = ' /MD'
-                    mtd = ' /MT'
+                    mdd = '/MD'
+                    mtd = '/MT'
 
             if mdd_value is not None:
                 if 'MultiThreadedDebugDLL' == mdd_value.text:
-                    self.settings[setting][cl_flags] += mdd
+                    self.settings[setting][cl_flags].append(mdd)
                     send('RuntimeLibrary for {0}'.format(setting), 'ok')
                     continue
 
                 if 'MultiThreadedDLL' == mdd_value.text:
-                    self.settings[setting][cl_flags] += m_d
+                    self.settings[setting][cl_flags].append(m_d)
                     send('RuntimeLibrary for {0}'.format(setting), 'ok')
                     continue
 
                 if 'MultiThreaded' == mdd_value.text:
-                    self.settings[setting][cl_flags] += m_t
+                    self.settings[setting][cl_flags].append(m_t)
                     send('RuntimeLibrary for {0}'.format(setting), 'ok')
                     continue
 
                 if 'MultiThreadedDebug' == mdd_value.text:
-                    self.settings[setting][cl_flags] += mtd
+                    self.settings[setting][cl_flags].append(mtd)
                     send('RuntimeLibrary for {0}'.format(setting), 'ok')
                     continue
             else:
                 if 'use_debug_libs' in self.settings[setting]:
                     if self.settings[setting]['use_debug_libs']:
-                        self.settings[setting][cl_flags] += mtd if 'static' in setting else mdd
+                        self.settings[setting][cl_flags].append(mtd if 'static' in setting else mdd)
                         send('RuntimeLibrary for {0}'.format(setting), 'ok')
                     else:
-                        self.settings[setting][cl_flags] += m_t if 'static' in setting else m_d
+                        self.settings[setting][cl_flags].append(m_t if 'static' in setting else m_d)
                         send('RuntimeLibrary for {0}'.format(setting), 'ok')
                 else:
                     send('No RuntimeLibrary for {0}'.format(setting), '')
@@ -518,9 +511,9 @@ class CPPFlags(Flags):
         Set StringPooling flag: /GF
 
         """
-        flag_values = {'true': {cl_flags: ' /GF'},
-                       'false': {cl_flags: ' /GF-'},
-                       default_value: {cl_flags: ''}}
+        flag_values = {'true': {cl_flags: '/GF'},
+                       'false': {cl_flags: '/GF-'},
+                       default_value: {}}
 
         for setting in self.settings:
             self.set_flag(setting,
@@ -533,11 +526,11 @@ class CPPFlags(Flags):
         Set Optimization flag: /Od
 
         """
-        flag_values = {'Disabled': {cl_flags: ' /Od'},
-                       'MinSpace': {cl_flags: ' /O1'},
-                       'MaxSpeed': {cl_flags: ' /O2'},
-                       'Full': {cl_flags: ' /Ox'},
-                       default_value: {cl_flags: ''}}
+        flag_values = {'Disabled': {cl_flags: '/Od'},
+                       'MinSpace': {cl_flags: '/O1'},
+                       'MaxSpeed': {cl_flags: '/O2'},
+                       'Full': {cl_flags: '/Ox'},
+                       default_value: {}}
 
         for setting in self.settings:
             self.set_flag(setting,
@@ -550,9 +543,9 @@ class CPPFlags(Flags):
         Set Intrinsic Functions flag: /Oi
 
         """
-        flag_values = {'true': {cl_flags: ' /Oi'},
-                       'false': {cl_flags: ''},
-                       default_value: {cl_flags: ''}}
+        flag_values = {'true': {cl_flags: '/Oi'},
+                       'false': {},
+                       default_value: {}}
 
         for setting in self.settings:
             self.set_flag(setting,
@@ -565,9 +558,9 @@ class CPPFlags(Flags):
         Set RuntimeTypeInfo flag: /GR
 
         """
-        flag_values = {'true': {cl_flags: ' /GR'},
-                       'false': {cl_flags: ''},
-                       default_value: {cl_flags: ''}}
+        flag_values = {'true': {cl_flags: '/GR'},
+                       'false': {},
+                       default_value: {}}
 
         for setting in self.settings:
             self.set_flag(setting,
@@ -580,9 +573,9 @@ class CPPFlags(Flags):
         Set FunctionLevelLinking flag: /Gy
 
         """
-        flag_values = {'true': {cl_flags: ' /Gy'},
-                       'false': {cl_flags: ''},
-                       default_value: {cl_flags: ''}}
+        flag_values = {'true': {cl_flags: '/Gy'},
+                       'false': {},
+                       default_value: {}}
 
         for setting in self.settings:
             self.set_flag(setting,
@@ -595,9 +588,9 @@ class CPPFlags(Flags):
         Set GenerateDebugInformation flag: /Zi
 
         """
-        flag_values = {'ProgramDatabase': {cl_flags: ' /Zi'},
-                       'EditAndContinue': {cl_flags: ' /ZI'},
-                       default_value: {cl_flags: ''}}
+        flag_values = {'ProgramDatabase': {cl_flags: '/Zi'},
+                       'EditAndContinue': {cl_flags: '/ZI'},
+                       default_value: {}}
 
         for setting in self.settings:
             self.set_flag(setting,
@@ -621,7 +614,7 @@ class CPPFlags(Flags):
                     conf_type = get_configuration_type(setting, self.context)
                     if conf_type and 'StaticLibrary' in conf_type:
                         continue
-                    self.settings[setting][ln_flags] += ' /DEBUG'
+                    self.settings[setting][ln_flags].append('/DEBUG')
                     send('GenerateDebugInformation for {0}'.format(setting), 'ok')
             else:
                 send('No GenerateDebugInformation for {0}'.format(setting), '')
@@ -631,10 +624,10 @@ class CPPFlags(Flags):
         Set FloatingPointModel flag: /fp
 
         """
-        flag_values = {'Precise': {cl_flags: ' /fp:precise'},
-                       'Strict': {cl_flags: ' /fp:strict'},
-                       'Fast': {cl_flags: ' /fp:fast'},
-                       default_value: {cl_flags: ' /fp:precise'}}
+        flag_values = {'Precise': {cl_flags: '/fp:precise'},
+                       'Strict': {cl_flags: '/fp:strict'},
+                       'Fast': {cl_flags: '/fp:fast'},
+                       default_value: {cl_flags: '/fp:precise'}}
 
         for setting in self.settings:
             self.set_flag(setting, '{0}/ns:ClCompile/ns:FloatingPointModel'
@@ -646,9 +639,9 @@ class CPPFlags(Flags):
         Set ExceptionHandling flag: /EHsc
 
         """
-        flag_values = {'false': {cl_flags: ''},
-                       'true': {cl_flags: ' /EHsc'},
-                       default_value: {cl_flags: ' /EHsc'}}
+        flag_values = {'false': {},
+                       'true': {cl_flags: '/EHsc'},
+                       default_value: {cl_flags: '/EHsc'}}
 
         for setting in self.settings:
             self.set_flag(setting, '{0}/ns:ClCompile/ns:ExceptionHandling'
@@ -660,9 +653,9 @@ class CPPFlags(Flags):
         Set BufferSecurityCheck flag: /GS
 
         """
-        flag_values = {'false': {cl_flags: ''},
-                       'true': {cl_flags: ' /GS'},
-                       default_value: {cl_flags: ' /GS'}}
+        flag_values = {'false': {},
+                       'true': {cl_flags: '/GS'},
+                       default_value: {cl_flags: '/GS'}}
 
         for setting in self.settings:
             self.set_flag(setting, '{0}/ns:ClCompile/ns:BufferSecurityCheck'
@@ -674,10 +667,10 @@ class CPPFlags(Flags):
         Set DiagnosticsFormat flag : /GS
         
         """
-        flag_values = {'Classic': {cl_flags: ' /diagnostics:classic'},
-                       'Column': {cl_flags: ' /diagnostics:column'},
-                       'Caret': {cl_flags: ' /diagnostics:caret'},
-                       default_value: {cl_flags: ' /diagnostics:classic'}}
+        flag_values = {'Classic': {cl_flags: '/diagnostics:classic'},
+                       'Column': {cl_flags: '/diagnostics:column'},
+                       'Caret': {cl_flags: '/diagnostics:caret'},
+                       default_value: {cl_flags: '/diagnostics:classic'}}
 
         for setting in self.settings:
             self.set_flag(setting, '{0}/ns:ClCompile/ns:DiagnosticsFormat'
@@ -689,9 +682,9 @@ class CPPFlags(Flags):
         Set TreatWChar_tAsBuiltInType /Zc:wchar_t
 
         """
-        flag_values = {'false': {cl_flags: ' /Zc:wchar_t-'},
-                       'true': {cl_flags: ' /Zc:wchar_t'},
-                       default_value: {cl_flags: ' /Zc:wchar_t'}}
+        flag_values = {'false': {cl_flags: '/Zc:wchar_t-'},
+                       'true': {cl_flags: '/Zc:wchar_t'},
+                       default_value: {cl_flags: '/Zc:wchar_t'}}
 
         for setting in self.settings:
             self.set_flag(setting, '{0}/ns:ClCompile/ns:TreatWChar_tAsBuiltInType'
@@ -702,7 +695,7 @@ class CPPFlags(Flags):
         """
         """
         has_pch = self.settings[setting]['PrecompiledHeader']
-        return has_pch == 'Use'
+        return 'Use' in has_pch
 
     def write_precompiled_headers_macro(self):
         """
@@ -738,8 +731,9 @@ class CPPFlags(Flags):
         if not self.setting_has_pch(setting):
             return
 
-        pch = self.settings[setting]['PrecompiledHeaderFile']
-        self.cmake.write('ADD_PRECOMPILED_HEADER("{0}" "{1}" SRC_FILES)\n\n'.format(os.path.basename(pch), pch.replace('.h', '.cpp')))
+        pch = self.settings[setting]['PrecompiledHeaderFile'][0]
+        self.cmake.write('ADD_PRECOMPILED_HEADER("{0}" "{1}" SRC_FILES)\n\n'.format(os.path.basename(pch),
+                                                                                    pch.replace('.h', '.cpp')))
 
     def write_target_artifact(self):
         """
@@ -831,61 +825,6 @@ class FortranFlags(Flags):
                 send('Additional Options for {0} : {1}'.format(setting, str(add_opt)), 'ok')
             else:
                 send('No Additional Options for {0}'.format(setting), '')
-
-    def write_defines_and_flags(self):
-        """
-        Get and write Preprocessor Macros definitions
-
-        """
-        cmake = self.cmake
-
-        # normalize
-        for setting in self.settings:
-            self.settings[setting]['defines_str'] = ';'.join(self.settings[setting][defines])
-            self.settings[setting]['cl_str'] = ';'.join(self.settings[setting][cl_flags])
-
-        write_property_of_settings(cmake, self.settings, 'target_compile_definitions(${PROJECT_NAME} PRIVATE', ')',
-                                   'defines_str')
-        cmake.write('\n')
-        cmake.write('if(${CMAKE_Fortran_COMPILER_ID} STREQUAL "Intel")\n')
-        write_property_of_settings(cmake, self.settings, 'target_compile_options(${PROJECT_NAME} PRIVATE', ')',
-                                   'cl_str', indent='    ')
-
-        settings_of_arch = {}
-        for setting in self.settings:
-            arch = self.settings[setting]['arch']
-            if arch not in settings_of_arch:
-                settings_of_arch[arch] = {}
-            settings_of_arch[arch][setting] = self.settings[setting]
-
-        first_arch = True
-        for arch in settings_of_arch:
-            if first_arch:
-                cmake.write('    if(\"${{CMAKE_VS_PLATFORM_NAME}}\" STREQUAL \"{0}\")\n'.format(arch))
-            else:
-                cmake.write('    elseif(\"${{CMAKE_VS_PLATFORM_NAME}}\" STREQUAL \"{0}\")\n'.format(arch))
-            first_arch = False
-            for setting in settings_of_arch[arch]:
-                conf = self.settings[setting]['conf']
-                if len(self.settings[setting][ln_flags]) != 0:
-                    configuration_type = get_configuration_type(setting, self.context)
-                    if configuration_type:
-                        if 'StaticLibrary' in configuration_type:
-                            cmake.write(
-                                '        set_target_properties(${{PROJECT_NAME}}'
-                                ' PROPERTIES STATIC_LIBRARY_FLAGS_{0} "{1}")\n'
-                                    .format(conf.upper(), self.settings[setting][ln_flags])
-                            )
-                        else:
-                            cmake.write(
-                                '        set_target_properties(${{PROJECT_NAME}} PROPERTIES LINK_FLAGS_{0} "{1}")\n'
-                                    .format(conf.upper(), self.settings[setting][ln_flags])
-                            )
-        cmake.write('    else()\n')
-        cmake.write(
-            '         message(WARNING "${CMAKE_VS_PLATFORM_NAME} arch is not supported!")\n')
-        cmake.write('    endif()\n')
-        cmake.write('endif()\n\n')
 
     def write_target_artifact(self):
         """
