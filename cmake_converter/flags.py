@@ -467,9 +467,8 @@ class CPPFlags(Flags):
 
         # RuntimeLibrary
         for setting in self.settings:
-            mdd_value = self.tree.find(
-                '{0}/ns:ClCompile/ns:RuntimeLibrary'.format(self.definitiongroups[setting]), namespaces=self.ns)
-
+            mdd_value = self.tree.find('{0}/ns:ClCompile/ns:RuntimeLibrary'.format(self.definitiongroups[setting]),
+                                       namespaces=self.ns)
             mdd = '/MDd'
             m_d = '/MD'
             mtd = '/MTd'
@@ -483,38 +482,23 @@ class CPPFlags(Flags):
                     mdd = '/MD'
                     mtd = '/MT'
 
-            conf_type = get_configuration_type(setting, self.context)
-
+            cl_flag_value = ''
             if mdd_value is not None:
                 if 'MultiThreadedDebugDLL' == mdd_value.text:
-                    self.settings[setting][cl_flags].append(mdd)
-                    send('RuntimeLibrary for {0}'.format(setting), 'ok')
-                    continue
-
+                    cl_flag_value = mdd
                 if 'MultiThreadedDLL' == mdd_value.text:
-                    self.settings[setting][cl_flags].append(m_d)
-                    send('RuntimeLibrary for {0}'.format(setting), 'ok')
-                    continue
-
+                    cl_flag_value = m_d
                 if 'MultiThreaded' == mdd_value.text:
-                    self.settings[setting][cl_flags].append(m_t)
-                    send('RuntimeLibrary for {0}'.format(setting), 'ok')
-                    continue
-
+                    cl_flag_value = m_t
                 if 'MultiThreadedDebug' == mdd_value.text:
-                    self.settings[setting][cl_flags].append(mtd)
-                    send('RuntimeLibrary for {0}'.format(setting), 'ok')
-                    continue
+                    cl_flag_value = mtd
+                send('RuntimeLibrary {0} for {1}'.format(mdd_value.text, setting), 'ok')
             else:
-                if 'use_debug_libs' in self.settings[setting]:
-                    if self.settings[setting]['use_debug_libs']:
-                        self.settings[setting][cl_flags].append(mtd if 'StaticLibrary' in conf_type else mdd)
-                        send('RuntimeLibrary for {0}'.format(setting), 'ok')
-                    else:
-                        self.settings[setting][cl_flags].append(m_t if 'StaticLibrary' in conf_type else m_d)
-                        send('RuntimeLibrary for {0}'.format(setting), 'ok')
-                else:
-                    send('No RuntimeLibrary for {0}'.format(setting), '')
+                cl_flag_value = m_d  # default
+                send('Default RuntimeLibrary {0} for {1}'.format(m_d, setting), '')
+
+            if cl_flag_value:
+                self.settings[setting][cl_flags].append(cl_flag_value)
 
     def set_string_pooling(self):
         """
