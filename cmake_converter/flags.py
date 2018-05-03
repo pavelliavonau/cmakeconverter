@@ -329,12 +329,20 @@ class CPPFlags(Flags):
         """
 
         flag_values = {'true':  {ln_flags: '/INCREMENTAL'},
-                       'false': {ln_flags: '/INCREMENTAL:NO'}
+                       'false': {ln_flags: '/INCREMENTAL:NO'},
+                       default_value: {ln_flags: '/INCREMENTAL'}
                        }
 
         for setting in self.settings:
-            self.set_flag(setting, '{0}/ns:LinkIncremental'
-                          .format(self.propertygroup[setting].replace(' and @Label="Configuration"', '')), flag_values)
+            conf_type = get_configuration_type(setting, self.context)
+            if conf_type and 'StaticLibrary' in conf_type:
+                continue
+            value = self.set_flag(setting, '{0}/ns:LinkIncremental'
+                                  .format(self.propertygroup[setting].replace(' and @Label="Configuration"', '')),
+                                  flag_values)
+            if not value:
+                self.set_flag(setting, '//ns:LinkIncremental[@Condition="\'$(Configuration)|$(Platform)\'==\'{0}\'"]'
+                              .format(setting), flag_values)
 
     def set_force_conformance_in_for_loop_scope(self):
         """
