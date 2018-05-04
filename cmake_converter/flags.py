@@ -270,6 +270,7 @@ class CPPFlags(Flags):
         self.set_warning_level()
         self.set_warning_as_errors()
         self.set_debug_information_format()
+        self.set_compile_as()
         self.set_floating_point_model()
         self.set_runtime_type_info()
         self.set_disable_specific_warnings()
@@ -607,6 +608,17 @@ class CPPFlags(Flags):
         for setting in self.settings:
             self.set_flag(setting,
                           '{0}/ns:ClCompile/ns:DebugInformationFormat'
+                          .format(self.definitiongroups[setting]),
+                          flag_values)
+
+    def set_compile_as(self):
+        flag_values = {'CompileAsCpp': {cl_flags: '/TP'},
+                       'CompileAsC': {cl_flags: '/TC'},
+                       default_value: {cl_flags: '/TP'}}
+
+        for setting in self.settings:
+            self.set_flag(setting,
+                          '{0}/ns:ClCompile/ns:CompileAs'
                           .format(self.definitiongroups[setting]),
                           flag_values)
 
