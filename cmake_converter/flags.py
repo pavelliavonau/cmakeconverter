@@ -262,6 +262,7 @@ class CPPFlags(Flags):
         # from definitiongroups
         #   compilation
         self.set_optimization()
+        self.set_inline_function_expansion()
         self.set_intrinsic_functions()
         self.set_string_pooling()
         self.set_basic_runtime_checks()
@@ -548,6 +549,18 @@ class CPPFlags(Flags):
         for setting in self.settings:
             self.set_flag(setting,
                           '{0}/ns:ClCompile/ns:Optimization'
+                          .format(self.definitiongroups[setting]),
+                          flag_values)
+
+    def set_inline_function_expansion(self):
+        flag_values = {'Disabled': {cl_flags: '/Ob0'},
+                       'OnlyExplicitInline': {cl_flags: '/Ob1'},
+                       'AnySuitable': {cl_flags: '/Ob2'},
+                       default_value: {}}
+
+        for setting in self.settings:
+            self.set_flag(setting,
+                          '{0}/ns:ClCompile/ns:InlineFunctionExpansion'
                           .format(self.definitiongroups[setting]),
                           flag_values)
 
