@@ -98,12 +98,12 @@ class ProjectFiles(object):
 
         send("Source files extensions found: %s" % self.language, 'INFO')
 
-    def add_cmake_project(self, language):
+    def add_cmake_project(self, language_list):
         """
         Add CMake Project
 
-        :param language: type of project language: cpp | c
-        :type language: list
+        :param language_list: type of project language: cpp | c
+        :type language_list: list
         """
 
         cpp_extensions = ['cc', 'cp', 'cxx', 'cpp', 'CPP', 'c++', 'C']
@@ -111,18 +111,19 @@ class ProjectFiles(object):
         available_language = {'c': 'C'}
         available_language.update(dict.fromkeys(cpp_extensions, 'CXX'))
 
-        available_language['F90'] = 'Fortran'
-        available_language['F'] = 'Fortran'
-        # self.cmake.write('\n')
-        # self.cmake.write(
-        #     '############## CMake Project ################\n'
-        #     '#        The main options of project        #\n'
-        #     '#############################################\n\n'
-        # )
-        lang = 'cpp'
-        if len(language) is not 0:
-            lang = language[0]
-        self.cmake.write('project(${PROJECT_NAME} %s)\n\n' % available_language[lang])
+        fortran_extensions = ['F90', 'F']
+        available_language.update(dict.fromkeys(fortran_extensions, 'Fortran'))
+
+        files_language = ''
+        if language_list:
+            files_language = language_list[0]
+            if 'cpp' in language_list:  # priority for C++ for mixes with C
+                files_language = 'cpp'
+
+        project_language = ''
+        if files_language in available_language:
+            project_language = ' ' + available_language[files_language]
+        self.cmake.write('project(${{PROJECT_NAME}}{0})\n\n'.format(project_language))
 
     def write_header_files(self):
         """
