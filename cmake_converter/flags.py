@@ -264,6 +264,7 @@ class CPPFlags(Flags):
         self.set_optimization()
         self.set_intrinsic_functions()
         self.set_string_pooling()
+        self.set_basic_runtime_checks()
         self.set_runtime_library()
         self.set_function_level_linking()
         self.set_warning_level()
@@ -461,6 +462,20 @@ class CPPFlags(Flags):
                     send('Additional Options for {0} : {1}'.format(setting, opt), 'ok')
             else:
                 send('No Additional Options for {0}'.format(setting), '')
+
+    def set_basic_runtime_checks(self):
+        """
+        """
+        flag_values = {'StackFrameRuntimeCheck': {cl_flags: '/RTCs'},
+                       'UninitializedLocalUsageCheck': {cl_flags: '/RTCu'},
+                       'EnableFastChecks': {cl_flags: '/RTC1'},
+                       default_value: {}}
+
+        for setting in self.settings:
+            self.set_flag(setting,
+                          '{0}/ns:ClCompile/ns:BasicRuntimeChecks'
+                          .format(self.definitiongroups[setting]),
+                          flag_values)
 
     def set_runtime_library(self):
         """
