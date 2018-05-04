@@ -627,7 +627,7 @@ class CPPFlags(Flags):
     def set_compile_as(self):
         flag_values = {'CompileAsCpp': {cl_flags: '/TP'},
                        'CompileAsC': {cl_flags: '/TC'},
-                       default_value: {cl_flags: '/TP'}}
+                       default_value: {}}
 
         for setting in self.settings:
             self.set_flag(setting,
