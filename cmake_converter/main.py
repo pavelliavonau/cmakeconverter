@@ -153,7 +153,7 @@ def main():  # pragma: no cover
             cmake_lists_path = os.path.dirname(data['project'])
         convert_project(data, data['project'], cmake_lists_path)
     else:
-        sln = open(data['solution'])
+        sln = open(data['solution'], encoding='utf8')
         slnpath = os.path.dirname(data['solution'])
         p = re.compile(r', "(.*\.vcxproj)"')
         projects = p.findall(sln.read())
