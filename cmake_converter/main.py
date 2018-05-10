@@ -61,6 +61,52 @@ def convert_project(context, xml_project_path, cmake_lists_destination_path):
     data_converter.close_cmake_file()
 
 
+def parse_solution(sln_text):
+    """
+    :param sln_text:
+    :return: data from solution
+    """
+    projects_data = {}
+    p = re.compile(r'(Project.*\s=\s\"(.*)\",\s\"(.*\.(.*proj))\",.*(\{.*\})(?:.|\n)*?EndProject(?!Section))')
+    parsed_data = p.findall(sln_text)
+    for project_data_match in parsed_data:
+        project = dict()
+        project['name'] = project_data_match[1]
+        project['path'] = project_data_match[2]
+        project['type'] = project_data_match[3]
+        guid = project_data_match[4]
+        if 'ProjectDependencies' in project_data_match[0]:
+            project['sln_deps'] = []
+            dependencies_section = re.compile(r'ProjectSection\(ProjectDependencies\) '
+                                              r'= postProject(?:.|\n)*?EndProjectSection')
+            dep_data = dependencies_section.findall(project_data_match[0])
+            dependencies_guids = re.compile(r'((\{.*\}) = (\{.*\}))')
+            guids_deps_matches = dependencies_guids.findall(dep_data[0])
+            for guids_deps_match in guids_deps_matches:
+                project['sln_deps'].append(guids_deps_match[2])
+        projects_data[guid] = project
+
+    # replace GUIDs with Project names in dependencies
+    for project_guid in projects_data:
+        project_data = projects_data[project_guid]
+        if 'sln_deps' in project_data:
+            target_deps = []
+            dependencies_list = project_data['sln_deps']
+            for dep_guid in dependencies_list:
+                dep = projects_data[dep_guid]
+                target_deps.append(dep['name'])
+            project_data['sln_deps'] = target_deps
+    return projects_data
+
+
+def set_dependencies_for_project(context, project_data):
+    context['sln_deps'] = []
+    if 'sln_deps' not in project_data:
+        return
+
+    context['sln_deps'] = project_data['sln_deps']
+
+
 def main():  # pragma: no cover
     """
     Define arguments and send to DataConverter()
@@ -153,19 +199,20 @@ def main():  # pragma: no cover
     else:
         context['is_converting_solution'] = True
         sln = open(args.solution)
-        solution_path = os.path.dirname(args.solution)
-        p = re.compile(r', "(.*\.(vcxproj|vfproj))"')
-        projects = p.findall(sln.read())
+        solution_data = parse_solution(sln.read())
         sln.close()
 
+        solution_path = os.path.dirname(args.solution)
         sln_cmake = get_cmake_lists(solution_path)
         DataConverter.add_cmake_version_required(sln_cmake)
         sln_cmake.write('project({0})\n\n'. format(os.path.splitext(os.path.basename(args.solution))[0]))
         subdirectories = []
-        for project_path, project_type in projects:
+        for guid in solution_data:
+            project_path = solution_data[guid]['path']
             project_path = '/'.join(project_path.split('\\'))
             project_abs = os.path.join(solution_path, project_path)
             subdirectory = os.path.dirname(project_abs)
+            set_dependencies_for_project(context, solution_data[guid])
             convert_project(context, project_abs, subdirectory)
             cmake_dir = os.path.dirname(context['cmake'].name)
             subdirectories.append(os.path.relpath(cmake_dir, solution_path))

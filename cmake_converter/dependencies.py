@@ -45,6 +45,7 @@ class Dependencies(object):
         self.tree = context['vcxproj']['tree']
         self.ns = context['vcxproj']['ns']
         self.dependencies = context['dependencies']
+        self.deps = context['sln_deps']
         self.settings = context['settings']
         self.definition_groups = context['definition_groups']
         self.includes = context['includes']
@@ -122,11 +123,15 @@ class Dependencies(object):
 
             if references_found:
                 self.cmake.write('add_dependencies(${PROJECT_NAME}')
+                targets_dependencies = set()
                 for ref_found in references_found:
                     project_name = self.get_dependency_target_name(os.path.join(os.path.dirname(self.vcxproj_path),
                                                                                 ref_found))
-                    self.cmake.write(' {0}'
-                                     .format(project_name))
+                    targets_dependencies.add(project_name)
+                    self.cmake.write(' {0}'.format(project_name))
+                for dep in self.deps:
+                    if dep not in targets_dependencies:
+                        self.cmake.write(' {0}'.format(dep))
 
                 self.cmake.write(')\n\n')
 
