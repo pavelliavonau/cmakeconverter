@@ -136,6 +136,13 @@ def set_unix_slash(win_path):
     return unix_path
 
 
+def remove_relative_from_path(path):
+    if '.' in path[:1]:
+        # add current directory for relative path (CMP0021)
+        path = '${CMAKE_CURRENT_SOURCE_DIR}/' + path
+    return path
+
+
 def cleaning_output(output):
     """
     Clean Output string by remove VS Project Variables
@@ -160,6 +167,8 @@ def cleaning_output(output):
     for var in variables_to_replace:
         if var in output:
             output = output.replace(var, variables_to_replace[var])
+
+    output = remove_relative_from_path(output)
     # TODO: Next action is strange. turned off
     # if '%s..' % var in output:
     #     output = output.replace('%s..' % var, '..')
@@ -184,7 +193,5 @@ def normalize_path(working_path, path_to_normalize):
     joined_path = os.path.normpath(os.path.join(working_path, path_to_normalize.strip()))
     actual_path_name = get_actual_filename(joined_path)
     normal_path = set_unix_slash(os.path.relpath(actual_path_name, working_path))
-    if '.' in normal_path[:1]:
-        # add current directory for relative path (CMP0021)
-        normal_path = '${CMAKE_CURRENT_SOURCE_DIR}/' + normal_path
+    normal_path = remove_relative_from_path(normal_path)
     return normal_path

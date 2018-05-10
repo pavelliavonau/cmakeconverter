@@ -144,8 +144,12 @@ class VCXProjectVariables(ProjectVariables):
                 )
                 if self.vs_outputs[conf][arch] is None:
                     vs_output = self.tree.xpath(
-                        '//ns:PropertyGroup[@Label="UserMacros"]/ns:OutDir', namespaces=self.ns
-                    )
+                        '//ns:PropertyGroup[@Label="UserMacros"]/ns:OutDir', namespaces=self.ns)
+                    if vs_output:
+                        self.vs_outputs[conf][arch] = vs_output[0]
+                if self.vs_outputs[conf][arch] is None:
+                    vs_output = self.tree.xpath('//ns:OutDir[@Condition="\'$(Configuration)|$(Platform)\'==\'{0}\'"]'
+                                                .format(setting), namespaces=self.ns)
                     if vs_output:
                         self.vs_outputs[conf][arch] = vs_output[0]
 
