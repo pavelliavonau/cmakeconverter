@@ -41,6 +41,7 @@ class ProjectFiles(object):
         self.tree = context['vcxproj']['tree']
         self.ns = context['vcxproj']['ns']
         self.cmake = context['cmake']
+        self.context = context
         if '.vcxproj' in self.vcxproj_path:
             self.source_files = self.tree.xpath('//ns:ClCompile', namespaces=self.ns)
             self.header_files = self.tree.xpath('//ns:ClInclude', namespaces=self.ns)
@@ -98,6 +99,8 @@ class ProjectFiles(object):
         for header_path in self.headers:
             self.headers[header_path].sort(key=str.lower)
 
+        self.context['has_headers'] = True if self.header_files else False
+        self.context['has_only_headers'] = True if self.context['has_headers'] and not self.source_files else False
         send("Source files extensions found: %s" % self.language, 'INFO')
 
     def add_cmake_project(self, language_list):

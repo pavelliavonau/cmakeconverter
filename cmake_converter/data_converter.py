@@ -182,7 +182,7 @@ class CPPConverter(DataConverter):
 
         files.write_header_files()
 
-        if len(files.sources) != 0:
+        if files.sources:
             all_flags = CPPFlags(self.context)
             all_flags.do_precompiled_headers(files)
             all_flags.define_flags()
@@ -203,6 +203,8 @@ class CPPConverter(DataConverter):
             # Link with other dependencies
             dependencies.link_dependencies()
             dependencies.extensions_targets_dependencies()
+        else:
+            CPPFlags.write_target_headers_only_artifact(self.context)
 
 
 class FortranProjectConverter(DataConverter):

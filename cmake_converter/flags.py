@@ -106,6 +106,14 @@ class Flags(object):
         cmake.write('    endif()\n')
         cmake.write('endif()\n\n')
 
+    @staticmethod
+    def write_target_headers_only_artifact(context):
+        """
+        Add dummy target
+        """
+        send('CMake will show fake custom Library.', '')
+        context['cmake'].write('add_custom_target(${PROJECT_NAME} SOURCES ${HEADERS_FILES})\n\n')
+
 
 class CPPFlags(Flags):
     """
@@ -799,7 +807,10 @@ class CPPFlags(Flags):
             else:  # pragma: no cover
                 self.cmake.write('add_executable(${PROJECT_NAME} ')
                 send('CMake will build an EXECUTABLE.', '')
-            self.cmake.write(' ${SRC_FILES}')
+            if not self.context['has_only_headers']:
+                self.cmake.write(' ${SRC_FILES}')
+            if self.context['has_headers']:
+                self.cmake.write(' ${HEADERS_FILES}')
             self.cmake.write(')\n\n')
 
 
