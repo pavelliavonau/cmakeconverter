@@ -92,7 +92,9 @@ class ProjectFiles(object):
             if header_path not in self.headers:
                 self.headers[header_path] = []
             if header_file not in self.headers[header_path]:
-                self.headers[header_path].append(take_name_from_list_case_ignore(filelists[header_path], header_file))
+                real_name = take_name_from_list_case_ignore(filelists[header_path], header_file)
+                if real_name:
+                    self.headers[header_path].append(real_name)
         for header_path in self.headers:
             self.headers[header_path].sort(key=str.lower)
 
