@@ -127,8 +127,10 @@ class ProjectFiles(object):
 
         project_language = ''
         if files_language in available_language:
-            project_language = ' ' + available_language[files_language]
-        self.cmake.write('project(${{PROJECT_NAME}}{0})\n\n'.format(project_language))
+            project_language = available_language[files_language]
+        if files_language:
+            self.context['solution_languages'].add(project_language)
+        self.cmake.write('project(${{PROJECT_NAME}}{0})\n\n'.format(' ' + project_language))
 
     def write_header_files(self):
         """

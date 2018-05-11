@@ -198,6 +198,7 @@ def main():  # pragma: no cover
         convert_project(context, args.project, cmake_lists_path)
     else:
         context['is_converting_solution'] = True
+        context['solution_languages'] = set()
         sln = open(args.solution)
         solution_data = parse_solution(sln.read())
         sln.close()
@@ -241,9 +242,12 @@ def main():  # pragma: no cover
         sln_cmake.write('################################################################################\n')
         sln_cmake.write('if(MSVC)\n')
         sln_cmake.write('  # remove default flags provided with CMake for MSVC\n')
-        sln_cmake.write('  set(CMAKE_CXX_FLAGS "")\n')
-        for configuration_type in configuration_types_list:
-            sln_cmake.write('  set(CMAKE_CXX_FLAGS_{0} "")\n'.format(configuration_type.upper()))
+        solution_languages = list(context['solution_languages'])
+        solution_languages.sort(key=str.lower)
+        for lang in solution_languages:
+            sln_cmake.write('  set(CMAKE_{0}_FLAGS "")\n'.format(lang))
+            for configuration_type in configuration_types_list:
+                sln_cmake.write('  set(CMAKE_{0}_FLAGS_{1} "")\n'.format(lang, configuration_type.upper()))
         sln_cmake.write('endif()\n\n')
 
         sln_cmake.write('################################################################################\n')
