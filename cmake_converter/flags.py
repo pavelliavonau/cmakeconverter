@@ -686,7 +686,8 @@ class CPPFlags(Flags):
         """
         flag_values = {'false': {},
                        'true': {cl_flags: '/EHsc'},
-                       default_value: {cl_flags: '/EHsc'}}
+                       'Async': {cl_flags: '/EHa'},
+                       default_value: {}}
 
         for setting in self.settings:
             self.set_flag(setting, '{0}/ns:ClCompile/ns:ExceptionHandling'
