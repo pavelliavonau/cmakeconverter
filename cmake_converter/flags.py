@@ -823,35 +823,147 @@ class FortranFlags(Flags):
         Flags.__init__(self, context)
         self.vcxproj_path = context['vcxproj_path']
 
+    def set_flag(self, node, attr, flag_values):
+        """
+        Set flag helper
+        """
+
+        for setting in self.settings:
+            values = None
+            if default_value in flag_values:
+                values = flag_values[default_value]
+
+            # flag_text = ''
+            flag_text = self.settings[setting][node].get(attr)
+            if flag_text in flag_values:
+                values = flag_values[flag_text]
+
+            flags_message = ''
+            if values is not None:
+                for key in values:
+                    value = values[key]
+                    if key not in self.settings[setting]:
+                        self.settings[setting][key] = []
+                    self.settings[setting][key].append(value)
+                    flags_message += value
+
+            send('{0} for {1} is {2} '.format(attr, setting, flags_message), '')
+
     def define_flags(self):
         """
         Parse all flags properties and write them inside "CMakeLists.txt" file
 
         """
+        self.set_suppress_startup_banner()
+        self.set_debug_information_format()
+        self.set_optimization()
+        self.set_preprocess_source_file()
         self.set_source_file_format()
-        self.set_local_variable_storage()
+        self.set_disable_specific_diagnostics()
         self.set_real_kind()
+        self.set_local_variable_storage()
+        self.set_init_local_var_to_nan()
+        self.set_floating_point_exception_handling()
+        self.set_extend_single_precision_constants()
+        self.set_string_length_arg_passing()
+        self.set_traceback()
+        self.set_runtime_checks()
+        self.set_runtime_library()
+        self.set_disable_default_lib_search()
         self.set_additional_options()
 
-    def set_source_file_format(self):
+    def set_disable_specific_diagnostics(self):
         for setting in self.settings:
-            opt = self.settings[setting]['VFFortranCompilerTool'].get('SourceFileFormat')
-            if opt == 'fileFormatFree':
-                self.settings[setting][cl_flags].append('/free')
+            # TODO: split list
+            opt = self.settings[setting]['VFFortranCompilerTool'].get('DisableSpecificDiagnostics')
+            self.settings[setting][cl_flags].append('/Qdiag-disable:{0}'.format(opt))
+
+    def set_string_length_arg_passing(self):
+        flag_values = {'strLenArgsMixed': {cl_flags: '/iface:mixed_str_len_arg'},
+                       default_value: {}}
+        self.set_flag('VFFortranCompilerTool', 'StringLengthArgPassing', flag_values)
+
+    def set_runtime_library(self):
+        flag_values = {'rtMultiThreadedDLL': {cl_flags: '/libs:dll;/threads'},
+                       'rtQuickWin': {cl_flags: '/libs:qwin'},
+                       'rtStandardGraphics': {cl_flags: '/libs:qwins'},
+                       'rtMultiThreadedDebug': {cl_flags: '/libs:static;/threads;/dbglibs'},
+                       'rtMultiThreadedDebugDLL': {cl_flags: '/libs:dll;/threads;/dbglibs'},
+                       'rtQuickWinDebug': {cl_flags: '/libs:qwin;/dbglibs'},
+                       'rtStandardGraphicsDebug': {cl_flags: '/libs:qwins;/dbglibs'},
+                       default_value: {cl_flags: '/libs:static;/threads'}}
+        self.set_flag('VFFortranCompilerTool', 'RuntimeLibrary', flag_values)
+
+    def set_disable_default_lib_search(self):
+        flag_values = {'true': {cl_flags: '/libdir:noauto'},
+                       default_value: {}}
+        self.set_flag('VFFortranCompilerTool', 'DisableDefaultLibSearch', flag_values)
+
+    def set_runtime_checks(self):
+        flag_values = {'rtChecksAll': {cl_flags: '/check:all'},
+                       'rtChecksNone': {cl_flags: '/check:none'},
+                       default_value: {}}
+        self.set_flag('VFFortranCompilerTool', 'RuntimeChecks', flag_values)
+
+    def set_traceback(self):
+        flag_values = {'true': {cl_flags: '/traceback'},
+                       default_value: {}}
+        self.set_flag('VFFortranCompilerTool', 'Traceback', flag_values)
+
+    def set_extend_single_precision_constants(self):
+        flag_values = {'true': {cl_flags: '/fpconstant'},
+                       default_value: {}}
+        self.set_flag('VFFortranCompilerTool', 'ExtendSinglePrecisionConstants', flag_values)
+
+    def set_floating_point_exception_handling(self):
+        flag_values = {'fpe0': {cl_flags: '/fpe0'},
+                       'fpe1': {cl_flags: '/fpe1'},
+                       default_value: {}}
+        self.set_flag('VFFortranCompilerTool', 'FloatingPointExceptionHandling', flag_values)
+
+    def set_init_local_var_to_nan(self):
+        flag_values = {'true': {cl_flags: '/Qtrapuv'},
+                       default_value: {}}
+        self.set_flag('VFFortranCompilerTool', 'InitLocalVarToNAN', flag_values)
+
+    def set_preprocess_source_file(self):
+        flag_values = {'preprocessYes': {cl_flags: '/fpp'},
+                       default_value: {}}
+        self.set_flag('VFFortranCompilerTool', 'Preprocess', flag_values)
+
+    def set_optimization(self):
+        flag_values = {'optimizeMinSpace': {cl_flags: '/O1'},
+                       'optimizeFull': {cl_flags: '/O3'},
+                       'optimizeDisabled': {cl_flags: '/Od'},
+                       default_value: {cl_flags: '/O2'}}
+        self.set_flag('VFFortranCompilerTool', 'Optimization', flag_values)
+
+    def set_debug_information_format(self):
+        flag_values = {'debugEnabled': {cl_flags: '/debug:full'},
+                       'debugLineInfoOnly': {cl_flags: '/debug:minimal'},
+                       default_value: {}}
+        self.set_flag('VFFortranCompilerTool', 'DebugInformationFormat', flag_values)
+
+    def set_suppress_startup_banner(self):
+        flag_values = {'true': {cl_flags: '/nologo'},
+                       default_value: {}}
+        self.set_flag('VFFortranCompilerTool', 'SuppressStartupBanner', flag_values)
+
+    def set_source_file_format(self):
+        flag_values = {'fileFormatFree': {cl_flags: '/free'},
+                       default_value: {}}
+        self.set_flag('VFFortranCompilerTool', 'SourceFileFormat', flag_values)
 
     def set_local_variable_storage(self):
-        for setting in self.settings:
-            opt = self.settings[setting]['VFFortranCompilerTool'].get('LocalVariableStorage')
-            if opt == 'localStorageAutomatic':
-                self.settings[setting][cl_flags].append('/Qauto')
+        flag_values = {'localStorageAutomatic': {cl_flags: '/Qauto'},
+                       default_value: {}}
+        self.set_flag('VFFortranCompilerTool', 'LocalVariableStorage', flag_values)
 
     def set_real_kind(self):
-        for setting in self.settings:
-            opt = self.settings[setting]['VFFortranCompilerTool'].get('RealKIND')
-            if opt == 'realKIND8':
-                self.settings[setting][cl_flags].append('/real_size:64')
-            if opt == 'realKIND16':
-                self.settings[setting][cl_flags].append('/real_size:128')
+        flag_values = {'realKIND8': {cl_flags: '/real_size:64'},
+                       'realKIND16': {cl_flags: '/real_size:128'},
+                       default_value: {}}
+        self.set_flag('VFFortranCompilerTool', 'RealKIND', flag_values)
 
     def set_additional_options(self):
         """
