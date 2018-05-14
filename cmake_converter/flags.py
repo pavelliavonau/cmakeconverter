@@ -874,7 +874,8 @@ class FortranFlags(Flags):
         for setting in self.settings:
             # TODO: split list
             opt = self.settings[setting]['VFFortranCompilerTool'].get('DisableSpecificDiagnostics')
-            self.settings[setting][cl_flags].append('/Qdiag-disable:{0}'.format(opt))
+            if opt:
+                self.settings[setting][cl_flags].append('/Qdiag-disable:{0}'.format(opt))
 
     def set_string_length_arg_passing(self):
         flag_values = {'strLenArgsMixed': {cl_flags: '/iface:mixed_str_len_arg'},
