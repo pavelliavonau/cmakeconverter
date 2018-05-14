@@ -192,7 +192,7 @@ class CPPConverter(DataConverter):
             all_flags.write_target_artifact()
             variables.add_artifact_target_outputs(self.context)
             dependencies = Dependencies(self.context)
-            dependencies.write_include_dir()
+            dependencies.find_and_write_include_dir()
             all_flags.write_defines_and_flags('MSVC')
             for configuration_type in all_flags.get_cmake_configuration_types():
                 self.context['configuration_types'].add(configuration_type)
@@ -334,5 +334,14 @@ class FortranProjectConverter(DataConverter):
             files.write_source_files()
             all_flags.write_target_artifact()
             variables.add_artifact_target_outputs(self.context)
+            for setting in self.context['settings']:
+                ad_inc = self.context['settings'][setting]['VFFortranCompilerTool'].get('AdditionalIncludeDirectories')
+                if ad_inc:
+                    Dependencies.get_additional_include_directories(ad_inc, setting, self.context)
+                if 'inc_dirs' in self.context['settings'][setting]:
+                    self.context['settings'][setting]['inc_dirs'] += ';${CMAKE_CURRENT_SOURCE_DIR}/'
+                else:
+                    self.context['settings'][setting]['inc_dirs'] = '${CMAKE_CURRENT_SOURCE_DIR}/'
+            Dependencies.write_include_directories(self.context)
             all_flags.write_defines_and_flags('${CMAKE_Fortran_COMPILER_ID} STREQUAL "Intel"')
 

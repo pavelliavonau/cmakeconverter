@@ -50,8 +50,9 @@ class Dependencies(object):
         self.definition_groups = context['definition_groups']
         self.includes = context['includes']
         self.vcxproj_path = context['vcxproj_path']
+        self.context = context
 
-    def write_include_dir(self):
+    def find_and_write_include_dir(self):
         """
         Write on "CMakeLists.txt" include directories required for compilation.
 
@@ -60,8 +61,6 @@ class Dependencies(object):
             send('Include Directories is not set.', '')
             return
 
-        working_path = os.path.dirname(self.vcxproj_path)
-
         for setting in self.settings:
             incl_dir = self.tree.find(
                 '{0}/ns:ClCompile/ns:AdditionalIncludeDirectories'.format(self.definition_groups[setting]),
@@ -69,22 +68,36 @@ class Dependencies(object):
             )
 
             if incl_dir is not None:
-                inc_dir = incl_dir.text.replace('$(ProjectDir)', './')
-                inc_dir = inc_dir.replace(';%(AdditionalIncludeDirectories)', '')
-                dirs = []
-                for i in inc_dir.split(';'):
-                    i = normalize_path(working_path, i)
-                    i = re.sub(r'\$\((.+?)\)', r'$ENV{\1}', i)
-                    dirs.append(i)
-                inc_dirs = ';'.join(dirs)
-                self.settings[setting]['inc_dirs'] = inc_dirs
-                send('Include Directories found : %s' % inc_dirs, 'warn')
+                inc_dirs = self.get_additional_include_directories(incl_dir.text, setting, self.context)
+                send('Include Directories found : {0}'.format(inc_dirs), 'warn')
             else:  # pragma: no cover
                 send('Include Directories not found for this project.', 'warn')
 
-        write_property_of_settings(self.cmake, self.settings, 'target_include_directories(${PROJECT_NAME} PRIVATE ',
+        self.write_include_directories(self.context)
+
+    @staticmethod
+    def write_include_directories(context):
+        cmake = context['cmake']
+        write_property_of_settings(cmake, context['settings'], 'target_include_directories(${PROJECT_NAME} PRIVATE ',
                                    ')', 'inc_dirs')
-        self.cmake.write('\n')
+        cmake.write('\n')
+
+    @staticmethod
+    def get_additional_include_directories(aid_text, setting, context):
+        if not aid_text:
+            return
+
+        working_path = os.path.dirname(context['vcxproj_path'])
+        inc_dir = aid_text.replace('$(ProjectDir)', './')
+        inc_dir = inc_dir.replace(';%(AdditionalIncludeDirectories)', '')
+        dirs = []
+        for i in inc_dir.split(';'):
+            i = normalize_path(working_path, i)
+            i = re.sub(r'\$\((.+?)\)', r'$ENV{\1}', i)
+            dirs.append(i)
+        inc_dirs = ';'.join(dirs)
+        context['settings'][setting]['inc_dirs'] = inc_dirs
+        return inc_dirs
 
     @staticmethod
     def get_dependency_target_name(vs_project):
