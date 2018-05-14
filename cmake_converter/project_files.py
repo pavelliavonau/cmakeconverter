@@ -116,19 +116,22 @@ class ProjectFiles(object):
         available_language = {'c': 'C'}
         available_language.update(dict.fromkeys(cpp_extensions, 'CXX'))
 
-        fortran_extensions = ['F90', 'F']
+        fortran_extensions = ['F90', 'F', 'f90', 'f', 'fi', 'FI']
         available_language.update(dict.fromkeys(fortran_extensions, 'Fortran'))
 
         files_language = ''
         if language_list:
-            files_language = language_list[0]
+            for l in language_list:
+                if l in available_language:
+                    files_language = l
+                    break
             if 'cpp' in language_list:  # priority for C++ for mixes with C
                 files_language = 'cpp'
 
         project_language = ''
         if files_language in available_language:
             project_language = available_language[files_language]
-        if files_language:
+        if project_language:
             self.context['solution_languages'].add(project_language)
         self.cmake.write('project(${{PROJECT_NAME}}{0})\n\n'.format(' ' + project_language))
 
