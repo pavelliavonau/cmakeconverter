@@ -857,6 +857,7 @@ class FortranFlags(Flags):
         self.set_optimization()
         self.set_preprocess_source_file()
         self.set_source_file_format()
+        self.set_open_mp()
         self.set_disable_specific_diagnostics()
         self.set_real_kind()
         self.set_local_variable_storage()
@@ -869,6 +870,12 @@ class FortranFlags(Flags):
         self.set_runtime_library()
         self.set_disable_default_lib_search()
         self.set_additional_options()
+
+    def set_open_mp(self):
+        flag_values = {'OpenMPParallelCode': {cl_flags: '/Qopenmp'},
+                       'OpenMPSequentialCode': {cl_flags: '/Qopenmp_stubs'},
+                       default_value: {}}
+        self.set_flag('VFFortranCompilerTool', 'OpenMP', flag_values)
 
     def set_disable_specific_diagnostics(self):
         for setting in self.settings:
