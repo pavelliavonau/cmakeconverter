@@ -648,21 +648,19 @@ class CPPFlags(Flags):
         Set GenerateDebugInformation flag: /DEBUG
 
         """
+        flag_values = {'DebugFull': {ln_flags: '/DEBUG:FULL'},
+                       'DebugFastLink': {ln_flags: '/DEBUG:FASTLINK'},
+                       'true': {ln_flags: '/DEBUG'},
+                       'false': {},
+                       default_value: {ln_flags: '/DEBUG:FULL'}}
 
         for setting in self.settings:
-            deb = self.tree.find(
-                '{0}/ns:Link/ns:GenerateDebugInformation'.format(self.definitiongroups[setting]),
-                namespaces=self.ns
-            )
-            if deb is not None:
-                if 'true' in deb.text:
-                    conf_type = get_configuration_type(setting, self.context)
-                    if conf_type and 'StaticLibrary' in conf_type:
-                        continue
-                    self.settings[setting][ln_flags].append('/DEBUG')
-                    send('GenerateDebugInformation for {0}'.format(setting), 'ok')
-            else:
-                send('No GenerateDebugInformation for {0}'.format(setting), '')
+            conf_type = get_configuration_type(setting, self.context)
+            if conf_type and 'StaticLibrary' in conf_type:
+                continue
+
+            self.set_flag(setting, '{0}/ns:Link/ns:GenerateDebugInformation'.format(self.definitiongroups[setting]),
+                          flag_values)
 
     def set_floating_point_model(self):
         """
