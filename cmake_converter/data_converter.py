@@ -290,6 +290,8 @@ class FortranProjectConverter(DataConverter):
                 target_name_node = configuration_node.get('TargetName')
                 if target_name_node:
                     settings[configuration_data]['output_name'] = target_name_node
+                else:
+                    settings[configuration_data]['output_name'] = context['project_name']
 
                 tools = configuration_node.xpath('Tool')
                 for tool in tools:
