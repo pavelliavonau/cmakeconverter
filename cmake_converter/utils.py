@@ -184,7 +184,7 @@ def get_actual_filename(name):
         test_name += ["%s[%s]" % (d[:-1], d[-1])]
     res = glob.glob('\\'.join(test_name))
     if not res:
-        #File not found
+        # File not found
         return None
     return res[0]
 
@@ -192,6 +192,8 @@ def get_actual_filename(name):
 def normalize_path(working_path, path_to_normalize):
     joined_path = os.path.normpath(os.path.join(working_path, path_to_normalize.strip()))
     actual_path_name = get_actual_filename(joined_path)
+    if actual_path_name is None:
+        actual_path_name = joined_path
     normal_path = set_unix_slash(os.path.relpath(actual_path_name, working_path))
     normal_path = remove_relative_from_path(normal_path)
     return normal_path
