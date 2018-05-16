@@ -857,6 +857,7 @@ class FortranFlags(Flags):
         self.set_optimization()
         self.set_preprocess_source_file()
         self.set_source_file_format()
+        self.set_default_inc_and_use_path()
         self.set_open_mp()
         self.set_disable_specific_diagnostics()
         self.set_real_kind()
@@ -870,6 +871,11 @@ class FortranFlags(Flags):
         self.set_runtime_library()
         self.set_disable_default_lib_search()
         self.set_additional_options()
+
+    def set_default_inc_and_use_path(self):
+        flag_values = {'defaultIncludeCurrent': {cl_flags: '/assume:nosource_include'},
+                       default_value: {cl_flags: '/assume:source_include'}}
+        self.set_flag('VFFortranCompilerTool', 'DefaultIncAndUsePath', flag_values)
 
     def set_open_mp(self):
         flag_values = {'OpenMPParallelCode': {cl_flags: '/Qopenmp'},
