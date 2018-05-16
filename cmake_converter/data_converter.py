@@ -330,6 +330,8 @@ class FortranProjectConverter(DataConverter):
         if len(files.sources) != 0:
             all_flags = FortranFlags(self.context)
             all_flags.define_flags()
+            for configuration_type in all_flags.get_cmake_configuration_types():
+                self.context['configuration_types'].add(configuration_type)
             # Writing
             files.write_source_files()
             all_flags.write_target_artifact()

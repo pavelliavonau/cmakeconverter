@@ -51,6 +51,15 @@ class Flags(object):
         self.cmake = context['cmake']
         self.settings = context['settings']
 
+    def get_setting_name(self, setting):
+        return self.settings[setting]['conf']
+
+    def get_cmake_configuration_types(self):
+        configuration_types = []
+        for setting in self.settings:
+            configuration_types.append(self.get_setting_name(setting))
+        return configuration_types
+
     def write_defines_and_flags(self, compiler_check):
         """
         Get and write Preprocessor Macros definitions
@@ -127,15 +136,6 @@ class CPPFlags(Flags):
         self.propertygroup = context['property_groups']
         self.definitiongroups = context['definition_groups']
         self.std = context['std']
-
-    def get_setting_name(self, setting):
-        return self.settings[setting]['conf']
-
-    def get_cmake_configuration_types(self):
-        configuration_types = []
-        for setting in self.settings:
-            configuration_types.append(self.get_setting_name(setting))
-        return configuration_types
 
     def define_flags(self):
         """
