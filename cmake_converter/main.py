@@ -241,34 +241,34 @@ def main():  # pragma: no cover
         sln_cmake.write('# Global compiler options\n')
         sln_cmake.write('################################################################################\n')
         sln_cmake.write('if(MSVC)\n')
-        sln_cmake.write('  # remove default flags provided with CMake for MSVC\n')
+        sln_cmake.write('    # remove default flags provided with CMake for MSVC\n')
         solution_languages = list(context['solution_languages'])
         solution_languages.sort(key=str.lower)
         for lang in solution_languages:
-            sln_cmake.write('  set(CMAKE_{0}_FLAGS "")\n'.format(lang))
+            sln_cmake.write('    set(CMAKE_{0}_FLAGS "")\n'.format(lang))
             for configuration_type in configuration_types_list:
-                sln_cmake.write('  set(CMAKE_{0}_FLAGS_{1} "")\n'.format(lang, configuration_type.upper()))
+                sln_cmake.write('    set(CMAKE_{0}_FLAGS_{1} "")\n'.format(lang, configuration_type.upper()))
         sln_cmake.write('endif()\n\n')
 
         sln_cmake.write('################################################################################\n')
         sln_cmake.write('# Global linker options\n')
         sln_cmake.write('################################################################################\n')
         sln_cmake.write('if(MSVC)\n')
-        sln_cmake.write('  # remove default flags provided with CMake for MSVC\n')
-        sln_cmake.write('  set(CMAKE_EXE_LINKER_FLAGS "")\n')
-        sln_cmake.write('  set(CMAKE_MODULE_LINKER_FLAGS "")\n')
-        sln_cmake.write('  set(CMAKE_SHARED_LINKER_FLAGS "")\n')
-        sln_cmake.write('  set(CMAKE_STATIC_LINKER_FLAGS "")\n')
+        sln_cmake.write('    # remove default flags provided with CMake for MSVC\n')
+        sln_cmake.write('    set(CMAKE_EXE_LINKER_FLAGS "")\n')
+        sln_cmake.write('    set(CMAKE_MODULE_LINKER_FLAGS "")\n')
+        sln_cmake.write('    set(CMAKE_SHARED_LINKER_FLAGS "")\n')
+        sln_cmake.write('    set(CMAKE_STATIC_LINKER_FLAGS "")\n')
         for configuration_type in configuration_types_list:
             ct_upper = configuration_type.upper()
             sln_cmake.write(
-                '  set(CMAKE_EXE_LINKER_FLAGS_{0} \"${{CMAKE_EXE_LINKER_FLAGS}}\")\n'.format(ct_upper))
+                '    set(CMAKE_EXE_LINKER_FLAGS_{0} \"${{CMAKE_EXE_LINKER_FLAGS}}\")\n'.format(ct_upper))
             sln_cmake.write(
-                '  set(CMAKE_MODULE_LINKER_FLAGS_{0} \"${{CMAKE_MODULE_LINKER_FLAGS}}\")\n'.format(ct_upper))
+                '    set(CMAKE_MODULE_LINKER_FLAGS_{0} \"${{CMAKE_MODULE_LINKER_FLAGS}}\")\n'.format(ct_upper))
             sln_cmake.write(
-                '  set(CMAKE_SHARED_LINKER_FLAGS_{0} \"${{CMAKE_SHARED_LINKER_FLAGS}}\")\n'.format(ct_upper))
+                '    set(CMAKE_SHARED_LINKER_FLAGS_{0} \"${{CMAKE_SHARED_LINKER_FLAGS}}\")\n'.format(ct_upper))
             sln_cmake.write(
-                '  set(CMAKE_STATIC_LINKER_FLAGS_{0} \"${{CMAKE_STATIC_LINKER_FLAGS}}\")\n'.format(ct_upper))
+                '    set(CMAKE_STATIC_LINKER_FLAGS_{0} \"${{CMAKE_STATIC_LINKER_FLAGS}}\")\n'.format(ct_upper))
         sln_cmake.write('endif()\n\n')
 
         sln_cmake.write('################################################################################\n')
