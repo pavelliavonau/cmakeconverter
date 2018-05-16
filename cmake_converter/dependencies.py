@@ -278,7 +278,6 @@ class Dependencies(object):
         if packages_xml:
             extension = packages_xml['tree'].xpath('/packages/package')
             for ref in extension:
-                id = ref.get('id')
-                version = ref.get('version')
-                name = '{0}.{1}'.format(id, version)
-                self.cmake.write('\nuse_package(${{PROJECT_NAME}} {0})'.format(name))
+                package_id = ref.get('id')
+                package_version = ref.get('version')
+                self.cmake.write('\nuse_package(${{PROJECT_NAME}} {0} {1})'.format(package_id, package_version))

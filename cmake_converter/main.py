@@ -274,7 +274,7 @@ def main():  # pragma: no cover
         sln_cmake.write('################################################################################\n')
         sln_cmake.write('# Nuget packages function stub.\n')
         sln_cmake.write('################################################################################\n')
-        sln_cmake.write('function(use_package TARGET PACKAGE)\n')
+        sln_cmake.write('function(use_package TARGET PACKAGE VERSION)\n')
         sln_cmake.write('    message(WARNING "No implementation of use_package. Create yours.")\n')
         sln_cmake.write('endfunction()\n\n')
 
