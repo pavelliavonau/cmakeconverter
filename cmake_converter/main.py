@@ -281,7 +281,7 @@ def main():  # pragma: no cover
         sln_cmake.write('################################################################################\n')
         sln_cmake.write('# Additional Global Settings(add specific info there)\n')
         sln_cmake.write('################################################################################\n')
-        sln_cmake.write('include(CMake/GlobalSettingsInclude.cmake)\n\n')
+        sln_cmake.write('include(CMake/GlobalSettingsInclude.cmake OPTIONAL)\n\n')
 
         sln_cmake.write('################################################################################\n')
         sln_cmake.write('# Sub-projects\n')
