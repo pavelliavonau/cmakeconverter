@@ -854,6 +854,7 @@ class FortranFlags(Flags):
         self.set_preprocess_source_file()
         self.set_source_file_format()
         self.set_default_inc_and_use_path()
+        self.set_fixed_form_line_length()
         self.set_open_mp()
         self.set_disable_specific_diagnostics()
         self.set_real_kind()
@@ -867,6 +868,12 @@ class FortranFlags(Flags):
         self.set_runtime_library()
         self.set_disable_default_lib_search()
         self.set_additional_options()
+
+    def set_fixed_form_line_length(self):
+        flag_values = {'fixedLength80': {cl_flags: '/extend_source:80'},
+                       'fixedLength132': {cl_flags: '/extend_source:132'},
+                       default_value: {}}
+        self.set_flag('VFFortranCompilerTool', 'FixedFormLineLength', flag_values)
 
     def set_default_inc_and_use_path(self):
         flag_values = {'defaultIncludeCurrent': {cl_flags: '/assume:nosource_include'},
@@ -959,6 +966,7 @@ class FortranFlags(Flags):
 
     def set_source_file_format(self):
         flag_values = {'fileFormatFree': {cl_flags: '/free'},
+                       'fileFormatFixed': {cl_flags: '/fixed'},
                        default_value: {}}
         self.set_flag('VFFortranCompilerTool', 'SourceFileFormat', flag_values)
 
