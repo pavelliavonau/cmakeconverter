@@ -758,7 +758,7 @@ class CPPFlags(Flags):
                 '                                               OBJECT_OUTPUTS "${PrecompiledBinary}")\n'
                 '        SET_SOURCE_FILES_PROPERTIES(${${SourcesVar}}\n'
                 '                                    PROPERTIES COMPILE_FLAGS "/Yu\\"${PrecompiledHeader}\\"'
-                ' /FI\\"${PrecompiledHeader}\\" /Fp\\"${PrecompiledBinary}\\""\n'
+                ' /Fp\\"${PrecompiledBinary}\\""\n'
                 '                                               OBJECT_DEPENDS "${PrecompiledBinary}")\n'
                 '    endif()\n'
                 '    LIST(INSERT ${SourcesVar} 0 ${PrecompiledSource})\n'
