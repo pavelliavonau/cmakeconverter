@@ -41,6 +41,7 @@ class ProjectVariables(object):
         self.output = context['cmake_output']
         self.project_name = context['project_name']
         self.settings = context['settings']
+        self.context = context
 
     def add_project_variables(self):
         """
@@ -81,8 +82,9 @@ class ProjectVariables(object):
         if len(context['settings']) == 0:
             return
 
-        write_property_of_settings(self.cmake, self.settings, 'string(CONCAT OUT_DIR', ')'
-                                   , 'out_dir', '', '${CMAKE_SOURCE_DIR}/${CMAKE_VS_PLATFORM_NAME}/$<CONFIG>')
+        write_property_of_settings(self.cmake, self.settings, self.context['sln_configurations_map'],
+                                   'string(CONCAT OUT_DIR', ')', 'out_dir', '',
+                                   '${CMAKE_SOURCE_DIR}/${CMAKE_VS_PLATFORM_NAME}/$<CONFIG>')
 
         for setting in self.settings:
             break
@@ -108,8 +110,8 @@ class ProjectVariables(object):
                 self.cmake.write(
                     'set_target_properties(${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${OUT_DIR})\n\n')
 
-        write_property_of_settings(self.cmake, self.settings, 'string(CONCAT TARGET_NAME', ')'
-                                   , 'output_name', '', '${PROJECT_NAME}')
+        write_property_of_settings(self.cmake, self.settings, self.context['sln_configurations_map'],
+                                   'string(CONCAT TARGET_NAME', ')', 'output_name', '', '${PROJECT_NAME}')
         self.cmake.write(
             'set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME ${TARGET_NAME})\n\n')
 

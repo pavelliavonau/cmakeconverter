@@ -66,6 +66,7 @@ def parse_solution(sln_text):
     :param sln_text:
     :return: data from solution
     """
+    solution_data = {}
     projects_data = {}
     p = re.compile(r'(Project.*\s=\s\"(.*)\",\s\"(.*\.(.*proj))\",.*(\{.*\})(?:.|\n)*?EndProject(?!Section))')
     parsed_data = p.findall(sln_text)
@@ -86,6 +87,28 @@ def parse_solution(sln_text):
                 project['sln_deps'].append(guids_deps_match[2])
         projects_data[guid] = project
 
+    solution_configurations_re = re.compile(r'GlobalSection\(SolutionConfigurationPlatforms\) = preSolution'
+                                            r'((?:.|\n)*?)EndGlobalSection')
+    solution_configurations_matches = solution_configurations_re.findall(sln_text)
+    solution_data['sln_configurations'] = []
+    sln_configuration_re = re.compile(r'([\w|]+) = ([\w|]+)')
+    for solution_configuration_match in solution_configurations_matches:
+        configurations = sln_configuration_re.findall(solution_configuration_match)
+        for configuration in configurations:
+            solution_data['sln_configurations'].append(configuration[0])
+
+    projects_configurations_re = re.compile(r'GlobalSection\(ProjectConfigurationPlatforms\) = postSolution'
+                                            r'((?:.|\n)*?)EndGlobalSection')
+    projects_configurations_matches = projects_configurations_re.findall(sln_text)
+    projects_configuration_re = re.compile(r'(\{.+\})\.([\w|]+)\.ActiveCfg = ([\w|]+)')
+    for projects_configuration_match in projects_configurations_matches:
+        configurations = projects_configuration_re.findall(projects_configuration_match)
+        for configuration in configurations:
+            p = projects_data[configuration[0]]
+            if 'sln_configs_2_project_configs' not in p:
+                p['sln_configs_2_project_configs'] = {}
+            p['sln_configs_2_project_configs'][configuration[1]] = configuration[2]
+
     # replace GUIDs with Project names in dependencies
     for project_guid in projects_data:
         project_data = projects_data[project_guid]
@@ -96,7 +119,8 @@ def parse_solution(sln_text):
                 dep = projects_data[dep_guid]
                 target_deps.append(dep['name'])
             project_data['sln_deps'] = target_deps
-    return projects_data
+    solution_data['projects_data'] = projects_data
+    return solution_data
 
 
 def set_dependencies_for_project(context, project_data):
@@ -123,7 +147,6 @@ def main():  # pragma: no cover
         'data': None,
         'std': None,
         'is_converting_solution': False,
-        'configuration_types': set(),
     }
 
     usage = "cmake-converter -p <vcxproj> [-c | -a | -D | -O | -i | -std]"
@@ -208,12 +231,14 @@ def main():  # pragma: no cover
         DataConverter.add_cmake_version_required(sln_cmake)
         sln_cmake.write('project({0})\n\n'. format(os.path.splitext(os.path.basename(args.solution))[0]))
         subdirectories = []
-        for guid in solution_data:
-            project_path = solution_data[guid]['path']
+        projects_data = solution_data['projects_data']
+        for guid in projects_data:
+            project_path = projects_data[guid]['path']
             project_path = '/'.join(project_path.split('\\'))
             project_abs = os.path.join(solution_path, project_path)
             subdirectory = os.path.dirname(project_abs)
-            set_dependencies_for_project(context, solution_data[guid])
+            set_dependencies_for_project(context, projects_data[guid])
+            context['sln_configurations_map'] = projects_data[guid]['sln_configs_2_project_configs']
             convert_project(context, project_abs, subdirectory)
             cmake_dir = os.path.dirname(context['cmake'].name)
             subdirectories.append(os.path.relpath(cmake_dir, solution_path))
@@ -231,7 +256,10 @@ def main():  # pragma: no cover
         sln_cmake.write('# Global configuration types\n')
         sln_cmake.write('################################################################################\n')
         sln_cmake.write('set(CMAKE_CONFIGURATION_TYPES\n')
-        configuration_types_list = list(context['configuration_types'])
+        configuration_types_set = set()
+        for config in solution_data['sln_configurations']:
+            configuration_types_set.add(config.split('|')[0])
+        configuration_types_list = list(configuration_types_set)
         configuration_types_list.sort(key=str.lower)
         for configuration_type in configuration_types_list:
             sln_cmake.write('    \"{0}\"\n'.format(configuration_type))

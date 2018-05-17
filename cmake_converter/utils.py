@@ -77,17 +77,19 @@ def get_configuration_type(setting, context):
     return configurationtype[0].text
 
 
-def write_property_of_settings(cmake_file, settings, begin_text, end_text, property_name, indent='', default=None):
+def write_property_of_settings(cmake_file, settings, sln_setting_2_project_setting, begin_text, end_text, property_name,
+                               indent='', default=None):
     width = 0
     settings_of_arch = {}
-    for setting in settings:
-        length = len('$<$<CONFIG:{0}>'.format(settings[setting]['conf']))
+    for sln_setting in sln_setting_2_project_setting:
+        conf = sln_setting.split('|')[0]
+        arch = sln_setting.split('|')[1]
+        length = len('$<$<CONFIG:{0}>'.format(conf))
         if length > width:
             width = length
-        arch = settings[setting]['arch']
         if arch not in settings_of_arch:
             settings_of_arch[arch] = {}
-        settings_of_arch[arch][setting] = settings[setting]
+        settings_of_arch[arch][sln_setting] = sln_setting
 
     first_arch = True
     for arch in settings_of_arch:
@@ -98,15 +100,16 @@ def write_property_of_settings(cmake_file, settings, begin_text, end_text, prope
         first_arch = False
         has_property_value = False
         config_expressions = []
-        for setting in settings_of_arch[arch]:
-            conf = settings[setting]['conf']
-            if property_name in settings[setting]:
-                if settings[setting][property_name] != '':
+        for sln_setting in settings_of_arch[arch]:
+            sln_conf = sln_setting.split('|')[0]
+            mapped_setting = settings[sln_setting_2_project_setting[sln_setting]]
+            if property_name in mapped_setting:
+                if mapped_setting[property_name] != '':
                     if not has_property_value:
                         cmake_file.write('{0}    {1}\n'.format(indent, begin_text))
                         has_property_value = True
-                    property_value = settings[setting][property_name]
-                    config_expr_begin = '$<CONFIG:{0}>'.format(conf)
+                    property_value = mapped_setting[property_name]
+                    config_expr_begin = '$<CONFIG:{0}>'.format(sln_conf)
                     config_expressions.append(config_expr_begin)
                     cmake_file.write('{0}        {1:>{width}}:{2}>\n'.format(indent, '$<' + config_expr_begin,
                                                                              property_value,

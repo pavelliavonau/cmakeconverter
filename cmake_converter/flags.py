@@ -54,12 +54,6 @@ class Flags(object):
     def get_setting_name(self, setting):
         return self.settings[setting]['conf']
 
-    def get_cmake_configuration_types(self):
-        configuration_types = []
-        for setting in self.settings:
-            configuration_types.append(self.get_setting_name(setting))
-        return configuration_types
-
     def write_defines_and_flags(self, compiler_check):
         """
         Get and write Preprocessor Macros definitions
@@ -72,19 +66,19 @@ class Flags(object):
             self.settings[setting]['defines_str'] = ';'.join(self.settings[setting][defines])
             self.settings[setting]['cl_str'] = ';'.join(self.settings[setting][cl_flags])
 
-        write_property_of_settings(cmake, self.settings, 'target_compile_definitions(${PROJECT_NAME} PRIVATE', ')',
-                                   'defines_str')
+        write_property_of_settings(cmake, self.settings, self.context['sln_configurations_map'],
+                                   'target_compile_definitions(${PROJECT_NAME} PRIVATE', ')', 'defines_str')
         cmake.write('\n')
         cmake.write('if({0})\n'.format(compiler_check))
-        write_property_of_settings(cmake, self.settings, 'target_compile_options(${PROJECT_NAME} PRIVATE', ')',
-                                   'cl_str', indent='    ')
+        write_property_of_settings(cmake, self.settings, self.context['sln_configurations_map'],
+                                   'target_compile_options(${PROJECT_NAME} PRIVATE', ')', 'cl_str', indent='    ')
 
         settings_of_arch = {}
-        for setting in self.settings:
-            arch = self.settings[setting]['arch']
+        for sln_setting in self.context['sln_configurations_map']:
+            arch = sln_setting.split('|')[1]
             if arch not in settings_of_arch:
                 settings_of_arch[arch] = {}
-            settings_of_arch[arch][setting] = self.settings[setting]
+            settings_of_arch[arch][sln_setting] = sln_setting
 
         first_arch = True
         for arch in settings_of_arch:
@@ -93,21 +87,23 @@ class Flags(object):
             else:
                 cmake.write('    elseif(\"${{CMAKE_VS_PLATFORM_NAME}}\" STREQUAL \"{0}\")\n'.format(arch))
             first_arch = False
-            for setting in settings_of_arch[arch]:
-                conf = self.settings[setting]['conf']
-                if self.settings[setting][ln_flags]:
-                    configuration_type = get_configuration_type(setting, self.context)
+            for sln_setting in settings_of_arch[arch]:
+                sln_conf = sln_setting.split('|')[0]
+                mapped_setting_name = self.context['sln_configurations_map'][sln_setting]
+                mapped_setting = self.settings[mapped_setting_name]
+                if mapped_setting[ln_flags]:
+                    configuration_type = get_configuration_type(mapped_setting_name, self.context)
                     if configuration_type:
                         if 'StaticLibrary' in configuration_type:
                             cmake.write(
                                 '        set_target_properties(${{PROJECT_NAME}}'
                                 ' PROPERTIES STATIC_LIBRARY_FLAGS_{0} "{1}")\n'
-                                .format(conf.upper(), ' '.join(self.settings[setting][ln_flags]))
+                                .format(sln_conf.upper(), ' '.join(mapped_setting[ln_flags]))
                             )
                         else:
                             cmake.write(
                                 '        set_target_properties(${{PROJECT_NAME}} PROPERTIES LINK_FLAGS_{0} "{1}")\n'
-                                .format(conf.upper(), ' '.join(self.settings[setting][ln_flags]))
+                                .format(sln_conf.upper(), ' '.join(mapped_setting[ln_flags]))
                             )
         cmake.write('    else()\n')
         cmake.write(

@@ -78,8 +78,8 @@ class Dependencies(object):
     @staticmethod
     def write_include_directories(context):
         cmake = context['cmake']
-        write_property_of_settings(cmake, context['settings'], 'target_include_directories(${PROJECT_NAME} PRIVATE ',
-                                   ')', 'inc_dirs')
+        write_property_of_settings(cmake, context['settings'], context['sln_configurations_map'],
+                                   'target_include_directories(${PROJECT_NAME} PRIVATE ', ')', 'inc_dirs')
         cmake.write('\n')
 
     @staticmethod
