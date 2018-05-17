@@ -35,7 +35,7 @@ from cmake_converter.flags import CPPFlags, FortranFlags
 from cmake_converter.message import send
 from cmake_converter.project_files import ProjectFiles
 from cmake_converter.project_variables import VCXProjectVariables, VFProjectVariables
-from cmake_converter.utils import get_global_project_name_from_vcxproj_file
+import cmake_converter.utils
 
 
 class DataConverter:
@@ -61,6 +61,34 @@ class DataConverter:
 
         self.context['cmake'].close()
 
+    def open_cmake_lists(self, cmake_lists, project_name):
+        # Cmake Project (CMakeLists.txt)
+        if cmake_lists:
+            if os.path.exists(cmake_lists):
+                cmake = get_cmake_lists(cmake_lists, 'r')
+                if cmake:
+                    file_text = cmake.read()
+                    cmake.close()
+                    if 'PROJECT_NAME {0}'.format(project_name) in file_text:
+                        self.context['cmake'] = get_cmake_lists(cmake_lists)  # updating
+                        cmake_converter.utils.path_prefix = ''
+                    else:
+                        directory = cmake_lists + '/{0}_cmakelists'.format(project_name)
+                        if not os.path.exists(directory):
+                            os.makedirs(directory)
+                        self.context['cmake'] = get_cmake_lists(directory)
+                        cmake_converter.utils.path_prefix = '../'
+                else:
+                    self.context['cmake'] = get_cmake_lists(cmake_lists)  # writing first time
+
+        if not self.context['cmake']:
+            send(
+                'CMakeLists.txt path is not set. '
+                'He will be generated in current directory.',
+                'warn'
+            )
+            self.context['cmake'] = get_cmake_lists()
+
 
 class CPPConverter(DataConverter):
     """
@@ -85,7 +113,8 @@ class CPPConverter(DataConverter):
                 send('Project to convert = ' + vs_project, '')
                 self.context['vcxproj'] = get_vcxproj_data(vs_project)
                 self.context['vcxproj_path'] = vs_project
-                project_name_value = get_global_project_name_from_vcxproj_file(self.context['vcxproj'])
+                project_name_value = \
+                    cmake_converter.utils.get_global_project_name_from_vcxproj_file(self.context['vcxproj'])
                 if project_name_value:
                     project_name = project_name_value
                 self.context['project_name'] = project_name
@@ -93,30 +122,7 @@ class CPPConverter(DataConverter):
                 send('This file is not a ".vcxproj". Be sure you give the right file', 'error')
                 exit(1)
 
-        # Cmake Project (CMakeLists.txt)
-        if cmake_lists:
-            if os.path.exists(cmake_lists):
-                cmake = get_cmake_lists(cmake_lists, 'r')
-                if cmake:
-                    file_text = cmake.read()
-                    cmake.close()
-                    if 'PROJECT_NAME {0}'.format(project_name) in file_text:
-                        self.context['cmake'] = get_cmake_lists(cmake_lists)  # updating
-                    else:
-                        directory = cmake_lists + '/{0}_cmakelists'.format(project_name)
-                        if not os.path.exists(directory):
-                            os.makedirs(directory)
-                        self.context['cmake'] = get_cmake_lists(directory)
-                else:
-                    self.context['cmake'] = get_cmake_lists(cmake_lists)  # writing first time
-
-        if not self.context['cmake']:
-            send(
-                'CMakeLists.txt path is not set. '
-                'He will be generated in current directory.',
-                'warn'
-            )
-            self.context['cmake'] = get_cmake_lists()
+        self.open_cmake_lists(cmake_lists, project_name)
 
     @staticmethod
     def define_settings(context):
@@ -233,30 +239,7 @@ class FortranProjectConverter(DataConverter):
                 send('This file is not a ".vfproj". Be sure you give the right file', 'error')
                 exit(1)
 
-        # Cmake Project (CMakeLists.txt)
-        if cmake_lists:
-            if os.path.exists(cmake_lists):
-                cmake = get_cmake_lists(cmake_lists, 'r')
-                if cmake:
-                    file_text = cmake.read()
-                    cmake.close()
-                    if 'PROJECT_NAME {0}'.format(project_name) in file_text:
-                        self.context['cmake'] = get_cmake_lists(cmake_lists)  # updating
-                    else:
-                        directory = cmake_lists + '/{0}_cmakelists'.format(project_name)
-                        if not os.path.exists(directory):
-                            os.makedirs(directory)
-                        self.context['cmake'] = get_cmake_lists(directory)
-                else:
-                    self.context['cmake'] = get_cmake_lists(cmake_lists)  # writing first time
-
-        if not self.context['cmake']:
-            send(
-                'CMakeLists.txt path is not set. '
-                'He will be generated in current directory.',
-                'warn'
-            )
-            self.context['cmake'] = get_cmake_lists()
+        self.open_cmake_lists(cmake_lists, project_name)
 
     @staticmethod
     def define_settings(context):

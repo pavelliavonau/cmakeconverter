@@ -145,11 +145,11 @@ class ProjectFiles(object):
         self.cmake.write('############ Header Files #############\n')
         self.cmake.write('set(HEADERS_FILES\n')
 
+        working_path = os.path.dirname(self.vcxproj_path)
         if '' in self.headers:
             for header_file in self.headers['']:
-                self.cmake.write('    {0}\n'.format(header_file))
+                self.cmake.write('    {0}\n'.format(normalize_path(working_path, header_file)))
 
-        working_path = os.path.dirname(self.vcxproj_path)
         for headers_dir in self.headers:
             if headers_dir == '':
                 continue
@@ -167,11 +167,11 @@ class ProjectFiles(object):
         self.cmake.write('############ Source Files #############\n')
         self.cmake.write('set(SRC_FILES\n')
 
+        working_path = os.path.dirname(self.vcxproj_path)
         if '' in self.sources:
             for src_file in self.sources['']:
-                self.cmake.write('    {0}\n'.format(src_file))
+                self.cmake.write('    {0}\n'.format(normalize_path(working_path, src_file)))
 
-        working_path = os.path.dirname(self.vcxproj_path)
         for src_dir in self.sources:
             if src_dir == '':
                 continue

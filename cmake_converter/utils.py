@@ -29,6 +29,8 @@ import sys
 import os
 import glob
 
+path_prefix = ''
+
 
 def mkdir(folder):
     """
@@ -140,6 +142,8 @@ def set_unix_slash(win_path):
 
 
 def remove_relative_from_path(path):
+    if '${' not in path[:2]:
+        path = path_prefix + path
     if '.' in path[:1]:
         # add current directory for relative path (CMP0021)
         path = '${CMAKE_CURRENT_SOURCE_DIR}/' + path
