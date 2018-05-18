@@ -206,7 +206,8 @@ class CPPFlags(Flags):
                 send('PreprocessorDefinitions for {0}'.format(setting), 'ok')
 
     def do_precompiled_headers(self, files):
-        precompiled_header_path = ''
+        pch_header_path = ''
+        pch_source_path = ''
         for setting in self.settings:
             precompiled_header_values = {'Use': {'PrecompiledHeader': 'Use'},
                                          'NotUsing': {'PrecompiledHeader': 'NotUsing'},
@@ -221,16 +222,16 @@ class CPPFlags(Flags):
             flag_value = self.set_flag(setting,
                                        '{0}/ns:ClCompile/ns:PrecompiledHeaderFile'
                                        .format(self.definitiongroups[setting]), precompiled_header_file_values)
-            if flag_value != '':
+            if flag_value:
                 self.settings[setting]['PrecompiledHeaderFile'] = [flag_value]
 
-            if self.settings[setting]['PrecompiledHeader'][0] == 'Use':
-                pch_flag_value = self.settings[setting]['PrecompiledHeaderFile'][0]
+            if self.settings[setting]['PrecompiledHeader'][0] == 'Use' and pch_header_path == '':
+                pch_header_name = self.settings[setting]['PrecompiledHeaderFile'][0]
                 found = False
                 founded_pch_h_path = ''
                 for headers_path in files.headers:
                     for header in files.headers[headers_path]:
-                        if header.lower() == pch_flag_value.lower():
+                        if header.lower() == pch_header_name.lower():
                             found = True
                             founded_pch_h_path = headers_path
                         if found:
@@ -238,14 +239,20 @@ class CPPFlags(Flags):
                     if found:
                         break
 
-                if precompiled_header_path == '':
-                    pch_cpp = self.settings[setting]['PrecompiledHeaderFile'][0].replace('.h', '.cpp')
-                    real_pch_cpp = take_name_from_list_case_ignore(files.sources[founded_pch_h_path], pch_cpp)
-                    if founded_pch_h_path != '':
-                        founded_pch_h_path += '/'
-                    real_pch_cpp = founded_pch_h_path + real_pch_cpp
-                    precompiled_header_path = real_pch_cpp.replace('.cpp', '.h')
-                self.settings[setting]['PrecompiledHeaderFile'][0] = precompiled_header_path
+                pch_source_name = pch_header_name.replace('.h', '.cpp')
+                real_pch_cpp = ''
+                if founded_pch_h_path in files.sources:
+                    real_pch_cpp = take_name_from_list_case_ignore(files.sources[founded_pch_h_path], pch_source_name)
+                else:
+                    for src_path in files.sources:
+                        for src in files.sources[src_path]:
+                            if pch_source_name == src:
+                                real_pch_cpp = take_name_from_list_case_ignore(files.sources[src_path], src)
+                                real_pch_cpp = src_path + '/' + real_pch_cpp
+                pch_header_path = founded_pch_h_path + '/' + pch_header_name
+                pch_source_path = real_pch_cpp
+            self.settings[setting]['PrecompiledHeaderFile'] = pch_header_path
+            self.settings[setting]['PrecompiledSourceFile'] = pch_source_path
 
     def define_windows_flags(self):
         """
@@ -771,9 +778,10 @@ class CPPFlags(Flags):
         if not self.setting_has_pch(setting):
             return
 
-        pch = self.settings[setting]['PrecompiledHeaderFile'][0]
-        self.cmake.write('ADD_PRECOMPILED_HEADER("{0}" "{1}" SRC_FILES)\n\n'.format(os.path.basename(pch),
-                                                                                    pch.replace('.h', '.cpp')))
+        pch_header = self.settings[setting]['PrecompiledHeaderFile']
+        pch_source = self.settings[setting]['PrecompiledSourceFile']
+        self.cmake.write('ADD_PRECOMPILED_HEADER("{0}" "{1}" SRC_FILES)\n\n'.format(os.path.basename(pch_header),
+                                                                                    pch_source))
 
     def write_target_artifact(self):
         """
