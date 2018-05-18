@@ -231,6 +231,7 @@ def main():  # pragma: no cover
         DataConverter.add_cmake_version_required(sln_cmake)
         sln_cmake.write('project({0})\n\n'. format(os.path.splitext(os.path.basename(args.solution))[0]))
         subdirectories = []
+        subdirectories_to_project_name = {}
         projects_data = solution_data['projects_data']
         for guid in projects_data:
             project_path = projects_data[guid]['path']
@@ -241,7 +242,9 @@ def main():  # pragma: no cover
             context['sln_configurations_map'] = projects_data[guid]['sln_configs_2_project_configs']
             convert_project(context, project_abs, subdirectory)
             cmake_dir = os.path.dirname(context['cmake'].name)
-            subdirectories.append(os.path.relpath(cmake_dir, solution_path))
+            subdirectory = os.path.relpath(cmake_dir, solution_path)
+            subdirectories.append(subdirectory)
+            subdirectories_to_project_name[subdirectory] = context['project_name']
             print('\n')
         sln_cmake.write('################################################################################\n')
         sln_cmake.write('# Set target arch type if empty. Visual studio solution generator provides it. #\n')
@@ -316,7 +319,10 @@ def main():  # pragma: no cover
         sln_cmake.write('################################################################################\n')
         subdirectories.sort(key=str.lower)
         for subdirectory in subdirectories:
-            sln_cmake.write('add_subdirectory({0})\n'.format(set_unix_slash(subdirectory)))
+            binary_dir = ''
+            if '.' in subdirectory[:1]:
+                binary_dir = ' ${{CMAKE_BINARY_DIR}}/{0}'.format(subdirectories_to_project_name[subdirectory])
+            sln_cmake.write('add_subdirectory({0}{1})\n'.format(set_unix_slash(subdirectory), binary_dir))
         sln_cmake.write('\n')
         sln_cmake.close()
 
