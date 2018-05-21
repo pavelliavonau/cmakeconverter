@@ -52,7 +52,7 @@ class Dependencies(object):
         self.vcxproj_path = context['vcxproj_path']
         self.context = context
 
-    def find_and_write_include_dir(self):
+    def find_include_dir(self):
         """
         Write on "CMakeLists.txt" include directories required for compilation.
 
@@ -72,8 +72,6 @@ class Dependencies(object):
                 send('Include Directories found : {0}'.format(inc_dirs), 'warn')
             else:  # pragma: no cover
                 send('Include Directories not found for this project.', 'warn')
-
-        self.write_include_directories(self.context)
 
     @staticmethod
     def write_include_directories(context):
@@ -115,13 +113,14 @@ class Dependencies(object):
         else:
             return os.path.splitext(ntpath.basename(vs_project))[0]
 
-    def write_target_dependencies(self, references):
+    def find_target_references(self):
         """
-        Add dependencies to project
+        Find references of project
 
         """
 
         references_found = []
+        references = self.tree.xpath('//ns:ProjectReference', namespaces=self.ns)
         if references:
             for ref in references:
                 if ref is None:
@@ -134,31 +133,33 @@ class Dependencies(object):
                 if ref_inc not in references_found:
                     references_found.append(ref_inc)
 
-            if references_found:
-                self.cmake.write('add_dependencies(${PROJECT_NAME}')
-                targets_dependencies = set()
-                for ref_found in references_found:
-                    project_name = self.get_dependency_target_name(os.path.join(os.path.dirname(self.vcxproj_path),
-                                                                                ref_found))
-                    targets_dependencies.add(project_name)
-                    self.cmake.write(' {0}'.format(project_name))
-                for dep in self.deps:
-                    if dep not in targets_dependencies:
-                        self.cmake.write(' {0}'.format(dep))
+        self.context['target_references'] = references_found
 
-                self.cmake.write(')\n\n')
+    def write_target_references(self):
+        if self.context['target_references']:
+            self.cmake.write('add_dependencies(${PROJECT_NAME}')
+            targets_dependencies = set()
+            for ref_found in self.context['target_references']:
+                project_name = self.get_dependency_target_name(os.path.join(os.path.dirname(self.vcxproj_path),
+                                                                            ref_found))
+                targets_dependencies.add(project_name)
+                self.cmake.write(' {0}'.format(project_name))
+            for dep in self.deps:
+                if dep not in targets_dependencies:
+                    self.cmake.write(' {0}'.format(dep))
+
+            self.cmake.write(')\n\n')
 
     def write_dependencies(self):
         """
         Write on "CMakeLists.txt" subdirectories or link directories for external libraries.
 
         """
-        references = self.tree.xpath('//ns:ProjectReference', namespaces=self.ns)
-        if references:
+        if self.context['target_references']:
             self.cmake.write('################### Dependencies ##################\n'
                              '# Add Dependencies to project.                    #\n'
                              '###################################################\n\n')
-            self.write_target_dependencies(references)
+            self.write_target_references()
             return  # TODO: looks like wrong code
             self.cmake.write(
                 'option(BUILD_DEPENDS \n' +
@@ -202,33 +203,10 @@ class Dependencies(object):
         else:  # pragma: no cover
             send('No link needed.', '')
 
-    def link_dependencies(self):
-        """
-        Write link dependencies of project.
-
-        """
-
-        # References to other targets in solution
-        references = self.tree.xpath('//ns:ProjectReference', namespaces=self.ns)
-        if references:
-            self.cmake.write('# Link with other targets.\n')
-            self.cmake.write('target_link_libraries(${PROJECT_NAME}')
-            for ref in references:
-                ref_inc = ref.get('Include')
-                if ref_inc is None:
-                    continue
-                reference = str(ref_inc)
-                path_to_reference = os.path.splitext(ntpath.basename(reference))[0]
-                lib = self.get_dependency_target_name(os.path.join(os.path.dirname(self.vcxproj_path), reference))
-                if lib == 'g3log':
-                    lib += 'ger'  # To get "g3logger"
-                self.cmake.write(' ' + lib)
-                message = 'External library found : %s' % path_to_reference
-                send(message, '')
-            self.cmake.write(')\n')
-
+    def find_target_additional_dependencies(self):
         # Additional Dependencies
         dependencies = self.tree.xpath('//ns:AdditionalDependencies', namespaces=self.ns)
+        self.context['add_lib_deps'] = []
         if dependencies:
             list_depends = dependencies[0].text.replace('%(AdditionalDependencies)', '')
             if list_depends != '':
@@ -238,17 +216,14 @@ class Dependencies(object):
                     if d != '%(AdditionalDependencies)':
                         if os.path.splitext(d)[1] == '.lib':
                             add_lib_dirs.append(d.replace('.lib', ''))
-                if add_lib_dirs:
-                    self.cmake.write('# Link with other additional libraries.\n')
-                    self.cmake.write('target_link_libraries(${PROJECT_NAME}')
-                    for dep in add_lib_dirs:
-                        self.cmake.write(' ' + dep)
-                    self.cmake.write(')\n')
+                self.context['add_lib_deps'] = add_lib_dirs
         else:  # pragma: no cover
             send('No dependencies.', '')
 
+    def find_target_additional_library_directories(self):
         # Additional Library Directories
         additional_library_directories = self.tree.xpath('//ns:AdditionalLibraryDirectories', namespaces=self.ns)
+        self.context['add_lib_dirs'] = []
         if additional_library_directories:
             list_depends = additional_library_directories[0].text.replace('%(AdditionalLibraryDirectories)', '')
             if list_depends != '':
@@ -258,26 +233,57 @@ class Dependencies(object):
                     d = d.strip()
                     if d != '':
                         add_lib_dirs.append(d)
-                if add_lib_dirs:
-                    self.cmake.write('if(MSVC)\n')
-                    self.cmake.write('   target_link_libraries(${PROJECT_NAME}')
-                    for dep in add_lib_dirs:
-                        self.cmake.write(' -LIBPATH:' + cleaning_output(dep))
-                    self.cmake.write(')\n')
-                    self.cmake.write('endif(MSVC)\n')
+                self.context['add_lib_dirs'] = add_lib_dirs
         else:  # pragma: no cover
             send('No dependencies.', '')
 
-    def extensions_targets_dependencies(self):
+    def write_link_dependencies(self):
+        """
+        Write link dependencies of project.
+
+        """
+
+        if self.context['target_references']:
+            self.cmake.write('# Link with other targets.\n')
+            self.cmake.write('target_link_libraries(${PROJECT_NAME}')
+            for reference in self.context['target_references']:
+                path_to_reference = os.path.splitext(ntpath.basename(reference))[0]
+                lib = self.get_dependency_target_name(os.path.join(os.path.dirname(self.vcxproj_path), reference))
+                self.cmake.write(' ' + lib)
+                message = 'External library found : {0}'.format(path_to_reference)
+                send(message, '')
+            self.cmake.write(')\n')
+
+        if self.context['add_lib_deps']:
+            self.cmake.write('# Link with other additional libraries.\n')
+            self.cmake.write('target_link_libraries(${PROJECT_NAME}')
+            for dep in self.context['add_lib_deps']:
+                self.cmake.write(' ' + dep)
+            self.cmake.write(')\n')
+
+        if self.context['add_lib_dirs']:
+            self.cmake.write('if(MSVC)\n')
+            self.cmake.write('   target_link_libraries(${PROJECT_NAME}')
+            for dep in self.context['add_lib_dirs']:
+                self.cmake.write(' -LIBPATH:' + cleaning_output(dep))
+            self.cmake.write(')\n')
+            self.cmake.write('endif(MSVC)\n')
+
+    def find_target_dependency_packages(self):
         """
         Other dependencies of project. Like nuget for example.
 
         """
-        packages_xml = get_xml_data( os.path.join(os.path.dirname(self.cmake.name), 'packages.config') )
+        self.context['packages'] = []
+        packages_xml = get_xml_data(os.path.join(os.path.dirname(self.cmake.name), 'packages.config'))
         # External libraries
         if packages_xml:
             extension = packages_xml['tree'].xpath('/packages/package')
             for ref in extension:
                 package_id = ref.get('id')
                 package_version = ref.get('version')
-                self.cmake.write('\nuse_package(${{PROJECT_NAME}} {0} {1})'.format(package_id, package_version))
+                self.context['packages'].append([package_id, package_version])
+
+    def write_target_dependency_packages(self):
+        for package in self.context['packages']:
+            self.cmake.write('\nuse_package(${{PROJECT_NAME}} {0} {1})'.format(package[0], package[1]))

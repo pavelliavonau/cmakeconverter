@@ -61,7 +61,7 @@ class TestDependencies(unittest2.TestCase):
         self.data_test['cmake'] = get_cmake_lists('./')
         under_test = Dependencies(self.data_test)
 
-        under_test.find_and_write_include_dir()
+        under_test.find_include_dir()
         self.data_test['cmake'].close()
 
         cmakelists_test = open('CMakeLists.txt')
@@ -115,7 +115,7 @@ class TestDependencies(unittest2.TestCase):
         self.data_test['cmake'] = get_cmake_lists('./')
         under_test = Dependencies(self.data_test)
 
-        under_test.link_dependencies()
+        under_test.write_link_dependencies()
         self.data_test['cmake'].close()
 
         cmakelists_test = open('CMakeLists.txt')

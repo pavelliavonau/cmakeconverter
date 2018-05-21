@@ -42,8 +42,13 @@ class DataConverter:
     """
     Base class for converters
     """
-    def __init__(self, context):
+    def __init__(self, context, vs_project, cmake_lists_destination_path):
         self.context = context
+        self.init_files(vs_project, cmake_lists_destination_path)
+        self.define_settings()
+
+    def define_settings(self):
+        raise NotImplementedError('You need to define a define_settings method!')
 
     def init_context(self, vs_project):
         pass
@@ -77,6 +82,18 @@ class DataConverter:
             self.context['vcxproj_path'] = vs_project
             self.init_context(vs_project)
             self.open_cmake_lists(cmake_lists, self.context['project_name'])
+
+    def collect_data(self):
+        raise NotImplementedError('You need to define a collect_data method!')
+
+    def write_data(self):
+        raise NotImplementedError('You need to define a write_data method!')
+
+    # Template method
+    def convert(self):
+        self.collect_data()
+        self.write_data()
+        self.close_cmake_file()
 
     @staticmethod
     def add_cmake_version_required(cmake_file):
@@ -118,10 +135,17 @@ class DataConverter:
             self.context['cmake'] = get_cmake_lists()
 
 
-class CPPConverter(DataConverter):
+class VCXProjectConverter(DataConverter):
     """
         Class that converts C++ project to CMakeLists.txt.
     """
+
+    def __init__(self, context, xml_project_path, cmake_lists_destination_path):
+        DataConverter.__init__(self, context, xml_project_path, cmake_lists_destination_path)
+        self.variables = VCXProjectVariables(self.context)
+        self.files = ProjectFiles(self.context)
+        self.flags = CPPFlags(self.context)
+        self.dependencies = Dependencies(self.context)
 
     def init_context(self, vs_project):
         project_name = self.context['project_name']
@@ -152,59 +176,67 @@ class CPPConverter(DataConverter):
                                                                                         ' and @Label="Configuration"')
                 self.context['definition_groups'][configuration_data] = get_definitiongroup(configuration_data)
 
-    def create_data(self):
+    def collect_data(self):
         """
-        Create the data and convert each part of "vcxproj" project
+        Collect the data of each part of "vcxproj" project
+
+        """
+
+        self.variables.find_outputs_variables()
+        self.files.collects_source_files()
+        self.files.find_cmake_project_language()
+        if not self.context['has_only_headers']:
+            self.flags.do_precompiled_headers(self.files)
+            self.flags.define_flags()
+            self.dependencies.find_include_dir()
+            self.dependencies.find_target_references()
+            self.dependencies.find_target_additional_dependencies()
+            self.dependencies.find_target_additional_library_directories()
+            self.dependencies.find_target_dependency_packages()
+
+    def write_data(self):
+        """
+        Write the data of each part of "vcxproj" project into CMakeLists.txt
 
         """
 
         if not self.context['is_converting_solution']:
             self.add_cmake_version_required(self.context['cmake'])
 
-        self.define_settings()
-        # Write variables
-        variables = VCXProjectVariables(self.context)
-        variables.add_project_variables()
-        variables.find_outputs_variables()
-
-        files = ProjectFiles(self.context)
-        files.collects_source_files()
-        files.add_cmake_project(files.language)
-        # variables.add_default_target() # TODO: add conversion option to cmd line
+        self.variables.add_project_variables()
+        self.files.write_cmake_project()
+        # self.variables.add_default_target() # TODO: add conversion option to cmd line
 
         # Add additional code or not
         if self.context['additional_code'] is not None:
-            files.add_additional_code(self.context['additional_code'])
+            self.files.add_additional_code(self.context['additional_code'])
 
-        files.write_header_files()
+        self.files.write_header_files()
 
-        if files.sources:
-            all_flags = CPPFlags(self.context)
-            all_flags.do_precompiled_headers(files)
-            all_flags.define_flags()
-            # Writing
-            all_flags.write_precompiled_headers_macro()
-            files.write_source_files()
-            all_flags.write_target_artifact()
-            variables.add_artifact_target_outputs(self.context)
-            dependencies = Dependencies(self.context)
-            dependencies.find_and_write_include_dir()
-            all_flags.write_defines_and_flags('MSVC')
-
-            # Write Dependencies
-            dependencies.write_dependencies()
-
-            # Link with other dependencies
-            dependencies.link_dependencies()
-            dependencies.extensions_targets_dependencies()
+        if not self.context['has_only_headers']:
+            self.flags.write_precompiled_headers_macro()
+            self.files.write_source_files()
+            self.flags.write_target_artifact()
+            self.variables.write_target_outputs(self.context)
+            self.dependencies.write_include_directories(self.context)
+            self.flags.write_defines_and_flags('MSVC')
+            self.dependencies.write_dependencies()
+            self.dependencies.write_link_dependencies()
+            self.dependencies.write_target_dependency_packages()
         else:
             CPPFlags.write_target_headers_only_artifact(self.context)
 
 
-class FortranProjectConverter(DataConverter):
+class VFProjectConverter(DataConverter):
     """
         Class that converts Fortran project to CMakeLists.txt.
     """
+
+    def __init__(self, context, xml_project_path, cmake_lists_destination_path):
+        DataConverter.__init__(self, context, xml_project_path, cmake_lists_destination_path)
+        self.variables = VFProjectVariables(self.context)
+        self.files = ProjectFiles(self.context)
+        self.flags = FortranFlags(self.context)
 
     def init_context(self, vs_project):
         self.context['vcxproj'] = get_xml_data(vs_project)
@@ -242,37 +274,19 @@ class FortranProjectConverter(DataConverter):
                             self.context['settings'][configuration_data]['defines'] = tool.attrib['PreprocessorDefinitions']\
                                 .split(';')
 
-    def create_data(self):
+    def collect_data(self):
         """
-        Create the data and convert each part of "vcxproj" project
+        Create the data and convert each part of "vfproj" project
 
         """
 
-        if not self.context['is_converting_solution']:
-            self.add_cmake_version_required(self.context['cmake'])
+        self.variables.find_outputs_variables()
 
-        self.define_settings()
-        # Write variables
-        variables = VFProjectVariables(self.context)
-        variables.add_project_variables()
-        variables.find_outputs_variables()
+        self.files.collects_source_files()
+        self.files.find_cmake_project_language()
 
-        files = ProjectFiles(self.context)
-        files.collects_source_files()
-        files.add_cmake_project(files.language)
-        # Add additional code or not
-        if self.context['additional_code'] is not None:
-            files.add_additional_code(self.context['additional_code'])
-
-        files.write_header_files()
-
-        if len(files.sources) != 0:
-            all_flags = FortranFlags(self.context)
-            all_flags.define_flags()
-            # Writing
-            files.write_source_files()
-            all_flags.write_target_artifact()
-            variables.add_artifact_target_outputs(self.context)
+        if not self.context['has_only_headers']:
+            self.flags.define_flags()
             for setting in self.context['settings']:
                 ad_inc = self.context['settings'][setting]['VFFortranCompilerTool'].get('AdditionalIncludeDirectories')
                 if ad_inc:
@@ -281,6 +295,21 @@ class FortranProjectConverter(DataConverter):
                     self.context['settings'][setting]['inc_dirs'] += ';${CMAKE_CURRENT_SOURCE_DIR}/'
                 else:
                     self.context['settings'][setting]['inc_dirs'] = '${CMAKE_CURRENT_SOURCE_DIR}/'
-            Dependencies.write_include_directories(self.context)
-            all_flags.write_defines_and_flags('${CMAKE_Fortran_COMPILER_ID} STREQUAL "Intel"')
 
+    def write_data(self):
+        if not self.context['is_converting_solution']:
+            self.add_cmake_version_required(self.context['cmake'])
+
+        self.variables.add_project_variables()
+        self.files.write_cmake_project()
+        # Add additional code or not
+        if self.context['additional_code'] is not None:
+            self.files.add_additional_code(self.context['additional_code'])
+        self.files.write_header_files()
+        if not self.context['has_only_headers']:
+            # Writing
+            self.files.write_source_files()
+            self.flags.write_target_artifact()
+            self.variables.write_target_outputs(self.context)
+            Dependencies.write_include_directories(self.context)
+            self.flags.write_defines_and_flags('${CMAKE_Fortran_COMPILER_ID} STREQUAL "Intel"')

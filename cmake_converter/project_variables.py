@@ -73,7 +73,7 @@ class ProjectVariables(object):
             'endif(NOT CMAKE_BUILD_TYPE)\n\n'
         )
 
-    def add_artifact_target_outputs(self, context):
+    def write_target_outputs(self, context):
         """
         Add outputs for each artefacts CMake target
 

@@ -103,7 +103,7 @@ class ProjectFiles(object):
         self.context['has_only_headers'] = True if self.context['has_headers'] and not self.source_files else False
         send("Source files extensions found: %s" % self.language, 'INFO')
 
-    def add_cmake_project(self, language_list):
+    def find_cmake_project_language(self):
         """
         Add CMake Project
 
@@ -120,12 +120,12 @@ class ProjectFiles(object):
         available_language.update(dict.fromkeys(fortran_extensions, 'Fortran'))
 
         files_language = ''
-        if language_list:
-            for l in language_list:
+        if self.language:
+            for l in self.language:
                 if l in available_language:
                     files_language = l
                     break
-            if 'cpp' in language_list:  # priority for C++ for mixes with C
+            if 'cpp' in self.language:  # priority for C++ for mixes with C
                 files_language = 'cpp'
 
         project_language = ''
@@ -133,7 +133,13 @@ class ProjectFiles(object):
             project_language = available_language[files_language]
         if project_language:
             self.context['solution_languages'].add(project_language)
-        self.cmake.write('project(${{PROJECT_NAME}}{0})\n\n'.format(' ' + project_language))
+        self.context['project_language'] = project_language
+
+    def write_cmake_project(self):
+        lang = ''
+        if self.context['project_language']:
+            lang = ' ' + self.context['project_language']
+        self.cmake.write('project(${{PROJECT_NAME}}{0})\n\n'.format(lang))
 
     def write_header_files(self):
         """

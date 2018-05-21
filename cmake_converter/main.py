@@ -29,7 +29,7 @@ import argparse
 import re
 import os
 
-from cmake_converter.data_converter import DataConverter, CPPConverter, FortranProjectConverter
+from cmake_converter.data_converter import DataConverter, VCXProjectConverter, VFProjectConverter
 from cmake_converter.data_files import get_cmake_lists
 from cmake_converter.utils import set_unix_slash
 from cmake_converter.message import send
@@ -50,17 +50,14 @@ def convert_project(context, xml_project_path, cmake_lists_destination_path):
     # Give data to DataConverter()
     data_converter = None
     if 'vcxproj' in xml_project_path:
-        data_converter = CPPConverter(context)
+        data_converter = VCXProjectConverter(context, xml_project_path, cmake_lists_destination_path)
     if 'vfproj' in xml_project_path:
-        data_converter = FortranProjectConverter(context)
+        data_converter = VFProjectConverter(context, xml_project_path, cmake_lists_destination_path)
     if data_converter is None:
         send('Unknown project type at {0}'.format(xml_project_path), 'error')
         return
-    data_converter.init_files(xml_project_path, cmake_lists_destination_path)
-    data_converter.create_data()
 
-    # Close CMake file
-    data_converter.close_cmake_file()
+    data_converter.convert()
 
 
 def parse_solution(sln_text):
