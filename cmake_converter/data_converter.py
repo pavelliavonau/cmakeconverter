@@ -22,7 +22,7 @@
 """
     DataConverter
     =============
-     Manage conversion of **vcxproj** data
+     Manage conversion of **.*proj** data
 """
 
 import os
@@ -45,18 +45,35 @@ class DataConverter:
     def __init__(self, context):
         self.context = context
 
-    @staticmethod
-    def add_cmake_version_required(cmake_file):
+    def init_context(self, vs_project):
+        pass
+
+    def init_files(self, vs_project, cmake_lists):
+        """
+        Initialize opening of CMakeLists.txt and VS Project files
+
+        :param vs_project: Visual Studio project file path
+        :type vs_project: str
+        :param cmake_lists: CMakeLists.txt file path
+        :type cmake_lists: str
         """
 
-        :return:
-        """
+        if vs_project:
+            temp_path = os.path.splitext(vs_project)
+            project_name = os.path.basename(temp_path[0])
+            send('Project to convert = ' + vs_project, '')
+            self.context['project_name'] = project_name
+            self.context['vcxproj_path'] = vs_project
+            self.init_context(vs_project)
+            self.open_cmake_lists(cmake_lists, self.context['project_name'])
+
+    @staticmethod
+    def add_cmake_version_required(cmake_file):
         cmake_file.write('cmake_minimum_required(VERSION 2.8.0 FATAL_ERROR)\n\n')
 
     def close_cmake_file(self):
         """
         Close the "CMakeLists.txt" file
-
         """
 
         self.context['cmake'].close()
@@ -92,37 +109,17 @@ class DataConverter:
 
 class CPPConverter(DataConverter):
     """
-        Class who convert data to CMakeLists.txt.
+        Class that converts C++ project to CMakeLists.txt.
     """
 
-    def init_files(self, vs_project, cmake_lists):
-        """
-        Initialize opening of CMakeLists.txt and VS Project files
-
-        :param vs_project: Visual Studio project file path
-        :type vs_project: str
-        :param cmake_lists: CMakeLists.txt file path
-        :type cmake_lists: str
-        """
-
-        # VS Project (.vcxproj)
-        if vs_project:
-            temp_path = os.path.splitext(vs_project)
-            project_name = os.path.basename(temp_path[0])
-            if temp_path[1] == '.vcxproj':
-                send('Project to convert = ' + vs_project, '')
-                self.context['vcxproj'] = get_vcxproj_data(vs_project)
-                self.context['vcxproj_path'] = vs_project
-                project_name_value = \
-                    cmake_converter.utils.get_global_project_name_from_vcxproj_file(self.context['vcxproj'])
-                if project_name_value:
-                    project_name = project_name_value
-                self.context['project_name'] = project_name
-            else:  # pragma: no cover
-                send('This file is not a ".vcxproj". Be sure you give the right file', 'error')
-                exit(1)
-
-        self.open_cmake_lists(cmake_lists, project_name)
+    def init_context(self, vs_project):
+        project_name = self.context['project_name']
+        self.context['vcxproj'] = get_vcxproj_data(vs_project)
+        project_name_value = \
+            cmake_converter.utils.get_global_project_name_from_vcxproj_file(self.context['vcxproj'])
+        if project_name_value:
+            project_name = project_name_value
+        self.context['project_name'] = project_name
 
     @staticmethod
     def define_settings(context):
@@ -213,38 +210,16 @@ class CPPConverter(DataConverter):
 
 class FortranProjectConverter(DataConverter):
     """
-        Class who convert Fortran project to CMakeLists.txt.
+        Class that converts Fortran project to CMakeLists.txt.
     """
 
-    def init_files(self, vf_project, cmake_lists):
-        """
-        Initialize opening of CMakeLists.txt and VS Project files
-
-        :param vf_project: Visual Studio project file path
-        :type vf_project: str
-        :param cmake_lists: CMakeLists.txt file path
-        :type cmake_lists: str
-        """
-
-        # VS Project (.vfproj)
-        if vf_project:
-            temp_path = os.path.splitext(vf_project)
-            project_name = os.path.basename(temp_path[0])
-            if temp_path[1] == '.vfproj':
-                send('Project to convert = ' + vf_project, '')
-                self.context['vcxproj'] = get_xml_data(vf_project)
-                self.context['vcxproj_path'] = vf_project
-                self.context['project_name'] = project_name
-            else:  # pragma: no cover
-                send('This file is not a ".vfproj". Be sure you give the right file', 'error')
-                exit(1)
-
-        self.open_cmake_lists(cmake_lists, project_name)
+    def init_context(self, vs_project):
+        self.context['vcxproj'] = get_xml_data(vs_project)
 
     @staticmethod
     def define_settings(context):
         """
-        Define the settings of vcxproj
+        Define the settings of vfproj
 
         """
 

@@ -32,6 +32,7 @@ import os
 from cmake_converter.data_converter import DataConverter, CPPConverter, FortranProjectConverter
 from cmake_converter.data_files import get_cmake_lists
 from cmake_converter.utils import set_unix_slash
+from cmake_converter.message import send
 
 
 def convert_project(context, xml_project_path, cmake_lists_destination_path):
@@ -53,7 +54,8 @@ def convert_project(context, xml_project_path, cmake_lists_destination_path):
     if 'vfproj' in xml_project_path:
         data_converter = FortranProjectConverter(context)
     if data_converter is None:
-        return  # unknown project type
+        send('Unknown project type at {0}'.format(xml_project_path), 'error')
+        return
     data_converter.init_files(xml_project_path, cmake_lists_destination_path)
     data_converter.create_data()
 
