@@ -48,6 +48,17 @@ class DataConverter:
     def init_context(self, vs_project):
         pass
 
+    def init_context_setting(self, configuration_data):
+        conf_arch = configuration_data.split('|')
+        conf = conf_arch[0]
+        arch = conf_arch[1]
+        self.context['settings'][configuration_data] = {'defines': [],
+                                                        'cl_flags': [],
+                                                        'ln_flags': [],
+                                                        'conf': conf,
+                                                        'arch': arch,
+                                                        }
+
     def init_files(self, vs_project, cmake_lists):
         """
         Initialize opening of CMakeLists.txt and VS Project files
@@ -121,43 +132,25 @@ class CPPConverter(DataConverter):
             project_name = project_name_value
         self.context['project_name'] = project_name
 
-    @staticmethod
-    def define_settings(context):
+    def define_settings(self):
         """
         Define the settings of vcxproj
 
         """
 
-        settings = {}
-        property_groups = {}
-        definition_groups = {}
-        tree = context['vcxproj']['tree']
-        ns = context['vcxproj']['ns']
+        tree = self.context['vcxproj']['tree']
+        ns = self.context['vcxproj']['ns']
         configuration_nodes = tree.xpath('//ns:ProjectConfiguration', namespaces=ns)
         if configuration_nodes:
+            self.context['settings'] = {}
+            self.context['property_groups'] = {}
+            self.context['definition_groups'] = {}
             for configuration_node in configuration_nodes:
                 configuration_data = str(configuration_node.get('Include'))
-                conf_arch = configuration_data.split('|')
-                conf = conf_arch[0]
-                arch = conf_arch[1]
-                settings[configuration_data] = {'defines': [],
-                                                'cl_flags': [],
-                                                'ln_flags': [],
-                                                'conf': conf,
-                                                'arch': arch,
-                                                }
-
-        for setting in settings:
-            property_groups[setting] = get_propertygroup(
-                setting, ' and @Label="Configuration"')
-
-        # ItemDefinitionGroup
-        for setting in settings:
-            definition_groups[setting] = get_definitiongroup(setting)
-
-        context['settings'] = settings
-        context['property_groups'] = property_groups
-        context['definition_groups'] = definition_groups
+                self.init_context_setting(configuration_data)
+                self.context['property_groups'][configuration_data] = get_propertygroup(configuration_data,
+                                                                                        ' and @Label="Configuration"')
+                self.context['definition_groups'][configuration_data] = get_definitiongroup(configuration_data)
 
     def create_data(self):
         """
@@ -168,7 +161,7 @@ class CPPConverter(DataConverter):
         if not self.context['is_converting_solution']:
             self.add_cmake_version_required(self.context['cmake'])
 
-        self.define_settings(self.context)
+        self.define_settings()
         # Write variables
         variables = VCXProjectVariables(self.context)
         variables.add_project_variables()
@@ -216,48 +209,38 @@ class FortranProjectConverter(DataConverter):
     def init_context(self, vs_project):
         self.context['vcxproj'] = get_xml_data(vs_project)
 
-    @staticmethod
-    def define_settings(context):
+    def define_settings(self):
         """
         Define the settings of vfproj
 
         """
 
-        settings = {}
-        tree = context['vcxproj']['tree']
+        tree = self.context['vcxproj']['tree']
         configuration_nodes = tree.xpath('/VisualStudioProject/Configurations/Configuration')
         if configuration_nodes:
+            self.context['settings'] = {}
             for configuration_node in configuration_nodes:
                 configuration_data = str(configuration_node.get('Name'))
-                conf_arch = configuration_data.split('|')
-                conf = conf_arch[0]
-                arch = conf_arch[1]
-                settings[configuration_data] = {'defines': [],
-                                                'cl_flags': [],
-                                                'ln_flags': [],
-                                                'conf': conf,
-                                                'arch': arch,
-                                                }
+                self.init_context_setting(configuration_data)
 
                 out_dir_node = configuration_node.get('OutputDirectory')
                 if out_dir_node:
-                    settings[configuration_data]['out_dir'] = out_dir_node
+                    self.context['settings'][configuration_data]['out_dir'] = out_dir_node
 
                 target_name_node = configuration_node.get('TargetName')
                 if target_name_node:
-                    settings[configuration_data]['output_name'] = target_name_node
+                    self.context['settings'][configuration_data]['output_name'] = target_name_node
                 else:
-                    settings[configuration_data]['output_name'] = context['project_name']
+                    self.context['settings'][configuration_data]['output_name'] = self.context['project_name']
 
                 tools = configuration_node.xpath('Tool')
                 for tool in tools:
                     tool_name = str(tool.get('Name'))
-                    settings[configuration_data][tool_name] = tool.attrib
+                    self.context['settings'][configuration_data][tool_name] = tool.attrib
                     if 'VFFortranCompilerTool' in tool_name:
                         if 'PreprocessorDefinitions' in tool.attrib:
-                            settings[configuration_data]['defines'] = tool.attrib['PreprocessorDefinitions'].split(';')
-
-        context['settings'] = settings
+                            self.context['settings'][configuration_data]['defines'] = tool.attrib['PreprocessorDefinitions']\
+                                .split(';')
 
     def create_data(self):
         """
@@ -268,7 +251,7 @@ class FortranProjectConverter(DataConverter):
         if not self.context['is_converting_solution']:
             self.add_cmake_version_required(self.context['cmake'])
 
-        self.define_settings(self.context)
+        self.define_settings()
         # Write variables
         variables = VFProjectVariables(self.context)
         variables.add_project_variables()
