@@ -234,6 +234,7 @@ class CPPFlags(Flags):
                         if header.lower() == pch_header_name.lower():
                             found = True
                             founded_pch_h_path = headers_path
+                            pch_header_name = header
                         if found:
                             break
                     if found:
@@ -241,16 +242,22 @@ class CPPFlags(Flags):
 
                 pch_source_name = pch_header_name.replace('.h', '.cpp')
                 real_pch_cpp = ''
+                real_pch_cpp_path = ''
                 if founded_pch_h_path in files.sources:
                     real_pch_cpp = take_name_from_list_case_ignore(files.sources[founded_pch_h_path], pch_source_name)
+                    real_pch_cpp_path = founded_pch_h_path
                 else:
                     for src_path in files.sources:
                         for src in files.sources[src_path]:
                             if pch_source_name == src:
                                 real_pch_cpp = take_name_from_list_case_ignore(files.sources[src_path], src)
-                                real_pch_cpp = src_path + '/' + real_pch_cpp
-                pch_header_path = founded_pch_h_path + '/' + pch_header_name
-                pch_source_path = real_pch_cpp
+                                real_pch_cpp_path = src_path
+                if founded_pch_h_path:
+                    founded_pch_h_path += '/'
+                pch_header_path = founded_pch_h_path + pch_header_name
+                if real_pch_cpp_path:
+                    real_pch_cpp_path += '/'
+                pch_source_path = real_pch_cpp_path + real_pch_cpp
             self.settings[setting]['PrecompiledHeaderFile'] = pch_header_path
             self.settings[setting]['PrecompiledSourceFile'] = pch_source_path
 
