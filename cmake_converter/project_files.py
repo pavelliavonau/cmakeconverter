@@ -43,8 +43,8 @@ class ProjectFiles(object):
         self.cmake = context['cmake']
         self.context = context
         if '.vcxproj' in self.vcxproj_path:
-            self.source_files = self.tree.xpath('//ns:ClCompile', namespaces=self.ns)
-            self.header_files = self.tree.xpath('//ns:ClInclude', namespaces=self.ns)
+            self.source_files = self.tree.xpath('//ns:ItemGroup/ns:ClCompile', namespaces=self.ns)
+            self.header_files = self.tree.xpath('//ns:ItemGroup/ns:ClInclude', namespaces=self.ns)
             self.source_file_attr = 'Include'
         elif '.vfproj' in self.vcxproj_path:
             self.source_files = self.tree.xpath('/VisualStudioProject/Files/Filter/File')
