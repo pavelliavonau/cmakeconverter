@@ -31,8 +31,7 @@ import os
 
 from cmake_converter.data_converter import DataConverter, VCXProjectConverter, VFProjectConverter
 from cmake_converter.data_files import get_cmake_lists
-from cmake_converter.utils import set_unix_slash
-from cmake_converter.message import send
+from cmake_converter.utils import set_unix_slash, message
 
 
 def convert_project(context, xml_project_path, cmake_lists_destination_path):
@@ -54,7 +53,7 @@ def convert_project(context, xml_project_path, cmake_lists_destination_path):
     if 'vfproj' in xml_project_path:
         data_converter = VFProjectConverter(context, xml_project_path, cmake_lists_destination_path)
     if data_converter is None:
-        send('Unknown project type at {0}'.format(xml_project_path), 'error')
+        message('Unknown project type at {0}'.format(xml_project_path), 'error')
         return
 
     data_converter.convert()
@@ -132,7 +131,7 @@ def set_dependencies_for_project(context, project_data):
 
 def main():  # pragma: no cover
     """
-    Define arguments and send to DataConverter()
+    Define arguments and message to DataConverter()
 
     """
 

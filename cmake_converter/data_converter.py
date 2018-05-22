@@ -32,9 +32,9 @@ from cmake_converter.data_files import get_vcxproj_data, get_cmake_lists, get_pr
 
 from cmake_converter.dependencies import Dependencies
 from cmake_converter.flags import CPPFlags, FortranFlags
-from cmake_converter.message import send
 from cmake_converter.project_files import ProjectFiles
 from cmake_converter.project_variables import VCXProjectVariables, VFProjectVariables
+from cmake_converter.utils import message
 import cmake_converter.utils
 
 
@@ -77,7 +77,7 @@ class DataConverter:
         if vs_project:
             temp_path = os.path.splitext(vs_project)
             project_name = os.path.basename(temp_path[0])
-            send('Project to convert = ' + vs_project, '')
+            message('Project to convert = ' + vs_project, '')
             self.context['project_name'] = project_name
             self.context['vcxproj_path'] = vs_project
             self.init_context(vs_project)
@@ -127,7 +127,7 @@ class DataConverter:
                     self.context['cmake'] = get_cmake_lists(cmake_lists)  # writing first time
 
         if not self.context['cmake']:
-            send(
+            message(
                 'CMakeLists.txt path is not set. '
                 'He will be generated in current directory.',
                 'warn'

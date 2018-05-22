@@ -27,8 +27,7 @@
 
 import os
 
-from cmake_converter.message import send
-from cmake_converter.utils import take_name_from_list_case_ignore, normalize_path
+from cmake_converter.utils import take_name_from_list_case_ignore, normalize_path, message
 
 
 class ProjectFiles(object):
@@ -51,7 +50,7 @@ class ProjectFiles(object):
             self.header_files = []
             self.source_file_attr = 'RelativePath'
         else:
-            send("Unsupported project type in ProjectFiles class: {0}".format(self.vcxproj_path), 'ERROR')
+            message("Unsupported project type in ProjectFiles class: {0}".format(self.vcxproj_path), 'ERROR')
 
         self.language = []
         self.sources = {}
@@ -101,7 +100,7 @@ class ProjectFiles(object):
 
         self.context['has_headers'] = True if self.header_files else False
         self.context['has_only_headers'] = True if self.context['has_headers'] and not self.source_files else False
-        send("Source files extensions found: %s" % self.language, 'INFO')
+        message("Source files extensions found: %s" % self.language, 'INFO')
 
     def find_cmake_project_language(self):
         """
@@ -206,10 +205,10 @@ class ProjectFiles(object):
                     self.cmake.write(line)
                 fc.close()
                 self.cmake.write('\n')
-                send('File of Code is added = ' + file_to_add, 'warn')
+                message('File of Code is added = ' + file_to_add, 'warn')
             except OSError as e:
-                send(str(e), 'error')
-                send(
+                message(str(e), 'error')
+                message(
                     'Wrong data file ! Code was not added, please verify file name or path !',
                     'error'
                 )

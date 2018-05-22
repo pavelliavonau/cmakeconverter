@@ -29,9 +29,8 @@ import os
 
 from os import path
 
-from cmake_converter.message import send
 from cmake_converter.utils import take_name_from_list_case_ignore, get_configuration_type\
-    , write_property_of_settings, set_unix_slash, normalize_path
+    , write_property_of_settings, set_unix_slash, normalize_path, message
 
 cl_flags = 'cl_flags'
 ln_flags = 'ln_flags'
@@ -116,7 +115,7 @@ class Flags(object):
         """
         Add dummy target
         """
-        send('CMake will show fake custom Library.', '')
+        message('CMake will show fake custom Library.', '')
         context['cmake'].write('add_custom_target(${PROJECT_NAME} SOURCES ${HEADERS_FILES})\n\n')
 
 
@@ -150,16 +149,16 @@ class CPPFlags(Flags):
 
         if self.std:
             if self.std in self.available_std:
-                send('Cmake will use C++ std %s.' % self.std, 'info')
+                message('Cmake will use C++ std %s.' % self.std, 'info')
                 linux_flags = '-std=%s' % self.std
             else:
-                send(
+                message(
                     'C++ std %s version does not exist. CMake will use "c++11" instead' % self.std,
                     'warn'
                 )
                 linux_flags = '-std=c++11'
         else:
-            send('No C++ std version specified. CMake will use "c++11" by default.', 'info')
+            message('No C++ std version specified. CMake will use "c++11" by default.', 'info')
             linux_flags = '-std=c++11'
         references = self.tree.xpath('//ns:ProjectReference', namespaces=self.ns)
         if references:
@@ -203,7 +202,7 @@ class CPPFlags(Flags):
                         self.settings[setting][defines].append('_UNICODE')
                     if 'MultiByte' in character_set[0].text:
                         self.settings[setting][defines].append('_MBCS')
-                send('PreprocessorDefinitions for {0}'.format(setting), 'ok')
+                message('PreprocessorDefinitions for {0}'.format(setting), 'ok')
 
     def do_precompiled_headers(self, files):
         pch_header_path = ''
@@ -327,7 +326,7 @@ class CPPFlags(Flags):
                 flags_message += value
 
         flag_name = xpath.split(':')[-1]
-        send('{0} for {1} is {2} '.format(flag_name, setting, flags_message), '')
+        message('{0} for {1} is {2} '.format(flag_name, setting, flags_message), '')
         return flag_text
 
     def set_whole_program_optimization(self):
@@ -412,9 +411,9 @@ class CPPFlags(Flags):
                     self.settings[setting]['use_debug_libs'] = True
                 else:
                     self.settings[setting]['use_debug_libs'] = False
-                send('UseDebugLibrairies for {0}'.format(setting), 'ok')
+                message('UseDebugLibrairies for {0}'.format(setting), 'ok')
             else:
-                send('No UseDebugLibrairies for {0}'.format(setting), '')
+                message('No UseDebugLibrairies for {0}'.format(setting), '')
 
     def set_warning_level(self):
         """
@@ -461,10 +460,10 @@ class CPPFlags(Flags):
                     sw = sw.strip()
                     if sw != '%(DisableSpecificWarnings)':
                         self.settings[setting][cl_flags].append('/wd{0}'.format(sw))
-                send('DisableSpecificWarnings for {0} : {1}'.format(setting, specific_warnings_node[0].text.strip()),
+                message('DisableSpecificWarnings for {0} : {1}'.format(setting, specific_warnings_node[0].text.strip()),
                      'ok')
             else:
-                send('No Additional Options for {0}'.format(setting), '')
+                message('No Additional Options for {0}'.format(setting), '')
 
     def set_additional_options(self):
         """
@@ -479,9 +478,9 @@ class CPPFlags(Flags):
                     opt = opt.strip()
                     if opt != '' and opt != '%(AdditionalOptions)':
                         self.settings[setting][cl_flags].append(opt)
-                    send('Additional Options for {0} : {1}'.format(setting, opt), 'ok')
+                    message('Additional Options for {0} : {1}'.format(setting, opt), 'ok')
             else:
-                send('No Additional Options for {0}'.format(setting), '')
+                message('No Additional Options for {0}'.format(setting), '')
 
     def set_basic_runtime_checks(self):
         """
@@ -530,10 +529,10 @@ class CPPFlags(Flags):
                     cl_flag_value = m_t
                 if 'MultiThreadedDebug' == mdd_value.text:
                     cl_flag_value = mtd
-                send('RuntimeLibrary {0} for {1}'.format(mdd_value.text, setting), 'ok')
+                message('RuntimeLibrary {0} for {1}'.format(mdd_value.text, setting), 'ok')
             else:
                 cl_flag_value = m_d  # default
-                send('Default RuntimeLibrary {0} for {1}'.format(m_d, setting), '')
+                message('Default RuntimeLibrary {0} for {1}'.format(m_d, setting), '')
 
             if cl_flag_value:
                 self.settings[setting][cl_flags].append(cl_flag_value)
@@ -811,13 +810,13 @@ class CPPFlags(Flags):
         if configuration_type:
             if configuration_type == 'DynamicLibrary':
                 self.cmake.write('add_library(${PROJECT_NAME} SHARED')
-                send('CMake will build a SHARED Library.', '')
+                message('CMake will build a SHARED Library.', '')
             elif configuration_type == 'StaticLibrary':  # pragma: no cover
                 self.cmake.write('add_library(${PROJECT_NAME} STATIC')
-                send('CMake will build a STATIC Library.', '')
+                message('CMake will build a STATIC Library.', '')
             else:  # pragma: no cover
                 self.cmake.write('add_executable(${PROJECT_NAME} ')
-                send('CMake will build an EXECUTABLE.', '')
+                message('CMake will build an EXECUTABLE.', '')
             if not self.context['has_only_headers']:
                 self.cmake.write(' ${SRC_FILES}')
             if self.context['has_headers']:
@@ -857,7 +856,7 @@ class FortranFlags(Flags):
                     self.settings[setting][key].append(value)
                     flags_message += value
 
-            send('{0} for {1} is {2} '.format(attr, setting, flags_message), '')
+            message('{0} for {1} is {2} '.format(attr, setting, flags_message), '')
 
     def define_flags(self):
         """
@@ -1015,9 +1014,9 @@ class FortranFlags(Flags):
                                                                        name_value[1])
                     ready_add_opts.append(add_opt)
                 self.settings[setting][cl_flags].append(';'.join(ready_add_opts))
-                send('Additional Options for {0} : {1}'.format(setting, str(add_opt)), 'ok')
+                message('Additional Options for {0} : {1}'.format(setting, str(add_opt)), 'ok')
             else:
-                send('No Additional Options for {0}'.format(setting), '')
+                message('No Additional Options for {0}'.format(setting), '')
 
     def write_target_artifact(self):
         """
@@ -1025,7 +1024,7 @@ class FortranFlags(Flags):
 
         """
 
-        send('CMake will build a STATIC Library.', '')
+        message('CMake will build a STATIC Library.', '')
         self.cmake.write('add_library(${PROJECT_NAME} STATIC')
         self.cmake.write(' ${SRC_FILES}')
         self.cmake.write(')\n\n')

@@ -27,7 +27,7 @@
 
 from lxml import etree
 
-from cmake_converter.message import send
+from cmake_converter.utils import message
 import os
 
 
@@ -52,21 +52,21 @@ def get_vcxproj_data(vs_project):
         vcxproj['ns'] = ns
         assert 'http://schemas.microsoft.com' in ns['ns']
     except AssertionError:  # pragma: no cover
-        send(
+        message(
             '.vcxproj file cannot be import, because this file does not seem to comply with'
             ' Microsoft xml data !',
             'error'
         )
         exit(1)
     except (OSError, IOError):  # pragma: no cover
-        send(
+        message(
             '%s file cannot be import. '
             'Please, verify you have rights to this directory or file exists !' % vs_project,
             'error'
         )
         exit(1)
     except etree.XMLSyntaxError:  # pragma: no cover
-        send('This file is not a ".vcxproj" file or XML is broken !', 'error')
+        message('This file is not a ".vcxproj" file or XML is broken !', 'error')
         exit(1)
 
     return vcxproj
@@ -86,7 +86,7 @@ def get_xml_data(xml_file):
     xml_file = '/'.join(xml_file.split('\\'))
 
     if not os.path.exists(xml_file):
-        send(
+        message(
             '{0} file not exists. '.format(xml_file),
             'error'
         )
@@ -100,21 +100,21 @@ def get_xml_data(xml_file):
         xml['ns'] = ns
         #assert 'http://schemas.microsoft.com' in ns['ns']
     except AssertionError:  # pragma: no cover
-        send(
+        message(
             '.xml file cannot be import, because this file does not seem to comply with'
             ' Microsoft xml data !',
             'error'
         )
         exit(1)
     except (OSError, IOError):  # pragma: no cover
-        send(
+        message(
             '%s file cannot be import. '
             'Please, verify you have rights to this directory or file exists !' % xml_file,
             'error'
         )
         exit(1)
     except etree.XMLSyntaxError:  # pragma: no cover
-        send('This file is not a ".xml" file or XML is broken !', 'error')
+        message('This file is not a ".xml" file or XML is broken !', 'error')
         exit(1)
 
     return xml
@@ -171,11 +171,11 @@ def get_cmake_lists(cmake_path=None, open_type='w'):
     cmake = ''
     if not cmake_path:
         if open_type == 'w':
-            send('CMakeLists will be written at current directory.', '')
+            message('CMakeLists will be written at current directory.', '')
         cmake = os.path.join(os.getcwd(), 'CMakeLists.txt')
     else:
         if open_type == 'w':
-            send('CmakeLists.txt will be written at : ' + str(cmake_path), 'warn')
+            message('CmakeLists.txt will be written at : ' + str(cmake_path), 'warn')
         if cmake_path[-1:] == '/' or cmake_path[-1:] == '\\':
             cmake = str(cmake_path) + 'CMakeLists.txt'
         else:

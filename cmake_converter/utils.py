@@ -22,14 +22,21 @@
 """
     Utils
     =====
-     Provides utils functions
+     Utils manage function needed by converter
 """
 
 import sys
 import os
 import glob
+import colorama
 
 path_prefix = ''
+
+DONE = colorama.Fore.GREEN + colorama.Style.BRIGHT
+OK = colorama.Fore.CYAN + colorama.Style.BRIGHT
+WARN = colorama.Fore.YELLOW + colorama.Style.BRIGHT
+FAIL = colorama.Fore.RED + colorama.Style.BRIGHT
+ENDC = colorama.Fore.RESET + colorama.Style.RESET_ALL
 
 
 def mkdir(folder):
@@ -204,3 +211,68 @@ def normalize_path(working_path, path_to_normalize):
     normal_path = set_unix_slash(os.path.relpath(actual_path_name, working_path))
     normal_path = remove_relative_from_path(normal_path)
     return normal_path
+
+
+def message(text, status):  # pragma: no cover
+    """
+    Displays a message while the script is running
+
+    :param text: content of the message
+    :type text: str
+    :param status: level of the message (change color)
+    :type status: str
+    """
+
+    if status == 'error':
+        print('ERR  : ' + FAIL + text + ENDC)
+    elif status == 'warn':
+        print('WARN : ' + WARN + text + ENDC)
+    elif status == 'ok':
+        print('OK   : ' + OK + text + ENDC)
+    elif status == 'done':
+        print(DONE + text + ENDC)
+    else:
+        print('INFO : ' + text)
+
+
+def get_title(title, text):
+    """
+    Return formatted title for writing
+
+    :param title: main title text
+    :type title: str
+    :param text: text related to title
+    :type text: str
+    :return: formatted title
+    :rtype: str
+    """
+
+    offset = 60
+    text_offset = (offset / 2) - len(title)
+
+    title_sharp = ''
+    for _ in range(int(text_offset)):
+        title_sharp = '%s#' % title_sharp
+
+    title = '%s %s ' % (title_sharp, title)
+    i = len(title)
+    while i < offset:
+        title = '%s#' % title
+        i += 1
+
+    text = '# %s' % text
+
+    i = len(text)
+    while i < offset:
+        if i < offset - 1:
+            text = '%s ' % text
+        else:
+            text = '%s#' % text
+            break
+        i += 1
+
+    bottom_text = ''
+    for _ in range(offset):
+        bottom_text = '%s#' % bottom_text
+
+    return '%s\n%s\n%s\n\n' % (title, text, bottom_text)

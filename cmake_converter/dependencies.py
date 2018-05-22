@@ -29,10 +29,9 @@ import ntpath
 import os
 import re
 
-from cmake_converter.message import send
 from cmake_converter.data_files import get_vcxproj_data, get_xml_data
 from cmake_converter.utils import write_property_of_settings, \
-    get_global_project_name_from_vcxproj_file, cleaning_output, normalize_path
+    get_global_project_name_from_vcxproj_file, cleaning_output, normalize_path, message
 
 
 class Dependencies(object):
@@ -58,7 +57,7 @@ class Dependencies(object):
 
         """
         if not self.includes:
-            send('Include Directories is not set.', '')
+            message('Include Directories is not set.', '')
             return
 
         for setting in self.settings:
@@ -69,9 +68,9 @@ class Dependencies(object):
 
             if incl_dir is not None:
                 inc_dirs = self.get_additional_include_directories(incl_dir.text, setting, self.context)
-                send('Include Directories found : {0}'.format(inc_dirs), 'warn')
+                message('Include Directories found : {0}'.format(inc_dirs), 'warn')
             else:  # pragma: no cover
-                send('Include Directories not found for this project.', 'warn')
+                message('Include Directories not found for this project.', 'warn')
 
     @staticmethod
     def write_include_directories(context):
@@ -186,7 +185,7 @@ class Dependencies(object):
                 for ref in self.dependencies:
                     self.cmake.write(
                         '   add_subdirectory(%s ${CMAKE_BINARY_DIR}/lib%s)\n' % (ref, str(d)))
-                    send(
+                    message(
                         'Add manually dependencies : %s. Will be build in "lib%s/" !' % (
                             ref, str(d)),
                         'warn'
@@ -201,7 +200,7 @@ class Dependencies(object):
                 )
             self.cmake.write('endif()\n\n')
         else:  # pragma: no cover
-            send('No link needed.', '')
+            message('No link needed.', '')
 
     def find_target_additional_dependencies(self):
         # Additional Dependencies
@@ -210,7 +209,7 @@ class Dependencies(object):
         if dependencies:
             list_depends = dependencies[0].text.replace('%(AdditionalDependencies)', '')
             if list_depends != '':
-                send('Additional Dependencies = %s' % list_depends, 'ok')
+                message('Additional Dependencies = %s' % list_depends, 'ok')
                 add_lib_dirs = []
                 for d in list_depends.split(';'):
                     if d != '%(AdditionalDependencies)':
@@ -218,7 +217,7 @@ class Dependencies(object):
                             add_lib_dirs.append(d.replace('.lib', ''))
                 self.context['add_lib_deps'] = add_lib_dirs
         else:  # pragma: no cover
-            send('No dependencies.', '')
+            message('No dependencies.', '')
 
     def find_target_additional_library_directories(self):
         # Additional Library Directories
@@ -227,7 +226,7 @@ class Dependencies(object):
         if additional_library_directories:
             list_depends = additional_library_directories[0].text.replace('%(AdditionalLibraryDirectories)', '')
             if list_depends != '':
-                send('Additional Library Directories = %s' % list_depends, 'ok')
+                message('Additional Library Directories = %s' % list_depends, 'ok')
                 add_lib_dirs = []
                 for d in list_depends.split(';'):
                     d = d.strip()
@@ -235,7 +234,7 @@ class Dependencies(object):
                         add_lib_dirs.append(d)
                 self.context['add_lib_dirs'] = add_lib_dirs
         else:  # pragma: no cover
-            send('No dependencies.', '')
+            message('No dependencies.', '')
 
     def write_link_dependencies(self):
         """
@@ -250,8 +249,8 @@ class Dependencies(object):
                 path_to_reference = os.path.splitext(ntpath.basename(reference))[0]
                 lib = self.get_dependency_target_name(os.path.join(os.path.dirname(self.vcxproj_path), reference))
                 self.cmake.write(' ' + lib)
-                message = 'External library found : {0}'.format(path_to_reference)
-                send(message, '')
+                msg = 'External library found : {0}'.format(path_to_reference)
+                message(msg, '')
             self.cmake.write(')\n')
 
         if self.context['add_lib_deps']:

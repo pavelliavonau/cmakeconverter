@@ -25,9 +25,8 @@
      Manage creation of CMake variables that will be used during compilation
 """
 
-from cmake_converter.message import send
 from cmake_converter.data_files import get_propertygroup
-from cmake_converter.utils import get_configuration_type, write_property_of_settings, cleaning_output
+from cmake_converter.utils import get_configuration_type, write_property_of_settings, cleaning_output, message
 
 
 class ProjectVariables(object):
@@ -53,7 +52,7 @@ class ProjectVariables(object):
             self.cmake.write('set(PROJECT_NAME ' + self.project_name + ')\n')
         else:
             self.cmake.write('set(PROJECT_NAME <PLEASE SET YOUR PROJECT NAME !!>)\n')
-            send(
+            message(
                 'No PROJECT NAME found or define. '
                 'Please set [PROJECT_NAME] variable in CMakeLists.txt.',
                 'error'
@@ -184,9 +183,9 @@ class VCXProjectVariables(ProjectVariables):
             self.settings[setting]['out_dir'] = output_path
 
             if output_path:
-                send('Output {0} = {1}'.format(setting, output_path), 'ok')
+                message('Output {0} = {1}'.format(setting, output_path), 'ok')
             else:  # pragma: no cover
-                send('No Output found. Use [{0}/bin] by default !'.format(arch), 'warn')
+                message('No Output found. Use [{0}/bin] by default !'.format(arch), 'warn')
 
 
 class VFProjectVariables(ProjectVariables):
@@ -220,6 +219,6 @@ class VFProjectVariables(ProjectVariables):
             self.settings[setting]['out_dir'] = output_path
 
             if output_path:
-                send('Output {0} = {1}'.format(setting, output_path), 'ok')
+                message('Output {0} = {1}'.format(setting, output_path), 'ok')
             else:  # pragma: no cover
-                send('No Output found. Use [{0}/bin] by default !'.format(arch), 'warn')
+                message('No Output found. Use [{0}/bin] by default !'.format(arch), 'warn')
