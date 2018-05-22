@@ -251,10 +251,10 @@
     <ClInclude Include="..\..\..\core\src\system.h" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="test_files\g3log.vcxproj">
+    <ProjectReference Include="external\g3log.vcxproj">
       <Project>{10f534b8-aa62-47d9-b1ae-e285dca9a26d}</Project>
     </ProjectReference>
-    <ProjectReference Include="test_files\zlib.vcxproj">
+    <ProjectReference Include="external\zlib.vcxproj">
       <Project>{e5289321-3d01-473d-86b9-745cd2bef1db}</Project>
     </ProjectReference>
   </ItemGroup>

@@ -19,40 +19,24 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
-"""
-    Message
-    =======
-     Manage sending messages during module execution
-"""
+import unittest2
 
-import os
+from cmake_converter.utils import get_title
 
 
-def send(message, status):  # pragma: no cover
+class TestUtils(unittest2.TestCase):
     """
-    Displays a message while the script is running
-
-    :param message: content of the message
-    :type message: str
-    :param status: level of the message (change color)
-    :type status: str
+        This file test methods of utils package
     """
 
-    FAIL = ''
-    WARN = ''
-    OK = ''
-    ENDC = ''
+    def test_get_title(self):
+        """Get Title"""
 
-    if os.name == 'posix':
-        FAIL += '\033[91m'
-        OK += '\033[34m'
-        ENDC += '\033[0m'
-        WARN += '\033[93m'
-    if status == 'error':
-        print('ERR  : ' + FAIL + message + ENDC)
-    elif status == 'warn':
-        print('WARN : ' + WARN + message + ENDC)
-    elif status == 'ok':
-        print('OK   : ' + OK + message + ENDC)
-    else:
-        print('INFO : ' + message)
+        under_test = get_title('Title', 'text of title')
+
+        self.assertEqual(
+            '######################### Title ############################\n'
+            '# text of title                                            #\n'
+            '############################################################\n\n',
+            under_test
+        )

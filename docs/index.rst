@@ -4,7 +4,7 @@
    contain the root `toctree` directive.
 
 Welcome to CMake Converter's documentation
-==========================================
+******************************************
 
 Documentation Content:
 
@@ -13,15 +13,13 @@ Documentation Content:
 
     intro
     install
-    utilisation
+    use
     cmake
     api
 
 
-
-
 Indices and tables
-==================
+******************
 
 * :ref:`genindex`
 * :ref:`modindex`

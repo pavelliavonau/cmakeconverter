@@ -32,14 +32,15 @@ class TestDependencies(unittest2.TestCase):
     """
 
     cur_dir = os.path.dirname(os.path.realpath(__file__))
-    vs_project = get_vcxproj_data('%s/test_files/project_test.vcxproj' % cur_dir)
+    vs_project = get_vcxproj_data('%s/datatest/foo.vcxproj' % cur_dir)
     cmake_lists_test = get_cmake_lists('./')
 
     data_test = {
         'cmake': cmake_lists_test,
         'cmake_output': None,
         'vcxproj': vs_project,
-        'dependencies': None,
+        'project': '%s/datatest/foo.vcxproj' % cur_dir,
+        'dependencies': [],
         'includes': None,
         'additional_code': None,
         'std': None,
@@ -53,7 +54,7 @@ class TestDependencies(unittest2.TestCase):
         self.assertTrue(under_test.cmake)
         self.assertTrue(under_test.tree)
         self.assertTrue(under_test.ns)
-        self.assertFalse(under_test.dependencies)
+        self.assertFalse(under_test.custom_dependencies)
 
     def test_write_include_dir(self):
         """Write Include Dirs"""
@@ -78,19 +79,20 @@ class TestDependencies(unittest2.TestCase):
         self.data_test['cmake'] = get_cmake_lists('./')
         under_test = Dependencies(self.data_test)
 
+        # Add dependencies from ".vcxproj"
         under_test.write_dependencies()
         self.data_test['cmake'].close()
 
         cmakelists_test = open('CMakeLists.txt')
         content_test = cmakelists_test.read()
 
-        self.assertTrue(
-            'add_subdirectory(test_files/cmake-g3log ${CMAKE_BINARY_DIR}/g3log)' in content_test)
-        self.assertTrue(
-            'add_subdirectory(test_files/cmake-zlib ${CMAKE_BINARY_DIR}/zlib)' in content_test)
+        print(content_test)
+        self.assertTrue('add_subdirectory("${G3LOGGER_DIR}"' in content_test)
+        self.assertTrue('link_directories(${DEPENDENCIES_DIR}/g3log)' in content_test)
 
         cmakelists_test.close()
 
+        # Add dependencies from "parameters"
         dependencies = ['external/zlib/cmake/', '../../external/g3log/cmake/']
         self.data_test['dependencies'] = dependencies
         self.data_test['cmake'] = get_cmake_lists('./')
@@ -105,7 +107,9 @@ class TestDependencies(unittest2.TestCase):
         self.assertTrue(
             'add_subdirectory(external/zlib/cmake/ ${CMAKE_BINARY_DIR}/lib1)' in content_test)
         self.assertTrue(
-            'add_subdirectory(../../external/g3log/cmake/ ${CMAKE_BINARY_DIR}/lib2)' in content_test)
+            'add_subdirectory(../../external/g3log/cmake/ ${CMAKE_BINARY_DIR}/lib2)' in content_test
+        )
+        self.assertTrue('link_directories(${DEPENDENCIES_DIR}/g3log)' in content_test)
 
         cmakelists_test.close()
 
