@@ -81,7 +81,7 @@ class DataConverter:
             self.context['project_name'] = project_name
             self.context['vcxproj_path'] = vs_project
             self.init_context(vs_project)
-            self.open_cmake_lists(cmake_lists, self.context['project_name'])
+            self.get_cmake_lists_name(cmake_lists, self.context['project_name'])
 
     def collect_data(self):
         raise NotImplementedError('You need to define a collect_data method!')
@@ -102,7 +102,7 @@ class DataConverter:
     def add_cmake_version_required(cmake_file):
         cmake_file.write('cmake_minimum_required(VERSION 2.8.0 FATAL_ERROR)\n\n')
 
-    def open_cmake_lists(self, cmake_lists, project_name):
+    def get_cmake_lists_name(self, cmake_lists, project_name):
         # Cmake Project (CMakeLists.txt)
         if cmake_lists:
             if os.path.exists(cmake_lists):
