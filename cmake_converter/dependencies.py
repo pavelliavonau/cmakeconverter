@@ -67,9 +67,9 @@ class Dependencies(object):
 
             if incl_dir is not None:
                 inc_dirs = self.get_additional_include_directories(incl_dir.text, setting, self.context)
-                message('Include Directories found : {0}'.format(inc_dirs), 'warn')
+                message('Include Directories found : {0}'.format(inc_dirs), '')
             else:  # pragma: no cover
-                message('Include Directories not found for this project.', 'warn')
+                message('Include Directories not found for this project.', '')
 
     @staticmethod
     def write_include_directories(context, cmake_file):
@@ -207,7 +207,7 @@ class Dependencies(object):
         if dependencies:
             list_depends = dependencies[0].text.replace('%(AdditionalDependencies)', '')
             if list_depends != '':
-                message('Additional Dependencies = %s' % list_depends, 'ok')
+                message('Additional Dependencies = %s' % list_depends, '')
                 add_lib_dirs = []
                 for d in list_depends.split(';'):
                     if d != '%(AdditionalDependencies)':
@@ -215,7 +215,7 @@ class Dependencies(object):
                             add_lib_dirs.append(d.replace('.lib', ''))
                 self.context['add_lib_deps'] = add_lib_dirs
         else:  # pragma: no cover
-            message('No dependencies.', '')
+            message('No additional dependencies.', '')
 
     def find_target_additional_library_directories(self):
         # Additional Library Directories
@@ -224,7 +224,7 @@ class Dependencies(object):
         if additional_library_directories:
             list_depends = additional_library_directories[0].text.replace('%(AdditionalLibraryDirectories)', '')
             if list_depends != '':
-                message('Additional Library Directories = %s' % list_depends, 'ok')
+                message('Additional Library Directories = %s' % list_depends, '')
                 add_lib_dirs = []
                 for d in list_depends.split(';'):
                     d = d.strip()
@@ -232,7 +232,7 @@ class Dependencies(object):
                         add_lib_dirs.append(d)
                 self.context['add_lib_dirs'] = add_lib_dirs
         else:  # pragma: no cover
-            message('No dependencies.', '')
+            message('No additional library dependencies.', '')
 
     def write_link_dependencies(self, cmake_file):
         """

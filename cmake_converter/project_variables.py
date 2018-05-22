@@ -182,7 +182,7 @@ class VCXProjectVariables(ProjectVariables):
             self.settings[setting]['out_dir'] = output_path
 
             if output_path:
-                message('Output {0} = {1}'.format(setting, output_path), 'ok')
+                message('Output {0} = {1}'.format(setting, output_path), '')
             else:  # pragma: no cover
                 message('No Output found. Use [{0}/bin] by default !'.format(arch), 'warn')
 
@@ -218,6 +218,6 @@ class VFProjectVariables(ProjectVariables):
             self.settings[setting]['out_dir'] = output_path
 
             if output_path:
-                message('Output {0} = {1}'.format(setting, output_path), 'ok')
+                message('Output {0} = {1}'.format(setting, output_path), '')
             else:  # pragma: no cover
                 message('No Output found. Use [{0}/bin] by default !'.format(arch), 'warn')

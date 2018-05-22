@@ -199,6 +199,7 @@ def get_actual_filename(name):
     res = glob.glob('\\'.join(test_name))
     if not res:
         # File not found
+        message('file or path "{0}" not found.'.format(name), 'warn')
         return None
     return res[0]
 

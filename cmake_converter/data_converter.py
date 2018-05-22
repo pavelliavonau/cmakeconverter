@@ -119,6 +119,7 @@ class DataConverter:
                             os.makedirs(directory)
                         self.context['cmake'] = directory
                         cmake_converter.utils.path_prefix = '../'
+                        message('CMakeLists will be written at subdirectory.', 'warn')
                 else:
                     self.context['cmake'] = get_cmake_lists(cmake_lists)  # writing first time
 

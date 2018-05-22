@@ -114,7 +114,7 @@ class Flags(object):
         """
         Add dummy target
         """
-        message('CMake will show fake custom Library.', '')
+        message('CMake will show fake custom Library.', 'warn')
         cmake_file.write('add_custom_target(${PROJECT_NAME} SOURCES ${HEADERS_FILES})\n\n')
 
 
@@ -201,7 +201,7 @@ class CPPFlags(Flags):
                         self.settings[setting][defines].append('_UNICODE')
                     if 'MultiByte' in character_set[0].text:
                         self.settings[setting][defines].append('_MBCS')
-                message('PreprocessorDefinitions for {0}'.format(setting), 'ok')
+                message('PreprocessorDefinitions for {0}'.format(setting), '')
 
     def do_precompiled_headers(self, files):
         pch_header_path = ''
@@ -410,7 +410,7 @@ class CPPFlags(Flags):
                     self.settings[setting]['use_debug_libs'] = True
                 else:
                     self.settings[setting]['use_debug_libs'] = False
-                message('UseDebugLibrairies for {0}'.format(setting), 'ok')
+                message('UseDebugLibrairies for {0}'.format(setting), '')
             else:
                 message('No UseDebugLibrairies for {0}'.format(setting), '')
 
@@ -455,12 +455,15 @@ class CPPFlags(Flags):
             specific_warnings_node = self.tree.xpath('{0}/ns:ClCompile/ns:DisableSpecificWarnings'
                                                      .format(self.definitiongroups[setting]), namespaces=self.ns)
             if specific_warnings_node:
+                flags = []
                 for sw in specific_warnings_node[0].text.strip().split(";"):
                     sw = sw.strip()
                     if sw != '%(DisableSpecificWarnings)':
-                        self.settings[setting][cl_flags].append('/wd{0}'.format(sw))
-                message('DisableSpecificWarnings for {0} : {1}'.format(setting, specific_warnings_node[0].text.strip()),
-                     'ok')
+                        flag = '/wd{0}'.format(sw)
+                        flags.append(flag)
+                        self.settings[setting][cl_flags].append(flag)
+                message('DisableSpecificWarnings for {0} : {1}'.format(setting, ';'.join(flags)),
+                        '')
             else:
                 message('No Additional Options for {0}'.format(setting), '')
 
@@ -477,7 +480,7 @@ class CPPFlags(Flags):
                     opt = opt.strip()
                     if opt != '' and opt != '%(AdditionalOptions)':
                         self.settings[setting][cl_flags].append(opt)
-                    message('Additional Options for {0} : {1}'.format(setting, opt), 'ok')
+                    message('Additional Options for {0} : {1}'.format(setting, opt), '')
             else:
                 message('No Additional Options for {0}'.format(setting), '')
 
@@ -528,7 +531,7 @@ class CPPFlags(Flags):
                     cl_flag_value = m_t
                 if 'MultiThreadedDebug' == mdd_value.text:
                     cl_flag_value = mtd
-                message('RuntimeLibrary {0} for {1}'.format(mdd_value.text, setting), 'ok')
+                message('RuntimeLibrary {0} for {1}'.format(mdd_value.text, setting), '')
             else:
                 cl_flag_value = m_d  # default
                 message('Default RuntimeLibrary {0} for {1}'.format(m_d, setting), '')
@@ -1012,7 +1015,7 @@ class FortranFlags(Flags):
                                                                        name_value[1])
                     ready_add_opts.append(add_opt)
                 self.settings[setting][cl_flags].append(';'.join(ready_add_opts))
-                message('Additional Options for {0} : {1}'.format(setting, str(add_opt)), 'ok')
+                message('Additional Options for {0} : {1}'.format(setting, str(add_opt)), '')
             else:
                 message('No Additional Options for {0}'.format(setting), '')
 
