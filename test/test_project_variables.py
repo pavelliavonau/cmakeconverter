@@ -22,7 +22,7 @@
 import os
 import unittest2
 
-from cmake_converter.project_variables import ProjectVariables
+from cmake_converter.project_variables import VCXProjectVariables
 from cmake_converter.data_files import get_vcxproj_data, get_cmake_lists
 
 
@@ -48,7 +48,7 @@ class TestProjectVariables(unittest2.TestCase):
     def test_init_project_variables(self):
         """Initialize Project Variables"""
 
-        under_test = ProjectVariables(self.data_test)
+        under_test = VCXProjectVariables(self.data_test)
 
         self.assertTrue(under_test.tree)
         self.assertTrue(under_test.ns)
@@ -60,7 +60,7 @@ class TestProjectVariables(unittest2.TestCase):
         """Add Project Variables"""
 
         self.data_test['cmake'] = get_cmake_lists(self.cur_dir)
-        under_test = ProjectVariables(self.data_test)
+        under_test = VCXProjectVariables(self.data_test)
 
         under_test.add_project_variables()
 
@@ -77,33 +77,34 @@ class TestProjectVariables(unittest2.TestCase):
         """Add Outputs Variables"""
 
         # TODO If NO output is given
-        self.data_test['cmake'] = get_cmake_lists(self.cur_dir)
-        under_test = ProjectVariables(self.data_test)
-
-        under_test.add_output_variables()
-
-        self.data_test['cmake'].close()
-
-        cmakelists_test = open('%s/CMakeLists.txt' % self.cur_dir)
-        content_test = cmakelists_test.read()
-
-        self.assertTrue('OUTPUT_DEBUG ../../../build/vc2017_x64d/bin/', content_test)
-        self.assertTrue('OUTPUT_RELEASE ../../../build/vc2017_x64/bin/' in content_test)
-
-        cmakelists_test.close()
-
-        # If output is given
-        # under_test.output = '../output_binaries'
-        # under_test.cmake = get_cmake_lists(self.cur_dir)
-        # under_test.add_outputs_directories()
+        # self.data_test['cmake'] = get_cmake_lists(self.cur_dir)
+        under_test = VCXProjectVariables(self.data_test)
         #
-        # under_test.cmake.close()
+        # under_test.add_project_variables()
+        # under_test.add_outputs_variables()
+        #
+        # self.data_test['cmake'].close()
         #
         # cmakelists_test = open('%s/CMakeLists.txt' % self.cur_dir)
         # content_test = cmakelists_test.read()
         #
-        # self.assertTrue('OUTPUT_DEBUG ../output_binaries/${CMAKE_BUILD_TYPE}', content_test)
-        # self.assertTrue('OUTPUT_REL ../output_binaries/${CMAKE_BUILD_TYPE}' in content_test)
+        # self.assertTrue('OUTPUT_DEBUG ../../../build/vc2017_x64d/bin/', content_test)
+        # self.assertTrue('OUTPUT_REL ../../../build/vc2017_x64/bin/' in content_test)
+        #
+        # cmakelists_test.close()
+
+        # If output is given
+        under_test.output = '../output_binaries'
+        under_test.cmake = get_cmake_lists(self.cur_dir)
+        under_test.add_outputs_variables()
+
+        under_test.cmake.close()
+
+        cmakelists_test = open('%s/CMakeLists.txt' % self.cur_dir)
+        content_test = cmakelists_test.read()
+
+        self.assertTrue('OUTPUT_DEBUG ../output_binaries/${CMAKE_BUILD_TYPE}', content_test)
+        self.assertTrue('OUTPUT_REL ../output_binaries/${CMAKE_BUILD_TYPE}' in content_test)
 
         cmakelists_test.close()
 
@@ -111,7 +112,7 @@ class TestProjectVariables(unittest2.TestCase):
         """Add CMake Project"""
 
         self.data_test['cmake'] = get_cmake_lists(self.cur_dir)
-        under_test = ProjectVariables(self.data_test)
+        under_test = VCXProjectVariables(self.data_test)
 
         # Case CXX language
         under_test.add_cmake_project(['cpp'])
@@ -142,7 +143,7 @@ class TestProjectVariables(unittest2.TestCase):
         """Add Release as Default Target"""
 
         self.data_test['cmake'] = get_cmake_lists(self.cur_dir)
-        under_test = ProjectVariables(self.data_test)
+        under_test = VCXProjectVariables(self.data_test)
 
         under_test.add_default_target()
 
@@ -159,7 +160,7 @@ class TestProjectVariables(unittest2.TestCase):
         """Add Artefact Target Outputs"""
 
         self.data_test['cmake'] = get_cmake_lists(self.cur_dir)
-        under_test = ProjectVariables(self.data_test)
+        under_test = VCXProjectVariables(self.data_test)
 
         under_test.add_cmake_output_directories()
 
