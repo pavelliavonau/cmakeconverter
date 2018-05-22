@@ -787,8 +787,9 @@ class CPPFlags(Flags):
 
         pch_header = self.settings[setting]['PrecompiledHeaderFile']
         pch_source = self.settings[setting]['PrecompiledSourceFile']
-        self.cmake.write('ADD_PRECOMPILED_HEADER("{0}" "{1}" SRC_FILES)\n\n'.format(os.path.basename(pch_header),
-                                                                                    pch_source))
+        working_path = os.path.dirname(self.context['vcxproj_path'])
+        self.cmake.write('ADD_PRECOMPILED_HEADER("{0}" "{1}" SRC_FILES)\n\n'
+                         .format(os.path.basename(pch_header), normalize_path(working_path, pch_source)))
 
     def write_target_artifact(self):
         """
