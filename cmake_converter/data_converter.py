@@ -86,25 +86,21 @@ class DataConverter:
     def collect_data(self):
         raise NotImplementedError('You need to define a collect_data method!')
 
-    def write_data(self):
+    def write_data(self, cmake_file):
         raise NotImplementedError('You need to define a write_data method!')
 
-    # Template method
     def convert(self):
+        """
+         Template method
+        """
         self.collect_data()
-        self.write_data()
-        self.close_cmake_file()
+        cmake_file = get_cmake_lists(self.context['cmake'])
+        self.write_data(cmake_file)
+        cmake_file.close()
 
     @staticmethod
     def add_cmake_version_required(cmake_file):
         cmake_file.write('cmake_minimum_required(VERSION 2.8.0 FATAL_ERROR)\n\n')
-
-    def close_cmake_file(self):
-        """
-        Close the "CMakeLists.txt" file
-        """
-
-        self.context['cmake'].close()
 
     def open_cmake_lists(self, cmake_lists, project_name):
         # Cmake Project (CMakeLists.txt)
@@ -116,12 +112,12 @@ class DataConverter:
                     file_text = cmake.read()
                     cmake.close()
                     if 'PROJECT_NAME {0}'.format(project_name) in file_text:
-                        self.context['cmake'] = get_cmake_lists(cmake_lists)  # updating
+                        self.context['cmake'] = cmake_lists  # updating
                     else:
                         directory = cmake_lists + '/{0}_cmakelists'.format(project_name)
                         if not os.path.exists(directory):
                             os.makedirs(directory)
-                        self.context['cmake'] = get_cmake_lists(directory)
+                        self.context['cmake'] = directory
                         cmake_converter.utils.path_prefix = '../'
                 else:
                     self.context['cmake'] = get_cmake_lists(cmake_lists)  # writing first time
@@ -194,7 +190,7 @@ class VCXProjectConverter(DataConverter):
             self.dependencies.find_target_additional_library_directories()
             self.dependencies.find_target_dependency_packages()
 
-    def write_data(self):
+    def write_data(self, cmake_file):
         """
         Write the data of each part of "vcxproj" project into CMakeLists.txt
 
@@ -203,28 +199,28 @@ class VCXProjectConverter(DataConverter):
         if not self.context['is_converting_solution']:
             self.add_cmake_version_required(self.context['cmake'])
 
-        self.variables.add_project_variables()
-        self.files.write_cmake_project()
+        self.variables.add_project_variables(cmake_file)
+        self.files.write_cmake_project(cmake_file)
         # self.variables.add_default_target() # TODO: add conversion option to cmd line
 
         # Add additional code or not
         if self.context['additional_code'] is not None:
-            self.files.add_additional_code(self.context['additional_code'])
+            self.files.add_additional_code(self.context['additional_code'], cmake_file)
 
-        self.files.write_header_files()
+        self.files.write_header_files(cmake_file)
 
         if not self.context['has_only_headers']:
-            self.flags.write_precompiled_headers_macro()
-            self.files.write_source_files()
-            self.flags.write_target_artifact()
-            self.variables.write_target_outputs(self.context)
-            self.dependencies.write_include_directories(self.context)
-            self.flags.write_defines_and_flags('MSVC')
-            self.dependencies.write_dependencies()
-            self.dependencies.write_link_dependencies()
-            self.dependencies.write_target_dependency_packages()
+            self.flags.write_precompiled_headers_macro(cmake_file)
+            self.files.write_source_files(cmake_file)
+            self.flags.write_target_artifact(cmake_file)
+            self.variables.write_target_outputs(self.context, cmake_file)
+            self.dependencies.write_include_directories(self.context, cmake_file)
+            self.flags.write_defines_and_flags('MSVC', cmake_file)
+            self.dependencies.write_dependencies(cmake_file)
+            self.dependencies.write_link_dependencies(cmake_file)
+            self.dependencies.write_target_dependency_packages(cmake_file)
         else:
-            CPPFlags.write_target_headers_only_artifact(self.context)
+            CPPFlags.write_target_headers_only_artifact(self.context, cmake_file)
 
 
 class VFProjectConverter(DataConverter):
@@ -296,20 +292,20 @@ class VFProjectConverter(DataConverter):
                 else:
                     self.context['settings'][setting]['inc_dirs'] = '${CMAKE_CURRENT_SOURCE_DIR}/'
 
-    def write_data(self):
+    def write_data(self, cmake_file):
         if not self.context['is_converting_solution']:
             self.add_cmake_version_required(self.context['cmake'])
 
-        self.variables.add_project_variables()
-        self.files.write_cmake_project()
+        self.variables.add_project_variables(cmake_file)
+        self.files.write_cmake_project(cmake_file)
         # Add additional code or not
         if self.context['additional_code'] is not None:
-            self.files.add_additional_code(self.context['additional_code'])
-        self.files.write_header_files()
+            self.files.add_additional_code(self.context['additional_code'], cmake_file)
+        self.files.write_header_files(cmake_file)
         if not self.context['has_only_headers']:
             # Writing
-            self.files.write_source_files()
-            self.flags.write_target_artifact()
-            self.variables.write_target_outputs(self.context)
-            Dependencies.write_include_directories(self.context)
-            self.flags.write_defines_and_flags('${CMAKE_Fortran_COMPILER_ID} STREQUAL "Intel"')
+            self.files.write_source_files(cmake_file)
+            self.flags.write_target_artifact(cmake_file)
+            self.variables.write_target_outputs(self.context, cmake_file)
+            Dependencies.write_include_directories(self.context, cmake_file)
+            self.flags.write_defines_and_flags('${CMAKE_Fortran_COMPILER_ID} STREQUAL "Intel"', cmake_file)

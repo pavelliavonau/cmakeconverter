@@ -34,7 +34,6 @@ class ProjectVariables(object):
 
     """
     def __init__(self, context):
-        self.cmake = context['cmake']
         self.tree = context['vcxproj']['tree']
         self.ns = context['vcxproj']['ns']
         self.output = context['cmake_output']
@@ -42,29 +41,29 @@ class ProjectVariables(object):
         self.settings = context['settings']
         self.context = context
 
-    def add_project_variables(self):
+    def add_project_variables(self, cmake_file):
         """
         Add main CMake project variables
 
         """
 
         if not self.project_name == '':
-            self.cmake.write('set(PROJECT_NAME ' + self.project_name + ')\n')
+            cmake_file.write('set(PROJECT_NAME ' + self.project_name + ')\n')
         else:
-            self.cmake.write('set(PROJECT_NAME <PLEASE SET YOUR PROJECT NAME !!>)\n')
+            cmake_file.write('set(PROJECT_NAME <PLEASE SET YOUR PROJECT NAME !!>)\n')
             message(
                 'No PROJECT NAME found or define. '
                 'Please set [PROJECT_NAME] variable in CMakeLists.txt.',
                 'error'
             )
 
-    def add_default_target(self):
+    def add_default_target(self, cmake_file):
         """
         Add default target release if not define.
 
         """
 
-        self.cmake.write(
+        cmake_file.write(
             '# Define Release by default.\n'
             'if(NOT CMAKE_BUILD_TYPE)\n'
             '  set(CMAKE_BUILD_TYPE "Release")\n'
@@ -72,7 +71,7 @@ class ProjectVariables(object):
             'endif(NOT CMAKE_BUILD_TYPE)\n\n'
         )
 
-    def write_target_outputs(self, context):
+    def write_target_outputs(self, context, cmake_file):
         """
         Add outputs for each artefacts CMake target
 
@@ -81,7 +80,7 @@ class ProjectVariables(object):
         if len(context['settings']) == 0:
             return
 
-        write_property_of_settings(self.cmake, self.settings, self.context['sln_configurations_map'],
+        write_property_of_settings(cmake_file, self.settings, self.context['sln_configurations_map'],
                                    'string(CONCAT OUT_DIR', ')', 'out_dir', '',
                                    '${CMAKE_SOURCE_DIR}/${CMAKE_VS_PLATFORM_NAME}/$<CONFIG>')
 
@@ -96,22 +95,22 @@ class ProjectVariables(object):
 
         if configuration_type:
             if configuration_type == 'DynamicLibrary' or configuration_type == 'StaticLibrary':
-                self.cmake.write(
+                cmake_file.write(
                     'set_target_properties(${PROJECT_NAME} PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${OUT_DIR})\n')
                 if configuration_type == 'DynamicLibrary':
-                    self.cmake.write(
+                    cmake_file.write(
                         'set_target_properties(${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${OUT_DIR})\n')
                 # TODO: do we really need LIBRARY_OUTPUT_DIRECTORY here?
-                self.cmake.write(
+                cmake_file.write(
                     'set_target_properties(${PROJECT_NAME} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${OUT_DIR})\n')
-                self.cmake.write('\n')
+                cmake_file.write('\n')
             else:
-                self.cmake.write(
+                cmake_file.write(
                     'set_target_properties(${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${OUT_DIR})\n\n')
 
-        write_property_of_settings(self.cmake, self.settings, self.context['sln_configurations_map'],
+        write_property_of_settings(cmake_file, self.settings, self.context['sln_configurations_map'],
                                    'string(CONCAT TARGET_NAME', ')', 'output_name', '', '${PROJECT_NAME}')
-        self.cmake.write(
+        cmake_file.write(
             'set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME ${TARGET_NAME})\n\n')
 
 

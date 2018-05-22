@@ -40,7 +40,6 @@ class Dependencies(object):
     """
 
     def __init__(self, context):
-        self.cmake = context['cmake']
         self.tree = context['vcxproj']['tree']
         self.ns = context['vcxproj']['ns']
         self.dependencies = context['dependencies']
@@ -73,11 +72,10 @@ class Dependencies(object):
                 message('Include Directories not found for this project.', 'warn')
 
     @staticmethod
-    def write_include_directories(context):
-        cmake = context['cmake']
-        write_property_of_settings(cmake, context['settings'], context['sln_configurations_map'],
+    def write_include_directories(context, cmake_file):
+        write_property_of_settings(cmake_file, context['settings'], context['sln_configurations_map'],
                                    'target_include_directories(${PROJECT_NAME} PRIVATE ', ')', 'inc_dirs')
-        cmake.write('\n')
+        cmake_file.write('\n')
 
     @staticmethod
     def get_additional_include_directories(aid_text, setting, context):
@@ -134,56 +132,56 @@ class Dependencies(object):
 
         self.context['target_references'] = references_found
 
-    def write_target_references(self):
+    def write_target_references(self, cmake_file):
         if self.context['target_references']:
-            self.cmake.write('add_dependencies(${PROJECT_NAME}')
+            cmake_file.write('add_dependencies(${PROJECT_NAME}')
             targets_dependencies = set()
             for ref_found in self.context['target_references']:
                 project_name = self.get_dependency_target_name(os.path.join(os.path.dirname(self.vcxproj_path),
                                                                             ref_found))
                 targets_dependencies.add(project_name)
-                self.cmake.write(' {0}'.format(project_name))
+                cmake_file.write(' {0}'.format(project_name))
             for dep in self.deps:
                 if dep not in targets_dependencies:
-                    self.cmake.write(' {0}'.format(dep))
+                    cmake_file.write(' {0}'.format(dep))
 
-            self.cmake.write(')\n\n')
+            cmake_file.write(')\n\n')
 
-    def write_dependencies(self):
+    def write_dependencies(self, cmake_file):
         """
         Write on "CMakeLists.txt" subdirectories or link directories for external libraries.
 
         """
         if self.context['target_references']:
-            self.cmake.write('################### Dependencies ##################\n'
+            cmake_file.write('################### Dependencies ##################\n'
                              '# Add Dependencies to project.                    #\n'
                              '###################################################\n\n')
-            self.write_target_references()
+            self.write_target_references(cmake_file)
             return  # TODO: looks like wrong code
-            self.cmake.write(
+            cmake_file.write(
                 'option(BUILD_DEPENDS \n' +
                 '   "Build other CMake project." \n' +
                 '   ON \n' +
                 ')\n\n'
             )
-            self.cmake.write(
+            cmake_file.write(
                 '# Dependencies : disable BUILD_DEPENDS to link with lib already build.\n'
             )
             if self.dependencies is None:
-                self.cmake.write('if(BUILD_DEPENDS)\n')
+                cmake_file.write('if(BUILD_DEPENDS)\n')
                 for ref in references:
                     reference = str(ref.get('Include'))
                     path_to_reference = os.path.splitext(ntpath.basename(reference))[0]
-                    self.cmake.write(
+                    cmake_file.write(
                         '   add_subdirectory(platform/cmake/%s ${CMAKE_BINARY_DIR}/%s)\n' % (
                             path_to_reference, path_to_reference
                         )
                     )
             else:
-                self.cmake.write('if(BUILD_DEPENDS)\n')
+                cmake_file.write('if(BUILD_DEPENDS)\n')
                 d = 1
                 for ref in self.dependencies:
-                    self.cmake.write(
+                    cmake_file.write(
                         '   add_subdirectory(%s ${CMAKE_BINARY_DIR}/lib%s)\n' % (ref, str(d)))
                     message(
                         'Add manually dependencies : %s. Will be build in "lib%s/" !' % (
@@ -191,14 +189,14 @@ class Dependencies(object):
                         'warn'
                     )
                     d += 1
-            self.cmake.write('else()\n')
+            cmake_file.write('else()\n')
             for ref in references:
                 reference = str(ref.get('Include'))
                 path_to_reference = os.path.splitext(ntpath.basename(reference))[0]
-                self.cmake.write(
+                cmake_file.write(
                     '   link_directories(dependencies/%s/build/)\n' % path_to_reference
                 )
-            self.cmake.write('endif()\n\n')
+            cmake_file.write('endif()\n\n')
         else:  # pragma: no cover
             message('No link needed.', '')
 
@@ -236,37 +234,37 @@ class Dependencies(object):
         else:  # pragma: no cover
             message('No dependencies.', '')
 
-    def write_link_dependencies(self):
+    def write_link_dependencies(self, cmake_file):
         """
         Write link dependencies of project.
 
         """
 
         if self.context['target_references']:
-            self.cmake.write('# Link with other targets.\n')
-            self.cmake.write('target_link_libraries(${PROJECT_NAME}')
+            cmake_file.write('# Link with other targets.\n')
+            cmake_file.write('target_link_libraries(${PROJECT_NAME}')
             for reference in self.context['target_references']:
                 path_to_reference = os.path.splitext(ntpath.basename(reference))[0]
                 lib = self.get_dependency_target_name(os.path.join(os.path.dirname(self.vcxproj_path), reference))
-                self.cmake.write(' ' + lib)
+                cmake_file.write(' ' + lib)
                 msg = 'External library found : {0}'.format(path_to_reference)
                 message(msg, '')
-            self.cmake.write(')\n')
+            cmake_file.write(')\n')
 
         if self.context['add_lib_deps']:
-            self.cmake.write('# Link with other additional libraries.\n')
-            self.cmake.write('target_link_libraries(${PROJECT_NAME}')
+            cmake_file.write('# Link with other additional libraries.\n')
+            cmake_file.write('target_link_libraries(${PROJECT_NAME}')
             for dep in self.context['add_lib_deps']:
-                self.cmake.write(' ' + dep)
-            self.cmake.write(')\n')
+                cmake_file.write(' ' + dep)
+            cmake_file.write(')\n')
 
         if self.context['add_lib_dirs']:
-            self.cmake.write('if(MSVC)\n')
-            self.cmake.write('   target_link_libraries(${PROJECT_NAME}')
+            cmake_file.write('if(MSVC)\n')
+            cmake_file.write('   target_link_libraries(${PROJECT_NAME}')
             for dep in self.context['add_lib_dirs']:
-                self.cmake.write(' -LIBPATH:' + cleaning_output(dep))
-            self.cmake.write(')\n')
-            self.cmake.write('endif(MSVC)\n')
+                cmake_file.write(' -LIBPATH:' + cleaning_output(dep))
+            cmake_file.write(')\n')
+            cmake_file.write('endif(MSVC)\n')
 
     def find_target_dependency_packages(self):
         """
@@ -274,7 +272,7 @@ class Dependencies(object):
 
         """
         self.context['packages'] = []
-        packages_xml = get_xml_data(os.path.join(os.path.dirname(self.cmake.name), 'packages.config'))
+        packages_xml = get_xml_data(os.path.join(os.path.dirname(self.vcxproj_path), 'packages.config'))
         # External libraries
         if packages_xml:
             extension = packages_xml['tree'].xpath('/packages/package')
@@ -283,6 +281,6 @@ class Dependencies(object):
                 package_version = ref.get('version')
                 self.context['packages'].append([package_id, package_version])
 
-    def write_target_dependency_packages(self):
+    def write_target_dependency_packages(self, cmake_file):
         for package in self.context['packages']:
-            self.cmake.write('\nuse_package(${{PROJECT_NAME}} {0} {1})'.format(package[0], package[1]))
+            cmake_file.write('\nuse_package(${{PROJECT_NAME}} {0} {1})'.format(package[0], package[1]))

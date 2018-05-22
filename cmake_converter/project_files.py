@@ -39,7 +39,6 @@ class ProjectFiles(object):
         self.vcxproj_path = context['vcxproj_path']
         self.tree = context['vcxproj']['tree']
         self.ns = context['vcxproj']['ns']
-        self.cmake = context['cmake']
         self.context = context
         if '.vcxproj' in self.vcxproj_path:
             self.source_files = self.tree.xpath('//ns:ItemGroup/ns:ClCompile', namespaces=self.ns)
@@ -134,63 +133,64 @@ class ProjectFiles(object):
             self.context['solution_languages'].add(project_language)
         self.context['project_language'] = project_language
 
-    def write_cmake_project(self):
+    def write_cmake_project(self, cmake_file):
         lang = ''
         if self.context['project_language']:
             lang = ' ' + self.context['project_language']
-        self.cmake.write('project(${{PROJECT_NAME}}{0})\n\n'.format(lang))
+        cmake_file.write('project(${{PROJECT_NAME}}{0})\n\n'.format(lang))
 
-    def write_header_files(self):
+    def write_header_files(self, cmake_file):
         """
         Write header files variables to file() cmake function
         """
         if len(self.headers) == 0:
             return
 
-        self.cmake.write('############ Header Files #############\n')
-        self.cmake.write('set(HEADERS_FILES\n')
+        cmake_file.write('############ Header Files #############\n')
+        cmake_file.write('set(HEADERS_FILES\n')
 
         working_path = os.path.dirname(self.vcxproj_path)
         if '' in self.headers:
             for header_file in self.headers['']:
-                self.cmake.write('    {0}\n'.format(normalize_path(working_path, header_file)))
+                cmake_file.write('    {0}\n'.format(normalize_path(working_path, header_file)))
 
         for headers_dir in self.headers:
             if headers_dir == '':
                 continue
             for header_file in self.headers[headers_dir]:
-                self.cmake.write('    {0}\n'.format(normalize_path(working_path,
+                cmake_file.write('    {0}\n'.format(normalize_path(working_path,
                                                                    os.path.join(headers_dir, header_file))))
 
-        self.cmake.write(')\n')
-        self.cmake.write('source_group("Headers" FILES ${HEADERS_FILES})\n\n')
+        cmake_file.write(')\n')
+        cmake_file.write('source_group("Headers" FILES ${HEADERS_FILES})\n\n')
 
-    def write_source_files(self):
+    def write_source_files(self, cmake_file):
         """
         Write source files variables to file() cmake function
         """
-        self.cmake.write('############ Source Files #############\n')
-        self.cmake.write('set(SRC_FILES\n')
+        cmake_file.write('############ Source Files #############\n')
+        cmake_file.write('set(SRC_FILES\n')
 
         working_path = os.path.dirname(self.vcxproj_path)
         if '' in self.sources:
             for src_file in self.sources['']:
-                self.cmake.write('    {0}\n'.format(normalize_path(working_path, src_file)))
+                cmake_file.write('    {0}\n'.format(normalize_path(working_path, src_file)))
 
         for src_dir in self.sources:
             if src_dir == '':
                 continue
             for src_file in self.sources[src_dir]:
-                self.cmake.write('    {0}\n'.format(normalize_path(working_path,
+                cmake_file.write('    {0}\n'.format(normalize_path(working_path,
                                                                    os.path.join(src_dir, src_file))))
 
-        self.cmake.write(')\n')
-        self.cmake.write('source_group("Sources" FILES ${SRC_FILES})\n\n')
+        cmake_file.write(')\n')
+        cmake_file.write('source_group("Sources" FILES ${SRC_FILES})\n\n')
 
-    def add_additional_code(self, file_to_add):
+    @staticmethod
+    def add_additional_code(file_to_add, cmake_file):
         """
         Add additional file with CMake code inside
-
+        :param cmake_file
         :param file_to_add: the file who contains CMake code
         :type file_to_add: str
         """
@@ -198,13 +198,13 @@ class ProjectFiles(object):
         if file_to_add != '':
             try:
                 fc = open(file_to_add)
-                self.cmake.write('############# Additional Code #############\n')
-                self.cmake.write('# Provides from external file.            #\n')
-                self.cmake.write('###########################################\n\n')
+                cmake_file.write('############# Additional Code #############\n')
+                cmake_file.write('# Provides from external file.            #\n')
+                cmake_file.write('###########################################\n\n')
                 for line in fc:
-                    self.cmake.write(line)
+                    cmake_file.write(line)
                 fc.close()
-                self.cmake.write('\n')
+                cmake_file.write('\n')
                 message('File of Code is added = ' + file_to_add, 'warn')
             except OSError as e:
                 message(str(e), 'error')

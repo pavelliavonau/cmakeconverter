@@ -239,8 +239,7 @@ def main():  # pragma: no cover
             set_dependencies_for_project(context, projects_data[guid])
             context['sln_configurations_map'] = projects_data[guid]['sln_configs_2_project_configs']
             convert_project(context, project_abs, subdirectory)
-            cmake_dir = os.path.dirname(context['cmake'].name)
-            subdirectory = os.path.relpath(cmake_dir, solution_path)
+            subdirectory = os.path.relpath(context['cmake'], solution_path)
             subdirectories.append(subdirectory)
             subdirectories_to_project_name[subdirectory] = context['project_name']
             print('\n')

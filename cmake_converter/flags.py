@@ -47,29 +47,28 @@ class Flags(object):
         self.context = context
         self.tree = context['vcxproj']['tree']
         self.ns = context['vcxproj']['ns']
-        self.cmake = context['cmake']
         self.settings = context['settings']
 
     def get_setting_name(self, setting):
         return self.settings[setting]['conf']
 
-    def write_defines_and_flags(self, compiler_check):
+    def write_defines_and_flags(self, compiler_check, cmake_file):
         """
         Get and write Preprocessor Macros definitions
 
         """
-        cmake = self.cmake
+        cmake_file = cmake_file
 
         # normalize
         for setting in self.settings:
             self.settings[setting]['defines_str'] = ';'.join(self.settings[setting][defines])
             self.settings[setting]['cl_str'] = ';'.join(self.settings[setting][cl_flags])
 
-        write_property_of_settings(cmake, self.settings, self.context['sln_configurations_map'],
+        write_property_of_settings(cmake_file, self.settings, self.context['sln_configurations_map'],
                                    'target_compile_definitions(${PROJECT_NAME} PRIVATE', ')', 'defines_str')
-        cmake.write('\n')
-        cmake.write('if({0})\n'.format(compiler_check))
-        write_property_of_settings(cmake, self.settings, self.context['sln_configurations_map'],
+        cmake_file.write('\n')
+        cmake_file.write('if({0})\n'.format(compiler_check))
+        write_property_of_settings(cmake_file, self.settings, self.context['sln_configurations_map'],
                                    'target_compile_options(${PROJECT_NAME} PRIVATE', ')', 'cl_str', indent='    ')
 
         settings_of_arch = {}
@@ -82,9 +81,9 @@ class Flags(object):
         first_arch = True
         for arch in settings_of_arch:
             if first_arch:
-                cmake.write('    if(\"${{CMAKE_VS_PLATFORM_NAME}}\" STREQUAL \"{0}\")\n'.format(arch))
+                cmake_file.write('    if(\"${{CMAKE_VS_PLATFORM_NAME}}\" STREQUAL \"{0}\")\n'.format(arch))
             else:
-                cmake.write('    elseif(\"${{CMAKE_VS_PLATFORM_NAME}}\" STREQUAL \"{0}\")\n'.format(arch))
+                cmake_file.write('    elseif(\"${{CMAKE_VS_PLATFORM_NAME}}\" STREQUAL \"{0}\")\n'.format(arch))
             first_arch = False
             for sln_setting in settings_of_arch[arch]:
                 sln_conf = sln_setting.split('|')[0]
@@ -94,29 +93,29 @@ class Flags(object):
                     configuration_type = get_configuration_type(mapped_setting_name, self.context)
                     if configuration_type:
                         if 'StaticLibrary' in configuration_type:
-                            cmake.write(
+                            cmake_file.write(
                                 '        set_target_properties(${{PROJECT_NAME}}'
                                 ' PROPERTIES STATIC_LIBRARY_FLAGS_{0} "{1}")\n'
                                 .format(sln_conf.upper(), ' '.join(mapped_setting[ln_flags]))
                             )
                         else:
-                            cmake.write(
+                            cmake_file.write(
                                 '        set_target_properties(${{PROJECT_NAME}} PROPERTIES LINK_FLAGS_{0} "{1}")\n'
                                 .format(sln_conf.upper(), ' '.join(mapped_setting[ln_flags]))
                             )
-        cmake.write('    else()\n')
-        cmake.write(
+        cmake_file.write('    else()\n')
+        cmake_file.write(
             '         message(WARNING "${CMAKE_VS_PLATFORM_NAME} arch is not supported!")\n')
-        cmake.write('    endif()\n')
-        cmake.write('endif()\n\n')
+        cmake_file.write('    endif()\n')
+        cmake_file.write('endif()\n\n')
 
     @staticmethod
-    def write_target_headers_only_artifact(context):
+    def write_target_headers_only_artifact(context, cmake_file):
         """
         Add dummy target
         """
         message('CMake will show fake custom Library.', '')
-        context['cmake'].write('add_custom_target(${PROJECT_NAME} SOURCES ${HEADERS_FILES})\n\n')
+        cmake_file.write('add_custom_target(${PROJECT_NAME} SOURCES ${HEADERS_FILES})\n\n')
 
 
 class CPPFlags(Flags):
@@ -141,7 +140,7 @@ class CPPFlags(Flags):
         self.define_defines()
         # self.define_linux_flags() # TODO: redo with generator expression for each setting(configuration)
 
-    def define_linux_flags(self):
+    def define_linux_flags(self, cmake_file):
         """
         Define the Flags for Linux platforms
 
@@ -171,12 +170,12 @@ class CPPFlags(Flags):
                 if (lib == 'lemon' or lib == 'zlib') and '-fPIC' not in linux_flags:
                     linux_flags += ' -fPIC'
 
-        self.cmake.write('if(NOT MSVC)\n')
-        self.cmake.write('   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} %s")\n' % linux_flags)
-        self.cmake.write('   if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")\n')
-        self.cmake.write('       set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")\n')
-        self.cmake.write('   endif()\n')
-        self.cmake.write('endif(NOT MSVC)\n\n')
+        cmake_file.write('if(NOT MSVC)\n')
+        cmake_file.write('   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} %s")\n' % linux_flags)
+        cmake_file.write('   if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")\n')
+        cmake_file.write('       set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")\n')
+        cmake_file.write('   endif()\n')
+        cmake_file.write('endif(NOT MSVC)\n\n')
 
     def define_defines(self):
         """
@@ -750,7 +749,7 @@ class CPPFlags(Flags):
         has_pch = self.settings[setting]['PrecompiledHeader']
         return 'Use' in has_pch
 
-    def write_precompiled_headers_macro(self):
+    def write_precompiled_headers_macro(self, cmake_file):
         """
         """
         need_pch_macro = False
@@ -760,8 +759,7 @@ class CPPFlags(Flags):
                 break
 
         if need_pch_macro:
-            cmake = self.cmake
-            cmake.write(
+            cmake_file.write(
                 'MACRO(ADD_PRECOMPILED_HEADER PrecompiledHeader PrecompiledSource SourcesVar)\n'
                 '    if(MSVC)\n'
                 '        set(PrecompiledBinary "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.pch")\n'
@@ -778,7 +776,7 @@ class CPPFlags(Flags):
                 'ENDMACRO(ADD_PRECOMPILED_HEADER)\n\n'
             )
 
-    def write_precompiled_headers(self, setting):
+    def write_precompiled_headers(self, setting, cmake_file):
         """
         """
         if not self.setting_has_pch(setting):
@@ -787,10 +785,10 @@ class CPPFlags(Flags):
         pch_header = self.settings[setting]['PrecompiledHeaderFile']
         pch_source = self.settings[setting]['PrecompiledSourceFile']
         working_path = os.path.dirname(self.context['vcxproj_path'])
-        self.cmake.write('ADD_PRECOMPILED_HEADER("{0}" "{1}" SRC_FILES)\n\n'
+        cmake_file.write('ADD_PRECOMPILED_HEADER("{0}" "{1}" SRC_FILES)\n\n'
                          .format(os.path.basename(pch_header), normalize_path(working_path, pch_source)))
 
-    def write_target_artifact(self):
+    def write_target_artifact(self, cmake_file):
         """
         Add Library or Executable target
 
@@ -799,8 +797,8 @@ class CPPFlags(Flags):
         for s in self.settings:
             setting = s
  
-        self.cmake.write('# Warning: pch and target are the same for every configuration\n')
-        self.write_precompiled_headers(setting)
+        cmake_file.write('# Warning: pch and target are the same for every configuration\n')
+        self.write_precompiled_headers(setting, cmake_file)
 
         configuration_type = None
         for s in self.settings:
@@ -809,19 +807,19 @@ class CPPFlags(Flags):
                 break
         if configuration_type:
             if configuration_type == 'DynamicLibrary':
-                self.cmake.write('add_library(${PROJECT_NAME} SHARED')
+                cmake_file.write('add_library(${PROJECT_NAME} SHARED')
                 message('CMake will build a SHARED Library.', '')
             elif configuration_type == 'StaticLibrary':  # pragma: no cover
-                self.cmake.write('add_library(${PROJECT_NAME} STATIC')
+                cmake_file.write('add_library(${PROJECT_NAME} STATIC')
                 message('CMake will build a STATIC Library.', '')
             else:  # pragma: no cover
-                self.cmake.write('add_executable(${PROJECT_NAME} ')
+                cmake_file.write('add_executable(${PROJECT_NAME} ')
                 message('CMake will build an EXECUTABLE.', '')
             if not self.context['has_only_headers']:
-                self.cmake.write(' ${SRC_FILES}')
+                cmake_file.write(' ${SRC_FILES}')
             if self.context['has_headers']:
-                self.cmake.write(' ${HEADERS_FILES}')
-            self.cmake.write(')\n\n')
+                cmake_file.write(' ${HEADERS_FILES}')
+            cmake_file.write(')\n\n')
 
 
 class FortranFlags(Flags):
@@ -1018,13 +1016,13 @@ class FortranFlags(Flags):
             else:
                 message('No Additional Options for {0}'.format(setting), '')
 
-    def write_target_artifact(self):
+    def write_target_artifact(self, cmake_file):
         """
         Add Library or Executable target
 
         """
 
         message('CMake will build a STATIC Library.', '')
-        self.cmake.write('add_library(${PROJECT_NAME} STATIC')
-        self.cmake.write(' ${SRC_FILES}')
-        self.cmake.write(')\n\n')
+        cmake_file.write('add_library(${PROJECT_NAME} STATIC')
+        cmake_file.write(' ${SRC_FILES}')
+        cmake_file.write(')\n\n')
