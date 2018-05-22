@@ -69,7 +69,7 @@ def take_name_from_list_case_ignore(search_list, name_to_search):
 
     if real_name == '':
         if '.h' in name_to_search:
-            print('WARNING: {0} header file not  at filesystem. Ignoring but check it!!\n'.format(name_to_search))
+            message('{0} header file is absent at filesystem. Ignoring but check it!!\n'.format(name_to_search), 'warn')
             return ''
         raise ValueError('Filename {0} not found at filesystem.'.format(name_to_search))
     else:
