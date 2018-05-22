@@ -272,14 +272,16 @@ class Dependencies(object):
 
         """
         self.context['packages'] = []
-        packages_xml = get_xml_data(os.path.join(os.path.dirname(self.vcxproj_path), 'packages.config'))
-        # External libraries
-        if packages_xml:
-            extension = packages_xml['tree'].xpath('/packages/package')
-            for ref in extension:
-                package_id = ref.get('id')
-                package_version = ref.get('version')
-                self.context['packages'].append([package_id, package_version])
+        packages_nodes = self.tree.xpath('//ns:ItemGroup/ns:None[@Include="packages.config"]', namespaces=self.ns)
+        if packages_nodes:
+            filename = packages_nodes[0].get('Include')
+            packages_xml = get_xml_data(os.path.join(os.path.dirname(self.vcxproj_path), filename))
+            if packages_xml:
+                extension = packages_xml['tree'].xpath('/packages/package')
+                for ref in extension:
+                    package_id = ref.get('id')
+                    package_version = ref.get('version')
+                    self.context['packages'].append([package_id, package_version])
 
     def write_target_dependency_packages(self, cmake_file):
         for package in self.context['packages']:
