@@ -220,7 +220,7 @@ def main():  # pragma: no cover
     else:
         context['is_converting_solution'] = True
         context['solution_languages'] = set()
-        sln = open(args.solution)
+        sln = open(args.solution, encoding='utf8')
         solution_data = parse_solution(sln.read())
         sln.close()
 
