@@ -189,6 +189,7 @@ class VCXProjectConverter(DataConverter):
             self.dependencies.find_target_references()
             self.dependencies.find_target_additional_dependencies()
             self.dependencies.find_target_additional_library_directories()
+            self.dependencies.find_target_property_sheets()
             self.dependencies.find_target_dependency_packages()
 
     def write_data(self, cmake_file):
@@ -213,6 +214,7 @@ class VCXProjectConverter(DataConverter):
         if not self.context['has_only_headers']:
             self.flags.write_precompiled_headers_macro(cmake_file)
             self.files.write_source_files(cmake_file)
+            self.dependencies.write_target_property_sheets(cmake_file)
             self.flags.write_target_artifact(cmake_file)
             self.variables.write_target_outputs(self.context, cmake_file)
             self.dependencies.write_include_directories(self.context, cmake_file)

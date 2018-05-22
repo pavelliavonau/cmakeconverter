@@ -249,7 +249,7 @@ class Dependencies(object):
                 cmake_file.write(' ' + lib)
                 msg = 'External library found : {0}'.format(path_to_reference)
                 message(msg, '')
-            cmake_file.write(')\n')
+            cmake_file.write(')\n\n')
 
         if self.context['add_lib_deps']:
             cmake_file.write('# Link with other additional libraries.\n')
@@ -264,7 +264,32 @@ class Dependencies(object):
             for dep in self.context['add_lib_dirs']:
                 cmake_file.write(' -LIBPATH:' + cleaning_output(dep))
             cmake_file.write(')\n')
-            cmake_file.write('endif(MSVC)\n')
+            cmake_file.write('endif(MSVC)\n\n')
+
+    def find_target_property_sheets(self):
+        """
+
+        :return:
+        """
+        self.context['property_sheets'] = []
+        property_nodes = self.tree.xpath('//ns:ImportGroup[@Label="PropertySheets"]/ns:Import', namespaces=self.ns)
+        for node in property_nodes:
+            label = node.get('Label')
+            if not label:
+                filename = node.get('Project')
+                props_path = os.path.join(os.path.dirname(self.vcxproj_path), filename)
+                working_path = os.path.dirname(self.context['vcxproj_path'])
+                self.context['property_sheets'].append(normalize_path(working_path, filename).replace('.props', '.cmake'))
+                properties_xml = get_xml_data(props_path)
+                if properties_xml:
+                    pass  # TODO collect data from props
+
+    def write_target_property_sheets(self, cmake_file):
+        if self.context['property_sheets']:
+            cmake_file.write('# includes for CMake from *.props\n')
+            for property_sheet in self.context['property_sheets']:
+                cmake_file.write('include({0} OPTIONAL)\n'.format(property_sheet))
+            cmake_file.write('\n')
 
     def find_target_dependency_packages(self):
         """
@@ -285,4 +310,4 @@ class Dependencies(object):
 
     def write_target_dependency_packages(self, cmake_file):
         for package in self.context['packages']:
-            cmake_file.write('\nuse_package(${{PROJECT_NAME}} {0} {1})'.format(package[0], package[1]))
+            cmake_file.write('use_package(${{PROJECT_NAME}} {0} {1})\n'.format(package[0], package[1]))
