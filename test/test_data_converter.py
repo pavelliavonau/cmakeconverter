@@ -22,7 +22,7 @@
 import os
 import unittest2
 
-from cmake_converter.data_converter import DataConverter
+from cmake_converter.data_converter import VCXProjectConverter
 from cmake_converter.data_files import get_cmake_lists
 
 
@@ -60,26 +60,26 @@ class TestDataConverter(unittest2.TestCase):
             'std': None,
         }
 
-        under_test = DataConverter(data_test)
+        under_test = VCXProjectConverter(data_test)
 
-        self.assertTrue(under_test.data)
-        self.assertIsNone(under_test.data['cmake'])
-        self.assertIsNone(under_test.data['vcxproj'])
+        self.assertTrue(under_test.context)
+        self.assertIsNone(under_test.context['cmake'])
+        self.assertIsNone(under_test.context['vcxproj'])
 
         under_test.init_files(self.vs_project, self.cur_dir)
         under_test.close_cmake_file()
 
-        self.assertIsNotNone(under_test.data['cmake'])
-        self.assertIsNotNone(under_test.data['vcxproj'])
+        self.assertIsNotNone(under_test.context['cmake'])
+        self.assertIsNotNone(under_test.context['vcxproj'])
 
-        self.assertTrue('ns' in under_test.data['vcxproj'])
-        self.assertTrue('tree' in under_test.data['vcxproj'])
+        self.assertTrue('ns' in under_test.context['vcxproj'])
+        self.assertTrue('tree' in under_test.context['vcxproj'])
 
     def test_create_data(self):
         """Data Converter Create Data"""
 
-        under_test = DataConverter(self.data_test)
-        self.assertTrue(under_test.data)
+        under_test = VCXProjectConverter(self.data_test)
+        self.assertTrue(under_test.context)
 
         under_test.init_files(self.vs_project, self.cur_dir)
 

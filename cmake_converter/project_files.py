@@ -27,7 +27,8 @@
 
 import os
 
-from cmake_converter.utils import message, get_title
+from cmake_converter.message import send
+from cmake_converter.utils import take_name_from_list_case_ignore, normalize_path
 
 
 class ProjectFiles(object):
@@ -35,166 +36,180 @@ class ProjectFiles(object):
         Class who collect and store project files
     """
 
-    def __init__(self, data):
-        self.tree = data['vcxproj']['tree']
-        self.ns = data['vcxproj']['ns']
-        self.cmake = data['cmake']
-        self.cppfiles = self.tree.xpath('//ns:ClCompile', namespaces=self.ns)
-        self.headerfiles = self.tree.xpath('//ns:ClInclude', namespaces=self.ns)
+    def __init__(self, context):
+        self.vcxproj_path = context['vcxproj_path']
+        self.tree = context['vcxproj']['tree']
+        self.ns = context['vcxproj']['ns']
+        self.cmake = context['cmake']
+        self.context = context
+        if '.vcxproj' in self.vcxproj_path:
+            self.source_files = self.tree.xpath('//ns:ItemGroup/ns:ClCompile', namespaces=self.ns)
+            self.header_files = self.tree.xpath('//ns:ItemGroup/ns:ClInclude', namespaces=self.ns)
+            self.source_file_attr = 'Include'
+        elif '.vfproj' in self.vcxproj_path:
+            self.source_files = self.tree.xpath('/VisualStudioProject/Files/Filter/File')
+            self.header_files = []
+            self.source_file_attr = 'RelativePath'
+        else:
+            send("Unsupported project type in ProjectFiles class: {0}".format(self.vcxproj_path), 'ERROR')
+
         self.language = []
         self.sources = {}
         self.headers = {}
 
     def collects_source_files(self):
         """
-        Collects the project source files in CMakeLists.txt file
+        Write the project variables in CMakeLists.txt file
 
         """
 
+        filelists = {}
+        vcxproj_dir = os.path.dirname(self.vcxproj_path)
+
         # Cpp Dir
-        for cpp in self.cppfiles:
-            if cpp.get('Include') is not None:
-                cxx = str(cpp.get('Include'))
+        for cpp in self.source_files:
+            if cpp.get(self.source_file_attr) is not None:
+                cxx = str(cpp.get(self.source_file_attr))
                 cxx = '/'.join(cxx.split('\\'))
                 if not cxx.rpartition('.')[-1] in self.language:
                     self.language.append(cxx.rpartition('.')[-1])
                 cpp_path, cxx_file = os.path.split(cxx)
-                if not cpp_path:
-                    # Case files are beside the VS Project
-                    cpp_path = './'
+                if cpp_path not in filelists:
+                    filelists[cpp_path] = os.listdir(os.path.join(vcxproj_dir, cpp_path))
                 if cpp_path not in self.sources:
                     self.sources[cpp_path] = []
                 if cxx_file not in self.sources[cpp_path]:
-                    self.sources[cpp_path].append(cxx_file)
+                    self.sources[cpp_path].append(take_name_from_list_case_ignore(filelists[cpp_path], cxx_file))
+        for source_path in self.sources:
+            self.sources[source_path].sort(key=str.lower)
 
         # Headers Dir
-        for header in self.headerfiles:
-            h = str(header.get('Include'))
+        for header in self.header_files:
+            h = str(header.get(self.source_file_attr))
             h = '/'.join(h.split('\\'))
             header_path, header_file = os.path.split(h)
+            if header_path not in filelists:
+                filelists[header_path] = os.listdir(os.path.join(vcxproj_dir, header_path))
             if header_path not in self.headers:
                 self.headers[header_path] = []
             if header_file not in self.headers[header_path]:
-                self.headers[header_path].append(header_file)
+                real_name = take_name_from_list_case_ignore(filelists[header_path], header_file)
+                if real_name:
+                    self.headers[header_path].append(real_name)
+        for header_path in self.headers:
+            self.headers[header_path].sort(key=str.lower)
 
-        message("C++ Extensions found: %s" % self.language, 'INFO')
+        self.context['has_headers'] = True if self.header_files else False
+        self.context['has_only_headers'] = True if self.context['has_headers'] and not self.source_files else False
+        send("Source files extensions found: %s" % self.language, 'INFO')
 
-    def write_source_files(self):
+    def find_cmake_project_language(self):
         """
-        Write source files variables to file() cmake function
+        Add CMake Project
 
+        :param language_list: type of project language: cpp | c
+        :type language_list: list
         """
 
-        def add_specific_sources(src_list, condition):  # pragma: no cover
-            """
-            Add specific sources for platforms
-            :param src_list: list of source file
-            :type src_list: list
-            :param condition: condition to add in "if" statement
-            :type condition: str
-            """
+        cpp_extensions = ['cc', 'cp', 'cxx', 'cpp', 'CPP', 'c++', 'C']
 
-            self.cmake.write('if(%sMSVC)\n' % condition)
-            self.cmake.write('    set(SRC_FILES\n        ${SRC_FILES}\n')
-            while src_list:
-                self.cmake.write('        %s\n' % src_list.pop())
-            self.cmake.write('    )\n')
-            self.cmake.write('endif()\n')
+        available_language = {'c': 'C'}
+        available_language.update(dict.fromkeys(cpp_extensions, 'CXX'))
 
-        windows_sources = []
-        linux_sources = []
+        fortran_extensions = ['F90', 'F', 'f90', 'f', 'fi', 'FI']
+        available_language.update(dict.fromkeys(fortran_extensions, 'Fortran'))
 
-        title = get_title('Files & Targets', 'Files of project and target to build')
-        self.cmake.write(title)
+        files_language = ''
+        if self.language:
+            for l in self.language:
+                if l in available_language:
+                    files_language = l
+                    break
+            if 'cpp' in self.language:  # priority for C++ for mixes with C
+                files_language = 'cpp'
 
-        self.cmake.write('# Source Files\n')
-        self.cmake.write('set(SRC_FILES\n')
+        project_language = ''
+        if files_language in available_language:
+            project_language = available_language[files_language]
+        if project_language:
+            self.context['solution_languages'].add(project_language)
+        self.context['project_language'] = project_language
 
-        for src_dir in self.sources:
-            for src_file in self.sources[src_dir]:
-                if src_file in ['crashhandler_windows.cpp', 'stacktrace_windows.cpp']:
-                    windows_sources.append(os.path.join(src_dir, src_file))
-                    if 'crashhandler_windows.cpp' in src_file:
-                        linux_sources.append(
-                            os.path.join(src_dir, src_file.replace('windows', 'unix'))
-                        )
-                else:
-                    self.cmake.write('    %s\n' % os.path.join(src_dir, src_file))
-        self.cmake.write(')\n')
+    def write_cmake_project(self):
+        lang = ''
+        if self.context['project_language']:
+            lang = ' ' + self.context['project_language']
+        self.cmake.write('project(${{PROJECT_NAME}}{0})\n\n'.format(lang))
 
-        # Manage specific sources (Currently only used for g3log)
-        if windows_sources:
-            add_specific_sources(windows_sources, '')
-        if linux_sources:
-            add_specific_sources(linux_sources, 'NOT ')
+    def write_header_files(self):
+        """
+        Write header files variables to file() cmake function
+        """
+        if len(self.headers) == 0:
+            return
 
-        self.cmake.write('source_group("Sources" FILES ${SRC_FILES})\n\n')
-
-        self.cmake.write('# Header Files\n')
+        self.cmake.write('############ Header Files #############\n')
         self.cmake.write('set(HEADERS_FILES\n')
 
-        for hdrs_dir in self.headers:
-            for header_file in self.headers[hdrs_dir]:
-                self.cmake.write('    %s\n' % os.path.join(hdrs_dir, header_file))
+        working_path = os.path.dirname(self.vcxproj_path)
+        if '' in self.headers:
+            for header_file in self.headers['']:
+                self.cmake.write('    {0}\n'.format(normalize_path(working_path, header_file)))
+
+        for headers_dir in self.headers:
+            if headers_dir == '':
+                continue
+            for header_file in self.headers[headers_dir]:
+                self.cmake.write('    {0}\n'.format(normalize_path(working_path,
+                                                                   os.path.join(headers_dir, header_file))))
 
         self.cmake.write(')\n')
         self.cmake.write('source_group("Headers" FILES ${HEADERS_FILES})\n\n')
 
-    def add_include_cmake(self, filename):
+    def write_source_files(self):
         """
-        Add include directive for filename
-
-        :param filename: name of file to include
-        :type filename: str
+        Write source files variables to file() cmake function
         """
+        self.cmake.write('############ Source Files #############\n')
+        self.cmake.write('set(SRC_FILES\n')
 
-        self.cmake.write('include("%s")\n\n' % filename)
-        message('File "%s" is included in CMakeLists.txt' % filename, 'warn')
+        working_path = os.path.dirname(self.vcxproj_path)
+        if '' in self.sources:
+            for src_file in self.sources['']:
+                self.cmake.write('    {0}\n'.format(normalize_path(working_path, src_file)))
 
-    def add_additional_code(self, filename):
+        for src_dir in self.sources:
+            if src_dir == '':
+                continue
+            for src_file in self.sources[src_dir]:
+                self.cmake.write('    {0}\n'.format(normalize_path(working_path,
+                                                                   os.path.join(src_dir, src_file))))
+
+        self.cmake.write(')\n')
+        self.cmake.write('source_group("Sources" FILES ${SRC_FILES})\n\n')
+
+    def add_additional_code(self, file_to_add):
         """
         Add additional file with CMake code inside
 
-        :param filename: the file who contains CMake code
-        :type filename: str
+        :param file_to_add: the file who contains CMake code
+        :type file_to_add: str
         """
 
-        if filename:
+        if file_to_add != '':
             try:
-                fc = open(filename)
-                title = get_title('Additional Code', 'Provides from an external file')
-                self.cmake.write(title)
-
+                fc = open(file_to_add)
+                self.cmake.write('############# Additional Code #############\n')
+                self.cmake.write('# Provides from external file.            #\n')
+                self.cmake.write('###########################################\n\n')
                 for line in fc:
                     self.cmake.write(line)
                 fc.close()
-                self.cmake.write('\n\n')
-                message('File of Code is added = ' + filename, 'warn')
+                self.cmake.write('\n')
+                send('File of Code is added = ' + file_to_add, 'warn')
             except OSError as e:
-                message(str(e), 'error')
-                message(
-                    'Wrong data file ! Code was not added, please check given file !',
+                send(str(e), 'error')
+                send(
+                    'Wrong data file ! Code was not added, please verify file name or path !',
                     'error'
                 )
-
-    def add_target_artefact(self):
-        """
-        Add Library or Executable target
-
-        """
-
-        configurationtype = self.tree.find('//ns:ConfigurationType', namespaces=self.ns)
-        if configurationtype.text == 'DynamicLibrary':
-            self.cmake.write('# Add library to build.\n')
-            self.cmake.write('add_library(${PROJECT_NAME} SHARED\n')
-            message('CMake will build a SHARED Library.', '')
-        elif configurationtype.text == 'StaticLibrary':  # pragma: no cover
-            self.cmake.write('# Add library to build.\n')
-            self.cmake.write('add_library(${PROJECT_NAME} STATIC\n')
-            message('CMake will build a STATIC Library.', '')
-        else:  # pragma: no cover
-            self.cmake.write('# Add executable to build.\n')
-            self.cmake.write('add_executable(${PROJECT_NAME} \n')
-            message('CMake will build an EXECUTABLE.', '')
-        self.cmake.write('   ${SRC_FILES} ${HEADERS_FILES}\n')
-        self.cmake.write(')\n\n')
