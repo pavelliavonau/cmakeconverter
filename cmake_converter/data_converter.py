@@ -111,12 +111,12 @@ class DataConverter:
         if cmake_lists:
             if os.path.exists(cmake_lists):
                 cmake = get_cmake_lists(cmake_lists, 'r')
+                cmake_converter.utils.path_prefix = ''
                 if cmake:
                     file_text = cmake.read()
                     cmake.close()
                     if 'PROJECT_NAME {0}'.format(project_name) in file_text:
                         self.context['cmake'] = get_cmake_lists(cmake_lists)  # updating
-                        cmake_converter.utils.path_prefix = ''
                     else:
                         directory = cmake_lists + '/{0}_cmakelists'.format(project_name)
                         if not os.path.exists(directory):
