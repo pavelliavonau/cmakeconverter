@@ -49,9 +49,13 @@ def convert_project(context, xml_project_path, cmake_lists_destination_path):
     # Give data to DataConverter()
     data_converter = None
     if 'vcxproj' in xml_project_path:
-        data_converter = VCXProjectConverter(context, xml_project_path, cmake_lists_destination_path)
+        data_converter = VCXProjectConverter(
+            context, xml_project_path, cmake_lists_destination_path
+        )
     if 'vfproj' in xml_project_path:
-        data_converter = VFProjectConverter(context, xml_project_path, cmake_lists_destination_path)
+        data_converter = VFProjectConverter(
+            context, xml_project_path, cmake_lists_destination_path
+        )
     if data_converter is None:
         message('Unknown project type at {0}'.format(xml_project_path), 'error')
         return
@@ -61,12 +65,20 @@ def convert_project(context, xml_project_path, cmake_lists_destination_path):
 
 def parse_solution(sln_text):
     """
-    :param sln_text:
+    Parse given solution
+
+    :param sln_text: full solution text
+    :type sln_text: str
     :return: data from solution
+    :rtype: dict
     """
+
     solution_data = {}
     projects_data = {}
-    p = re.compile(r'(Project.*\s=\s\"(.*)\",\s\"(.*\.(.*proj))\",.*(\{.*\})(?:.|\n)*?EndProject(?!Section))')
+    p = re.compile(
+        r'(Project.*\s=\s\"(.*)\",\s\"(.*\.(.*proj))\",.*(\{.*\})(?:.|\n)*?EndProject(?!Section))'
+    )
+
     parsed_data = p.findall(sln_text)
     for project_data_match in parsed_data:
         project = dict()
@@ -76,8 +88,9 @@ def parse_solution(sln_text):
         guid = project_data_match[4]
         if 'ProjectDependencies' in project_data_match[0]:
             project['sln_deps'] = []
-            dependencies_section = re.compile(r'ProjectSection\(ProjectDependencies\) '
-                                              r'= postProject(?:.|\n)*?EndProjectSection')
+            dependencies_section = re.compile(
+                r'ProjectSection\(ProjectDependencies\) = postProject(?:.|\n)*?EndProjectSection'
+            )
             dep_data = dependencies_section.findall(project_data_match[0])
             dependencies_guids = re.compile(r'((\{.*\}) = (\{.*\}))')
             guids_deps_matches = dependencies_guids.findall(dep_data[0])
@@ -85,8 +98,10 @@ def parse_solution(sln_text):
                 project['sln_deps'].append(guids_deps_match[2])
         projects_data[guid] = project
 
-    solution_configurations_re = re.compile(r'GlobalSection\(SolutionConfigurationPlatforms\) = preSolution'
-                                            r'((?:.|\n)*?)EndGlobalSection')
+    solution_configurations_re = re.compile(
+        r'GlobalSection\(SolutionConfigurationPlatforms\) = preSolution((?:.|\n)*?)EndGlobalSection'
+    )
+
     solution_configurations_matches = solution_configurations_re.findall(sln_text)
     solution_data['sln_configurations'] = []
     sln_configuration_re = re.compile(r'([\w|]+) = ([\w|]+)')
@@ -95,8 +110,9 @@ def parse_solution(sln_text):
         for configuration in configurations:
             solution_data['sln_configurations'].append(configuration[0])
 
-    projects_configurations_re = re.compile(r'GlobalSection\(ProjectConfigurationPlatforms\) = postSolution'
-                                            r'((?:.|\n)*?)EndGlobalSection')
+    projects_configurations_re = re.compile(
+        r'GlobalSection\(ProjectConfigurationPlatforms\) = postSolution((?:.|\n)*?)EndGlobalSection'
+    )
     projects_configurations_matches = projects_configurations_re.findall(sln_text)
     projects_configuration_re = re.compile(r'(\{.+\})\.([\w|]+)\.ActiveCfg = ([\w|]+)')
     for projects_configuration_match in projects_configurations_matches:
@@ -118,6 +134,7 @@ def parse_solution(sln_text):
                 target_deps.append(dep['name'])
             project_data['sln_deps'] = target_deps
     solution_data['projects_data'] = projects_data
+
     return solution_data
 
 
@@ -227,7 +244,9 @@ def main():  # pragma: no cover
         solution_path = os.path.dirname(args.solution)
         sln_cmake = get_cmake_lists(solution_path)
         DataConverter.add_cmake_version_required(sln_cmake)
-        sln_cmake.write('project({0})\n\n'. format(os.path.splitext(os.path.basename(args.solution))[0]))
+        sln_cmake.write(
+            'project({0})\n\n'. format(os.path.splitext(os.path.basename(args.solution))[0])
+        )
         subdirectories = []
         subdirectories_to_project_name = {}
         projects_data = solution_data['projects_data']
@@ -318,8 +337,10 @@ def main():  # pragma: no cover
         for subdirectory in subdirectories:
             binary_dir = ''
             if '.' in subdirectory[:1]:
-                binary_dir = ' ${{CMAKE_BINARY_DIR}}/{0}'.format(subdirectories_to_project_name[subdirectory])
-            sln_cmake.write('add_subdirectory({0}{1})\n'.format(set_unix_slash(subdirectory), binary_dir))
+                binary_dir = ' ${{CMAKE_BINARY_DIR}}/{0}'.format(
+                    subdirectories_to_project_name[subdirectory])
+            sln_cmake.write('add_subdirectory({0}{1})\n'.format(
+                set_unix_slash(subdirectory), binary_dir))
         sln_cmake.write('\n')
         sln_cmake.close()
 
