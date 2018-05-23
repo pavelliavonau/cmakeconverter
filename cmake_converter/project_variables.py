@@ -80,7 +80,8 @@ class ProjectVariables(object):
         if len(context['settings']) == 0:
             return
 
-        write_property_of_settings(cmake_file, self.settings, self.context['sln_configurations_map'],
+        write_property_of_settings(cmake_file, self.settings,
+                                   self.context['sln_configurations_map'],
                                    'string(CONCAT OUT_DIR', ')', 'out_dir', '',
                                    '${CMAKE_SOURCE_DIR}/${CMAKE_VS_PLATFORM_NAME}/$<CONFIG>')
 
@@ -94,22 +95,24 @@ class ProjectVariables(object):
             configuration_type = get_configuration_type(setting, context)
 
         if configuration_type:
+            left_string = 'set_target_properties(${PROJECT_NAME} PROPERTIES '
+            right_string = '_OUTPUT_DIRECTORY ${OUT_DIR})\n'
             if configuration_type == 'DynamicLibrary' or configuration_type == 'StaticLibrary':
                 cmake_file.write(
-                    'set_target_properties(${PROJECT_NAME} PROPERTIES ARCHIVE_OUTPUT_DIRECTORY ${OUT_DIR})\n')
+                    left_string + 'ARCHIVE' + right_string)
                 if configuration_type == 'DynamicLibrary':
-                    cmake_file.write(
-                        'set_target_properties(${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${OUT_DIR})\n')
+                    cmake_file.write(left_string + 'RUNTIME' + right_string)
                 # TODO: do we really need LIBRARY_OUTPUT_DIRECTORY here?
-                cmake_file.write(
-                    'set_target_properties(${PROJECT_NAME} PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${OUT_DIR})\n')
+                cmake_file.write(left_string + 'LIBRARY' + right_string)
                 cmake_file.write('\n')
             else:
                 cmake_file.write(
-                    'set_target_properties(${PROJECT_NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${OUT_DIR})\n\n')
+                    left_string + 'RUNTIME' + right_string + '\n')
 
-        write_property_of_settings(cmake_file, self.settings, self.context['sln_configurations_map'],
-                                   'string(CONCAT TARGET_NAME', ')', 'output_name', '', '${PROJECT_NAME}')
+        write_property_of_settings(cmake_file, self.settings,
+                                   self.context['sln_configurations_map'],
+                                   'string(CONCAT TARGET_NAME', ')', 'output_name', '',
+                                   '${PROJECT_NAME}')
         cmake_file.write(
             'set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME ${TARGET_NAME})\n\n')
 
@@ -148,8 +151,9 @@ class VCXProjectVariables(ProjectVariables):
                     if vs_output:
                         self.vs_outputs[conf][arch] = vs_output[0]
                 if self.vs_outputs[conf][arch] is None:
-                    vs_output = self.tree.xpath('//ns:OutDir[@Condition="\'$(Configuration)|$(Platform)\'==\'{0}\'"]'
-                                                .format(setting), namespaces=self.ns)
+                    vs_output = self.tree.xpath(
+                        '//ns:OutDir[@Condition="\'$(Configuration)|$(Platform)\'==\'{0}\'"]'
+                        .format(setting), namespaces=self.ns)
                     if vs_output:
                         self.vs_outputs[conf][arch] = vs_output[0]
 

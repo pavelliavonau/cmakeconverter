@@ -49,7 +49,8 @@ class ProjectFiles(object):
             self.header_files = []
             self.source_file_attr = 'RelativePath'
         else:
-            message("Unsupported project type in ProjectFiles class: {0}".format(self.vcxproj_path), 'ERROR')
+            message("Unsupported project type in ProjectFiles class: {0}"
+                    .format(self.vcxproj_path), 'ERROR')
 
         self.language = []
         self.sources = {}
@@ -99,8 +100,9 @@ class ProjectFiles(object):
         for header_path in self.headers:
             self.headers[header_path].sort(key=str.lower)
 
-        self.context['has_headers'] = True if self.header_files else False
-        self.context['has_only_headers'] = True if self.context['has_headers'] and not self.source_files else False
+        has_headers = True if self.header_files else False
+        self.context['has_headers'] = has_headers
+        self.context['has_only_headers'] = True if has_headers and not self.source_files else False
         message("Source files extensions found: %s" % self.language, 'INFO')
 
     def find_cmake_project_language(self):
@@ -160,8 +162,9 @@ class ProjectFiles(object):
             if headers_dir == '':
                 continue
             for header_file in self.headers[headers_dir]:
-                cmake_file.write('    {0}\n'.format(normalize_path(working_path,
-                                                                   os.path.join(headers_dir, header_file))))
+                cmake_file.write('    {0}\n'
+                                 .format(normalize_path(working_path,
+                                                        os.path.join(headers_dir, header_file))))
 
         cmake_file.write(')\n')
         cmake_file.write('source_group("Headers" FILES ${HEADERS_FILES})\n\n')
@@ -182,8 +185,9 @@ class ProjectFiles(object):
             if src_dir == '':
                 continue
             for src_file in self.sources[src_dir]:
-                cmake_file.write('    {0}\n'.format(normalize_path(working_path,
-                                                                   os.path.join(src_dir, src_file))))
+                cmake_file.write('    {0}\n'
+                                 .format(normalize_path(working_path,
+                                                        os.path.join(src_dir, src_file))))
 
         cmake_file.write(')\n')
         cmake_file.write('source_group("Sources" FILES ${SRC_FILES})\n\n')
