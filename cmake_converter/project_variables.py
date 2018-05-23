@@ -26,13 +26,15 @@
 """
 
 from cmake_converter.data_files import get_propertygroup
-from cmake_converter.utils import get_configuration_type, write_property_of_settings, cleaning_output, message
+from cmake_converter.utils import get_configuration_type, write_property_of_settings
+from cmake_converter.utils import cleaning_output, message
 
 
 class ProjectVariables(object):
     """
-
+        Class who manage project variables
     """
+
     def __init__(self, context):
         self.tree = context['vcxproj']['tree']
         self.ns = context['vcxproj']['ns']
@@ -45,6 +47,8 @@ class ProjectVariables(object):
         """
         Add main CMake project variables
 
+        :param cmake_file: CMakeLists.txt IO wrapper
+        :type cmake_file: _io.TextIOWrapper
         """
 
         if not self.project_name == '':
@@ -57,10 +61,13 @@ class ProjectVariables(object):
                 'error'
             )
 
-    def add_default_target(self, cmake_file):
+    @staticmethod
+    def add_default_target(cmake_file):
         """
-        Add default target release if not define.
+        Add default target release if not define
 
+        :param cmake_file: CMakeLists.txt IO wrapper
+        :type cmake_file: _io.TextIOWrapper
         """
 
         cmake_file.write(
@@ -75,20 +82,25 @@ class ProjectVariables(object):
         """
         Add outputs for each artefacts CMake target
 
+        :param context: related full context
+        :type context: dict
+        :param cmake_file: CMakeLists.txt IO wrapper
+        :type cmake_file: _io.TextIOWrapper
         """
 
         if len(context['settings']) == 0:
             return
 
-        write_property_of_settings(cmake_file, self.settings,
-                                   self.context['sln_configurations_map'],
-                                   'string(CONCAT OUT_DIR', ')', 'out_dir', '',
-                                   '${CMAKE_SOURCE_DIR}/${CMAKE_VS_PLATFORM_NAME}/$<CONFIG>')
+        write_property_of_settings(
+            cmake_file, self.settings,
+            self.context['sln_configurations_map'],
+            'string(CONCAT OUT_DIR', ')', 'out_dir', '',
+            '${CMAKE_SOURCE_DIR}/${CMAKE_VS_PLATFORM_NAME}/$<CONFIG>'
+        )
 
         for setting in self.settings:
             break
 
-        configuration_type = ''
         if 'vfproj' in context['vcxproj_path']:
             configuration_type = 'StaticLibrary'
         else:
@@ -109,17 +121,20 @@ class ProjectVariables(object):
                 cmake_file.write(
                     left_string + 'RUNTIME' + right_string + '\n')
 
-        write_property_of_settings(cmake_file, self.settings,
-                                   self.context['sln_configurations_map'],
-                                   'string(CONCAT TARGET_NAME', ')', 'output_name', '',
-                                   '${PROJECT_NAME}')
+        write_property_of_settings(
+            cmake_file, self.settings,
+            self.context['sln_configurations_map'],
+            'string(CONCAT TARGET_NAME', ')', 'output_name', '',
+            '${PROJECT_NAME}'
+        )
         cmake_file.write(
-            'set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME ${TARGET_NAME})\n\n')
+            'set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME ${TARGET_NAME})\n\n'
+        )
 
 
 class VCXProjectVariables(ProjectVariables):
     """
-        Class who defines all the CMake variables to be used by the project
+        Class who defines all the CMake variables to be used by the C/C++ project
     """
 
     def __init__(self, context):
@@ -193,7 +208,7 @@ class VCXProjectVariables(ProjectVariables):
 
 class VFProjectVariables(ProjectVariables):
     """
-
+         Class who defines all the CMake variables to be used by the Fortran project
     """
 
     def find_outputs_variables(self):
