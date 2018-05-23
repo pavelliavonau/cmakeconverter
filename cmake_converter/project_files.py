@@ -77,7 +77,9 @@ class ProjectFiles(object):
                 if cpp_path not in self.sources:
                     self.sources[cpp_path] = []
                 if cxx_file not in self.sources[cpp_path]:
-                    self.sources[cpp_path].append(take_name_from_list_case_ignore(filelists[cpp_path], cxx_file))
+                    real_name = take_name_from_list_case_ignore(filelists[cpp_path], cxx_file)
+                    if real_name:
+                        self.sources[cpp_path].append(real_name)
         for source_path in self.sources:
             self.sources[source_path].sort(key=str.lower)
 
