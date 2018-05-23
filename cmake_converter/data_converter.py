@@ -22,13 +22,13 @@
 """
     DataConverter
     =============
-     Manage conversion of **.*proj** data
+     Manage conversion of **.vcxproj** data
 """
 
 import os
 
-from cmake_converter.data_files import get_vcxproj_data, get_cmake_lists, get_propertygroup, get_definitiongroup,\
-    get_xml_data
+from cmake_converter.data_files import get_vcxproj_data, get_cmake_lists, get_propertygroup
+from cmake_converter.data_files import get_definitiongroup, get_xml_data
 
 from cmake_converter.dependencies import Dependencies
 from cmake_converter.flags import CPPFlags, FortranFlags
@@ -40,29 +40,47 @@ import cmake_converter.utils
 
 class DataConverter:
     """
-    Base class for converters
+        Base class for converters
     """
+
     def __init__(self, context, vs_project, cmake_lists_destination_path):
         self.context = context
         self.init_files(vs_project, cmake_lists_destination_path)
         self.define_settings()
 
     def define_settings(self):
+        """
+        Define settings of converter. Need to be defined.
+
+        """
+
         raise NotImplementedError('You need to define a define_settings method!')
 
     def init_context(self, vs_project):
+        """
+        Initialize context
+
+        """
         pass
 
     def init_context_setting(self, configuration_data):
+        """
+        Define settings of converter. Need to be reimplemented.
+
+        :param configuration_data: data of configuration (Debug|Win32, Release|x64,...)
+        :type configuration_data: str
+        """
+
         conf_arch = configuration_data.split('|')
         conf = conf_arch[0]
         arch = conf_arch[1]
-        self.context['settings'][configuration_data] = {'defines': [],
-                                                        'cl_flags': [],
-                                                        'ln_flags': [],
-                                                        'conf': conf,
-                                                        'arch': arch,
-                                                        }
+        self.context['settings'][configuration_data] = {
+            'defines': [],
+            'cl_flags': [],
+            'ln_flags': [],
+            'conf': conf,
+            'arch': arch,
+        }
 
     def init_files(self, vs_project, cmake_lists):
         """
@@ -84,15 +102,27 @@ class DataConverter:
             self.get_cmake_lists_name(cmake_lists, self.context['project_name'])
 
     def collect_data(self):
+        """
+        Collect data for converter. Need to be reimplemented.
+
+        """
         raise NotImplementedError('You need to define a collect_data method!')
 
     def write_data(self, cmake_file):
+        """
+        Write data defined in converter. Need to be reimplemented.
+
+        :param cmake_file: CMakeLists IO wrapper
+        :type cmake_file: _io.TextIOWrapper
+        """
         raise NotImplementedError('You need to define a write_data method!')
 
     def convert(self):
         """
-         Template method
+        Method template for data collecting and writing
+
         """
+
         self.collect_data()
         cmake_file = get_cmake_lists(self.context['cmake'])
         self.write_data(cmake_file)
@@ -100,10 +130,25 @@ class DataConverter:
 
     @staticmethod
     def add_cmake_version_required(cmake_file):
+        """
+        Write CMake minimum required
+
+        :param cmake_file: IO cmake file wrapper
+        :type cmake_file: _io.TextIOWrapper
+        """
+
         cmake_file.write('cmake_minimum_required(VERSION 2.8.0 FATAL_ERROR)\n\n')
 
     def get_cmake_lists_name(self, cmake_lists, project_name):
-        # Cmake Project (CMakeLists.txt)
+        """
+        Set CMakeLists.txt path in context, for given project
+
+        :param cmake_lists: path of CMakeLists related to project name
+        :type cmake_lists: str
+        :param project_name: name of project
+        :type project_name: str
+        """
+
         if cmake_lists:
             if os.path.exists(cmake_lists):
                 cmake = get_cmake_lists(cmake_lists, 'r')
@@ -145,6 +190,13 @@ class VCXProjectConverter(DataConverter):
         self.dependencies = Dependencies(self.context)
 
     def init_context(self, vs_project):
+        """
+        Initialize context for given VS project
+
+        :param vs_project: VS project path (.vcxproj)
+        :type vs_project: str
+        """
+
         project_name = self.context['project_name']
         self.context['vcxproj'] = get_vcxproj_data(vs_project)
         project_name_value = \
@@ -169,9 +221,12 @@ class VCXProjectConverter(DataConverter):
             for configuration_node in configuration_nodes:
                 configuration_data = str(configuration_node.get('Include'))
                 self.init_context_setting(configuration_data)
-                self.context['property_groups'][configuration_data] = get_propertygroup(configuration_data,
-                                                                                        ' and @Label="Configuration"')
-                self.context['definition_groups'][configuration_data] = get_definitiongroup(configuration_data)
+                self.context['property_groups'][configuration_data] = get_propertygroup(
+                    configuration_data, ' and @Label="Configuration"'
+                )
+                self.context['definition_groups'][configuration_data] = get_definitiongroup(
+                    configuration_data
+                )
 
     def collect_data(self):
         """
@@ -196,6 +251,8 @@ class VCXProjectConverter(DataConverter):
         """
         Write the data of each part of "vcxproj" project into CMakeLists.txt
 
+        :param cmake_file: CMakeLists IO wrapper
+        :type cmake_file: _io.TextIOWrapper
         """
 
         if not self.context['is_converting_solution']:
@@ -238,6 +295,13 @@ class VFProjectConverter(DataConverter):
         self.flags = FortranFlags(self.context)
 
     def init_context(self, vs_project):
+        """
+        Initialize context for given VS project
+
+        :param vs_project: VS project path (.vcxproj)
+        :type vs_project: str
+        """
+
         self.context['vcxproj'] = get_xml_data(vs_project)
 
     def define_settings(self):
@@ -262,7 +326,8 @@ class VFProjectConverter(DataConverter):
                 if target_name_node:
                     self.context['settings'][configuration_data]['output_name'] = target_name_node
                 else:
-                    self.context['settings'][configuration_data]['output_name'] = self.context['project_name']
+                    self.context['settings'][configuration_data]['output_name'] = \
+                        self.context['project_name']
 
                 tools = configuration_node.xpath('Tool')
                 for tool in tools:
@@ -270,12 +335,12 @@ class VFProjectConverter(DataConverter):
                     self.context['settings'][configuration_data][tool_name] = tool.attrib
                     if 'VFFortranCompilerTool' in tool_name:
                         if 'PreprocessorDefinitions' in tool.attrib:
-                            self.context['settings'][configuration_data]['defines'] = tool.attrib['PreprocessorDefinitions']\
-                                .split(';')
+                            self.context['settings'][configuration_data]['defines'] = \
+                                tool.attrib['PreprocessorDefinitions'].split(';')
 
     def collect_data(self):
         """
-        Create the data and convert each part of "vfproj" project
+        Create the data and convert each part of "vcxproj" project
 
         """
 
@@ -287,7 +352,9 @@ class VFProjectConverter(DataConverter):
         if not self.context['has_only_headers']:
             self.flags.define_flags()
             for setting in self.context['settings']:
-                ad_inc = self.context['settings'][setting]['VFFortranCompilerTool'].get('AdditionalIncludeDirectories')
+                ad_inc = self.context['settings'][setting]['VFFortranCompilerTool'].get(
+                    'AdditionalIncludeDirectories'
+                )
                 if ad_inc:
                     Dependencies.get_additional_include_directories(ad_inc, setting, self.context)
                 if 'inc_dirs' in self.context['settings'][setting]:
@@ -296,6 +363,13 @@ class VFProjectConverter(DataConverter):
                     self.context['settings'][setting]['inc_dirs'] = '${CMAKE_CURRENT_SOURCE_DIR}/'
 
     def write_data(self, cmake_file):
+        """
+        Write the data of each part of "vcxproj" project into CMakeLists.txt
+
+        :param cmake_file: CMakeLists IO wrapper
+        :type cmake_file: _io.TextIOWrapper
+        """
+
         if not self.context['is_converting_solution']:
             self.add_cmake_version_required(self.context['cmake'])
 
@@ -311,4 +385,6 @@ class VFProjectConverter(DataConverter):
             self.flags.write_target_artifact(cmake_file)
             self.variables.write_target_outputs(self.context, cmake_file)
             Dependencies.write_include_directories(self.context, cmake_file)
-            self.flags.write_defines_and_flags('${CMAKE_Fortran_COMPILER_ID} STREQUAL "Intel"', cmake_file)
+            self.flags.write_defines_and_flags(
+                '${CMAKE_Fortran_COMPILER_ID} STREQUAL "Intel"', cmake_file
+            )
