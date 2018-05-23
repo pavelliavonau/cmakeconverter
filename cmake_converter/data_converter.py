@@ -38,7 +38,7 @@ from cmake_converter.utils import message
 import cmake_converter.utils
 
 
-class DataConverter:
+class DataConverter(object):
     """
         Base class for converters
     """
@@ -99,7 +99,7 @@ class DataConverter:
             self.context['project_name'] = project_name
             self.context['vcxproj_path'] = vs_project
             self.init_context(vs_project)
-            self.get_cmake_lists_name(cmake_lists, self.context['project_name'])
+            self.set_cmake_lists_name(cmake_lists, self.context['project_name'])
 
     def collect_data(self):
         """
@@ -139,7 +139,7 @@ class DataConverter:
 
         cmake_file.write('cmake_minimum_required(VERSION 2.8.0 FATAL_ERROR)\n\n')
 
-    def get_cmake_lists_name(self, cmake_lists, project_name):
+    def set_cmake_lists_name(self, cmake_lists, project_name):
         """
         Set CMakeLists.txt path in context, for given project
 
