@@ -29,8 +29,8 @@ import os
 
 from os import path
 
-from cmake_converter.utils import take_name_from_list_case_ignore, get_configuration_type\
-    , write_property_of_settings, set_unix_slash, normalize_path, message
+from cmake_converter.utils import take_name_from_list_case_ignore, normalize_path, message
+from cmake_converter.utils import write_property_of_settings, set_unix_slash, get_configuration_type
 
 cl_flags = 'cl_flags'
 ln_flags = 'ln_flags'
@@ -40,7 +40,7 @@ default_value = 'default_value'
 
 class Flags(object):
     """
-
+        Class who manage flags of projects
     """
 
     def __init__(self, context):
@@ -48,9 +48,6 @@ class Flags(object):
         self.tree = context['vcxproj']['tree']
         self.ns = context['vcxproj']['ns']
         self.settings = context['settings']
-
-    def get_setting_name(self, setting):
-        return self.settings[setting]['conf']
 
     def write_defines_and_flags(self, compiler_check, cmake_file):
         """
@@ -110,10 +107,14 @@ class Flags(object):
         cmake_file.write('endif()\n\n')
 
     @staticmethod
-    def write_target_headers_only_artifact(context, cmake_file):
+    def write_target_headers_only_artifact(cmake_file):
         """
-        Add dummy target
+        Add a dummy target to given CMake file
+
+        :param cmake_file: CMakeLists.txt IO wrapper
+        :type cmake_file: _io.TextIOWrapper
         """
+
         message('CMake will show fake custom Library.', 'warn')
         cmake_file.write('add_custom_target(${PROJECT_NAME} SOURCES ${HEADERS_FILES})\n\n')
 

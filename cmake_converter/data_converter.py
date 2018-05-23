@@ -280,7 +280,7 @@ class VCXProjectConverter(DataConverter):
             self.dependencies.write_link_dependencies(cmake_file)
             self.dependencies.write_target_dependency_packages(cmake_file)
         else:
-            CPPFlags.write_target_headers_only_artifact(self.context, cmake_file)
+            CPPFlags.write_target_headers_only_artifact(cmake_file)
 
 
 class VFProjectConverter(DataConverter):
