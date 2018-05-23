@@ -109,8 +109,6 @@ class ProjectFiles(object):
         """
         Add CMake Project
 
-        :param language_list: type of project language: cpp | c
-        :type language_list: list
         """
 
         cpp_extensions = ['cc', 'cp', 'cxx', 'cpp', 'CPP', 'c++', 'C']
@@ -138,6 +136,13 @@ class ProjectFiles(object):
         self.context['project_language'] = project_language
 
     def write_cmake_project(self, cmake_file):
+        """
+        Write cmake project for given CMake file
+
+        :param cmake_file: CMakeLists.txt IO wrapper
+        :type cmake_file: _io.TextIOWrapper
+        """
+
         lang = ''
         if self.context['project_language']:
             lang = ' ' + self.context['project_language']
@@ -146,7 +151,11 @@ class ProjectFiles(object):
     def write_header_files(self, cmake_file):
         """
         Write header files variables to file() cmake function
+
+        :param cmake_file: CMakeLists.txt IO wrapper
+        :type cmake_file: _io.TextIOWrapper
         """
+
         if len(self.headers) == 0:
             return
 
@@ -172,7 +181,11 @@ class ProjectFiles(object):
     def write_source_files(self, cmake_file):
         """
         Write source files variables to file() cmake function
+
+        :param cmake_file: CMakeLists.txt IO wrapper
+        :type cmake_file: _io.TextIOWrapper
         """
+
         cmake_file.write('############ Source Files #############\n')
         cmake_file.write('set(SRC_FILES\n')
 
@@ -196,7 +209,9 @@ class ProjectFiles(object):
     def add_additional_code(file_to_add, cmake_file):
         """
         Add additional file with CMake code inside
-        :param cmake_file
+
+        :param cmake_file: CMakeLists.txt IO wrapper
+        :type cmake_file: _io.TextIOWrapper
         :param file_to_add: the file who contains CMake code
         :type file_to_add: str
         """
