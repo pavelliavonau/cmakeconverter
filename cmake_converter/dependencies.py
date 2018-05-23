@@ -46,7 +46,6 @@ class Dependencies(object):
         self.deps = context['sln_deps']
         self.settings = context['settings']
         self.definition_groups = context['definition_groups']
-        self.includes = context['includes']
         self.vcxproj_path = context['vcxproj_path']
         self.context = context
 
@@ -55,10 +54,6 @@ class Dependencies(object):
         Write on "CMakeLists.txt" include directories required for compilation.
 
         """
-
-        if not self.includes:
-            message('Include Directories is not set.', '')
-            return
 
         for setting in self.settings:
             incl_dir = self.tree.find(

@@ -40,7 +40,6 @@ class TestProjectFiles(unittest2.TestCase):
         'cmake_output': None,
         'vcxproj': vcxproj_data_test,
         'dependencies': None,
-        'includes': None,
         'additional_code': None,
         'std': None,
     }

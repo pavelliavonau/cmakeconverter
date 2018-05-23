@@ -156,7 +156,6 @@ def main():  # pragma: no cover
         'vcxproj': None,
         'cmake': None,
         'additional_code': None,
-        'includes': None,
         'dependencies': None,
         'cmake_output': None,
         'data': None,
@@ -224,7 +223,6 @@ def main():  # pragma: no cover
     if args.dependencies:
         context['dependencies'] = args.dependencies.split(':')
     context['cmake_output'] = args.cmakeoutput
-    context['includes'] = args.include
 
     if args.std:
         context['std'] = args.std

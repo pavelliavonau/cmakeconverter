@@ -40,7 +40,6 @@ class TestFlags(unittest2.TestCase):
         'cmake_output': None,
         'vcxproj': vs_project,
         'dependencies': None,
-        'includes': None,
         'additional_code': None,
         'std': None,
     }

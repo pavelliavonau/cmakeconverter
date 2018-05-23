@@ -41,7 +41,6 @@ class TestDependencies(unittest2.TestCase):
         'vcxproj': vs_project,
         'project': '%s/datatest/foo.vcxproj' % cur_dir,
         'dependencies': [],
-        'includes': None,
         'additional_code': None,
         'std': None,
     }
