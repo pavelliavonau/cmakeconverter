@@ -98,7 +98,7 @@ def get_xml_data(xml_file):
         ns = {'ns': namespace.partition('\'')[-1].rpartition('\'')[0]}
         xml['tree'] = tree
         xml['ns'] = ns
-        #assert 'http://schemas.microsoft.com' in ns['ns']
+        # assert 'http://schemas.microsoft.com' in ns['ns']
     except AssertionError:  # pragma: no cover
         message(
             '.xml file cannot be import, because this file does not seem to comply with'
@@ -168,7 +168,6 @@ def get_cmake_lists(cmake_path=None, open_type='w'):
     :rtype: _io.TextIOWrapper
     """
 
-    cmake = ''
     if not cmake_path:
         if open_type == 'w':
             message('CMakeLists will be written at current directory.', 'warn')
