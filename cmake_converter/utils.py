@@ -230,7 +230,7 @@ def cleaning_output(output):
         '$(Platform)': '${CMAKE_VS_PLATFORM_NAME}',
         '$(Configuration)': '$<CONFIG>',
         '$(ConfigurationName)': '$<CONFIG>',
-        '$(ProjectDir)': '${CMAKE_CURRENT_SOURCE_DIR}',
+        '$(ProjectDir)': '${CMAKE_CURRENT_SOURCE_DIR}/',
         '$(ProjectName)': '${PROJECT_NAME}'
         }
 
