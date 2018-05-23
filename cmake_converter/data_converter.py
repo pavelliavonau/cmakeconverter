@@ -256,7 +256,7 @@ class VCXProjectConverter(DataConverter):
         """
 
         if not self.context['is_converting_solution']:
-            self.add_cmake_version_required(self.context['cmake'])
+            self.add_cmake_version_required(cmake_file)
 
         self.variables.add_project_variables(cmake_file)
         self.files.write_cmake_project(cmake_file)
@@ -371,7 +371,7 @@ class VFProjectConverter(DataConverter):
         """
 
         if not self.context['is_converting_solution']:
-            self.add_cmake_version_required(self.context['cmake'])
+            self.add_cmake_version_required(cmake_file)
 
         self.variables.add_project_variables(cmake_file)
         self.files.write_cmake_project(cmake_file)
