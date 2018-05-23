@@ -39,28 +39,18 @@ FAIL = colorama.Fore.RED + colorama.Style.BRIGHT
 ENDC = colorama.Fore.RESET + colorama.Style.RESET_ALL
 
 
-def mkdir(folder):
-    """
-    Make wanted folder
-
-    :param folder: folder to create
-    :type folder: str
-    :return: if creation is success or not
-    :rtype: bool
-    """
-
-    try:
-        os.makedirs(folder)
-    except FileExistsError:
-        pass
-    except PermissionError as e:
-        print('Can\'t create [%s] directory for cmake !\n%s' % (folder, e))
-        sys.exit(1)
-
-
 def take_name_from_list_case_ignore(search_list, name_to_search):
     """
+    Return real name of name to search
+
+    :param search_list: list to makje research
+    :type search_list: list
+    :param name_to_search: name tosearch in list
+    :type name_to_search: str
+    :return: real name
+    :rtype: str
     """
+
     real_name = ''
     for item in search_list:
         if item.lower() == name_to_search.lower():
@@ -80,16 +70,49 @@ def take_name_from_list_case_ignore(search_list, name_to_search):
 
 
 def get_configuration_type(setting, context):
+    """
+    Return configuration type from given setting and context
+
+    :param setting: current setting (ReleaseDebug|Win32, ...)
+    :type setting: str
+    :param context: current context
+    :type context: dict
+    :return: configuration type
+    :rtype: str
+    """
+
     configurationtype = context['vcxproj']['tree'].xpath(
         '{0}/ns:ConfigurationType'.format(context['property_groups'][setting]),
         namespaces=context['vcxproj']['ns'])
     if len(configurationtype) == 0:
         return None
+
     return configurationtype[0].text
 
 
 def write_property_of_settings(cmake_file, settings, sln_setting_2_project_setting, begin_text,
                                end_text, property_name, indent='', default=None):
+    """
+    Write property of given settings. TODO: Add **kwargs to decrease number of parameters
+
+    :param cmake_file: CMakeLists.txt IO wrapper
+    :type cmake_file: _io.TextIOWrapper
+    :param settings: global settings
+    :type settings: dict
+    :param sln_setting_2_project_setting: solution settings attached to project
+    :type sln_setting_2_project_setting: dict
+    :param begin_text: begin of text
+    :type begin_text: str
+    :param end_text: end of text
+    :type end_text: str
+    :param property_name: current property name (out_dir, inc_dirs,...)
+    :type property_name: str
+    :param indent: indent to use when writing
+    :type indent: str
+    :param default: default text to add
+    :type default: None | str
+    """
+
     width = 0
     settings_of_arch = {}
     for sln_setting in sln_setting_2_project_setting:
@@ -140,26 +163,55 @@ def write_property_of_settings(cmake_file, settings, sln_setting_2_project_setti
 
 
 def get_global_project_name_from_vcxproj_file(vcxproj):
+    """
+    Return global project name from ".vcxproj" file
+
+    :param vcxproj: vcxproj data
+    :type vcxproj: dict
+    :return: project name
+    :rtype: str
+    """
+
     project_name_node = vcxproj['tree'].xpath('//ns:ProjectName', namespaces=vcxproj['ns'])
     project_name = None
     if project_name_node:
         project_name_value = project_name_node[0]
         if project_name_value.text:
             project_name = project_name_value.text
+
     return project_name
 
 
 def set_unix_slash(win_path):
+    """
+    Set windows path to unix style path
+
+    :param win_path: windows style path
+    :type win_path: str
+    :return: unix style path
+    :rtype: str
+    """
     unix_path = win_path.strip().replace('\\', '/')
+
     return unix_path
 
 
 def remove_relative_from_path(path):
+    """
+    Return path by adding CMake variable or current path prefix, to remove relative
+
+    :param path: original path
+    :type path: str
+    :return: formatted path without relative
+    :rtype: str
+    """
+
     if '${' not in path[:2]:
         path = path_prefix + path
     if '.' in path[:1]:
         # add current directory for relative path (CMP0021)
         path = '${CMAKE_CURRENT_SOURCE_DIR}/' + path
+
     return path
 
 
@@ -197,6 +249,15 @@ def cleaning_output(output):
 
 
 def get_actual_filename(name):
+    """
+    Return actual filename from given name if file iis found, else return None
+
+    :param name: name of file
+    :type name: str
+    :return: None | str
+    :rtype: None | str
+    """
+
     dirs = name.split('\\')
     # disk letter
     test_name = [dirs[0].upper()]
@@ -207,16 +268,29 @@ def get_actual_filename(name):
         # File not found
         message('file or path "{0}" not found.'.format(name), 'warn')
         return None
+
     return res[0]
 
 
 def normalize_path(working_path, path_to_normalize):
+    """
+    Normalize path from working path
+
+    :param working_path: current working path
+    :type working_path: str
+    :param path_to_normalize: path to be normalized
+    :type path_to_normalize: str
+    :return: normalized path
+    :rtype: str
+    """
+
     joined_path = os.path.normpath(os.path.join(working_path, path_to_normalize.strip()))
     actual_path_name = get_actual_filename(joined_path)
     if actual_path_name is None:
         actual_path_name = joined_path
     normal_path = set_unix_slash(os.path.relpath(actual_path_name, working_path))
     normal_path = remove_relative_from_path(normal_path)
+
     return normal_path
 
 
