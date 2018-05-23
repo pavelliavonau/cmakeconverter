@@ -166,7 +166,7 @@ class DataConverter(object):
                         cmake_converter.utils.path_prefix = '../'
                         message('CMakeLists will be written at subdirectory.', 'warn')
                 else:
-                    self.context['cmake'] = get_cmake_lists(cmake_lists)  # writing first time
+                    self.context['cmake'] = cmake_lists  # writing first time
 
         if not self.context['cmake']:
             message(
@@ -174,7 +174,7 @@ class DataConverter(object):
                 'He will be generated in current directory.',
                 'warn'
             )
-            self.context['cmake'] = get_cmake_lists()
+            self.context['cmake'] = None
 
 
 class VCXProjectConverter(DataConverter):
