@@ -304,6 +304,8 @@ class Dependencies(object):
             label = node.get('Label')
             if not label:
                 filename = node.get('Project')
+                if 'Microsoft.CPP.UpgradeFromVC60' in filename:
+                    continue
                 props_path = os.path.join(os.path.dirname(self.vcxproj_path), filename)
                 working_path = os.path.dirname(self.context['vcxproj_path'])
                 self.context['property_sheets'].append(
