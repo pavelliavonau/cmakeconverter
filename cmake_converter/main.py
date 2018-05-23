@@ -201,11 +201,6 @@ def main():  # pragma: no cover
         dest='cmakeoutput'
     )
     parser.add_argument(
-        '-i', '--include',
-        help='add include directories in CMakeLists.txt. Default : False',
-        dest='include', action="store_true", default=False
-    )
-    parser.add_argument(
         '-std', '--std',
         help='choose your C++ std version. Default : c++11',
         dest='std'
