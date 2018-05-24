@@ -262,7 +262,7 @@ class Dependencies(object):
             cmake_file.write(')\nelseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")\n')
             cmake_file.write('    target_link_libraries(${PROJECT_NAME}')
             for dep in self.context['add_lib_dirs']:
-                cmake_file.write(' -L:' + cleaning_output(dep))
+                cmake_file.write(' -L' + cleaning_output(dep))
             cmake_file.write(')\nendif()\n\n')
 
     def find_target_property_sheets(self):
