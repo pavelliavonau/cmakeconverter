@@ -286,24 +286,25 @@ class Dependencies(object):
 
         """
 
-        self.context['property_sheets'] = []
-
         property_nodes = self.tree.xpath(
             '//ns:ImportGroup[@Label="PropertySheets"]/ns:Import', namespaces=self.ns
         )
+        props_set = set()
         for node in property_nodes:
             label = node.get('Label')
             if not label:
                 filename = node.get('Project')
                 if 'Microsoft.CPP.UpgradeFromVC60' in filename:
                     continue
-                props_path = os.path.join(os.path.dirname(self.vcxproj_path), filename)
+                # props_path = os.path.join(os.path.dirname(self.vcxproj_path), filename)
                 working_path = os.path.dirname(self.context['vcxproj_path'])
-                self.context['property_sheets'].append(
-                    normalize_path(working_path, filename).replace('.props', '.cmake'))
-                properties_xml = get_xml_data(props_path)
-                if properties_xml:
-                    pass  # TODO collect data from props
+                props_set.add(normalize_path(working_path, filename).replace('.props', '.cmake'))
+                # properties_xml = get_xml_data(props_path)
+                # if properties_xml:
+                #     properties_xml.close()  # TODO collect data from props
+        props_list = list(props_set)
+        props_list.sort()
+        self.context['property_sheets'] = props_list
 
     def write_target_property_sheets(self, cmake_file):
         """
