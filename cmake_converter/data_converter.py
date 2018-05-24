@@ -277,7 +277,8 @@ class VCXProjectConverter(DataConverter):
             self.dependencies.write_target_property_sheets(cmake_file)
             self.variables.write_target_outputs(self.context, cmake_file)
             self.dependencies.write_include_directories(self.context, cmake_file)
-            self.flags.write_defines_and_flags('MSVC', cmake_file)
+            self.flags.write_defines(cmake_file)
+            self.flags.write_flags('MSVC', cmake_file)
             if (self.context['target_references'] or
                     self.context['add_lib_deps'] or
                     self.context['add_lib_dirs'] or
@@ -393,6 +394,7 @@ class VFProjectConverter(DataConverter):
             self.flags.write_target_artifact(cmake_file)
             self.variables.write_target_outputs(self.context, cmake_file)
             Dependencies.write_include_directories(self.context, cmake_file)
-            self.flags.write_defines_and_flags(
+            self.flags.write_defines(cmake_file)
+            self.flags.write_flags(
                 '${CMAKE_Fortran_COMPILER_ID} STREQUAL "Intel"', cmake_file
             )

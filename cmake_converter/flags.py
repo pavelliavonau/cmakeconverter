@@ -33,9 +33,9 @@ from cmake_converter.utils import take_name_from_list_case_ignore, normalize_pat
     write_comment
 from cmake_converter.utils import write_property_of_settings, set_unix_slash, get_configuration_type
 
-cl_flags = 'cl_flags'
-ln_flags = 'ln_flags'
-defines = 'defines'
+cl_flags = 'cl_flags'  # MSVC compile flags (Windows only)
+ln_flags = 'ln_flags'  # MSVC link flags (Windows only)
+defines = 'defines'    # compile definitions (cross platform)
 default_value = 'default_value'
 pch_macro_text = """MACRO(ADD_PRECOMPILED_HEADER PrecompiledHeader PrecompiledSource SourcesVar)
     if(MSVC)
@@ -65,7 +65,18 @@ class Flags(object):
         self.ns = context['vcxproj']['ns']
         self.settings = context['settings']
 
-    def write_defines_and_flags(self, compiler_check, cmake_file):
+    def write_defines(self, cmake_file):
+        for setting in self.settings:
+            self.settings[setting]['defines_str'] = ';'.join(self.settings[setting][defines])
+
+        write_comment(cmake_file, 'Compile definitions')
+        write_property_of_settings(
+            cmake_file, self.settings, self.context['sln_configurations_map'],
+            'target_compile_definitions(${PROJECT_NAME} PRIVATE', ')', 'defines_str'
+        )
+        cmake_file.write('\n')
+
+    def write_flags(self, compiler_check, cmake_file):
         """
         Get and write Preprocessor Macros definitions
 
@@ -75,17 +86,9 @@ class Flags(object):
         :type cmake_file: _io.TextIOWrapper
         """
 
-        # normalize
         for setting in self.settings:
-            self.settings[setting]['defines_str'] = ';'.join(self.settings[setting][defines])
             self.settings[setting]['cl_str'] = ';'.join(self.settings[setting][cl_flags])
 
-        write_comment(cmake_file, 'Compile definitions')
-        write_property_of_settings(
-            cmake_file, self.settings, self.context['sln_configurations_map'],
-            'target_compile_definitions(${PROJECT_NAME} PRIVATE', ')', 'defines_str'
-        )
-        cmake_file.write('\n')
         write_comment(cmake_file, 'Compile and link options')
         cmake_file.write('if({0})\n'.format(compiler_check))
         write_property_of_settings(
