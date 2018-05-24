@@ -27,7 +27,7 @@
 
 from cmake_converter.data_files import get_propertygroup
 from cmake_converter.utils import get_configuration_type, write_property_of_settings
-from cmake_converter.utils import cleaning_output, message
+from cmake_converter.utils import cleaning_output, message, write_comment
 
 
 class ProjectVariables(object):
@@ -91,6 +91,8 @@ class ProjectVariables(object):
         if len(context['settings']) == 0:
             return
 
+        write_comment(cmake_file, 'Output directory')
+
         write_property_of_settings(
             cmake_file, self.settings,
             self.context['sln_configurations_map'],
@@ -121,6 +123,7 @@ class ProjectVariables(object):
                 cmake_file.write(
                     left_string + 'RUNTIME' + right_string + '\n')
 
+        write_comment(cmake_file, 'Target name')
         write_property_of_settings(
             cmake_file, self.settings,
             self.context['sln_configurations_map'],

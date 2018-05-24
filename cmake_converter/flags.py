@@ -29,7 +29,8 @@ import os
 
 from os import path
 
-from cmake_converter.utils import take_name_from_list_case_ignore, normalize_path, message
+from cmake_converter.utils import take_name_from_list_case_ignore, normalize_path, message,\
+    write_comment
 from cmake_converter.utils import write_property_of_settings, set_unix_slash, get_configuration_type
 
 cl_flags = 'cl_flags'
@@ -79,11 +80,13 @@ class Flags(object):
             self.settings[setting]['defines_str'] = ';'.join(self.settings[setting][defines])
             self.settings[setting]['cl_str'] = ';'.join(self.settings[setting][cl_flags])
 
+        write_comment(cmake_file, 'Compile definitions')
         write_property_of_settings(
             cmake_file, self.settings, self.context['sln_configurations_map'],
             'target_compile_definitions(${PROJECT_NAME} PRIVATE', ')', 'defines_str'
         )
         cmake_file.write('\n')
+        write_comment(cmake_file, 'Compile and link options')
         cmake_file.write('if({0})\n'.format(compiler_check))
         write_property_of_settings(
             cmake_file, self.settings, self.context['sln_configurations_map'],
@@ -945,13 +948,7 @@ class CPPFlags(Flags):
             )
         )
 
-    def write_target_artifact(self, cmake_file):
-        """
-        Add Library or Executable target
-
-        :param cmake_file: CMakeLIsts.txt IO wrapper
-        :type cmake_file: _io.TextIOWrapper
-        """
+    def write_use_pch_macro(self, cmake_file):
         setting = ''
         for s in self.settings:
             setting = s
@@ -959,6 +956,14 @@ class CPPFlags(Flags):
         cmake_file.write('# Warning: pch and target are the same for every configuration\n')
         if self.setting_has_pch(setting):
             self.write_precompiled_headers(setting, cmake_file)
+
+    def write_target_artifact(self, cmake_file):
+        """
+        Add Library or Executable target
+
+        :param cmake_file: CMakeLIsts.txt IO wrapper
+        :type cmake_file: _io.TextIOWrapper
+        """
 
         configuration_type = None
         for s in self.settings:

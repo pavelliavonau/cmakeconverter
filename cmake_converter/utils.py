@@ -316,9 +316,9 @@ def message(text, status):  # pragma: no cover
         print('INFO : ' + text)
 
 
-def write_title(cmake_file, text):
+def write_comment(cmake_file, text):
     """
-    Write formated title in given file wrapper
+    Write formated comment in given file wrapper
 
     :param text: text in middle of title
     :type text: str

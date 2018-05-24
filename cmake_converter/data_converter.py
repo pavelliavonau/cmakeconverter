@@ -34,7 +34,7 @@ from cmake_converter.dependencies import Dependencies
 from cmake_converter.flags import CPPFlags, FortranFlags
 from cmake_converter.project_files import ProjectFiles
 from cmake_converter.project_variables import VCXProjectVariables, VFProjectVariables
-from cmake_converter.utils import message
+from cmake_converter.utils import message, write_comment
 import cmake_converter.utils
 
 
@@ -271,6 +271,8 @@ class VCXProjectConverter(DataConverter):
         if not self.context['has_only_headers']:
             self.flags.write_precompiled_headers_macro(cmake_file)
             self.files.write_source_files(cmake_file)
+            self.flags.write_use_pch_macro(cmake_file)
+            write_comment(cmake_file, 'Target')
             self.flags.write_target_artifact(cmake_file)
             self.dependencies.write_target_property_sheets(cmake_file)
             self.variables.write_target_outputs(self.context, cmake_file)
@@ -382,6 +384,7 @@ class VFProjectConverter(DataConverter):
         if not self.context['has_only_headers']:
             # Writing
             self.files.write_source_files(cmake_file)
+            write_comment(cmake_file, 'Target')
             self.flags.write_target_artifact(cmake_file)
             self.variables.write_target_outputs(self.context, cmake_file)
             Dependencies.write_include_directories(self.context, cmake_file)

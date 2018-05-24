@@ -28,7 +28,7 @@
 import os
 
 from cmake_converter.utils import take_name_from_list_case_ignore, normalize_path
-from cmake_converter.utils import message, write_title
+from cmake_converter.utils import message, write_comment
 
 
 class ProjectFiles(object):
@@ -160,7 +160,7 @@ class ProjectFiles(object):
         if len(self.headers) == 0:
             return
 
-        write_title(cmake_file, 'Header files')
+        write_comment(cmake_file, 'Header files')
         cmake_file.write('set(HEADERS_FILES\n')
 
         working_path = os.path.dirname(self.vcxproj_path)
@@ -187,7 +187,7 @@ class ProjectFiles(object):
         :type cmake_file: _io.TextIOWrapper
         """
 
-        write_title(cmake_file, 'Source files')
+        write_comment(cmake_file, 'Source files')
         cmake_file.write('set(SRC_FILES\n')
 
         working_path = os.path.dirname(self.vcxproj_path)
@@ -220,7 +220,7 @@ class ProjectFiles(object):
         if file_to_add != '':
             try:
                 fc = open(file_to_add)
-                write_title(cmake_file, 'Provides from external file.')
+                write_comment(cmake_file, 'Provides from external file.')
                 for line in fc:
                     cmake_file.write(line)
                 fc.close()

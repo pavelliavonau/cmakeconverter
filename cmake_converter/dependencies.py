@@ -31,7 +31,7 @@ import re
 
 from cmake_converter.data_files import get_vcxproj_data, get_xml_data
 from cmake_converter.utils import get_global_project_name_from_vcxproj_file, normalize_path, message
-from cmake_converter.utils import write_property_of_settings, cleaning_output, write_title
+from cmake_converter.utils import write_property_of_settings, cleaning_output, write_comment
 
 
 class Dependencies(object):
@@ -81,7 +81,7 @@ class Dependencies(object):
         :param cmake_file: CMakeLists.txt IO wrapper
         :type cmake_file: _io.TextIOWrapper
         """
-
+        write_comment(cmake_file, 'Include directories')
         write_property_of_settings(
             cmake_file, context['settings'], context['sln_configurations_map'],
             'target_include_directories(${PROJECT_NAME} PRIVATE ', ')', 'inc_dirs'
@@ -192,7 +192,7 @@ class Dependencies(object):
         """
 
         if self.context['target_references']:
-            write_title(cmake_file, 'Add Dependencies to project.')
+            write_comment(cmake_file, 'Dependencies')
             self.write_target_references(cmake_file)
         else:  # pragma: no cover
             message('No link needed.', '')

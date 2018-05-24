@@ -31,7 +31,7 @@ import os
 
 from cmake_converter.data_converter import DataConverter, VCXProjectConverter, VFProjectConverter
 from cmake_converter.data_files import get_cmake_lists
-from cmake_converter.utils import set_unix_slash, message, write_title
+from cmake_converter.utils import set_unix_slash, message, write_comment
 
 
 def convert_project(context, xml_project_path, cmake_lists_destination_path):
@@ -256,7 +256,7 @@ def main():  # pragma: no cover
             subdirectories_to_project_name[subdirectory] = context['project_name']
             print('\n')
 
-        write_title(
+        write_comment(
             sln_cmake,
             'Set target arch type if empty. Visual studio solution generator provides it.'
         )
@@ -266,7 +266,7 @@ def main():  # pragma: no cover
         sln_cmake.write('message(\"${CMAKE_VS_PLATFORM_NAME} architecture in use\")\n\n')
 
         # TODO: try to write configuration types for each project locally due possible difference.
-        write_title(sln_cmake, 'Global configuration types')
+        write_comment(sln_cmake, 'Global configuration types')
         sln_cmake.write('set(CMAKE_CONFIGURATION_TYPES\n')
         configuration_types_set = set()
         for config in solution_data['sln_configurations']:
@@ -277,7 +277,7 @@ def main():  # pragma: no cover
             sln_cmake.write('    \"{0}\"\n'.format(configuration_type))
         sln_cmake.write('    CACHE TYPE INTERNAL FORCE\n)\n\n')
 
-        write_title(sln_cmake, 'Global compiler options')
+        write_comment(sln_cmake, 'Global compiler options')
         sln_cmake.write('if(MSVC)\n')
         sln_cmake.write('    # remove default flags provided with CMake for MSVC\n')
         solution_languages = list(context['solution_languages'])
@@ -289,7 +289,7 @@ def main():  # pragma: no cover
                                 .format(lang, configuration_type.upper()))
         sln_cmake.write('endif()\n\n')
 
-        write_title(sln_cmake, 'Global linker options')
+        write_comment(sln_cmake, 'Global linker options')
         sln_cmake.write('if(MSVC)\n')
         sln_cmake.write('    # remove default flags provided with CMake for MSVC\n')
         sln_cmake.write('    set(CMAKE_EXE_LINKER_FLAGS "")\n')
@@ -312,16 +312,16 @@ def main():  # pragma: no cover
                 .format(ct_upper))
         sln_cmake.write('endif()\n\n')
 
-        write_title(sln_cmake, 'Nuget packages function stub.')
+        write_comment(sln_cmake, 'Nuget packages function stub.')
 
         sln_cmake.write('function(use_package TARGET PACKAGE VERSION)\n')
         sln_cmake.write('    message(WARNING "No implementation of use_package. Create yours.")\n')
         sln_cmake.write('endfunction()\n\n')
 
-        write_title(sln_cmake, 'Additional Global Settings(add specific info there)')
+        write_comment(sln_cmake, 'Additional Global Settings(add specific info there)')
         sln_cmake.write('include(CMake/GlobalSettingsInclude.cmake OPTIONAL)\n\n')
 
-        write_title(sln_cmake, 'Sub-projects')
+        write_comment(sln_cmake, 'Sub-projects')
 
         subdirectories.sort(key=str.lower)
         for subdirectory in subdirectories:
