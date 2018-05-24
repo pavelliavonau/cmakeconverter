@@ -76,8 +76,6 @@ class DataConverter(object):
         arch = conf_arch[1]
         self.context['settings'][configuration_data] = {
             'defines': [],
-            'cl_flags': [],
-            'ln_flags': [],
             'conf': conf,
             'arch': arch,
         }
@@ -278,7 +276,7 @@ class VCXProjectConverter(DataConverter):
             self.variables.write_target_outputs(self.context, cmake_file)
             self.dependencies.write_include_directories(self.context, cmake_file)
             self.flags.write_defines(cmake_file)
-            self.flags.write_flags('MSVC', cmake_file)
+            self.flags.write_flags(cmake_file)
             if (self.context['target_references'] or
                     self.context['add_lib_deps'] or
                     self.context['add_lib_dirs'] or
@@ -395,6 +393,4 @@ class VFProjectConverter(DataConverter):
             self.variables.write_target_outputs(self.context, cmake_file)
             Dependencies.write_include_directories(self.context, cmake_file)
             self.flags.write_defines(cmake_file)
-            self.flags.write_flags(
-                '${CMAKE_Fortran_COMPILER_ID} STREQUAL "Intel"', cmake_file
-            )
+            self.flags.write_flags(cmake_file)

@@ -33,10 +33,14 @@ from cmake_converter.utils import take_name_from_list_case_ignore, normalize_pat
     write_comment
 from cmake_converter.utils import write_property_of_settings, set_unix_slash, get_configuration_type
 
-cl_flags = 'cl_flags'  # MSVC compile flags (Windows only)
-ln_flags = 'ln_flags'  # MSVC link flags (Windows only)
-defines = 'defines'    # compile definitions (cross platform)
+cl_flags = 'cl_flags'               # MSVC compile flags (Windows only)
+ln_flags = 'ln_flags'               # MSVC link flags (Windows only)
+ifort_cl_win = 'ifort_cl_win'       # ifort compile flags (Windows)
+ifort_cl_linux = 'ifort_cl_linux'   # ifort compile flags (Linux)
+ifort_ln = 'ifort_ln'               # ifort link flags
+defines = 'defines'                 # compile definitions (cross platform)
 default_value = 'default_value'
+
 pch_macro_text = """MACRO(ADD_PRECOMPILED_HEADER PrecompiledHeader PrecompiledSource SourcesVar)
     if(MSVC)
         set(PrecompiledBinary "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.pch")
@@ -76,21 +80,15 @@ class Flags(object):
         )
         cmake_file.write('\n')
 
-    def write_flags(self, compiler_check, cmake_file):
-        """
-        Get and write Preprocessor Macros definitions
-
-        :param compiler_check: type of compiler (MSVC, ...)
-        :type compiler_check: str
-        :param cmake_file: CMakeLists.txt IO wrapper
-        :type cmake_file: _io.TextIOWrapper
-        """
-
+    def write_compiler_and_linker_flags(self, os_check_str, compiler_check_str, compiler_flags_key,
+                                        linker_flags_key, cmake_file):
         for setting in self.settings:
-            self.settings[setting]['cl_str'] = ';'.join(self.settings[setting][cl_flags])
+            self.settings[setting]['cl_str'] = ';'.join(self.settings[setting][compiler_flags_key])
 
-        write_comment(cmake_file, 'Compile and link options')
-        cmake_file.write('if({0})\n'.format(compiler_check))
+        and_os_str = ''
+        if os_check_str:
+            and_os_str = ' AND {0}'.format(os_check_str)
+        cmake_file.write('if({0}{1})\n'.format(compiler_check_str, and_os_str))
         write_property_of_settings(
             cmake_file, self.settings, self.context['sln_configurations_map'],
             'target_compile_options(${PROJECT_NAME} PRIVATE', ')', 'cl_str', indent='    '
@@ -104,7 +102,17 @@ class Flags(object):
             settings_of_arch[arch][sln_setting] = sln_setting
 
         first_arch = True
+        arch_has_link_flags = False
         for arch in settings_of_arch:
+            for sln_setting in settings_of_arch[arch]:
+                mapped_setting_name = self.context['sln_configurations_map'][sln_setting]
+                mapped_setting = self.settings[mapped_setting_name]
+                if linker_flags_key in mapped_setting:
+                    if mapped_setting[linker_flags_key]:
+                        arch_has_link_flags = True
+                        break
+            if not arch_has_link_flags:
+                break
             if first_arch:
                 cmake_file.write(
                     '    if(\"${{CMAKE_VS_PLATFORM_NAME}}\" STREQUAL \"{0}\")\n'.format(arch)
@@ -118,26 +126,64 @@ class Flags(object):
                 sln_conf = sln_setting.split('|')[0]
                 mapped_setting_name = self.context['sln_configurations_map'][sln_setting]
                 mapped_setting = self.settings[mapped_setting_name]
-                if mapped_setting[ln_flags]:
+                if mapped_setting[linker_flags_key]:
                     configuration_type = get_configuration_type(mapped_setting_name, self.context)
                     if configuration_type:
                         if 'StaticLibrary' in configuration_type:
                             cmake_file.write(
                                 '        set_target_properties(${{PROJECT_NAME}}'
                                 ' PROPERTIES STATIC_LIBRARY_FLAGS_{0} "{1}")\n'
-                                .format(sln_conf.upper(), ' '.join(mapped_setting[ln_flags]))
+                                .format(sln_conf.upper(),
+                                        ' '.join(mapped_setting[linker_flags_key]))
                             )
                         else:
                             cmake_file.write(
                                 '        set_target_properties(${{PROJECT_NAME}} PROPERTIES '
                                 'LINK_FLAGS_{0} "{1}")\n'
-                                .format(sln_conf.upper(), ' '.join(mapped_setting[ln_flags]))
+                                .format(sln_conf.upper(),
+                                        ' '.join(mapped_setting[linker_flags_key]))
                             )
-        cmake_file.write('    else()\n')
-        cmake_file.write(
-            '         message(WARNING "${CMAKE_VS_PLATFORM_NAME} arch is not supported!")\n')
-        cmake_file.write('    endif()\n')
+        if arch_has_link_flags:
+            cmake_file.write('    else()\n')
+            cmake_file.write(
+                '         message(WARNING "${CMAKE_VS_PLATFORM_NAME} arch is not supported!")\n')
+            cmake_file.write('    endif()\n')
         cmake_file.write('endif()\n\n')
+
+    def write_flags(self, cmake_file):
+        """
+        Get and write Preprocessor Macros definitions
+
+        :param compiler_check: type of compiler (MSVC, ...)
+        :type compiler_check: str
+        :param cmake_file: CMakeLists.txt IO wrapper
+        :type cmake_file: _io.TextIOWrapper
+        """
+        is_msvc = False
+        for setting in self.settings:
+            if cl_flags in self.settings[setting]:
+                if self.settings[setting][cl_flags]:
+                    is_msvc = True
+                    break
+
+        is_ifort = False
+        for setting in self.settings:
+            if ifort_cl_win in self.settings[setting]:
+                if self.settings[setting][ifort_cl_win]:
+                    is_ifort = True
+                    break
+
+        write_comment(cmake_file, 'Compile and link options')
+        if is_msvc:
+            self.write_compiler_and_linker_flags(None, 'MSVC', cl_flags, ln_flags, cmake_file)
+
+        if is_ifort:
+            self.write_compiler_and_linker_flags('WIN32',
+                                                 '${CMAKE_Fortran_COMPILER_ID} STREQUAL "Intel"',
+                                                 ifort_cl_win, ifort_ln, cmake_file)
+            self.write_compiler_and_linker_flags('UNIX AND NOT APPLE',
+                                                 '${CMAKE_Fortran_COMPILER_ID} STREQUAL "Intel"',
+                                                 ifort_cl_linux, ifort_ln, cmake_file)
 
     @staticmethod
     def write_target_headers_only_artifact(cmake_file):
@@ -170,6 +216,10 @@ class CPPFlags(Flags):
         Parse all flags properties and write them inside "CMakeLists.txt" file
 
         """
+        for setting in self.settings:
+            self.settings[setting][cl_flags] = []
+            self.settings[setting][ln_flags] = []
+
         self.define_windows_flags()
         self.define_defines()
         # self.define_linux_flags()
@@ -1035,6 +1085,11 @@ class FortranFlags(Flags):
         Parse all flags properties and write them inside "CMakeLists.txt" file
 
         """
+        for setting in self.settings:
+            self.settings[setting][ifort_cl_win] = []
+            self.settings[setting][ifort_cl_linux] = []
+            self.settings[setting][ifort_ln] = []
+
         self.set_suppress_startup_banner()
         self.set_debug_information_format()
         self.set_optimization()
@@ -1056,14 +1111,19 @@ class FortranFlags(Flags):
         self.set_disable_default_lib_search()
         self.set_additional_options()
 
+        # hot fix for linux
+        for setting in self.settings:
+            for win_flag in self.settings[setting][ifort_cl_win]:
+                self.settings[setting][ifort_cl_linux].append(win_flag.replace(':', ' '))
+
     def set_fixed_form_line_length(self):
         """
         Set fixed form line length
 
         """
         flag_values = {
-            'fixedLength80': {cl_flags: '-extend_source:80'},
-            'fixedLength132': {cl_flags: '-extend_source:132'},
+            'fixedLength80': {ifort_cl_win: '-extend_source:80'},
+            'fixedLength132': {ifort_cl_win: '-extend_source:132'},
             default_value: {}
         }
         self.set_flag('VFFortranCompilerTool', 'FixedFormLineLength', flag_values)
@@ -1075,8 +1135,8 @@ class FortranFlags(Flags):
         """
 
         flag_values = {
-            'defaultIncludeCurrent': {cl_flags: '-assume:nosource_include'},
-            default_value: {cl_flags: '-assume:source_include'}
+            'defaultIncludeCurrent': {ifort_cl_win: '-assume:nosource_include'},
+            default_value: {ifort_cl_win: '-assume:source_include'}
         }
         self.set_flag('VFFortranCompilerTool', 'DefaultIncAndUsePath', flag_values)
 
@@ -1086,8 +1146,8 @@ class FortranFlags(Flags):
 
         """
         flag_values = {
-            'OpenMPParallelCode': {cl_flags: '-Qopenmp'},
-            'OpenMPSequentialCode': {cl_flags: '-Qopenmp_stubs'},
+            'OpenMPParallelCode': {ifort_cl_win: '-Qopenmp'},
+            'OpenMPSequentialCode': {ifort_cl_win: '-Qopenmp_stubs'},
             default_value: {}
         }
         self.set_flag('VFFortranCompilerTool', 'OpenMP', flag_values)
@@ -1102,7 +1162,7 @@ class FortranFlags(Flags):
             # TODO: split list
             opt = self.settings[setting]['VFFortranCompilerTool'].get('DisableSpecificDiagnostics')
             if opt:
-                self.settings[setting][cl_flags].append('-Qdiag-disable:{0}'.format(opt))
+                self.settings[setting][ifort_cl_win].append('-Qdiag-disable:{0}'.format(opt))
 
     def set_string_length_arg_passing(self):
         """
@@ -1110,7 +1170,7 @@ class FortranFlags(Flags):
 
         """
         flag_values = {
-            'strLenArgsMixed': {cl_flags: '-iface:mixed_str_len_arg'},
+            'strLenArgsMixed': {ifort_cl_win: '-iface:mixed_str_len_arg'},
             default_value: {}
         }
         self.set_flag('VFFortranCompilerTool', 'StringLengthArgPassing', flag_values)
@@ -1121,14 +1181,14 @@ class FortranFlags(Flags):
 
         """
         flag_values = {
-            'rtMultiThreadedDLL': {cl_flags: '-libs:dll;-threads'},
-            'rtQuickWin': {cl_flags: '-libs:qwin'},
-            'rtStandardGraphics': {cl_flags: '-libs:qwins'},
-            'rtMultiThreadedDebug': {cl_flags: '-libs:static;-threads;-dbglibs'},
-            'rtMultiThreadedDebugDLL': {cl_flags: '-libs:dll;-threads;-dbglibs'},
-            'rtQuickWinDebug': {cl_flags: '-libs:qwin;-dbglibs'},
-            'rtStandardGraphicsDebug': {cl_flags: '-libs:qwins;-dbglibs'},
-            default_value: {cl_flags: '-libs:static;-threads'}
+            'rtMultiThreadedDLL': {ifort_cl_win: '-libs:dll;-threads'},
+            'rtQuickWin': {ifort_cl_win: '-libs:qwin'},
+            'rtStandardGraphics': {ifort_cl_win: '-libs:qwins'},
+            'rtMultiThreadedDebug': {ifort_cl_win: '-libs:static;-threads;-dbglibs'},
+            'rtMultiThreadedDebugDLL': {ifort_cl_win: '-libs:dll;-threads;-dbglibs'},
+            'rtQuickWinDebug': {ifort_cl_win: '-libs:qwin;-dbglibs'},
+            'rtStandardGraphicsDebug': {ifort_cl_win: '-libs:qwins;-dbglibs'},
+            default_value: {ifort_cl_win: '-libs:static;-threads'}
         }
         self.set_flag('VFFortranCompilerTool', 'RuntimeLibrary', flag_values)
 
@@ -1138,7 +1198,7 @@ class FortranFlags(Flags):
 
         """
         flag_values = {
-            'true': {cl_flags: '-libdir:noauto'},
+            'true': {ifort_cl_win: '-libdir:noauto'},
             default_value: {}
         }
         self.set_flag('VFFortranCompilerTool', 'DisableDefaultLibSearch', flag_values)
@@ -1149,8 +1209,8 @@ class FortranFlags(Flags):
 
         """
         flag_values = {
-            'rtChecksAll': {cl_flags: '-check:all'},
-            'rtChecksNone': {cl_flags: '-check:none'},
+            'rtChecksAll': {ifort_cl_win: '-check:all'},
+            'rtChecksNone': {ifort_cl_win: '-check:none'},
             default_value: {}
         }
         self.set_flag('VFFortranCompilerTool', 'RuntimeChecks', flag_values)
@@ -1161,7 +1221,7 @@ class FortranFlags(Flags):
 
         """
         flag_values = {
-            'true': {cl_flags: '-traceback'},
+            'true': {ifort_cl_win: '-traceback'},
             default_value: {}
         }
         self.set_flag('VFFortranCompilerTool', 'Traceback', flag_values)
@@ -1172,7 +1232,7 @@ class FortranFlags(Flags):
 
         """
         flag_values = {
-            'true': {cl_flags: '-fpconstant'},
+            'true': {ifort_cl_win: '-fpconstant'},
             default_value: {}
         }
         self.set_flag('VFFortranCompilerTool', 'ExtendSinglePrecisionConstants', flag_values)
@@ -1183,8 +1243,8 @@ class FortranFlags(Flags):
 
         """
         flag_values = {
-            'fpe0': {cl_flags: '-fpe0'},
-            'fpe1': {cl_flags: '-fpe1'},
+            'fpe0': {ifort_cl_win: '-fpe0'},
+            'fpe1': {ifort_cl_win: '-fpe1'},
             default_value: {}
         }
         self.set_flag('VFFortranCompilerTool', 'FloatingPointExceptionHandling', flag_values)
@@ -1195,7 +1255,7 @@ class FortranFlags(Flags):
 
         """
         flag_values = {
-            'true': {cl_flags: '-Qtrapuv'},
+            'true': {ifort_cl_win: '-Qtrapuv'},
             default_value: {}
         }
         self.set_flag('VFFortranCompilerTool', 'InitLocalVarToNAN', flag_values)
@@ -1206,7 +1266,7 @@ class FortranFlags(Flags):
 
         """
         flag_values = {
-            'preprocessYes': {cl_flags: '-fpp'},
+            'preprocessYes': {ifort_cl_win: '-fpp'},
             default_value: {}
         }
         self.set_flag('VFFortranCompilerTool', 'Preprocess', flag_values)
@@ -1217,10 +1277,10 @@ class FortranFlags(Flags):
 
         """
         flag_values = {
-            'optimizeMinSpace': {cl_flags: '-O1'},
-            'optimizeFull': {cl_flags: '-O3'},
-            'optimizeDisabled': {cl_flags: '-Od'},
-            default_value: {cl_flags: '-O2'}
+            'optimizeMinSpace': {ifort_cl_win: '-O1'},
+            'optimizeFull': {ifort_cl_win: '-O3'},
+            'optimizeDisabled': {ifort_cl_win: '-Od'},
+            default_value: {ifort_cl_win: '-O2'}
         }
         self.set_flag('VFFortranCompilerTool', 'Optimization', flag_values)
 
@@ -1230,8 +1290,8 @@ class FortranFlags(Flags):
 
         """
         flag_values = {
-            'debugEnabled': {cl_flags: '-debug:full'},
-            'debugLineInfoOnly': {cl_flags: '-debug:minimal'},
+            'debugEnabled': {ifort_cl_win: '-debug:full'},
+            'debugLineInfoOnly': {ifort_cl_win: '-debug:minimal'},
             default_value: {}
         }
         self.set_flag('VFFortranCompilerTool', 'DebugInformationFormat', flag_values)
@@ -1242,7 +1302,7 @@ class FortranFlags(Flags):
 
         """
         flag_values = {
-            'true': {cl_flags: '-nologo'},
+            'true': {ifort_cl_win: '-nologo'},
             default_value: {}
         }
         self.set_flag('VFFortranCompilerTool', 'SuppressStartupBanner', flag_values)
@@ -1253,8 +1313,8 @@ class FortranFlags(Flags):
 
         """
         flag_values = {
-            'fileFormatFree': {cl_flags: '-free'},
-            'fileFormatFixed': {cl_flags: '-fixed'},
+            'fileFormatFree': {ifort_cl_win: '-free'},
+            'fileFormatFixed': {ifort_cl_win: '-fixed'},
             default_value: {}
         }
         self.set_flag('VFFortranCompilerTool', 'SourceFileFormat', flag_values)
@@ -1265,7 +1325,7 @@ class FortranFlags(Flags):
 
         """
         flag_values = {
-            'localStorageAutomatic': {cl_flags: '-Qauto'},
+            'localStorageAutomatic': {ifort_cl_win: '-Qauto'},
             default_value: {}
         }
         self.set_flag('VFFortranCompilerTool', 'LocalVariableStorage', flag_values)
@@ -1276,8 +1336,8 @@ class FortranFlags(Flags):
 
         """
         flag_values = {
-            'realKIND8': {cl_flags: '-real_size:64'},
-            'realKIND16': {cl_flags: '-real_size:128'},
+            'realKIND8': {ifort_cl_win: '-real_size:64'},
+            'realKIND16': {ifort_cl_win: '-real_size:128'},
             default_value: {}
         }
         self.set_flag('VFFortranCompilerTool', 'RealKIND', flag_values)
@@ -1301,7 +1361,7 @@ class FortranFlags(Flags):
                         )
                     add_opt = '-' + add_opt[1:]
                     ready_add_opts.append(add_opt)
-                self.settings[setting][cl_flags].append(';'.join(ready_add_opts))
+                self.settings[setting][ifort_cl_win].append(';'.join(ready_add_opts))
                 message('Additional Options for {0} : {1}'.format(setting, str(add_opt)), '')
             else:
                 message('No Additional Options for {0}'.format(setting), '')
