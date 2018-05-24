@@ -316,44 +316,22 @@ def message(text, status):  # pragma: no cover
         print('INFO : ' + text)
 
 
-def get_title(title, text):
+def write_title(cmake_file, text):
     """
-    Return formatted title for writing
+    Write formated title in given file wrapper
 
-    :param title: main title text
-    :type title: str
-    :param text: text related to title
+    :param text: text in middle of title
     :type text: str
-    :return: formatted title
-    :rtype: str
+    :param cmake_file: CMakeLists.txt IO wrapper
+    :type cmake_file: _io.TextIOWrapper
     """
 
-    offset = 60
-    text_offset = (offset / 2) - len(title)
+    line_length = 80
+    title_line = ''
 
-    title_sharp = ''
-    for _ in range(int(text_offset)):
-        title_sharp = '%s#' % title_sharp
+    for i in range(0, line_length):
+        title_line = '%s%s' % (title_line, '#')
 
-    title = '%s %s ' % (title_sharp, title)
-    i = len(title)
-    while i < offset:
-        title = '%s#' % title
-        i += 1
-
-    text = '# %s' % text
-
-    i = len(text)
-    while i < offset:
-        if i < offset - 1:
-            text = '%s ' % text
-        else:
-            text = '%s#' % text
-            break
-        i += 1
-
-    bottom_text = ''
-    for _ in range(offset):
-        bottom_text = '%s#' % bottom_text
-
-    return '%s\n%s\n%s\n\n' % (title, text, bottom_text)
+    cmake_file.write(title_line + '\n')
+    cmake_file.write('# %s\n' % text)
+    cmake_file.write(title_line + '\n')
