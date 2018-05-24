@@ -192,7 +192,6 @@ class Dependencies(object):
         """
 
         if self.context['target_references']:
-            write_comment(cmake_file, 'Dependencies')
             self.write_target_references(cmake_file)
         else:  # pragma: no cover
             message('No link needed.', '')
