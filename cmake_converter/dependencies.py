@@ -256,11 +256,14 @@ class Dependencies(object):
 
         if self.context['add_lib_dirs']:
             cmake_file.write('if(MSVC)\n')
-            cmake_file.write('   target_link_libraries(${PROJECT_NAME}')
+            cmake_file.write('    target_link_libraries(${PROJECT_NAME}')
             for dep in self.context['add_lib_dirs']:
                 cmake_file.write(' -LIBPATH:' + cleaning_output(dep))
-            cmake_file.write(')\n')
-            cmake_file.write('endif(MSVC)\n\n')
+            cmake_file.write(')\nelseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")\n')
+            cmake_file.write('    target_link_libraries(${PROJECT_NAME}')
+            for dep in self.context['add_lib_dirs']:
+                cmake_file.write(' -L:' + cleaning_output(dep))
+            cmake_file.write(')\nendif()\n\n')
 
     def find_target_property_sheets(self):
         """
