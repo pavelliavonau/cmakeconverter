@@ -174,7 +174,8 @@ class VCXProjectVariables(ProjectVariables):
 
             output_name = '$(ProjectName)'  # default
             output_name_node = self.tree.find(
-                    '{0}/ns:TargetName'.format(prop), namespaces=self.ns)
+                '{0}/ns:TargetName'.format(prop), namespaces=self.ns
+            )
             if output_name_node is not None:
                 output_name = output_name_node.text
             self.settings[setting]['output_name'] = cleaning_output(output_name)

@@ -232,7 +232,7 @@ def cleaning_output(output):
         '$(ConfigurationName)': '$<CONFIG>',
         '$(ProjectDir)': '${CMAKE_CURRENT_SOURCE_DIR}/',
         '$(ProjectName)': '${PROJECT_NAME}'
-        }
+    }
 
     output = set_unix_slash(output)
 

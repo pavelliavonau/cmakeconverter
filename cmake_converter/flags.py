@@ -404,10 +404,11 @@ class CPPFlags(Flags):
 
         """
 
-        flag_values = {'true':  {ln_flags: '/INCREMENTAL'},
-                       'false': {ln_flags: '/INCREMENTAL:NO'},
-                       default_value: {}
-                       }
+        flag_values = {
+            'true': {ln_flags: '/INCREMENTAL'},
+            'false': {ln_flags: '/INCREMENTAL:NO'},
+            default_value: {}
+        }
 
         for setting in self.settings:
             conf_type = get_configuration_type(setting, self.context)
@@ -435,7 +436,7 @@ class CPPFlags(Flags):
         """
 
         flag_values = {
-            'true':  {cl_flags: '/Zc:forScope'},
+            'true': {cl_flags: '/Zc:forScope'},
             'false': {cl_flags: '/Zc:forScope-'},
             default_value: {cl_flags: '/Zc:forScope'}
         }
@@ -455,7 +456,7 @@ class CPPFlags(Flags):
         """
 
         flag_values = {
-            'true':  {cl_flags: '/Zc:inline'},
+            'true': {cl_flags: '/Zc:inline'},
             'false': {cl_flags: ''},
             default_value: {cl_flags: '/Zc:inline'}
         }
@@ -859,7 +860,7 @@ class CPPFlags(Flags):
     def set_diagnostics_format(self):
         """
         Set DiagnosticsFormat flag : /GS
-        
+
         """
         flag_values = {
             'Classic': {cl_flags: '/diagnostics:classic'},
@@ -893,7 +894,7 @@ class CPPFlags(Flags):
                     self.definitiongroups[setting]),
                 flag_values
             )
-    
+
     def setting_has_pch(self, setting):
         """
         Return if there is precompiled header or not for given setting
@@ -954,7 +955,7 @@ class CPPFlags(Flags):
         setting = ''
         for s in self.settings:
             setting = s
- 
+
         cmake_file.write('# Warning: pch and target are the same for every configuration\n')
         if self.setting_has_pch(setting):
             self.write_precompiled_headers(setting, cmake_file)
