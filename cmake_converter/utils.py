@@ -330,8 +330,8 @@ def write_title(cmake_file, text):
     title_line = ''
 
     for i in range(0, line_length):
-        title_line = '%s%s' % (title_line, '#')
+        title_line = '{0}{1}'.format(title_line, '#')
 
     cmake_file.write(title_line + '\n')
-    cmake_file.write('# %s\n' % text)
+    cmake_file.write('# {0}\n'.format(text))
     cmake_file.write(title_line + '\n')
