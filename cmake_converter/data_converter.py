@@ -279,12 +279,11 @@ class VCXProjectConverter(DataConverter):
             self.dependencies.write_include_directories(self.context, cmake_file)
             self.flags.write_defines_and_flags('MSVC', cmake_file)
             if (self.context['target_references'] or
-                    self.context['target_references'] or
                     self.context['add_lib_deps'] or
                     self.context['add_lib_dirs'] or
                     self.context['packages']):
                 write_comment(cmake_file, 'Dependencies')
-            self.dependencies.write_dependencies(cmake_file)
+            self.dependencies.write_target_references(cmake_file)
             self.dependencies.write_link_dependencies(cmake_file)
             self.dependencies.write_target_dependency_packages(cmake_file)
         else:

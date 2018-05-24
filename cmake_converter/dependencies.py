@@ -156,7 +156,10 @@ class Dependencies(object):
                     continue
 
                 if ref_inc not in references_found:
-                    references_found.append(ref_inc)
+                    ref = self.get_dependency_target_name(
+                        os.path.join(os.path.dirname(self.vcxproj_path), ref_inc)
+                    )
+                    references_found.append(ref)
 
         self.context['target_references'] = references_found
 
@@ -171,30 +174,14 @@ class Dependencies(object):
         if self.context['target_references']:
             cmake_file.write('add_dependencies(${PROJECT_NAME}')
             targets_dependencies = set()
-            for ref_found in self.context['target_references']:
-                project_name = self.get_dependency_target_name(
-                    os.path.join(os.path.dirname(self.vcxproj_path), ref_found)
-                )
-                targets_dependencies.add(project_name)
-                cmake_file.write(' {0}'.format(project_name))
+            for reference in self.context['target_references']:
+                targets_dependencies.add(reference)
+                cmake_file.write(' {0}'.format(reference))
             for dep in self.deps:
                 if dep not in targets_dependencies:
                     cmake_file.write(' {0}'.format(dep))
 
             cmake_file.write(')\n\n')
-
-    def write_dependencies(self, cmake_file):
-        """
-        Write on "CMakeLists.txt" subdirectories or link directories for external libraries.
-
-        :param cmake_file: CMakeLists.txt IO wrapper
-        :type cmake_file: _io.TextIOWrapper
-        """
-
-        if self.context['target_references']:
-            self.write_target_references(cmake_file)
-        else:  # pragma: no cover
-            message('No link needed.', '')
 
     def find_target_additional_dependencies(self):
         """
@@ -255,12 +242,8 @@ class Dependencies(object):
             cmake_file.write('# Link with other targets.\n')
             cmake_file.write('target_link_libraries(${PROJECT_NAME}')
             for reference in self.context['target_references']:
-                path_to_reference = os.path.splitext(ntpath.basename(reference))[0]
-                lib = self.get_dependency_target_name(
-                    os.path.join(os.path.dirname(self.vcxproj_path), reference)
-                )
-                cmake_file.write(' ' + lib)
-                msg = 'External library found : {0}'.format(path_to_reference)
+                cmake_file.write(' ' + reference)
+                msg = 'External library found : {0}'.format(reference)
                 message(msg, '')
             cmake_file.write(')\n\n')
 
