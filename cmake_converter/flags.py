@@ -1100,6 +1100,7 @@ class FortranFlags(Flags):
         self.set_fixed_form_line_length()
         self.set_open_mp()
         self.set_disable_specific_diagnostics()
+        self.set_diagnostics()
         self.set_real_kind()
         self.set_local_variable_storage()
         self.set_init_local_var_to_nan()
@@ -1112,6 +1113,16 @@ class FortranFlags(Flags):
         self.set_runtime_library()
         self.set_disable_default_lib_search()
         self.set_additional_options()
+
+    def set_diagnostics(self):
+        flag_values = {
+            'diagnosticsShowAll': {ifort_cl_win: '-warn:all',
+                                   ifort_cl_unix: '-warn all'},
+            'diagnosticsDisableAll': {ifort_cl_win: '-warn:none',
+                                      ifort_cl_unix: '-warn none'},
+            default_value: {}
+        }
+        self.set_flag('VFFortranCompilerTool', 'Diagnostics', flag_values)
 
     def set_arg_temp_created_check(self):
         """
