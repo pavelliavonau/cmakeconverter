@@ -127,6 +127,16 @@ def write_property_of_settings(cmake_file, settings, sln_setting_2_project_setti
 
     first_arch = True
     for arch in settings_of_arch:
+        no_data = True
+        for sln_setting in settings_of_arch[arch]:
+            mapped_setting = settings[sln_setting_2_project_setting[sln_setting]]
+            if property_name in mapped_setting:
+                if mapped_setting[property_name] != '':
+                    no_data = False
+                    break
+        if no_data:
+            continue
+
         if first_arch:
             cmake_file.write('{0}if(\"${{CMAKE_VS_PLATFORM_NAME}}\" STREQUAL \"{1}\")\n'
                              .format(indent, arch))
@@ -155,11 +165,12 @@ def write_property_of_settings(cmake_file, settings, sln_setting_2_project_setti
                 cmake_file.write('{0}        $<$<NOT:$<OR:{1}>>:{2}>\n'
                                  .format(indent, ','.join(config_expressions), default))
             cmake_file.write('{0}    {1}\n'.format(indent, end_text))
-    cmake_file.write('{0}else()\n'.format(indent))
-    cmake_file.write(
-        '{0}    message(WARNING "${{CMAKE_VS_PLATFORM_NAME}} arch is not supported!")\n'
-        .format(indent))
-    cmake_file.write('{0}endif()\n'.format(indent))
+    if not first_arch:
+        cmake_file.write('{0}else()\n'.format(indent))
+        cmake_file.write(
+            '{0}    message(WARNING "${{CMAKE_VS_PLATFORM_NAME}} arch is not supported!")\n'
+            .format(indent))
+        cmake_file.write('{0}endif()\n'.format(indent))
 
 
 def get_global_project_name_from_vcxproj_file(vcxproj):
