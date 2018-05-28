@@ -90,6 +90,22 @@ def get_configuration_type(setting, context):
     return configurationtype[0].text
 
 
+def is_settings_has_data(sln_configurations_map, settings, settings_key, arch=None, conf=None):
+    for sln_setting in settings:
+        if sln_setting not in sln_configurations_map:
+            continue
+        mapped_setting_name = sln_configurations_map[sln_setting]
+        mapped_setting = settings[mapped_setting_name]
+        if settings_key in mapped_setting:
+            if arch and mapped_setting['arch'] != arch:
+                continue
+            if conf and mapped_setting['conf'] != conf:
+                continue
+            if mapped_setting[settings_key]:
+                return True
+    return False
+
+
 def write_property_of_settings(cmake_file, settings, sln_setting_2_project_setting, begin_text,
                                end_text, property_name, indent='', default=None):
     """
@@ -127,14 +143,9 @@ def write_property_of_settings(cmake_file, settings, sln_setting_2_project_setti
 
     first_arch = True
     for arch in settings_of_arch:
-        no_data = True
-        for sln_setting in settings_of_arch[arch]:
-            mapped_setting = settings[sln_setting_2_project_setting[sln_setting]]
-            if property_name in mapped_setting:
-                if mapped_setting[property_name] != '':
-                    no_data = False
-                    break
-        if no_data:
+        has_data = is_settings_has_data(sln_setting_2_project_setting, settings, property_name,
+                                        arch)
+        if not has_data:
             continue
 
         if first_arch:

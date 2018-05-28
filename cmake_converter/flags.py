@@ -30,7 +30,7 @@ import os
 from os import path
 
 from cmake_converter.utils import take_name_from_list_case_ignore, normalize_path, message,\
-    write_comment
+    write_comment, is_settings_has_data
 from cmake_converter.utils import write_property_of_settings, set_unix_slash, get_configuration_type
 
 cl_flags = 'cl_flags'               # MSVC compile flags (Windows only)
@@ -104,13 +104,8 @@ class Flags(object):
         first_arch = True
         arch_has_link_flags = False
         for arch in settings_of_arch:
-            for sln_setting in settings_of_arch[arch]:
-                mapped_setting_name = self.context['sln_configurations_map'][sln_setting]
-                mapped_setting = self.settings[mapped_setting_name]
-                if linker_flags_key in mapped_setting:
-                    if mapped_setting[linker_flags_key]:
-                        arch_has_link_flags = True
-                        break
+            arch_has_link_flags = is_settings_has_data(self.context['sln_configurations_map'],
+                                                       self.settings, linker_flags_key, arch)
             if not arch_has_link_flags:
                 break
             if first_arch:

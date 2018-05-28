@@ -32,6 +32,7 @@ import re
 from cmake_converter.data_files import get_vcxproj_data, get_xml_data
 from cmake_converter.utils import get_global_project_name_from_vcxproj_file, normalize_path, message
 from cmake_converter.utils import write_property_of_settings, cleaning_output, write_comment
+from cmake_converter.utils import is_settings_has_data
 
 
 class Dependencies(object):
@@ -81,12 +82,18 @@ class Dependencies(object):
         :param cmake_file: CMakeLists.txt IO wrapper
         :type cmake_file: _io.TextIOWrapper
         """
-        write_comment(cmake_file, 'Include directories')
+
+        has_includes = is_settings_has_data(context['sln_configurations_map'],
+                                            context['settings'],
+                                            'inc_dirs')
+        if has_includes:
+            write_comment(cmake_file, 'Include directories')
         write_property_of_settings(
             cmake_file, context['settings'], context['sln_configurations_map'],
             'target_include_directories(${PROJECT_NAME} PRIVATE ', ')', 'inc_dirs'
         )
-        cmake_file.write('\n')
+        if has_includes:
+            cmake_file.write('\n')
 
     @staticmethod
     def get_additional_include_directories(aid_text, setting, context):
