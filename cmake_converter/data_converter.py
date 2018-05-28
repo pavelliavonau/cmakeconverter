@@ -46,6 +46,7 @@ class DataConverter(object):
     def __init__(self, context, vs_project, cmake_lists_destination_path):
         self.context = context
         self.init_files(vs_project, cmake_lists_destination_path)
+        self.context['supported_architectures'] = set()
         self.define_settings()
 
     def define_settings(self):
@@ -74,6 +75,7 @@ class DataConverter(object):
         conf_arch = configuration_data.split('|')
         conf = conf_arch[0]
         arch = conf_arch[1]
+        self.context['supported_architectures'].add(arch)
         self.context['settings'][configuration_data] = {
             'defines': [],
             'conf': conf,
@@ -136,6 +138,23 @@ class DataConverter(object):
         """
 
         cmake_file.write('cmake_minimum_required(VERSION 2.8.0 FATAL_ERROR)\n\n')
+
+    def write_supported_architectures_check(self, cmake_file):
+        arch_list = list(self.context['supported_architectures'])
+        arch_list.sort()
+        cmake_file.write('if(NOT (')
+        first = True
+        for arch in arch_list:
+            if first:
+                cmake_file.write('\"${{CMAKE_VS_PLATFORM_NAME}}\" STREQUAL \"{0}\"'
+                                 .format(arch))
+            else:
+                cmake_file.write('\" OR ${{CMAKE_VS_PLATFORM_NAME}}\" STREQUAL \"{0}\"'
+                                 .format(arch))
+        cmake_file.write('))\n')
+        cmake_file.write(
+            '    message(WARNING "${CMAKE_VS_PLATFORM_NAME} arch is not supported!")\n')
+        cmake_file.write('endif()\n\n')
 
     def set_cmake_lists_name(self, cmake_lists, project_name):
         """
@@ -272,6 +291,7 @@ class VCXProjectConverter(DataConverter):
             self.flags.write_use_pch_macro(cmake_file)
             write_comment(cmake_file, 'Target')
             self.flags.write_target_artifact(cmake_file)
+            self.write_supported_architectures_check(cmake_file)
             self.dependencies.write_target_property_sheets(cmake_file)
             self.variables.write_target_outputs(self.context, cmake_file)
             self.dependencies.write_include_directories(self.context, cmake_file)
@@ -390,6 +410,7 @@ class VFProjectConverter(DataConverter):
             self.files.write_source_files(cmake_file)
             write_comment(cmake_file, 'Target')
             self.flags.write_target_artifact(cmake_file)
+            self.write_supported_architectures_check(cmake_file)
             self.variables.write_target_outputs(self.context, cmake_file)
             Dependencies.write_include_directories(self.context, cmake_file)
             self.flags.write_defines(cmake_file)

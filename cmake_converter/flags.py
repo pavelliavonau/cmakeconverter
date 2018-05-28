@@ -139,9 +139,6 @@ class Flags(object):
                                         ' '.join(mapped_setting[linker_flags_key]))
                             )
         if arch_has_link_flags:
-            cmake_file.write('    else()\n')
-            cmake_file.write(
-                '         message(WARNING "${CMAKE_VS_PLATFORM_NAME} arch is not supported!")\n')
             cmake_file.write('    endif()\n')
         cmake_file.write('endif()\n\n')
 
