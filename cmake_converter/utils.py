@@ -179,6 +179,8 @@ def write_property_of_settings(cmake_file, settings, sln_setting_2_project_setti
     if not first_arch:
         cmake_file.write('{0}endif()\n'.format(indent))
 
+    return not first_arch
+
 
 def get_global_project_name_from_vcxproj_file(vcxproj):
     """

@@ -29,7 +29,7 @@ import ntpath
 import os
 import re
 
-from cmake_converter.data_files import get_vcxproj_data, get_xml_data
+from cmake_converter.data_files import get_vcxproj_data, get_xml_data, get_propertygroup
 from cmake_converter.utils import get_global_project_name_from_vcxproj_file, normalize_path, message
 from cmake_converter.utils import write_property_of_settings, cleaning_output, write_comment
 from cmake_converter.utils import is_settings_has_data
@@ -324,6 +324,18 @@ class Dependencies(object):
             '//ns:ItemGroup/ns:None[@Include="packages.config"]', namespaces=self.ns
         )
         if packages_nodes:
+            # TODO with '|' in xpath and unify label name(remove hardcode)
+            ext_targets = self.tree.xpath(
+                '//ns:ImportGroup[@Label="ExtensionTargets"]/ns:Import'
+                , namespaces=self.ns)
+            if not ext_targets:
+                ext_targets = self.tree.xpath('//ns:ImportGroup[@Label="Shared"]/ns:Import',
+                                              namespaces=self.ns)
+            if not ext_targets:
+                ext_targets = self.tree.xpath(
+                    '//ns:ImportGroup[@Label="ExtensionSettings"]/ns:Import',
+                    namespaces=self.ns)
+
             filename = packages_nodes[0].get('Include')
             packages_xml = get_xml_data(os.path.join(os.path.dirname(self.vcxproj_path), filename))
             if packages_xml:
@@ -331,7 +343,50 @@ class Dependencies(object):
                 for ref in extension:
                     package_id = ref.get('id')
                     package_version = ref.get('version')
-                    self.context['packages'].append([package_id, package_version])
+                    id_version = '{0}.{1}'.format(package_id, package_version)
+                    targets_file_path = ''
+                    for import_project_node in ext_targets:
+                        project_path = import_project_node.get('Project')
+                        if id_version in project_path:
+                            targets_file_path = project_path
+                            break
+
+                    ext_properties = []
+                    if targets_file_path:
+                        targets_file = get_xml_data(targets_file_path)
+                        if targets_file is None:
+                            continue
+                        ext_property_nodes = targets_file['tree']\
+                            .xpath('//ns:PropertyGroup'
+                                   '[@Label="Default initializers for properties"]/*',
+                                   namespaces=targets_file['ns'])
+                        for ext_property_node in ext_property_nodes:
+                            ext_properties.append(re.sub(r'\{.*\}', '', ext_property_node.tag))
+                    else:
+                        message('Path of file {0}.targets not found at vs project xml.'
+                                .format(id_version), 'warn')
+
+                    self.context['packages'].append([package_id, package_version, ext_properties])
+                    message('Used package {0} {1}.'.format(package_id, package_version),'')
+
+                    for ext_property in ext_properties:
+                        for setting in self.settings:
+                            if 'packages' not in self.settings[setting]:
+                                self.settings[setting]['packages'] = {}
+                            ext_property_node = self.tree.xpath(
+                                '{0}/ns:{1}'.format(get_propertygroup(setting), ext_property),
+                                namespaces=self.ns)
+                            if ext_property_node:
+                                if id_version not in self.settings[setting]['packages']:
+                                    self.settings[setting]['packages'][id_version] = {}
+                                self.settings[setting]['packages'][id_version][ext_property] = \
+                                    ext_property_node[0].text
+                                message('{0} property of {1} {2} for {3} is {4}'
+                                        .format(ext_property,
+                                                package_id,
+                                                package_version,
+                                                setting,
+                                                ext_property_node[0].text), '')
 
     def write_target_dependency_packages(self, cmake_file):
         """
@@ -342,6 +397,30 @@ class Dependencies(object):
         """
 
         for package in self.context['packages']:
+            for package_property in package[2]:
+                id_version = '{0}.{1}'.format(package[0], package[1])
+                for setting in self.settings:
+                    if 'packages' not in self.settings[setting]:
+                        continue
+                    if id_version not in self.settings[setting]['packages']:
+                        continue
+                    if package_property not in self.settings[setting]['packages'][id_version]:
+                        continue
+                    self.settings[setting][id_version + package_property] =\
+                        self.settings[setting]['packages'][id_version][package_property]
+
+                package_property_variable = package_property + '_VAR'
+                has_written = write_property_of_settings(
+                    cmake_file, self.settings,
+                    self.context['sln_configurations_map'],
+                    'string(CONCAT "{0}"'.format(package_property_variable), ')',
+                    id_version + package_property, ''
+                )
+                if has_written:
+                    cmake_file.write(
+                        'set_target_properties(${{PROJECT_NAME}} PROPERTIES "{0}" ${{{1}}})\n'
+                        .format(package_property, package_property_variable)
+                    )
             cmake_file.write(
                 'use_package(${{PROJECT_NAME}} {0} {1})\n'.format(package[0], package[1])
             )
