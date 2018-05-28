@@ -148,8 +148,9 @@ class DataConverter(object):
             if first:
                 cmake_file.write('\"${{CMAKE_VS_PLATFORM_NAME}}\" STREQUAL \"{0}\"'
                                  .format(arch))
+                first = False
             else:
-                cmake_file.write('\" OR ${{CMAKE_VS_PLATFORM_NAME}}\" STREQUAL \"{0}\"'
+                cmake_file.write('\n     OR \"${{CMAKE_VS_PLATFORM_NAME}}\" STREQUAL \"{0}\"'
                                  .format(arch))
         cmake_file.write('))\n')
         cmake_file.write(
