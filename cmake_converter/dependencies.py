@@ -44,7 +44,7 @@ class Dependencies(object):
         self.tree = context['vcxproj']['tree']
         self.ns = context['vcxproj']['ns']
         self.dependencies = context['dependencies']
-        self.deps = context['sln_deps']
+        self.sln_deps = context['sln_deps']
         self.settings = context['settings']
         self.definition_groups = context['definition_groups']
         self.vcxproj_path = context['vcxproj_path']
@@ -178,16 +178,20 @@ class Dependencies(object):
         :type cmake_file: _io.TextIOWrapper
         """
 
-        if self.context['target_references']:
-            cmake_file.write('add_dependencies(${PROJECT_NAME}')
-            targets_dependencies = set()
-            for reference in self.context['target_references']:
-                targets_dependencies.add(reference)
-                cmake_file.write(' {0}'.format(reference))
-            for dep in self.deps:
-                if dep not in targets_dependencies:
-                    cmake_file.write(' {0}'.format(dep))
+        deps_to_write = []
+        targets_dependencies_set = set()
+        for reference in self.context['target_references']:
+            targets_dependencies_set.add(reference)
+            deps_to_write.append(reference)
+        for sln_dep in self.sln_deps:
+            if sln_dep not in targets_dependencies_set:
+                targets_dependencies_set.add(sln_dep)
+                deps_to_write.append(sln_dep)
 
+        if deps_to_write:
+            cmake_file.write('add_dependencies(${PROJECT_NAME}')
+            for dep in deps_to_write:
+                cmake_file.write(' {0}'.format(dep))
             cmake_file.write(')\n\n')
 
     def find_target_additional_dependencies(self):
