@@ -238,6 +238,8 @@ class VCXProjectConverter(DataConverter):
             self.context['definition_groups'] = {}
             for configuration_node in configuration_nodes:
                 configuration_data = str(configuration_node.get('Include'))
+                if configuration_data not in self.context['sln_configurations_map']:
+                    continue
                 self.init_context_setting(configuration_data)
                 self.context['property_groups'][configuration_data] = get_propertygroup(
                     configuration_data, ' and @Label="Configuration"'
