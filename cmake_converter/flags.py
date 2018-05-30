@@ -602,16 +602,18 @@ class CPPFlags(Flags):
 
         """
         for setting in self.settings:
-            add_opt = self.tree.xpath(
+            add_opts_node = self.tree.xpath(
                 '{0}/ns:ClCompile/ns:AdditionalOptions'.format(
                     self.definitiongroups[setting]), namespaces=self.ns
             )
-            if add_opt:
-                for opt in add_opt[0].text.strip().split(" "):
-                    opt = opt.strip()
-                    if opt != '' and opt != '%(AdditionalOptions)':
+            if add_opts_node:
+                add_opts = set_unix_slash(add_opts_node[0].text).split()
+                ready_add_opts = []
+                for opt in add_opts:
+                    if opt != '%(AdditionalOptions)':
                         self.settings[setting][cl_flags].append(opt)
-                    message('Additional Options for {0} : {1}'.format(setting, opt), '')
+                        ready_add_opts.append(opt)
+                message('Additional Options for {0} : {1}'.format(setting, ready_add_opts), '')
             else:
                 message('No Additional Options for {0}'.format(setting), '')
 
@@ -1403,7 +1405,7 @@ class FortranFlags(Flags):
         for setting in self.settings:
             add_opts = self.settings[setting]['VFFortranCompilerTool'].get('AdditionalOptions')
             if add_opts:
-                add_opts = set_unix_slash(add_opts).split(' ')
+                add_opts = set_unix_slash(add_opts).split()
                 ready_add_opts = []
                 for add_opt in add_opts:
                     add_opt = add_opt.strip()
@@ -1415,7 +1417,11 @@ class FortranFlags(Flags):
                     add_opt = '-' + add_opt[1:]
                     ready_add_opts.append(add_opt)
                     self.settings[setting][ifort_cl_win].append(add_opt)
-                    self.settings[setting][ifort_cl_unix].append(add_opt.replace(':', ' '))
+                    unix_option = add_opt.replace(':', ' ')
+                    message('Unix ifort option "{0}" may be incorrect. '
+                            'Check it and set it with visual studio UI if possible.'
+                            .format(unix_option), 'warn')
+                    self.settings[setting][ifort_cl_unix].append(unix_option)
                 message('Additional Options for {0} : {1}'.format(setting, str(ready_add_opts)), '')
             else:
                 message('No Additional Options for {0}'.format(setting), '')
