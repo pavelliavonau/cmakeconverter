@@ -1193,7 +1193,7 @@ class FortranFlags(Flags):
             opt = self.settings[setting]['VFFortranCompilerTool'].get('DisableSpecificDiagnostics')
             if opt:
                 self.settings[setting][ifort_cl_win].append('-Qdiag-disable:{0}'.format(opt))
-                self.settings[setting][ifort_cl_unix].append('-Qdiag-disable={0}'.format(opt))
+                self.settings[setting][ifort_cl_unix].append('-diag-disable={0}'.format(opt))
 
     def set_string_length_arg_passing(self):
         """
@@ -1414,13 +1414,25 @@ class FortranFlags(Flags):
                         add_opt = name_value[0] + ':' + normalize_path(
                             os.path.dirname(self.vcxproj_path), name_value[1]
                         )
+
                     add_opt = '-' + add_opt[1:]
                     ready_add_opts.append(add_opt)
-                    self.settings[setting][ifort_cl_win].append(add_opt)
                     unix_option = add_opt.replace(':', ' ')
-                    message('Unix ifort option "{0}" may be incorrect. '
-                            'Check it and set it with visual studio UI if possible.'
-                            .format(unix_option), 'warn')
+                    if 'gen-interfaces' in unix_option:
+                        pass
+                    elif 'Qprec-div' in unix_option:
+                        unix_option = unix_option.replace('Qprec-div', 'prec-div')
+                    elif '-static' == unix_option:
+                        pass
+                    elif 'Qprof-dir' in unix_option:
+                        unix_option = unix_option.replace('Qprof-dir', 'prof-dir')
+                    elif 'Qprof-use' in unix_option:
+                        unix_option = unix_option.replace('Qprof-use', 'prof-use')
+                    else:
+                        message('Unix ifort option "{0}" may be incorrect. '
+                                'Check it and set it with visual studio UI if possible.'
+                                .format(unix_option), 'warn')
+                    self.settings[setting][ifort_cl_win].append(add_opt)
                     self.settings[setting][ifort_cl_unix].append(unix_option)
                 message('Additional Options for {0} : {1}'.format(setting, str(ready_add_opts)), '')
             else:
