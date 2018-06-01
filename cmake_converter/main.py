@@ -62,7 +62,7 @@ def convert_project(context, xml_project_path, cmake_lists_destination_path):
         message('Unknown project type at {0}'.format(xml_project_path), 'error')
         return
 
-    data_converter.convert()
+    data_converter.convert(context)
 
 
 def parse_solution(sln_text):
