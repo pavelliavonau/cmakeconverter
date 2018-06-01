@@ -114,7 +114,7 @@ class TestProjectVariables(unittest2.TestCase):
         self.data_test['cmake'] = get_cmake_lists(self.cur_dir)
         under_test = VCXProjectVariables(self.data_test)
 
-        # Case CXX language
+        # Case CXX languages
         under_test.add_cmake_project(['cpp'])
 
         self.data_test['cmake'].close()
@@ -126,7 +126,7 @@ class TestProjectVariables(unittest2.TestCase):
 
         cmakelists_test.close()
 
-        # Case C language
+        # Case C languages
         under_test.cmake = get_cmake_lists(self.cur_dir)
         under_test.add_cmake_project(['c'])
 

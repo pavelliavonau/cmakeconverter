@@ -36,77 +36,79 @@ class ProjectFiles(object):
         Class who collect and store project files
     """
 
-    def __init__(self, context):
-        self.vcxproj_path = context.vcxproj_path
-        self.tree = context.vcxproj['tree']
-        self.ns = context.vcxproj['ns']
-        self.context = context
-        if '.vcxproj' in self.vcxproj_path:
-            self.source_files = self.tree.xpath('//ns:ItemGroup/ns:ClCompile', namespaces=self.ns)
-            self.header_files = self.tree.xpath('//ns:ItemGroup/ns:ClInclude', namespaces=self.ns)
-            self.source_file_attr = 'Include'
-        elif '.vfproj' in self.vcxproj_path:
-            self.source_files = self.tree.xpath('/VisualStudioProject/Files/Filter/File')
-            self.header_files = []
-            self.source_file_attr = 'RelativePath'
-        else:
-            message("Unsupported project type in ProjectFiles class: {0}"
-                    .format(self.vcxproj_path), 'ERROR')
+    def __init__(self):
 
-        self.language = []
+        self.languages = []
         self.sources = {}
         self.headers = {}
 
-    def collects_source_files(self):
+    def collects_source_files(self, context):
         """
         Write the project variables in CMakeLists.txt file
 
         """
 
-        filelists = {}
-        vcxproj_dir = os.path.dirname(self.vcxproj_path)
+        if '.vcxproj' in context.vcxproj_path:
+            source_files_nodes = context.vcxproj['tree'].xpath(
+                '//ns:ItemGroup/ns:ClCompile', namespaces=context.vcxproj['ns'])
+            header_files_nodes = context.vcxproj['tree'].xpath(
+                '//ns:ItemGroup/ns:ClInclude', namespaces=context.vcxproj['ns'])
+            source_file_attr = 'Include'
+        elif '.vfproj' in context.vcxproj_path:
+            source_files_nodes = context.vcxproj['tree'].xpath(
+                '/VisualStudioProject/Files/Filter/File')
+            header_files_nodes = []
+            source_file_attr = 'RelativePath'
+        else:
+            message("Unsupported project type in ProjectFiles class: {0}"
+                    .format(context.vcxproj_path), 'ERROR')
+            return
+
+        file_lists = {}
+        vcxproj_dir = os.path.dirname(context.vcxproj_path)
 
         # Cpp Dir
-        for cpp in self.source_files:
-            if cpp.get(self.source_file_attr) is not None:
-                cxx = str(cpp.get(self.source_file_attr))
-                cxx = '/'.join(cxx.split('\\'))
-                if not cxx.rpartition('.')[-1] in self.language:
-                    self.language.append(cxx.rpartition('.')[-1])
-                cpp_path, cxx_file = os.path.split(cxx)
-                if cpp_path not in filelists:
-                    filelists[cpp_path] = os.listdir(os.path.join(vcxproj_dir, cpp_path))
-                if cpp_path not in self.sources:
-                    self.sources[cpp_path] = []
-                if cxx_file not in self.sources[cpp_path]:
-                    real_name = take_name_from_list_case_ignore(filelists[cpp_path], cxx_file)
+        for source_node in source_files_nodes:
+            if source_node.get(source_file_attr) is not None:
+                source_node_text = str(source_node.get(source_file_attr))
+                source_node_text = '/'.join(source_node_text.split('\\'))
+                if not source_node_text.rpartition('.')[-1] in self.languages:
+                    self.languages.append(source_node_text.rpartition('.')[-1])
+                source_path, source_file = os.path.split(source_node_text)
+                if source_path not in file_lists:
+                    file_lists[source_path] = os.listdir(os.path.join(vcxproj_dir, source_path))
+                if source_path not in self.sources:
+                    self.sources[source_path] = []
+                if source_file not in self.sources[source_path]:
+                    real_name = take_name_from_list_case_ignore(file_lists[source_path],
+                                                                source_file)
                     if real_name:
-                        self.sources[cpp_path].append(real_name)
+                        self.sources[source_path].append(real_name)
         for source_path in self.sources:
             self.sources[source_path].sort(key=str.lower)
 
         # Headers Dir
-        for header in self.header_files:
-            h = str(header.get(self.source_file_attr))
-            h = '/'.join(h.split('\\'))
-            header_path, header_file = os.path.split(h)
-            if header_path not in filelists:
-                filelists[header_path] = os.listdir(os.path.join(vcxproj_dir, header_path))
+        for header_node in header_files_nodes:
+            header_node_text = str(header_node.get(source_file_attr))
+            header_node_text = '/'.join(header_node_text.split('\\'))
+            header_path, header_file = os.path.split(header_node_text)
+            if header_path not in file_lists:
+                file_lists[header_path] = os.listdir(os.path.join(vcxproj_dir, header_path))
             if header_path not in self.headers:
                 self.headers[header_path] = []
             if header_file not in self.headers[header_path]:
-                real_name = take_name_from_list_case_ignore(filelists[header_path], header_file)
+                real_name = take_name_from_list_case_ignore(file_lists[header_path], header_file)
                 if real_name:
                     self.headers[header_path].append(real_name)
         for header_path in self.headers:
             self.headers[header_path].sort(key=str.lower)
 
-        has_headers = True if self.header_files else False
-        self.context.has_headers = has_headers
-        self.context.has_only_headers = True if has_headers and not self.source_files else False
-        message("Source files extensions found: %s" % self.language, 'INFO')
+        has_headers = True if header_files_nodes else False
+        context.has_headers = has_headers
+        context.has_only_headers = True if has_headers and not source_files_nodes else False
+        message("Source files extensions found: %s" % self.languages, 'INFO')
 
-    def find_cmake_project_language(self):
+    def find_cmake_project_language(self, context):
         """
         Add CMake Project
 
@@ -121,22 +123,22 @@ class ProjectFiles(object):
         available_language.update(dict.fromkeys(fortran_extensions, 'Fortran'))
 
         files_language = ''
-        if self.language:
-            for l in self.language:
+        if self.languages:
+            for l in self.languages:
                 if l in available_language:
                     files_language = l
                     break
-            if 'cpp' in self.language:  # priority for C++ for mixes with C
+            if 'cpp' in self.languages:  # priority for C++ for mixes with C
                 files_language = 'cpp'
 
         project_language = ''
         if files_language in available_language:
             project_language = available_language[files_language]
         if project_language:
-            self.context.solution_languages.add(project_language)
-        self.context.project_language = project_language
+            context.solution_languages.add(project_language)
+        context.project_language = project_language
 
-    def write_cmake_project(self, cmake_file):
+    def write_cmake_project(self, context, cmake_file):
         """
         Write cmake project for given CMake file
 
@@ -145,11 +147,11 @@ class ProjectFiles(object):
         """
 
         lang = ''
-        if self.context.project_language:
-            lang = ' ' + self.context.project_language
+        if context.project_language:
+            lang = ' ' + context.project_language
         cmake_file.write('project(${{PROJECT_NAME}}{0})\n\n'.format(lang))
 
-    def write_header_files(self, cmake_file):
+    def write_header_files(self, context, cmake_file):
         """
         Write header files variables to file() cmake function
 
@@ -163,7 +165,7 @@ class ProjectFiles(object):
         write_comment(cmake_file, 'Header files')
         cmake_file.write('set(HEADERS_FILES\n')
 
-        working_path = os.path.dirname(self.vcxproj_path)
+        working_path = os.path.dirname(context.vcxproj_path)
         if '' in self.headers:
             for header_file in self.headers['']:
                 cmake_file.write('    {0}\n'.format(normalize_path(working_path, header_file)))
@@ -179,7 +181,7 @@ class ProjectFiles(object):
         cmake_file.write(')\n')
         cmake_file.write('source_group("Headers" FILES ${HEADERS_FILES})\n\n')
 
-    def write_source_files(self, cmake_file):
+    def write_source_files(self, context, cmake_file):
         """
         Write source files variables to file() cmake function
 
@@ -190,7 +192,7 @@ class ProjectFiles(object):
         write_comment(cmake_file, 'Source files')
         cmake_file.write('set(SRC_FILES\n')
 
-        working_path = os.path.dirname(self.vcxproj_path)
+        working_path = os.path.dirname(context.vcxproj_path)
         if '' in self.sources:
             for src_file in self.sources['']:
                 cmake_file.write('    {0}\n'.format(normalize_path(working_path, src_file)))

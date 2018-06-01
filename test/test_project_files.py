@@ -55,7 +55,7 @@ class TestProjectFiles(unittest2.TestCase):
         self.assertTrue(under_test.source_files)
         self.assertTrue(under_test.header_files)
 
-        self.assertFalse(under_test.language)
+        self.assertFalse(under_test.languages)
         self.assertFalse(under_test.sources)
         self.assertFalse(under_test.headers)
 

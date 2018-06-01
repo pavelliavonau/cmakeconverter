@@ -244,7 +244,7 @@ class VCXProjectConverter(DataConverter):
     def __init__(self, context, xml_project_path, cmake_lists_destination_path):
         DataConverter.__init__(self, context, xml_project_path, cmake_lists_destination_path)
         self.variables = VCXProjectVariables(context)
-        self.files = ProjectFiles(context)
+        self.files = ProjectFiles()
         self.flags = CPPFlags(context)
         self.dependencies = Dependencies()
 
@@ -295,8 +295,8 @@ class VCXProjectConverter(DataConverter):
         """
 
         self.variables.find_outputs_variables()
-        self.files.collects_source_files()
-        self.files.find_cmake_project_language()
+        self.files.collects_source_files(context)
+        self.files.find_cmake_project_language(context)
         if not context.has_only_headers:
             self.flags.do_precompiled_headers(self.files)
             self.flags.define_flags()
@@ -321,18 +321,18 @@ class VCXProjectConverter(DataConverter):
             self.add_cmake_version_required(cmake_file)
 
         self.variables.add_project_variables(cmake_file)
-        self.files.write_cmake_project(cmake_file)
+        self.files.write_cmake_project(context, cmake_file)
         # self.variables.add_default_target() # TODO: add conversion option to cmd line
 
         # Add additional code or not
         if context.additional_code is not None:
             self.files.add_additional_code(context.additional_code, cmake_file)
 
-        self.files.write_header_files(cmake_file)
+        self.files.write_header_files(context, cmake_file)
 
         if not context.has_only_headers:
             self.flags.write_precompiled_headers_macro(cmake_file)
-            self.files.write_source_files(cmake_file)
+            self.files.write_source_files(context, cmake_file)
             self.flags.write_use_pch_macro(cmake_file)
             write_comment(cmake_file, 'Target')
             self.flags.write_target_artifact(cmake_file)
@@ -362,7 +362,7 @@ class VFProjectConverter(DataConverter):
     def __init__(self, context, xml_project_path, cmake_lists_destination_path):
         DataConverter.__init__(self, context, xml_project_path, cmake_lists_destination_path)
         self.variables = VFProjectVariables(context)
-        self.files = ProjectFiles(context)
+        self.files = ProjectFiles()
         self.flags = FortranFlags(context)
 
     def init_context(self, context, vs_project):
@@ -418,8 +418,8 @@ class VFProjectConverter(DataConverter):
 
         self.variables.find_outputs_variables()
 
-        self.files.collects_source_files()
-        self.files.find_cmake_project_language()
+        self.files.collects_source_files(context)
+        self.files.find_cmake_project_language(context)
 
         if not context.has_only_headers:
             self.flags.define_flags()
@@ -448,14 +448,14 @@ class VFProjectConverter(DataConverter):
             self.add_cmake_version_required(cmake_file)
 
         self.variables.add_project_variables(cmake_file)
-        self.files.write_cmake_project(cmake_file)
+        self.files.write_cmake_project(context, cmake_file)
         # Add additional code or not
         if context.additional_code is not None:
             self.files.add_additional_code(context.additional_code, cmake_file)
-        self.files.write_header_files(cmake_file)
+        self.files.write_header_files(context, cmake_file)
         if not context.has_only_headers:
             # Writing
-            self.files.write_source_files(cmake_file)
+            self.files.write_source_files(context, cmake_file)
             write_comment(cmake_file, 'Target')
             self.flags.write_target_artifact(cmake_file)
             self.write_supported_architectures_check(context, cmake_file)
