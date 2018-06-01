@@ -199,8 +199,8 @@ class CPPFlags(Flags):
 
     def __init__(self, context):
         Flags.__init__(self, context)
-        self.propertygroup = context.property_groups
-        self.definitiongroups = context.definition_groups
+        self.property_groups = context.property_groups
+        self.definition_groups = context.definition_groups
         self.std = context.std
 
     def define_flags(self):
@@ -265,7 +265,7 @@ class CPPFlags(Flags):
         for setting in self.settings:
             define = self.tree.find(
                 '{0}/ns:ClCompile/ns:PreprocessorDefinitions'.format(
-                    self.definitiongroups[setting]),
+                    self.definition_groups[setting]),
                 namespaces=self.ns
             )
             if define is not None:
@@ -274,7 +274,7 @@ class CPPFlags(Flags):
                         self.settings[setting][defines].append(preproc)
                 # Unicode
                 character_set = self.tree.xpath(
-                    '{0}/ns:CharacterSet'.format(self.propertygroup[setting]),
+                    '{0}/ns:CharacterSet'.format(self.property_groups[setting]),
                     namespaces=self.ns)
                 if character_set is not None:
                     if 'Unicode' in character_set[0].text:
@@ -304,13 +304,13 @@ class CPPFlags(Flags):
             }
             self.set_flag(setting,
                           '{0}/ns:ClCompile/ns:PrecompiledHeader'
-                          .format(self.definitiongroups[setting]),
+                          .format(self.definition_groups[setting]),
                           precompiled_header_values)
 
             precompiled_header_file_values = {default_value: {'PrecompiledHeaderFile': 'stdafx.h'}}
             flag_value = self.set_flag(
                 setting,
-                '{0}/ns:ClCompile/ns:PrecompiledHeaderFile'.format(self.definitiongroups[setting]),
+                '{0}/ns:ClCompile/ns:PrecompiledHeaderFile'.format(self.definition_groups[setting]),
                 precompiled_header_file_values
             )
             if flag_value:
@@ -362,7 +362,7 @@ class CPPFlags(Flags):
 
         """
 
-        # from propertygroup
+        # from property_groups
         #   compilation
         self.set_use_debug_libraries()
         self.set_whole_program_optimization()
@@ -370,7 +370,7 @@ class CPPFlags(Flags):
         self.set_generate_debug_information()
         self.set_link_incremental()
 
-        # from definitiongroups
+        # from definition_groups
         #   compilation
         self.set_optimization()
         self.set_inline_function_expansion()
@@ -443,7 +443,7 @@ class CPPFlags(Flags):
 
         for setting in self.settings:
             self.set_flag(setting,
-                          '{0}/ns:WholeProgramOptimization'.format(self.propertygroup[setting]),
+                          '{0}/ns:WholeProgramOptimization'.format(self.property_groups[setting]),
                           flag_values)
 
     def set_link_incremental(self):
@@ -464,7 +464,7 @@ class CPPFlags(Flags):
                 continue
             value = self.set_flag(
                 setting, '{0}/ns:LinkIncremental'.format(
-                    self.propertygroup[setting].replace(' and @Label="Configuration"', '')
+                    self.property_groups[setting].replace(' and @Label="Configuration"', '')
                 ),
                 flag_values
             )
@@ -493,7 +493,7 @@ class CPPFlags(Flags):
             self.set_flag(
                 setting,
                 '{0}/ns:ClCompile/ns:ForceConformanceInForLoopScope'.format(
-                    self.definitiongroups[setting]),
+                    self.definition_groups[setting]),
                 flag_values
             )
 
@@ -513,7 +513,7 @@ class CPPFlags(Flags):
             self.set_flag(
                 setting,
                 '{0}/ns:ClCompile/ns:RemoveUnreferencedCodeData'.format(
-                    self.definitiongroups[setting]),
+                    self.definition_groups[setting]),
                 flag_values
             )
 
@@ -524,7 +524,7 @@ class CPPFlags(Flags):
         """
         for setting in self.settings:
             md = self.tree.xpath(
-                '{0}/ns:UseDebugLibraries'.format(self.propertygroup[setting]), namespaces=self.ns
+                '{0}/ns:UseDebugLibraries'.format(self.property_groups[setting]), namespaces=self.ns
             )
             if md:
                 if 'true' in md[0].text:
@@ -551,7 +551,7 @@ class CPPFlags(Flags):
         for setting in self.settings:
             self.set_flag(
                 setting,
-                '{0}/ns:ClCompile/ns:WarningLevel'.format(self.definitiongroups[setting]),
+                '{0}/ns:ClCompile/ns:WarningLevel'.format(self.definition_groups[setting]),
                 flag_values
             )
 
@@ -569,7 +569,7 @@ class CPPFlags(Flags):
         for setting in self.settings:
             self.set_flag(
                 setting,
-                '{0}/ns:ClCompile/ns:TreatWarningAsError'.format(self.definitiongroups[setting]),
+                '{0}/ns:ClCompile/ns:TreatWarningAsError'.format(self.definition_groups[setting]),
                 flag_values
             )
 
@@ -581,7 +581,7 @@ class CPPFlags(Flags):
         for setting in self.settings:
             specific_warnings_node = self.tree.xpath(
                 '{0}/ns:ClCompile/ns:DisableSpecificWarnings'.format(
-                    self.definitiongroups[setting]), namespaces=self.ns
+                    self.definition_groups[setting]), namespaces=self.ns
             )
             if specific_warnings_node:
                 flags = []
@@ -604,7 +604,7 @@ class CPPFlags(Flags):
         for setting in self.settings:
             add_opts_node = self.tree.xpath(
                 '{0}/ns:ClCompile/ns:AdditionalOptions'.format(
-                    self.definitiongroups[setting]), namespaces=self.ns
+                    self.definition_groups[setting]), namespaces=self.ns
             )
             if add_opts_node:
                 add_opts = set_unix_slash(add_opts_node[0].text).split()
@@ -632,7 +632,7 @@ class CPPFlags(Flags):
         for setting in self.settings:
             self.set_flag(
                 setting,
-                '{0}/ns:ClCompile/ns:BasicRuntimeChecks'.format(self.definitiongroups[setting]),
+                '{0}/ns:ClCompile/ns:BasicRuntimeChecks'.format(self.definition_groups[setting]),
                 flag_values
             )
 
@@ -645,7 +645,7 @@ class CPPFlags(Flags):
         # RuntimeLibrary
         for setting in self.settings:
             mdd_value = self.tree.find(
-                '{0}/ns:ClCompile/ns:RuntimeLibrary'.format(self.definitiongroups[setting]),
+                '{0}/ns:ClCompile/ns:RuntimeLibrary'.format(self.definition_groups[setting]),
                 namespaces=self.ns
             )
             mdd = '/MDd'
@@ -693,7 +693,7 @@ class CPPFlags(Flags):
         for setting in self.settings:
             self.set_flag(
                 setting,
-                '{0}/ns:ClCompile/ns:StringPooling'.format(self.definitiongroups[setting]),
+                '{0}/ns:ClCompile/ns:StringPooling'.format(self.definition_groups[setting]),
                 flag_values
             )
 
@@ -713,7 +713,7 @@ class CPPFlags(Flags):
         for setting in self.settings:
             self.set_flag(
                 setting,
-                '{0}/ns:ClCompile/ns:Optimization'.format(self.definitiongroups[setting]),
+                '{0}/ns:ClCompile/ns:Optimization'.format(self.definition_groups[setting]),
                 flag_values
             )
 
@@ -733,7 +733,7 @@ class CPPFlags(Flags):
             self.set_flag(
                 setting,
                 '{0}/ns:ClCompile/ns:InlineFunctionExpansion'.format(
-                    self.definitiongroups[setting]),
+                    self.definition_groups[setting]),
                 flag_values
             )
 
@@ -751,7 +751,7 @@ class CPPFlags(Flags):
         for setting in self.settings:
             self.set_flag(
                 setting,
-                '{0}/ns:ClCompile/ns:IntrinsicFunctions'.format(self.definitiongroups[setting]),
+                '{0}/ns:ClCompile/ns:IntrinsicFunctions'.format(self.definition_groups[setting]),
                 flag_values
             )
 
@@ -769,7 +769,7 @@ class CPPFlags(Flags):
         for setting in self.settings:
             self.set_flag(
                 setting,
-                '{0}/ns:ClCompile/ns:RuntimeTypeInfo'.format(self.definitiongroups[setting]),
+                '{0}/ns:ClCompile/ns:RuntimeTypeInfo'.format(self.definition_groups[setting]),
                 flag_values
             )
 
@@ -787,7 +787,7 @@ class CPPFlags(Flags):
         for setting in self.settings:
             self.set_flag(
                 setting,
-                '{0}/ns:ClCompile/ns:FunctionLevelLinking'.format(self.definitiongroups[setting]),
+                '{0}/ns:ClCompile/ns:FunctionLevelLinking'.format(self.definition_groups[setting]),
                 flag_values
             )
 
@@ -805,8 +805,8 @@ class CPPFlags(Flags):
         for setting in self.settings:
             self.set_flag(
                 setting,
-                '{0}/ns:ClCompile/ns:DebugInformationFormat'.format(self.definitiongroups[setting]),
-                flag_values
+                '{0}/ns:ClCompile/ns:DebugInformationFormat'.format(
+                    self.definition_groups[setting]), flag_values
             )
 
     def set_compile_as(self):
@@ -823,7 +823,7 @@ class CPPFlags(Flags):
         for setting in self.settings:
             self.set_flag(
                 setting,
-                '{0}/ns:ClCompile/ns:CompileAs'.format(self.definitiongroups[setting]),
+                '{0}/ns:ClCompile/ns:CompileAs'.format(self.definition_groups[setting]),
                 flag_values
             )
 
@@ -847,7 +847,7 @@ class CPPFlags(Flags):
 
             self.set_flag(
                 setting,
-                '{0}/ns:Link/ns:GenerateDebugInformation'.format(self.definitiongroups[setting]),
+                '{0}/ns:Link/ns:GenerateDebugInformation'.format(self.definition_groups[setting]),
                 flag_values
             )
 
@@ -866,7 +866,7 @@ class CPPFlags(Flags):
         for setting in self.settings:
             self.set_flag(
                 setting, '{0}/ns:ClCompile/ns:FloatingPointModel'.format(
-                    self.definitiongroups[setting]),
+                    self.definition_groups[setting]),
                 flag_values
             )
 
@@ -885,7 +885,7 @@ class CPPFlags(Flags):
         for setting in self.settings:
             self.set_flag(
                 setting, '{0}/ns:ClCompile/ns:ExceptionHandling'.format(
-                    self.definitiongroups[setting]),
+                    self.definition_groups[setting]),
                 flag_values
             )
 
@@ -903,7 +903,7 @@ class CPPFlags(Flags):
         for setting in self.settings:
             self.set_flag(
                 setting,
-                '{0}/ns:ClCompile/ns:BufferSecurityCheck'.format(self.definitiongroups[setting]),
+                '{0}/ns:ClCompile/ns:BufferSecurityCheck'.format(self.definition_groups[setting]),
                 flag_values
             )
 
@@ -922,7 +922,7 @@ class CPPFlags(Flags):
         for setting in self.settings:
             self.set_flag(
                 setting,
-                '{0}/ns:ClCompile/ns:DiagnosticsFormat'.format(self.definitiongroups[setting]),
+                '{0}/ns:ClCompile/ns:DiagnosticsFormat'.format(self.definition_groups[setting]),
                 flag_values
             )
 
@@ -941,7 +941,7 @@ class CPPFlags(Flags):
             self.set_flag(
                 setting,
                 '{0}/ns:ClCompile/ns:TreatWChar_tAsBuiltInType'.format(
-                    self.definitiongroups[setting]),
+                    self.definition_groups[setting]),
                 flag_values
             )
 

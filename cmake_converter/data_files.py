@@ -122,13 +122,13 @@ def get_xml_data(xml_file):
 
 def get_propertygroup(target_platform, attributes=''):
     """
-    Return "propertygroup" value for wanted platform and target
+    Return "property_groups" value for wanted platform and target
 
     :param target_platform: wanted target: debug | release
     :type target_platform: str
     :param attributes: attributes to add to namespace
     :type attributes: str
-    :return: "propertygroup" value
+    :return: "property_groups" value
     :rtype: str
     """
 
