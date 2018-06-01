@@ -246,7 +246,7 @@ class VCXProjectConverter(DataConverter):
         self.variables = VCXProjectVariables(context)
         self.files = ProjectFiles(context)
         self.flags = CPPFlags(context)
-        self.dependencies = Dependencies(context)
+        self.dependencies = Dependencies()
 
     def init_context(self, context, vs_project):
         """
@@ -300,12 +300,12 @@ class VCXProjectConverter(DataConverter):
         if not context.has_only_headers:
             self.flags.do_precompiled_headers(self.files)
             self.flags.define_flags()
-            self.dependencies.find_include_dir()
-            self.dependencies.find_target_references()
-            self.dependencies.find_target_additional_dependencies()
-            self.dependencies.find_target_additional_library_directories()
-            self.dependencies.find_target_property_sheets()
-            self.dependencies.find_target_dependency_packages()
+            self.dependencies.find_include_dir(context)
+            self.dependencies.find_target_references(context)
+            self.dependencies.find_target_additional_dependencies(context)
+            self.dependencies.find_target_additional_library_directories(context)
+            self.dependencies.find_target_property_sheets(context)
+            self.dependencies.find_target_dependency_packages(context)
 
     def write_data(self, context, cmake_file):
         """
@@ -337,7 +337,7 @@ class VCXProjectConverter(DataConverter):
             write_comment(cmake_file, 'Target')
             self.flags.write_target_artifact(cmake_file)
             self.write_supported_architectures_check(context, cmake_file)
-            self.dependencies.write_target_property_sheets(cmake_file)
+            self.dependencies.write_target_property_sheets(context, cmake_file)
             self.variables.write_target_outputs(context, cmake_file)
             self.dependencies.write_include_directories(context, cmake_file)
             self.flags.write_defines(cmake_file)
@@ -347,9 +347,9 @@ class VCXProjectConverter(DataConverter):
                     context.add_lib_dirs or
                     context.packages):
                 write_comment(cmake_file, 'Dependencies')
-            self.dependencies.write_target_references(cmake_file)
-            self.dependencies.write_link_dependencies(cmake_file)
-            self.dependencies.write_target_dependency_packages(cmake_file)
+            self.dependencies.write_target_references(context, cmake_file)
+            self.dependencies.write_link_dependencies(context, cmake_file)
+            self.dependencies.write_target_dependency_packages(context, cmake_file)
         else:
             CPPFlags.write_target_headers_only_artifact(cmake_file)
 

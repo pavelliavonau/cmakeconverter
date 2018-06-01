@@ -40,33 +40,23 @@ class Dependencies(object):
         Class who find and write dependencies of project, additionnal directories...
     """
 
-    def __init__(self, context):
-        self.tree = context.vcxproj['tree']
-        self.ns = context.vcxproj['ns']
-        self.dependencies = context.dependencies
-        self.sln_deps = context.sln_deps
-        self.settings = context.settings
-        self.definition_groups = context.definition_groups
-        self.vcxproj_path = context.vcxproj_path
-        self.context = context
-
-    def find_include_dir(self):
+    def find_include_dir(self, context):
         """
         Write on "CMakeLists.txt" include directories required for compilation.
 
         """
 
-        for setting in self.settings:
-            incl_dir = self.tree.find(
+        for setting in context.settings:
+            incl_dir = context.vcxproj['tree'].find(
                 '{0}/ns:ClCompile/ns:AdditionalIncludeDirectories'.format(
-                    self.definition_groups[setting]
+                    context.definition_groups[setting]
                 ),
-                namespaces=self.ns
+                namespaces=context.vcxproj['ns']
             )
 
             if incl_dir is not None:
                 inc_dirs = self.get_additional_include_directories(
-                    incl_dir.text, setting, self.context
+                    incl_dir.text, setting, context
                 )
                 message('Include Directories found : {0}'.format(inc_dirs), '')
             else:  # pragma: no cover
@@ -145,14 +135,15 @@ class Dependencies(object):
         else:
             return os.path.splitext(ntpath.basename(vs_project))[0]
 
-    def find_target_references(self):
+    def find_target_references(self, context):
         """
         Find and set references of project to current context
 
         """
 
         references_found = []
-        references = self.tree.xpath('//ns:ProjectReference', namespaces=self.ns)
+        references = context.vcxproj['tree'].xpath('//ns:ProjectReference',
+                                                   namespaces=context.vcxproj['ns'])
         if references:
             for ref in references:
                 if ref is None:
@@ -164,13 +155,14 @@ class Dependencies(object):
 
                 if ref_inc not in references_found:
                     ref = self.get_dependency_target_name(
-                        os.path.join(os.path.dirname(self.vcxproj_path), ref_inc)
+                        os.path.join(os.path.dirname(context.vcxproj_path), ref_inc)
                     )
                     references_found.append(ref)
 
-        self.context.target_references = references_found
+        context.target_references = references_found
 
-    def write_target_references(self, cmake_file):
+    @staticmethod
+    def write_target_references(context, cmake_file):
         """
         Write target references on given CMakeLists.txt file
 
@@ -180,10 +172,10 @@ class Dependencies(object):
 
         deps_to_write = []
         targets_dependencies_set = set()
-        for reference in self.context.target_references:
+        for reference in context.target_references:
             targets_dependencies_set.add(reference)
             deps_to_write.append(reference)
-        for sln_dep in self.sln_deps:
+        for sln_dep in context.sln_deps:
             if sln_dep not in targets_dependencies_set:
                 targets_dependencies_set.add(sln_dep)
                 deps_to_write.append(sln_dep)
@@ -194,14 +186,16 @@ class Dependencies(object):
                 cmake_file.write(' {0}'.format(dep))
             cmake_file.write(')\n\n')
 
-    def find_target_additional_dependencies(self):
+    @staticmethod
+    def find_target_additional_dependencies(context):
         """
         Find and set additional dependencies of current project in context
 
         """
 
-        dependencies = self.tree.xpath('//ns:AdditionalDependencies', namespaces=self.ns)
-        self.context.add_lib_deps = []
+        dependencies = context.vcxproj['tree'].xpath('//ns:AdditionalDependencies',
+                                                     namespaces=context.vcxproj['ns'])
+        context.add_lib_deps = []
         if dependencies:
             list_depends = dependencies[0].text.replace('%(AdditionalDependencies)', '')
             if list_depends != '':
@@ -211,21 +205,22 @@ class Dependencies(object):
                     if d != '%(AdditionalDependencies)':
                         if os.path.splitext(d)[1] == '.lib':
                             add_lib_dirs.append(d.replace('.lib', ''))
-                self.context.add_lib_deps = add_lib_dirs
+                context.add_lib_deps = add_lib_dirs
         else:  # pragma: no cover
             message('No additional dependencies.', '')
 
-    def find_target_additional_library_directories(self):
+    @staticmethod
+    def find_target_additional_library_directories(context):
         """
         Find and set additional library directories in context
 
         """
 
-        additional_library_directories = self.tree.xpath(
-            '//ns:AdditionalLibraryDirectories', namespaces=self.ns
+        additional_library_directories = context.vcxproj['tree'].xpath(
+            '//ns:AdditionalLibraryDirectories', namespaces=context.vcxproj['ns']
         )
 
-        self.context.add_lib_dirs = []
+        context.add_lib_dirs = []
         if additional_library_directories:
             list_depends = additional_library_directories[0].text.replace(
                 '%(AdditionalLibraryDirectories)', ''
@@ -237,11 +232,12 @@ class Dependencies(object):
                     d = d.strip()
                     if d != '':
                         add_lib_dirs.append(d)
-                self.context.add_lib_dirs = add_lib_dirs
+                context.add_lib_dirs = add_lib_dirs
         else:  # pragma: no cover
             message('No additional library dependencies.', '')
 
-    def write_link_dependencies(self, cmake_file):
+    @staticmethod
+    def write_link_dependencies(context, cmake_file):
         """
         Write link dependencies of project to given cmake file
 
@@ -249,41 +245,42 @@ class Dependencies(object):
         :type cmake_file: _io.TextIOWrapper
         """
 
-        if self.context.target_references:
+        if context.target_references:
             cmake_file.write('# Link with other targets.\n')
             cmake_file.write('target_link_libraries(${PROJECT_NAME}')
-            for reference in self.context.target_references:
+            for reference in context.target_references:
                 cmake_file.write(' ' + reference)
                 msg = 'External library found : {0}'.format(reference)
                 message(msg, '')
             cmake_file.write(')\n\n')
 
-        if self.context.add_lib_deps:
+        if context.add_lib_deps:
             cmake_file.write('# Link with other additional libraries.\n')
             cmake_file.write('target_link_libraries(${PROJECT_NAME}')
-            for dep in self.context.add_lib_deps:
+            for dep in context.add_lib_deps:
                 cmake_file.write(' ' + dep)
             cmake_file.write(')\n')
 
-        if self.context.add_lib_dirs:
+        if context.add_lib_dirs:
             cmake_file.write('if(MSVC)\n')
             cmake_file.write('    target_link_libraries(${PROJECT_NAME}')
-            for dep in self.context.add_lib_dirs:
+            for dep in context.add_lib_dirs:
                 cmake_file.write(' -LIBPATH:' + cleaning_output(dep))
             cmake_file.write(')\nelseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")\n')
             cmake_file.write('    target_link_libraries(${PROJECT_NAME}')
-            for dep in self.context.add_lib_dirs:
+            for dep in context.add_lib_dirs:
                 cmake_file.write(' -L' + cleaning_output(dep))
             cmake_file.write(')\nendif()\n\n')
 
-    def find_target_property_sheets(self):
+    @staticmethod
+    def find_target_property_sheets(context):
         """
         Find and set in current context property sheets
 
         """
 
-        property_nodes = self.tree.xpath(
-            '//ns:ImportGroup[@Label="PropertySheets"]/ns:Import', namespaces=self.ns
+        property_nodes = context.vcxproj['tree'].xpath(
+            '//ns:ImportGroup[@Label="PropertySheets"]/ns:Import', namespaces=context.vcxproj['ns']
         )
         props_set = set()
         for node in property_nodes:
@@ -292,17 +289,18 @@ class Dependencies(object):
                 filename = node.get('Project')
                 if 'Microsoft.CPP.UpgradeFromVC60' in filename:
                     continue
-                # props_path = os.path.join(os.path.dirname(self.vcxproj_path), filename)
-                working_path = os.path.dirname(self.context.vcxproj_path)
+                # props_path = os.path.join(os.path.dirname(context.vcxproj_path), filename)
+                working_path = os.path.dirname(context.vcxproj_path)
                 props_set.add(normalize_path(working_path, filename).replace('.props', '.cmake'))
                 # properties_xml = get_xml_data(props_path)
                 # if properties_xml:
                 #     properties_xml.close()  # TODO collect data from props
         props_list = list(props_set)
         props_list.sort()
-        self.context.property_sheets = props_list
+        context.property_sheets = props_list
 
-    def write_target_property_sheets(self, cmake_file):
+    @staticmethod
+    def write_target_property_sheets(context, cmake_file):
         """
         Write target property sheets of current context
 
@@ -310,38 +308,40 @@ class Dependencies(object):
         :type cmake_file: _io.TextIOWrapper
         """
 
-        if self.context.property_sheets:
+        if context.property_sheets:
             cmake_file.write('# Includes for CMake from *.props\n')
-            for property_sheet in self.context.property_sheets:
+            for property_sheet in context.property_sheets:
                 cmake_file.write('include({0} OPTIONAL)\n'.format(property_sheet))
             cmake_file.write('\n')
 
-    def find_target_dependency_packages(self):
+    @staticmethod
+    def find_target_dependency_packages(context):
         """
         Find and set other dependencies of project to current context. Like nuget for example.
 
         """
 
-        self.context.packages = []
+        context.packages = []
 
-        packages_nodes = self.tree.xpath(
-            '//ns:ItemGroup/ns:None[@Include="packages.config"]', namespaces=self.ns
+        packages_nodes = context.vcxproj['tree'].xpath(
+            '//ns:ItemGroup/ns:None[@Include="packages.config"]', namespaces=context.vcxproj['ns']
         )
         if packages_nodes:
             # TODO with '|' in xpath and unify label name(remove hardcode)
-            ext_targets = self.tree.xpath(
+            ext_targets = context.vcxproj['tree'].xpath(
                 '//ns:ImportGroup[@Label="ExtensionTargets"]/ns:Import'
-                , namespaces=self.ns)
+                , namespaces=context.vcxproj['ns'])
             if not ext_targets:
-                ext_targets = self.tree.xpath('//ns:ImportGroup[@Label="Shared"]/ns:Import',
-                                              namespaces=self.ns)
+                ext_targets = context.vcxproj['tree'].xpath('//ns:ImportGroup[@Label="Shared"]/ns:Import',
+                                              namespaces=context.vcxproj['ns'])
             if not ext_targets:
-                ext_targets = self.tree.xpath(
+                ext_targets = context.vcxproj['tree'].xpath(
                     '//ns:ImportGroup[@Label="ExtensionSettings"]/ns:Import',
-                    namespaces=self.ns)
+                    namespaces=context.vcxproj['ns'])
 
             filename = packages_nodes[0].get('Include')
-            packages_xml = get_xml_data(os.path.join(os.path.dirname(self.vcxproj_path), filename))
+            packages_xml = get_xml_data(os.path.join(os.path.dirname(context.vcxproj_path),
+                                                     filename))
             if packages_xml:
                 extension = packages_xml['tree'].xpath('/packages/package')
                 for ref in extension:
@@ -370,20 +370,20 @@ class Dependencies(object):
                         message('Path of file {0}.targets not found at vs project xml.'
                                 .format(id_version), 'warn')
 
-                    self.context.packages.append([package_id, package_version, ext_properties])
+                    context.packages.append([package_id, package_version, ext_properties])
                     message('Used package {0} {1}.'.format(package_id, package_version),'')
 
                     for ext_property in ext_properties:
-                        for setting in self.settings:
-                            if 'packages' not in self.settings[setting]:
-                                self.settings[setting]['packages'] = {}
-                            ext_property_node = self.tree.xpath(
+                        for setting in context.settings:
+                            if 'packages' not in context.settings[setting]:
+                                context.settings[setting]['packages'] = {}
+                            ext_property_node = context.vcxproj['tree'].xpath(
                                 '{0}/ns:{1}'.format(get_propertygroup(setting), ext_property),
-                                namespaces=self.ns)
+                                namespaces=context.vcxproj['ns'])
                             if ext_property_node:
-                                if id_version not in self.settings[setting]['packages']:
-                                    self.settings[setting]['packages'][id_version] = {}
-                                self.settings[setting]['packages'][id_version][ext_property] = \
+                                if id_version not in context.settings[setting]['packages']:
+                                    context.settings[setting]['packages'][id_version] = {}
+                                context.settings[setting]['packages'][id_version][ext_property] = \
                                     ext_property_node[0].text
                                 message('{0} property of {1} {2} for {3} is {4}'
                                         .format(ext_property,
@@ -392,7 +392,8 @@ class Dependencies(object):
                                                 setting,
                                                 ext_property_node[0].text), '')
 
-    def write_target_dependency_packages(self, cmake_file):
+    @staticmethod
+    def write_target_dependency_packages(context, cmake_file):
         """
         Write target dependency packages of current context
 
@@ -400,23 +401,23 @@ class Dependencies(object):
         :type cmake_file: _io.TextIOWrapper
         """
 
-        for package in self.context.packages:
+        for package in context.packages:
             for package_property in package[2]:
                 id_version = '{0}.{1}'.format(package[0], package[1])
-                for setting in self.settings:
-                    if 'packages' not in self.settings[setting]:
+                for setting in context.settings:
+                    if 'packages' not in context.settings[setting]:
                         continue
-                    if id_version not in self.settings[setting]['packages']:
+                    if id_version not in context.settings[setting]['packages']:
                         continue
-                    if package_property not in self.settings[setting]['packages'][id_version]:
+                    if package_property not in context.settings[setting]['packages'][id_version]:
                         continue
-                    self.settings[setting][id_version + package_property] =\
-                        self.settings[setting]['packages'][id_version][package_property]
+                    context.settings[setting][id_version + package_property] =\
+                        context.settings[setting]['packages'][id_version][package_property]
 
                 package_property_variable = package_property + '_VAR'
                 has_written = write_property_of_settings(
-                    cmake_file, self.settings,
-                    self.context.sln_configurations_map,
+                    cmake_file, context.settings,
+                    context.sln_configurations_map,
                     'string(CONCAT "{0}"'.format(package_property_variable), ')',
                     id_version + package_property, ''
                 )
