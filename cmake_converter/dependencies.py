@@ -332,8 +332,9 @@ class Dependencies(object):
                 '//ns:ImportGroup[@Label="ExtensionTargets"]/ns:Import'
                 , namespaces=context.vcxproj['ns'])
             if not ext_targets:
-                ext_targets = context.vcxproj['tree'].xpath('//ns:ImportGroup[@Label="Shared"]/ns:Import',
-                                              namespaces=context.vcxproj['ns'])
+                ext_targets = context.vcxproj['tree'].xpath(
+                    '//ns:ImportGroup[@Label="Shared"]/ns:Import',
+                    namespaces=context.vcxproj['ns'])
             if not ext_targets:
                 ext_targets = context.vcxproj['tree'].xpath(
                     '//ns:ImportGroup[@Label="ExtensionSettings"]/ns:Import',
