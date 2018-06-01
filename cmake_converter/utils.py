@@ -81,9 +81,9 @@ def get_configuration_type(setting, context):
     :rtype: str
     """
 
-    configurationtype = context['vcxproj']['tree'].xpath(
-        '{0}/ns:ConfigurationType'.format(context['property_groups'][setting]),
-        namespaces=context['vcxproj']['ns'])
+    configurationtype = context.vcxproj['tree'].xpath(
+        '{0}/ns:ConfigurationType'.format(context.property_groups[setting]),
+        namespaces=context.vcxproj['ns'])
     if len(configurationtype) == 0:
         return None
 

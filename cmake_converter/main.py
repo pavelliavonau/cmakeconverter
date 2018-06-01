@@ -28,8 +28,10 @@
 import argparse
 import re
 import os
+import copy
 
-from cmake_converter.data_converter import DataConverter, VCXProjectConverter, VFProjectConverter
+from cmake_converter.data_converter import DataConverter, VCXProjectConverter, VFProjectConverter,\
+    Context
 from cmake_converter.data_files import get_cmake_lists
 from cmake_converter.utils import set_unix_slash, message, write_comment
 
@@ -139,11 +141,10 @@ def parse_solution(sln_text):
 
 
 def set_dependencies_for_project(context, project_data):
-    context['sln_deps'] = []
     if 'sln_deps' not in project_data:
         return
 
-    context['sln_deps'] = project_data['sln_deps']
+    context.sln_deps = project_data['sln_deps']
 
 
 def main():  # pragma: no cover
@@ -151,17 +152,6 @@ def main():  # pragma: no cover
     Define arguments and message to DataConverter()
 
     """
-
-    context = {
-        'vcxproj': None,
-        'cmake': None,
-        'additional_code': None,
-        'dependencies': None,
-        'cmake_output': None,
-        'data': None,
-        'std': None,
-        'is_converting_solution': False,
-    }
 
     usage = "cmake-converter -p <vcxproj> [-c | -a | -D | -O | -i | -std]"
     # Init parser
@@ -209,27 +199,28 @@ def main():  # pragma: no cover
     # Get args
     args = parser.parse_args()
 
-    # Prepare context
     if not args.project and not args.solution:
         parser.print_help()
         exit(0)
 
-    context['additional_code'] = args.additional
+    initial_context = Context()
+
+    # Prepare context
+    initial_context.additional_code = args.additional
     if args.dependencies:
-        context['dependencies'] = args.dependencies.split(':')
-    context['cmake_output'] = args.cmakeoutput
+        initial_context.dependencies = args.dependencies.split(':')
+    initial_context.cmake_output = args.cmakeoutput
 
     if args.std:
-        context['std'] = args.std
+        initial_context.std = args.std
 
     if not args.solution:
         cmake_lists_path = os.path.dirname(args.project)
         if args.cmake:
             cmake_lists_path = args.cmake
-        convert_project(context, args.project, cmake_lists_path)
+        convert_project(initial_context, args.project, cmake_lists_path)
     else:
-        context['is_converting_solution'] = True
-        context['solution_languages'] = set()
+        initial_context.is_converting_solution = True
         sln = open(args.solution, encoding='utf8')
         solution_data = parse_solution(sln.read())
         sln.close()
@@ -244,16 +235,19 @@ def main():  # pragma: no cover
         subdirectories_to_project_name = {}
         projects_data = solution_data['projects_data']
         for guid in projects_data:
+            project_context = copy.deepcopy(initial_context)
             project_path = projects_data[guid]['path']
             project_path = '/'.join(project_path.split('\\'))
             project_abs = os.path.join(solution_path, project_path)
             subdirectory = os.path.dirname(project_abs)
-            set_dependencies_for_project(context, projects_data[guid])
-            context['sln_configurations_map'] = projects_data[guid]['sln_configs_2_project_configs']
-            convert_project(context, project_abs, subdirectory)
-            subdirectory = os.path.relpath(context['cmake'], solution_path)
+            set_dependencies_for_project(project_context, projects_data[guid])
+            project_context.sln_configurations_map = \
+                projects_data[guid]['sln_configs_2_project_configs']
+            convert_project(project_context, project_abs, subdirectory)
+            subdirectory = os.path.relpath(project_context.cmake, solution_path)
             subdirectories.append(subdirectory)
-            subdirectories_to_project_name[subdirectory] = context['project_name']
+            subdirectories_to_project_name[subdirectory] = project_context.project_name
+            initial_context.solution_languages.update(project_context.solution_languages)
             print('\n')
 
         write_comment(
@@ -280,7 +274,7 @@ def main():  # pragma: no cover
         write_comment(sln_cmake, 'Global compiler options')
         sln_cmake.write('if(MSVC)\n')
         sln_cmake.write('    # remove default flags provided with CMake for MSVC\n')
-        solution_languages = list(context['solution_languages'])
+        solution_languages = list(initial_context.solution_languages)
         solution_languages.sort(key=str.lower)
         for lang in solution_languages:
             sln_cmake.write('    set(CMAKE_{0}_FLAGS "")\n'.format(lang))

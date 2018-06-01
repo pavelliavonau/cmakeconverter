@@ -36,11 +36,11 @@ class ProjectVariables(object):
     """
 
     def __init__(self, context):
-        self.tree = context['vcxproj']['tree']
-        self.ns = context['vcxproj']['ns']
-        self.output = context['cmake_output']
-        self.project_name = context['project_name']
-        self.settings = context['settings']
+        self.tree = context.vcxproj['tree']
+        self.ns = context.vcxproj['ns']
+        self.output = context.cmake_output
+        self.project_name = context.project_name
+        self.settings = context.settings
         self.context = context
 
     def add_project_variables(self, cmake_file):
@@ -88,14 +88,14 @@ class ProjectVariables(object):
         :type cmake_file: _io.TextIOWrapper
         """
 
-        if len(context['settings']) == 0:
+        if len(context.settings) == 0:
             return
 
         write_comment(cmake_file, 'Output directory')
 
         write_property_of_settings(
             cmake_file, self.settings,
-            self.context['sln_configurations_map'],
+            self.context.sln_configurations_map,
             'string(CONCAT OUT_DIR', ')', 'out_dir', '',
             '${CMAKE_SOURCE_DIR}/${CMAKE_VS_PLATFORM_NAME}/$<CONFIG>'
         )
@@ -103,7 +103,7 @@ class ProjectVariables(object):
         for setting in self.settings:
             break
 
-        if 'vfproj' in context['vcxproj_path']:
+        if 'vfproj' in context.vcxproj_path:
             configuration_type = 'StaticLibrary'
         else:
             configuration_type = get_configuration_type(setting, context)
@@ -126,7 +126,7 @@ class ProjectVariables(object):
         write_comment(cmake_file, 'Target name')
         write_property_of_settings(
             cmake_file, self.settings,
-            self.context['sln_configurations_map'],
+            self.context.sln_configurations_map,
             'string(CONCAT TARGET_NAME', ')', 'output_name', '',
             '${PROJECT_NAME}'
         )

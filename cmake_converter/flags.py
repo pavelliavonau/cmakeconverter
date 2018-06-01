@@ -65,9 +65,9 @@ class Flags(object):
 
     def __init__(self, context):
         self.context = context
-        self.tree = context['vcxproj']['tree']
-        self.ns = context['vcxproj']['ns']
-        self.settings = context['settings']
+        self.tree = context.vcxproj['tree']
+        self.ns = context.vcxproj['ns']
+        self.settings = context.settings
 
     def write_defines(self, cmake_file):
         for setting in self.settings:
@@ -75,7 +75,7 @@ class Flags(object):
 
         write_comment(cmake_file, 'Compile definitions')
         write_property_of_settings(
-            cmake_file, self.settings, self.context['sln_configurations_map'],
+            cmake_file, self.settings, self.context.sln_configurations_map,
             'target_compile_definitions(${PROJECT_NAME} PRIVATE', ')', 'defines_str'
         )
         cmake_file.write('\n')
@@ -90,12 +90,12 @@ class Flags(object):
             and_os_str = ' AND {0}'.format(os_check_str)
         cmake_file.write('if({0}{1})\n'.format(compiler_check_str, and_os_str))
         write_property_of_settings(
-            cmake_file, self.settings, self.context['sln_configurations_map'],
+            cmake_file, self.settings, self.context.sln_configurations_map,
             'target_compile_options(${PROJECT_NAME} PRIVATE', ')', 'cl_str', indent='    '
         )
 
         settings_of_arch = {}
-        for sln_setting in self.context['sln_configurations_map']:
+        for sln_setting in self.context.sln_configurations_map:
             arch = sln_setting.split('|')[1]
             if arch not in settings_of_arch:
                 settings_of_arch[arch] = {}
@@ -104,7 +104,7 @@ class Flags(object):
         first_arch = True
         arch_has_link_flags = False
         for arch in settings_of_arch:
-            arch_has_link_flags = is_settings_has_data(self.context['sln_configurations_map'],
+            arch_has_link_flags = is_settings_has_data(self.context.sln_configurations_map,
                                                        self.settings, linker_flags_key, arch)
             if not arch_has_link_flags:
                 break
@@ -119,7 +119,7 @@ class Flags(object):
             first_arch = False
             for sln_setting in settings_of_arch[arch]:
                 sln_conf = sln_setting.split('|')[0]
-                mapped_setting_name = self.context['sln_configurations_map'][sln_setting]
+                mapped_setting_name = self.context.sln_configurations_map[sln_setting]
                 mapped_setting = self.settings[mapped_setting_name]
                 if mapped_setting[linker_flags_key]:
                     configuration_type = get_configuration_type(mapped_setting_name, self.context)
@@ -199,9 +199,9 @@ class CPPFlags(Flags):
 
     def __init__(self, context):
         Flags.__init__(self, context)
-        self.propertygroup = context['property_groups']
-        self.definitiongroups = context['definition_groups']
-        self.std = context['std']
+        self.propertygroup = context.property_groups
+        self.definitiongroups = context.definition_groups
+        self.std = context.std
 
     def define_flags(self):
         """
@@ -988,7 +988,7 @@ class CPPFlags(Flags):
 
         pch_header = self.settings[setting]['PrecompiledHeaderFile']
         pch_source = self.settings[setting]['PrecompiledSourceFile']
-        working_path = os.path.dirname(self.context['vcxproj_path'])
+        working_path = os.path.dirname(self.context.vcxproj_path)
         cmake_file.write(
             'ADD_PRECOMPILED_HEADER("{0}" "{1}" SRC_FILES)\n\n'.format(
                 os.path.basename(pch_header), normalize_path(working_path, pch_source)
@@ -1027,9 +1027,9 @@ class CPPFlags(Flags):
             else:  # pragma: no cover
                 cmake_file.write('add_executable(${PROJECT_NAME} ')
                 message('CMake will build an EXECUTABLE.', '')
-            if not self.context['has_only_headers']:
+            if not self.context.has_only_headers:
                 cmake_file.write(' ${SRC_FILES}')
-            if self.context['has_headers']:
+            if self.context.has_headers:
                 cmake_file.write(' ${HEADERS_FILES}')
             cmake_file.write(')\n\n')
 
@@ -1041,7 +1041,7 @@ class FortranFlags(Flags):
 
     def __init__(self, context):
         Flags.__init__(self, context)
-        self.vcxproj_path = context['vcxproj_path']
+        self.vcxproj_path = context.vcxproj_path
 
     def set_flag(self, node, attr, flag_values):
         """

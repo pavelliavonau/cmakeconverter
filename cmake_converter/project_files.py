@@ -37,9 +37,9 @@ class ProjectFiles(object):
     """
 
     def __init__(self, context):
-        self.vcxproj_path = context['vcxproj_path']
-        self.tree = context['vcxproj']['tree']
-        self.ns = context['vcxproj']['ns']
+        self.vcxproj_path = context.vcxproj_path
+        self.tree = context.vcxproj['tree']
+        self.ns = context.vcxproj['ns']
         self.context = context
         if '.vcxproj' in self.vcxproj_path:
             self.source_files = self.tree.xpath('//ns:ItemGroup/ns:ClCompile', namespaces=self.ns)
@@ -102,8 +102,8 @@ class ProjectFiles(object):
             self.headers[header_path].sort(key=str.lower)
 
         has_headers = True if self.header_files else False
-        self.context['has_headers'] = has_headers
-        self.context['has_only_headers'] = True if has_headers and not self.source_files else False
+        self.context.has_headers = has_headers
+        self.context.has_only_headers = True if has_headers and not self.source_files else False
         message("Source files extensions found: %s" % self.language, 'INFO')
 
     def find_cmake_project_language(self):
@@ -133,8 +133,8 @@ class ProjectFiles(object):
         if files_language in available_language:
             project_language = available_language[files_language]
         if project_language:
-            self.context['solution_languages'].add(project_language)
-        self.context['project_language'] = project_language
+            self.context.solution_languages.add(project_language)
+        self.context.project_language = project_language
 
     def write_cmake_project(self, cmake_file):
         """
@@ -145,8 +145,8 @@ class ProjectFiles(object):
         """
 
         lang = ''
-        if self.context['project_language']:
-            lang = ' ' + self.context['project_language']
+        if self.context.project_language:
+            lang = ' ' + self.context.project_language
         cmake_file.write('project(${{PROJECT_NAME}}{0})\n\n'.format(lang))
 
     def write_header_files(self, cmake_file):

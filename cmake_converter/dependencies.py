@@ -41,13 +41,13 @@ class Dependencies(object):
     """
 
     def __init__(self, context):
-        self.tree = context['vcxproj']['tree']
-        self.ns = context['vcxproj']['ns']
-        self.dependencies = context['dependencies']
-        self.sln_deps = context['sln_deps']
-        self.settings = context['settings']
-        self.definition_groups = context['definition_groups']
-        self.vcxproj_path = context['vcxproj_path']
+        self.tree = context.vcxproj['tree']
+        self.ns = context.vcxproj['ns']
+        self.dependencies = context.dependencies
+        self.sln_deps = context.sln_deps
+        self.settings = context.settings
+        self.definition_groups = context.definition_groups
+        self.vcxproj_path = context.vcxproj_path
         self.context = context
 
     def find_include_dir(self):
@@ -83,13 +83,13 @@ class Dependencies(object):
         :type cmake_file: _io.TextIOWrapper
         """
 
-        has_includes = is_settings_has_data(context['sln_configurations_map'],
-                                            context['settings'],
+        has_includes = is_settings_has_data(context.sln_configurations_map,
+                                            context.settings,
                                             'inc_dirs')
         if has_includes:
             write_comment(cmake_file, 'Include directories')
         write_property_of_settings(
-            cmake_file, context['settings'], context['sln_configurations_map'],
+            cmake_file, context.settings, context.sln_configurations_map,
             'target_include_directories(${PROJECT_NAME} PRIVATE ', ')', 'inc_dirs'
         )
         if has_includes:
@@ -113,7 +113,7 @@ class Dependencies(object):
         if not aid_text:
             return
 
-        working_path = os.path.dirname(context['vcxproj_path'])
+        working_path = os.path.dirname(context.vcxproj_path)
         inc_dir = aid_text.replace('$(ProjectDir)', './')
         inc_dir = inc_dir.replace(';%(AdditionalIncludeDirectories)', '')
         dirs = []
@@ -122,7 +122,7 @@ class Dependencies(object):
             i = re.sub(r'\$\((.+?)\)', r'$ENV{\1}', i)
             dirs.append(i)
         inc_dirs = ';'.join(dirs)
-        context['settings'][setting]['inc_dirs'] = inc_dirs
+        context.settings[setting]['inc_dirs'] = inc_dirs
 
         return inc_dirs
 
@@ -168,7 +168,7 @@ class Dependencies(object):
                     )
                     references_found.append(ref)
 
-        self.context['target_references'] = references_found
+        self.context.target_references = references_found
 
     def write_target_references(self, cmake_file):
         """
@@ -180,7 +180,7 @@ class Dependencies(object):
 
         deps_to_write = []
         targets_dependencies_set = set()
-        for reference in self.context['target_references']:
+        for reference in self.context.target_references:
             targets_dependencies_set.add(reference)
             deps_to_write.append(reference)
         for sln_dep in self.sln_deps:
@@ -201,7 +201,7 @@ class Dependencies(object):
         """
 
         dependencies = self.tree.xpath('//ns:AdditionalDependencies', namespaces=self.ns)
-        self.context['add_lib_deps'] = []
+        self.context.add_lib_deps = []
         if dependencies:
             list_depends = dependencies[0].text.replace('%(AdditionalDependencies)', '')
             if list_depends != '':
@@ -211,7 +211,7 @@ class Dependencies(object):
                     if d != '%(AdditionalDependencies)':
                         if os.path.splitext(d)[1] == '.lib':
                             add_lib_dirs.append(d.replace('.lib', ''))
-                self.context['add_lib_deps'] = add_lib_dirs
+                self.context.add_lib_deps = add_lib_dirs
         else:  # pragma: no cover
             message('No additional dependencies.', '')
 
@@ -225,7 +225,7 @@ class Dependencies(object):
             '//ns:AdditionalLibraryDirectories', namespaces=self.ns
         )
 
-        self.context['add_lib_dirs'] = []
+        self.context.add_lib_dirs = []
         if additional_library_directories:
             list_depends = additional_library_directories[0].text.replace(
                 '%(AdditionalLibraryDirectories)', ''
@@ -237,7 +237,7 @@ class Dependencies(object):
                     d = d.strip()
                     if d != '':
                         add_lib_dirs.append(d)
-                self.context['add_lib_dirs'] = add_lib_dirs
+                self.context.add_lib_dirs = add_lib_dirs
         else:  # pragma: no cover
             message('No additional library dependencies.', '')
 
@@ -249,30 +249,30 @@ class Dependencies(object):
         :type cmake_file: _io.TextIOWrapper
         """
 
-        if self.context['target_references']:
+        if self.context.target_references:
             cmake_file.write('# Link with other targets.\n')
             cmake_file.write('target_link_libraries(${PROJECT_NAME}')
-            for reference in self.context['target_references']:
+            for reference in self.context.target_references:
                 cmake_file.write(' ' + reference)
                 msg = 'External library found : {0}'.format(reference)
                 message(msg, '')
             cmake_file.write(')\n\n')
 
-        if self.context['add_lib_deps']:
+        if self.context.add_lib_deps:
             cmake_file.write('# Link with other additional libraries.\n')
             cmake_file.write('target_link_libraries(${PROJECT_NAME}')
-            for dep in self.context['add_lib_deps']:
+            for dep in self.context.add_lib_deps:
                 cmake_file.write(' ' + dep)
             cmake_file.write(')\n')
 
-        if self.context['add_lib_dirs']:
+        if self.context.add_lib_dirs:
             cmake_file.write('if(MSVC)\n')
             cmake_file.write('    target_link_libraries(${PROJECT_NAME}')
-            for dep in self.context['add_lib_dirs']:
+            for dep in self.context.add_lib_dirs:
                 cmake_file.write(' -LIBPATH:' + cleaning_output(dep))
             cmake_file.write(')\nelseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")\n')
             cmake_file.write('    target_link_libraries(${PROJECT_NAME}')
-            for dep in self.context['add_lib_dirs']:
+            for dep in self.context.add_lib_dirs:
                 cmake_file.write(' -L' + cleaning_output(dep))
             cmake_file.write(')\nendif()\n\n')
 
@@ -293,14 +293,14 @@ class Dependencies(object):
                 if 'Microsoft.CPP.UpgradeFromVC60' in filename:
                     continue
                 # props_path = os.path.join(os.path.dirname(self.vcxproj_path), filename)
-                working_path = os.path.dirname(self.context['vcxproj_path'])
+                working_path = os.path.dirname(self.context.vcxproj_path)
                 props_set.add(normalize_path(working_path, filename).replace('.props', '.cmake'))
                 # properties_xml = get_xml_data(props_path)
                 # if properties_xml:
                 #     properties_xml.close()  # TODO collect data from props
         props_list = list(props_set)
         props_list.sort()
-        self.context['property_sheets'] = props_list
+        self.context.property_sheets = props_list
 
     def write_target_property_sheets(self, cmake_file):
         """
@@ -310,9 +310,9 @@ class Dependencies(object):
         :type cmake_file: _io.TextIOWrapper
         """
 
-        if self.context['property_sheets']:
+        if self.context.property_sheets:
             cmake_file.write('# Includes for CMake from *.props\n')
-            for property_sheet in self.context['property_sheets']:
+            for property_sheet in self.context.property_sheets:
                 cmake_file.write('include({0} OPTIONAL)\n'.format(property_sheet))
             cmake_file.write('\n')
 
@@ -322,7 +322,7 @@ class Dependencies(object):
 
         """
 
-        self.context['packages'] = []
+        self.context.packages = []
 
         packages_nodes = self.tree.xpath(
             '//ns:ItemGroup/ns:None[@Include="packages.config"]', namespaces=self.ns
@@ -370,7 +370,7 @@ class Dependencies(object):
                         message('Path of file {0}.targets not found at vs project xml.'
                                 .format(id_version), 'warn')
 
-                    self.context['packages'].append([package_id, package_version, ext_properties])
+                    self.context.packages.append([package_id, package_version, ext_properties])
                     message('Used package {0} {1}.'.format(package_id, package_version),'')
 
                     for ext_property in ext_properties:
@@ -400,7 +400,7 @@ class Dependencies(object):
         :type cmake_file: _io.TextIOWrapper
         """
 
-        for package in self.context['packages']:
+        for package in self.context.packages:
             for package_property in package[2]:
                 id_version = '{0}.{1}'.format(package[0], package[1])
                 for setting in self.settings:
@@ -416,7 +416,7 @@ class Dependencies(object):
                 package_property_variable = package_property + '_VAR'
                 has_written = write_property_of_settings(
                     cmake_file, self.settings,
-                    self.context['sln_configurations_map'],
+                    self.context.sln_configurations_map,
                     'string(CONCAT "{0}"'.format(package_property_variable), ')',
                     id_version + package_property, ''
                 )
