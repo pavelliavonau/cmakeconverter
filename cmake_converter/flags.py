@@ -200,6 +200,8 @@ class CPPFlags(Flags):
         Parse all flags properties and write them inside "CMakeLists.txt" file
 
         """
+        self.do_precompiled_headers(context)
+
         for setting in context.settings:
             context.settings[setting][cl_flags] = []
             context.settings[setting][ln_flags] = []
@@ -281,14 +283,12 @@ class CPPFlags(Flags):
                         context.settings[setting][defines].append('_MBCS')
                 message('PreprocessorDefinitions for {0}'.format(setting), '')
 
-    def do_precompiled_headers(self, context, files):
+    def do_precompiled_headers(self, context):
         """
         Add precompiled headers to settings
 
         :param context: converter Context
         :type context: Context
-        :param files: project files instance
-        :type files: cmake_converter.project_files.ProjectFiles
         """
 
         pch_header_path = ''
@@ -319,8 +319,8 @@ class CPPFlags(Flags):
                 pch_header_name = context.settings[setting]['PrecompiledHeaderFile'][0]
                 found = False
                 founded_pch_h_path = ''
-                for headers_path in files.headers:
-                    for header in files.headers[headers_path]:
+                for headers_path in context.headers:
+                    for header in context.headers[headers_path]:
                         if header.lower() == pch_header_name.lower():
                             found = True
                             founded_pch_h_path = headers_path
@@ -333,17 +333,17 @@ class CPPFlags(Flags):
                 pch_source_name = pch_header_name.replace('.h', '.cpp')
                 real_pch_cpp = ''
                 real_pch_cpp_path = ''
-                if founded_pch_h_path in files.sources:
+                if founded_pch_h_path in context.sources:
                     real_pch_cpp = take_name_from_list_case_ignore(
-                        files.sources[founded_pch_h_path], pch_source_name
+                        context.sources[founded_pch_h_path], pch_source_name
                     )
                     real_pch_cpp_path = founded_pch_h_path
                 else:
-                    for src_path in files.sources:
-                        for src in files.sources[src_path]:
+                    for src_path in context.sources:
+                        for src in context.sources[src_path]:
                             if pch_source_name == src:
                                 real_pch_cpp = take_name_from_list_case_ignore(
-                                    files.sources[src_path], src
+                                    context.sources[src_path], src
                                 )
                                 real_pch_cpp_path = src_path
                 if founded_pch_h_path:

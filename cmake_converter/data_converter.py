@@ -64,6 +64,8 @@ class Context(object):
         self.sln_configurations_map = None
         self.cmake = ''
         self.project_name = ''
+        self.sources = {}
+        self.headers = {}
         self.supported_architectures = set()
         self.settings = {}
         self.property_groups = {}
@@ -298,7 +300,6 @@ class VCXProjectConverter(DataConverter):
         self.files.collects_source_files(context)
         self.files.find_cmake_project_language(context)
         if not context.has_only_headers:
-            self.flags.do_precompiled_headers(context, self.files)
             self.flags.define_flags(context)
             self.dependencies.find_include_dir(context)
             self.dependencies.find_target_references(context)

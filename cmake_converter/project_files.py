@@ -37,10 +37,7 @@ class ProjectFiles(object):
     """
 
     def __init__(self):
-
         self.languages = []
-        self.sources = {}
-        self.headers = {}
 
     def collects_source_files(self, context):
         """
@@ -77,15 +74,15 @@ class ProjectFiles(object):
                 source_path, source_file = os.path.split(source_node_text)
                 if source_path not in file_lists:
                     file_lists[source_path] = os.listdir(os.path.join(vcxproj_dir, source_path))
-                if source_path not in self.sources:
-                    self.sources[source_path] = []
-                if source_file not in self.sources[source_path]:
+                if source_path not in context.sources:
+                    context.sources[source_path] = []
+                if source_file not in context.sources[source_path]:
                     real_name = take_name_from_list_case_ignore(file_lists[source_path],
                                                                 source_file)
                     if real_name:
-                        self.sources[source_path].append(real_name)
-        for source_path in self.sources:
-            self.sources[source_path].sort(key=str.lower)
+                        context.sources[source_path].append(real_name)
+        for source_path in context.sources:
+            context.sources[source_path].sort(key=str.lower)
 
         # Headers Dir
         for header_node in header_files_nodes:
@@ -94,14 +91,14 @@ class ProjectFiles(object):
             header_path, header_file = os.path.split(header_node_text)
             if header_path not in file_lists:
                 file_lists[header_path] = os.listdir(os.path.join(vcxproj_dir, header_path))
-            if header_path not in self.headers:
-                self.headers[header_path] = []
-            if header_file not in self.headers[header_path]:
+            if header_path not in context.headers:
+                context.headers[header_path] = []
+            if header_file not in context.headers[header_path]:
                 real_name = take_name_from_list_case_ignore(file_lists[header_path], header_file)
                 if real_name:
-                    self.headers[header_path].append(real_name)
-        for header_path in self.headers:
-            self.headers[header_path].sort(key=str.lower)
+                    context.headers[header_path].append(real_name)
+        for header_path in context.headers:
+            context.headers[header_path].sort(key=str.lower)
 
         has_headers = True if header_files_nodes else False
         context.has_headers = has_headers
@@ -154,7 +151,8 @@ class ProjectFiles(object):
             lang = ' ' + context.project_language
         cmake_file.write('project(${{PROJECT_NAME}}{0})\n\n'.format(lang))
 
-    def write_header_files(self, context, cmake_file):
+    @staticmethod
+    def write_header_files(context, cmake_file):
         """
         Write header files variables to file() cmake function
 
@@ -164,21 +162,21 @@ class ProjectFiles(object):
         :type cmake_file: _io.TextIOWrapper
         """
 
-        if len(self.headers) == 0:
+        if len(context.headers) == 0:
             return
 
         write_comment(cmake_file, 'Header files')
         cmake_file.write('set(HEADERS_FILES\n')
 
         working_path = os.path.dirname(context.vcxproj_path)
-        if '' in self.headers:
-            for header_file in self.headers['']:
+        if '' in context.headers:
+            for header_file in context.headers['']:
                 cmake_file.write('    {0}\n'.format(normalize_path(working_path, header_file)))
 
-        for headers_dir in self.headers:
+        for headers_dir in context.headers:
             if headers_dir == '':
                 continue
-            for header_file in self.headers[headers_dir]:
+            for header_file in context.headers[headers_dir]:
                 cmake_file.write('    {0}\n'
                                  .format(normalize_path(working_path,
                                                         os.path.join(headers_dir, header_file))))
@@ -186,7 +184,8 @@ class ProjectFiles(object):
         cmake_file.write(')\n')
         cmake_file.write('source_group("Headers" FILES ${HEADERS_FILES})\n\n')
 
-    def write_source_files(self, context, cmake_file):
+    @staticmethod
+    def write_source_files(context, cmake_file):
         """
         Write source files variables to file() cmake function
 
@@ -200,14 +199,14 @@ class ProjectFiles(object):
         cmake_file.write('set(SRC_FILES\n')
 
         working_path = os.path.dirname(context.vcxproj_path)
-        if '' in self.sources:
-            for src_file in self.sources['']:
+        if '' in context.sources:
+            for src_file in context.sources['']:
                 cmake_file.write('    {0}\n'.format(normalize_path(working_path, src_file)))
 
-        for src_dir in self.sources:
+        for src_dir in context.sources:
             if src_dir == '':
                 continue
-            for src_file in self.sources[src_dir]:
+            for src_file in context.sources[src_dir]:
                 cmake_file.write('    {0}\n'
                                  .format(normalize_path(working_path,
                                                         os.path.join(src_dir, src_file))))
