@@ -68,7 +68,7 @@ class Dependencies(object):
         Write include directories of given context to given CMakeLists.txt file
 
         :param context: current context data
-        :type context: dict
+        :type context: Context
         :param cmake_file: CMakeLists.txt IO wrapper
         :type cmake_file: _io.TextIOWrapper
         """

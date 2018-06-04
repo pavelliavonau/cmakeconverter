@@ -77,7 +77,7 @@ class ProjectVariables(object):
         Add outputs for each artefacts CMake target
 
         :param context: related full context
-        :type context: dict
+        :type context: Context
         :param cmake_file: CMakeLists.txt IO wrapper
         :type cmake_file: _io.TextIOWrapper
         """
