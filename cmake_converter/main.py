@@ -78,7 +78,7 @@ def parse_solution(sln_text):
     solution_data = {}
     projects_data = {}
     p = re.compile(
-        r'(Project.*\s=\s\"(.*)\",\s\"(.*\.(.*proj))\",.*(\{.*\})(?:.|\n)*?EndProject(?!Section))'
+        r'(Project.*\s=\s\"(.*)\",\s\"(.*\.(.*proj))\",.*({.*\})(?:.|\n)*?EndProject(?!Section))'
     )
 
     parsed_data = p.findall(sln_text)
@@ -94,7 +94,7 @@ def parse_solution(sln_text):
                 r'ProjectSection\(ProjectDependencies\) = postProject(?:.|\n)*?EndProjectSection'
             )
             dep_data = dependencies_section.findall(project_data_match[0])
-            dependencies_guids = re.compile(r'((\{.*\}) = (\{.*\}))')
+            dependencies_guids = re.compile(r'(({.*\}) = ({.*\}))')
             guids_deps_matches = dependencies_guids.findall(dep_data[0])
             for guids_deps_match in guids_deps_matches:
                 project['sln_deps'].append(guids_deps_match[2])
@@ -116,7 +116,7 @@ def parse_solution(sln_text):
         r'GlobalSection\(ProjectConfigurationPlatforms\) = postSolution((?:.|\n)*?)EndGlobalSection'
     )
     projects_configurations_matches = projects_configurations_re.findall(sln_text)
-    projects_configuration_re = re.compile(r'(\{.+\})\.([\w|]+)\.ActiveCfg = ([\w|]+)')
+    projects_configuration_re = re.compile(r'({.+\})\.([\w|]+)\.ActiveCfg = ([\w|]+)')
     for projects_configuration_match in projects_configurations_matches:
         configurations = projects_configuration_re.findall(projects_configuration_match)
         for configuration in configurations:

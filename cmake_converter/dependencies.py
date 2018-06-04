@@ -372,7 +372,7 @@ class Dependencies(object):
                                    '[@Label="Default initializers for properties"]/*',
                                    namespaces=targets_file['ns'])
                         for ext_property_node in ext_property_nodes:
-                            ext_properties.append(re.sub(r'\{.*\}', '', ext_property_node.tag))
+                            ext_properties.append(re.sub(r'{.*\}', '', ext_property_node.tag))
                     else:
                         message('Path of file {0}.targets not found at vs project xml.'
                                 .format(id_version), 'warn')
