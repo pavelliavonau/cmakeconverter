@@ -245,7 +245,7 @@ class VCXProjectConverter(DataConverter):
         DataConverter.__init__(self, context, xml_project_path, cmake_lists_destination_path)
         self.variables = VCXProjectVariables()
         self.files = ProjectFiles()
-        self.flags = CPPFlags(context)
+        self.flags = CPPFlags()
         self.dependencies = Dependencies()
 
     def init_context(self, context, vs_project):
@@ -298,8 +298,8 @@ class VCXProjectConverter(DataConverter):
         self.files.collects_source_files(context)
         self.files.find_cmake_project_language(context)
         if not context.has_only_headers:
-            self.flags.do_precompiled_headers(self.files)
-            self.flags.define_flags()
+            self.flags.do_precompiled_headers(context, self.files)
+            self.flags.define_flags(context)
             self.dependencies.find_include_dir(context)
             self.dependencies.find_target_references(context)
             self.dependencies.find_target_additional_dependencies(context)
@@ -331,17 +331,17 @@ class VCXProjectConverter(DataConverter):
         self.files.write_header_files(context, cmake_file)
 
         if not context.has_only_headers:
-            self.flags.write_precompiled_headers_macro(cmake_file)
+            self.flags.write_precompiled_headers_macro(context, cmake_file)
             self.files.write_source_files(context, cmake_file)
-            self.flags.write_use_pch_macro(cmake_file)
+            self.flags.write_use_pch_macro(context, cmake_file)
             write_comment(cmake_file, 'Target')
-            self.flags.write_target_artifact(cmake_file)
+            self.flags.write_target_artifact(context, cmake_file)
             self.write_supported_architectures_check(context, cmake_file)
             self.dependencies.write_target_property_sheets(context, cmake_file)
             self.variables.write_target_outputs(context, cmake_file)
             self.dependencies.write_include_directories(context, cmake_file)
-            self.flags.write_defines(cmake_file)
-            self.flags.write_flags(cmake_file)
+            self.flags.write_defines(context, cmake_file)
+            self.flags.write_flags(context, cmake_file)
             if (context.target_references or
                     context.add_lib_deps or
                     context.add_lib_dirs or
@@ -363,7 +363,7 @@ class VFProjectConverter(DataConverter):
         DataConverter.__init__(self, context, xml_project_path, cmake_lists_destination_path)
         self.variables = VFProjectVariables()
         self.files = ProjectFiles()
-        self.flags = FortranFlags(context)
+        self.flags = FortranFlags()
 
     def init_context(self, context, vs_project):
         """
@@ -422,7 +422,7 @@ class VFProjectConverter(DataConverter):
         self.files.find_cmake_project_language(context)
 
         if not context.has_only_headers:
-            self.flags.define_flags()
+            self.flags.define_flags(context)
             for setting in context.settings:
                 ad_inc = context.settings[setting]['VFFortranCompilerTool'].get(
                     'AdditionalIncludeDirectories'
@@ -461,5 +461,5 @@ class VFProjectConverter(DataConverter):
             self.write_supported_architectures_check(context, cmake_file)
             self.variables.write_target_outputs(context, cmake_file)
             Dependencies.write_include_directories(context, cmake_file)
-            self.flags.write_defines(cmake_file)
-            self.flags.write_flags(cmake_file)
+            self.flags.write_defines(context, cmake_file)
+            self.flags.write_flags(context, cmake_file)

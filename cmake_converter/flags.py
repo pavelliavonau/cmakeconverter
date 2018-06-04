@@ -63,39 +63,36 @@ class Flags(object):
         Class who manage flags of projects
     """
 
-    def __init__(self, context):
-        self.context = context
-        self.tree = context.vcxproj['tree']
-        self.ns = context.vcxproj['ns']
-        self.settings = context.settings
-
-    def write_defines(self, cmake_file):
-        for setting in self.settings:
-            self.settings[setting]['defines_str'] = ';'.join(self.settings[setting][defines])
+    @staticmethod
+    def write_defines(context, cmake_file):
+        for setting in context.settings:
+            context.settings[setting]['defines_str'] = ';'.join(context.settings[setting][defines])
 
         write_comment(cmake_file, 'Compile definitions')
         write_property_of_settings(
-            cmake_file, self.settings, self.context.sln_configurations_map,
+            cmake_file, context.settings, context.sln_configurations_map,
             'target_compile_definitions(${PROJECT_NAME} PRIVATE', ')', 'defines_str'
         )
         cmake_file.write('\n')
 
-    def write_compiler_and_linker_flags(self, os_check_str, compiler_check_str, compiler_flags_key,
-                                        linker_flags_key, cmake_file):
-        for setting in self.settings:
-            self.settings[setting]['cl_str'] = ';'.join(self.settings[setting][compiler_flags_key])
+    @staticmethod
+    def write_compiler_and_linker_flags(context, os_check_str, compiler_check_str,
+                                        compiler_flags_key, linker_flags_key, cmake_file):
+        for setting in context.settings:
+            context.settings[setting]['cl_str'] =\
+                ';'.join(context.settings[setting][compiler_flags_key])
 
         and_os_str = ''
         if os_check_str:
             and_os_str = ' AND {0}'.format(os_check_str)
         cmake_file.write('if({0}{1})\n'.format(compiler_check_str, and_os_str))
         write_property_of_settings(
-            cmake_file, self.settings, self.context.sln_configurations_map,
+            cmake_file, context.settings, context.sln_configurations_map,
             'target_compile_options(${PROJECT_NAME} PRIVATE', ')', 'cl_str', indent='    '
         )
 
         settings_of_arch = {}
-        for sln_setting in self.context.sln_configurations_map:
+        for sln_setting in context.sln_configurations_map:
             arch = sln_setting.split('|')[1]
             if arch not in settings_of_arch:
                 settings_of_arch[arch] = {}
@@ -104,8 +101,8 @@ class Flags(object):
         first_arch = True
         arch_has_link_flags = False
         for arch in settings_of_arch:
-            arch_has_link_flags = is_settings_has_data(self.context.sln_configurations_map,
-                                                       self.settings, linker_flags_key, arch)
+            arch_has_link_flags |= is_settings_has_data(context.sln_configurations_map,
+                                                        context.settings, linker_flags_key, arch)
             if not arch_has_link_flags:
                 break
             if first_arch:
@@ -119,10 +116,10 @@ class Flags(object):
             first_arch = False
             for sln_setting in settings_of_arch[arch]:
                 sln_conf = sln_setting.split('|')[0]
-                mapped_setting_name = self.context.sln_configurations_map[sln_setting]
-                mapped_setting = self.settings[mapped_setting_name]
+                mapped_setting_name = context.sln_configurations_map[sln_setting]
+                mapped_setting = context.settings[mapped_setting_name]
                 if mapped_setting[linker_flags_key]:
-                    configuration_type = get_configuration_type(mapped_setting_name, self.context)
+                    configuration_type = get_configuration_type(mapped_setting_name, context)
                     if configuration_type:
                         if 'StaticLibrary' in configuration_type:
                             cmake_file.write(
@@ -142,38 +139,39 @@ class Flags(object):
             cmake_file.write('    endif()\n')
         cmake_file.write('endif()\n\n')
 
-    def write_flags(self, cmake_file):
+    def write_flags(self, context, cmake_file):
         """
         Get and write Preprocessor Macros definitions
 
-        :param compiler_check: type of compiler (MSVC, ...)
-        :type compiler_check: str
+        :param context: converter Context
+        :type context: Context
         :param cmake_file: CMakeLists.txt IO wrapper
         :type cmake_file: _io.TextIOWrapper
         """
         is_msvc = False
-        for setting in self.settings:
-            if cl_flags in self.settings[setting]:
-                if self.settings[setting][cl_flags]:
+        for setting in context.settings:
+            if cl_flags in context.settings[setting]:
+                if context.settings[setting][cl_flags]:
                     is_msvc = True
                     break
 
         is_ifort = False
-        for setting in self.settings:
-            if ifort_cl_win in self.settings[setting]:
-                if self.settings[setting][ifort_cl_win]:
+        for setting in context.settings:
+            if ifort_cl_win in context.settings[setting]:
+                if context.settings[setting][ifort_cl_win]:
                     is_ifort = True
                     break
 
         write_comment(cmake_file, 'Compile and link options')
         if is_msvc:
-            self.write_compiler_and_linker_flags(None, 'MSVC', cl_flags, ln_flags, cmake_file)
+            self.write_compiler_and_linker_flags(context, None, 'MSVC', cl_flags, ln_flags,
+                                                 cmake_file)
 
         if is_ifort:
-            self.write_compiler_and_linker_flags('WIN32',
+            self.write_compiler_and_linker_flags(context, 'WIN32',
                                                  '${CMAKE_Fortran_COMPILER_ID} STREQUAL "Intel"',
                                                  ifort_cl_win, ifort_ln, cmake_file)
-            self.write_compiler_and_linker_flags('UNIX',
+            self.write_compiler_and_linker_flags(context, 'UNIX',
                                                  '${CMAKE_Fortran_COMPILER_ID} STREQUAL "Intel"',
                                                  ifort_cl_unix, ifort_ln, cmake_file)
 
@@ -197,48 +195,46 @@ class CPPFlags(Flags):
 
     available_std = ['c++11', 'c++14', 'c++17']
 
-    def __init__(self, context):
-        Flags.__init__(self, context)
-        self.property_groups = context.property_groups
-        self.definition_groups = context.definition_groups
-        self.std = context.std
-
-    def define_flags(self):
+    def define_flags(self, context):
         """
         Parse all flags properties and write them inside "CMakeLists.txt" file
 
         """
-        for setting in self.settings:
-            self.settings[setting][cl_flags] = []
-            self.settings[setting][ln_flags] = []
+        for setting in context.settings:
+            context.settings[setting][cl_flags] = []
+            context.settings[setting][ln_flags] = []
 
-        self.define_windows_flags()
-        self.define_defines()
+        self.define_windows_flags(context)
+        self.define_defines(context)
         # self.define_linux_flags()
         # TODO: redo with generator expression for each setting(configuration)
 
-    def define_linux_flags(self, cmake_file):
+    def define_linux_flags(self, context, cmake_file):
         """
         Define the Flags for Linux platforms
 
+        :param context: converter Context
+        :type context: Context
         :param cmake_file: CMakeLists.txt IO wrapper
         :type cmake_file: _io.TextIOWrapper
         """
 
-        if self.std:
-            if self.std in self.available_std:
-                message('Cmake will use C++ std %s.' % self.std, 'info')
-                linux_flags = '-std=%s' % self.std
+        if context.std:
+            if context.std in self.available_std:
+                message('Cmake will use C++ std {0}.'.format(context.std), 'info')
+                linux_flags = '-std=%s' % context.std
             else:
                 message(
-                    'C++ std %s version does not exist. CMake will use "c++11" instead' % self.std,
+                    'C++ std {0} version does not exist. CMake will use "c++11" instead'
+                    .format(context.std),
                     'warn'
                 )
                 linux_flags = '-std=c++11'
         else:
             message('No C++ std version specified. CMake will use "c++11" by default.', 'info')
             linux_flags = '-std=c++11'
-        references = self.tree.xpath('//ns:ProjectReference', namespaces=self.ns)
+        references = context.vcxproj['tree'].xpath('//ns:ProjectReference',
+                                                   namespaces=context.vcxproj['ns'])
         if references:
             for ref in references:
                 reference = str(ref.get('Include'))
@@ -256,38 +252,41 @@ class CPPFlags(Flags):
         cmake_file.write('   endif()\n')
         cmake_file.write('endif(NOT MSVC)\n\n')
 
-    def define_defines(self):
+    @staticmethod
+    def define_defines(context):
         """
         Defines preprocessor definitions in current settings
 
         """
 
-        for setting in self.settings:
-            define = self.tree.find(
+        for setting in context.settings:
+            define = context.vcxproj['tree'].find(
                 '{0}/ns:ClCompile/ns:PreprocessorDefinitions'.format(
-                    self.definition_groups[setting]),
-                namespaces=self.ns
+                    context.definition_groups[setting]),
+                namespaces=context.vcxproj['ns']
             )
             if define is not None:
                 for preproc in define.text.split(";"):
                     if preproc != '%(PreprocessorDefinitions)' and preproc != 'WIN32':
-                        self.settings[setting][defines].append(preproc)
+                        context.settings[setting][defines].append(preproc)
                 # Unicode
-                character_set = self.tree.xpath(
-                    '{0}/ns:CharacterSet'.format(self.property_groups[setting]),
-                    namespaces=self.ns)
+                character_set = context.vcxproj['tree'].xpath(
+                    '{0}/ns:CharacterSet'.format(context.property_groups[setting]),
+                    namespaces=context.vcxproj['ns'])
                 if character_set is not None:
                     if 'Unicode' in character_set[0].text:
-                        self.settings[setting][defines].append('UNICODE')
-                        self.settings[setting][defines].append('_UNICODE')
+                        context.settings[setting][defines].append('UNICODE')
+                        context.settings[setting][defines].append('_UNICODE')
                     if 'MultiByte' in character_set[0].text:
-                        self.settings[setting][defines].append('_MBCS')
+                        context.settings[setting][defines].append('_MBCS')
                 message('PreprocessorDefinitions for {0}'.format(setting), '')
 
-    def do_precompiled_headers(self, files):
+    def do_precompiled_headers(self, context, files):
         """
         Add precompiled headers to settings
 
+        :param context: converter Context
+        :type context: Context
         :param files: project files instance
         :type files: cmake_converter.project_files.ProjectFiles
         """
@@ -295,29 +294,29 @@ class CPPFlags(Flags):
         pch_header_path = ''
         pch_source_path = ''
 
-        for setting in self.settings:
+        for setting in context.settings:
             precompiled_header_values = {
                 'Use': {'PrecompiledHeader': 'Use'},
                 'NotUsing': {'PrecompiledHeader': 'NotUsing'},
                 'Create': {'PrecompiledHeader': 'Create'},
                 default_value: {'PrecompiledHeader': 'NotUsing'}
             }
-            self.set_flag(setting,
+            self.set_flag(context, setting,
                           '{0}/ns:ClCompile/ns:PrecompiledHeader'
-                          .format(self.definition_groups[setting]),
+                          .format(context.definition_groups[setting]),
                           precompiled_header_values)
 
             precompiled_header_file_values = {default_value: {'PrecompiledHeaderFile': 'stdafx.h'}}
-            flag_value = self.set_flag(
-                setting,
-                '{0}/ns:ClCompile/ns:PrecompiledHeaderFile'.format(self.definition_groups[setting]),
-                precompiled_header_file_values
-            )
+            flag_value = self.set_flag(context, setting,
+                                       '{0}/ns:ClCompile/ns:PrecompiledHeaderFile'
+                                       .format(context.definition_groups[setting]),
+                                       precompiled_header_file_values
+                                       )
             if flag_value:
-                self.settings[setting]['PrecompiledHeaderFile'] = [flag_value]
+                context.settings[setting]['PrecompiledHeaderFile'] = [flag_value]
 
-            if self.settings[setting]['PrecompiledHeader'][0] == 'Use' and pch_header_path == '':
-                pch_header_name = self.settings[setting]['PrecompiledHeaderFile'][0]
+            if context.settings[setting]['PrecompiledHeader'][0] == 'Use' and pch_header_path == '':
+                pch_header_name = context.settings[setting]['PrecompiledHeaderFile'][0]
                 found = False
                 founded_pch_h_path = ''
                 for headers_path in files.headers:
@@ -353,10 +352,10 @@ class CPPFlags(Flags):
                 if real_pch_cpp_path:
                     real_pch_cpp_path += '/'
                 pch_source_path = real_pch_cpp_path + real_pch_cpp
-            self.settings[setting]['PrecompiledHeaderFile'] = pch_header_path
-            self.settings[setting]['PrecompiledSourceFile'] = pch_source_path
+            context.settings[setting]['PrecompiledHeaderFile'] = pch_header_path
+            context.settings[setting]['PrecompiledSourceFile'] = pch_source_path
 
-    def define_windows_flags(self):
+    def define_windows_flags(self, context):
         """
         Define the Flags for Win32 platforms
 
@@ -364,39 +363,42 @@ class CPPFlags(Flags):
 
         # from property_groups
         #   compilation
-        self.set_use_debug_libraries()
-        self.set_whole_program_optimization()
+        self.set_use_debug_libraries(context)
+        self.set_whole_program_optimization(context)
         #   linking
-        self.set_generate_debug_information()
-        self.set_link_incremental()
+        self.set_generate_debug_information(context)
+        self.set_link_incremental(context)
 
         # from definition_groups
         #   compilation
-        self.set_optimization()
-        self.set_inline_function_expansion()
-        self.set_intrinsic_functions()
-        self.set_string_pooling()
-        self.set_basic_runtime_checks()
-        self.set_runtime_library()
-        self.set_function_level_linking()
-        self.set_warning_level()
-        self.set_warning_as_errors()
-        self.set_debug_information_format()
-        self.set_compile_as()
-        self.set_floating_point_model()
-        self.set_runtime_type_info()
-        self.set_disable_specific_warnings()
-        self.set_additional_options()
-        self.set_exception_handling()
-        self.set_buffer_security_check()
-        self.set_diagnostics_format()
-        self.set_treatwchar_t_as_built_in_type()
-        self.set_force_conformance_in_for_loop_scope()
-        self.set_remove_unreferenced_code_data()
+        self.set_optimization(context)
+        self.set_inline_function_expansion(context)
+        self.set_intrinsic_functions(context)
+        self.set_string_pooling(context)
+        self.set_basic_runtime_checks(context)
+        self.set_runtime_library(context)
+        self.set_function_level_linking(context)
+        self.set_warning_level(context)
+        self.set_warning_as_errors(context)
+        self.set_debug_information_format(context)
+        self.set_compile_as(context)
+        self.set_floating_point_model(context)
+        self.set_runtime_type_info(context)
+        self.set_disable_specific_warnings(context)
+        self.set_additional_options(context)
+        self.set_exception_handling(context)
+        self.set_buffer_security_check(context)
+        self.set_diagnostics_format(context)
+        self.set_treatwchar_t_as_built_in_type(context)
+        self.set_force_conformance_in_for_loop_scope(context)
+        self.set_remove_unreferenced_code_data(context)
 
-    def set_flag(self, setting, xpath, flag_values):
+    @staticmethod
+    def set_flag(context, setting, xpath, flag_values):
         """
         Return flag helper
+        :param context: converter Context
+        :type context: Context
         :param setting: related setting (Release|Win32, Debug|x64,...)
         :type setting: str
         :param xpath: xpath of wanted setting
@@ -407,7 +409,7 @@ class CPPFlags(Flags):
         :rtype: str
         """
 
-        flag_element = self.tree.xpath(xpath, namespaces=self.ns)
+        flag_element = context.vcxproj['tree'].xpath(xpath, namespaces=context.vcxproj['ns'])
 
         values = None
         if default_value in flag_values:
@@ -423,9 +425,9 @@ class CPPFlags(Flags):
         if values is not None:
             for key in values:
                 value = values[key]
-                if key not in self.settings[setting]:
-                    self.settings[setting][key] = []
-                self.settings[setting][key].append(value)
+                if key not in context.settings[setting]:
+                    context.settings[setting][key] = []
+                context.settings[setting][key].append(value)
                 flags_message += value
 
         flag_name = xpath.split(':')[-1]
@@ -433,7 +435,7 @@ class CPPFlags(Flags):
 
         return flag_text
 
-    def set_whole_program_optimization(self):
+    def set_whole_program_optimization(self, context):
         """
         Set Whole Program Optimization flag: /GL and /LTCG
 
@@ -441,12 +443,12 @@ class CPPFlags(Flags):
 
         flag_values = {'true': {ln_flags: '/LTCG', cl_flags: '/GL'}}
 
-        for setting in self.settings:
-            self.set_flag(setting,
-                          '{0}/ns:WholeProgramOptimization'.format(self.property_groups[setting]),
-                          flag_values)
+        for setting in context.settings:
+            self.set_flag(context, setting,
+                          '{0}/ns:WholeProgramOptimization'
+                          .format(context.property_groups[setting]), flag_values)
 
-    def set_link_incremental(self):
+    def set_link_incremental(self, context):
         """
         Set LinkIncremental flag: /INCREMENTAL
 
@@ -458,26 +460,25 @@ class CPPFlags(Flags):
             default_value: {}
         }
 
-        for setting in self.settings:
-            conf_type = get_configuration_type(setting, self.context)
+        for setting in context.settings:
+            conf_type = get_configuration_type(setting, context)
             if conf_type and 'StaticLibrary' in conf_type:
                 continue
-            value = self.set_flag(
-                setting, '{0}/ns:LinkIncremental'.format(
-                    self.property_groups[setting].replace(' and @Label="Configuration"', '')
-                ),
-                flag_values
-            )
+            value = self.set_flag(context, setting, '{0}/ns:LinkIncremental'
+                                  .format(context.property_groups[setting]
+                                          .replace(' and @Label="Configuration"', '')
+                                          ), flag_values
+                                  )
             if not value:
-                value = self.set_flag(
-                    setting,
-                    '//ns:LinkIncremental[@Condition="\'$(Configuration)|$(Platform)\'==\'{0}\'"]'
-                    .format(setting), flag_values
-                )
+                value = self.set_flag(context, setting,
+                                      '//ns:LinkIncremental[@Condition="\''
+                                      '$(Configuration)|$(Platform)\'==\'{0}\'"]'
+                                      .format(setting), flag_values
+                                      )
             if not value:
-                self.settings[setting][ln_flags].append('/INCREMENTAL')  # default
+                context.settings[setting][ln_flags].append('/INCREMENTAL')  # default
 
-    def set_force_conformance_in_for_loop_scope(self):
+    def set_force_conformance_in_for_loop_scope(self, context):
         """
         Set flag: ForceConformanceInForLoopScope
 
@@ -489,15 +490,13 @@ class CPPFlags(Flags):
             default_value: {cl_flags: '/Zc:forScope'}
         }
 
-        for setting in self.settings:
-            self.set_flag(
-                setting,
-                '{0}/ns:ClCompile/ns:ForceConformanceInForLoopScope'.format(
-                    self.definition_groups[setting]),
-                flag_values
-            )
+        for setting in context.settings:
+            self.set_flag(context, setting,
+                          '{0}/ns:ClCompile/ns:ForceConformanceInForLoopScope'
+                          .format(context.definition_groups[setting]), flag_values
+                          )
 
-    def set_remove_unreferenced_code_data(self):
+    def set_remove_unreferenced_code_data(self, context):
         """
         Set flag: RemoveUnreferencedCodeData
 
@@ -509,33 +508,33 @@ class CPPFlags(Flags):
             default_value: {cl_flags: '/Zc:inline'}
         }
 
-        for setting in self.settings:
-            self.set_flag(
-                setting,
-                '{0}/ns:ClCompile/ns:RemoveUnreferencedCodeData'.format(
-                    self.definition_groups[setting]),
-                flag_values
-            )
+        for setting in context.settings:
+            self.set_flag(context, setting,
+                          '{0}/ns:ClCompile/ns:RemoveUnreferencedCodeData'
+                          .format(context.definition_groups[setting]), flag_values
+                          )
 
-    def set_use_debug_libraries(self):
+    @staticmethod
+    def set_use_debug_libraries(context):
         """
         Set Use Debug Libraries flag: /MD
 
         """
-        for setting in self.settings:
-            md = self.tree.xpath(
-                '{0}/ns:UseDebugLibraries'.format(self.property_groups[setting]), namespaces=self.ns
+        for setting in context.settings:
+            md = context.vcxproj['tree'].xpath(
+                '{0}/ns:UseDebugLibraries'.format(context.property_groups[setting]),
+                namespaces=context.vcxproj['ns']
             )
             if md:
                 if 'true' in md[0].text:
-                    self.settings[setting]['use_debug_libs'] = True
+                    context.settings[setting]['use_debug_libs'] = True
                 else:
-                    self.settings[setting]['use_debug_libs'] = False
+                    context.settings[setting]['use_debug_libs'] = False
                 message('UseDebugLibrairies for {0}'.format(setting), '')
             else:
                 message('No UseDebugLibrairies for {0}'.format(setting), '')
 
-    def set_warning_level(self):
+    def set_warning_level(self, context):
         """
         Set Warning level for Windows: /W
 
@@ -548,14 +547,13 @@ class CPPFlags(Flags):
             default_value: {}
         }
 
-        for setting in self.settings:
-            self.set_flag(
-                setting,
-                '{0}/ns:ClCompile/ns:WarningLevel'.format(self.definition_groups[setting]),
-                flag_values
-            )
+        for setting in context.settings:
+            self.set_flag(context, setting,
+                          '{0}/ns:ClCompile/ns:WarningLevel'
+                          .format(context.definition_groups[setting]), flag_values
+                          )
 
-    def set_warning_as_errors(self):
+    def set_warning_as_errors(self, context):
         """
         Set TreatWarningAsError: /WX
 
@@ -566,22 +564,23 @@ class CPPFlags(Flags):
             default_value: {}
         }
 
-        for setting in self.settings:
-            self.set_flag(
-                setting,
-                '{0}/ns:ClCompile/ns:TreatWarningAsError'.format(self.definition_groups[setting]),
-                flag_values
-            )
+        for setting in context.settings:
+            self.set_flag(context, setting,
+                          '{0}/ns:ClCompile/ns:TreatWarningAsError'
+                          .format(context.definition_groups[setting]),
+                          flag_values
+                          )
 
-    def set_disable_specific_warnings(self):
+    @staticmethod
+    def set_disable_specific_warnings(context):
         """
         Set DisableSpecificWarnings: /wd*
 
         """
-        for setting in self.settings:
-            specific_warnings_node = self.tree.xpath(
+        for setting in context.settings:
+            specific_warnings_node = context.vcxproj['tree'].xpath(
                 '{0}/ns:ClCompile/ns:DisableSpecificWarnings'.format(
-                    self.definition_groups[setting]), namespaces=self.ns
+                    context.definition_groups[setting]), namespaces=context.vcxproj['ns']
             )
             if specific_warnings_node:
                 flags = []
@@ -590,34 +589,35 @@ class CPPFlags(Flags):
                     if sw != '%(DisableSpecificWarnings)':
                         flag = '/wd{0}'.format(sw)
                         flags.append(flag)
-                        self.settings[setting][cl_flags].append(flag)
+                        context.settings[setting][cl_flags].append(flag)
                 message('DisableSpecificWarnings for {0} : {1}'.format(setting, ';'.join(flags)),
                         '')
             else:
                 message('No Additional Options for {0}'.format(setting), '')
 
-    def set_additional_options(self):
+    @staticmethod
+    def set_additional_options(context):
         """
         Set Additional options
 
         """
-        for setting in self.settings:
-            add_opts_node = self.tree.xpath(
+        for setting in context.settings:
+            add_opts_node = context.vcxproj['tree'].xpath(
                 '{0}/ns:ClCompile/ns:AdditionalOptions'.format(
-                    self.definition_groups[setting]), namespaces=self.ns
+                    context.definition_groups[setting]), namespaces=context.vcxproj['ns']
             )
             if add_opts_node:
                 add_opts = set_unix_slash(add_opts_node[0].text).split()
                 ready_add_opts = []
                 for opt in add_opts:
                     if opt != '%(AdditionalOptions)':
-                        self.settings[setting][cl_flags].append(opt)
+                        context.settings[setting][cl_flags].append(opt)
                         ready_add_opts.append(opt)
                 message('Additional Options for {0} : {1}'.format(setting, ready_add_opts), '')
             else:
                 message('No Additional Options for {0}'.format(setting), '')
 
-    def set_basic_runtime_checks(self):
+    def set_basic_runtime_checks(self, context):
         """
         Set Basic Runtime Checks flag: /RTC*
 
@@ -629,32 +629,32 @@ class CPPFlags(Flags):
             default_value: {}
         }
 
-        for setting in self.settings:
-            self.set_flag(
-                setting,
-                '{0}/ns:ClCompile/ns:BasicRuntimeChecks'.format(self.definition_groups[setting]),
-                flag_values
-            )
+        for setting in context.settings:
+            self.set_flag(context, setting,
+                          '{0}/ns:ClCompile/ns:BasicRuntimeChecks'
+                          .format(context.definition_groups[setting]), flag_values
+                          )
 
-    def set_runtime_library(self):
+    @staticmethod
+    def set_runtime_library(context):
         """
         Set RuntimeLibrary flag: /MDd
 
         """
 
         # RuntimeLibrary
-        for setting in self.settings:
-            mdd_value = self.tree.find(
-                '{0}/ns:ClCompile/ns:RuntimeLibrary'.format(self.definition_groups[setting]),
-                namespaces=self.ns
+        for setting in context.settings:
+            mdd_value = context.vcxproj['tree'].find(
+                '{0}/ns:ClCompile/ns:RuntimeLibrary'.format(context.definition_groups[setting]),
+                namespaces=context.vcxproj['ns']
             )
             mdd = '/MDd'
             m_d = '/MD'
             mtd = '/MTd'
             m_t = '/MT'
 
-            if 'use_debug_libs' in self.settings[setting]:
-                if self.settings[setting]['use_debug_libs']:
+            if 'use_debug_libs' in context.settings[setting]:
+                if context.settings[setting]['use_debug_libs']:
                     m_d = '/MDd'
                     m_t = '/MTd'
                 else:
@@ -677,9 +677,9 @@ class CPPFlags(Flags):
                 message('Default RuntimeLibrary {0} for {1}'.format(m_d, setting), '')
 
             if cl_flag_value:
-                self.settings[setting][cl_flags].append(cl_flag_value)
+                context.settings[setting][cl_flags].append(cl_flag_value)
 
-    def set_string_pooling(self):
+    def set_string_pooling(self, context):
         """
         Set StringPooling flag: /GF
 
@@ -690,14 +690,13 @@ class CPPFlags(Flags):
             default_value: {}
         }
 
-        for setting in self.settings:
-            self.set_flag(
-                setting,
-                '{0}/ns:ClCompile/ns:StringPooling'.format(self.definition_groups[setting]),
-                flag_values
-            )
+        for setting in context.settings:
+            self.set_flag(context, setting,
+                          '{0}/ns:ClCompile/ns:StringPooling'
+                          .format(context.definition_groups[setting]), flag_values
+                          )
 
-    def set_optimization(self):
+    def set_optimization(self, context):
         """
         Set Optimization flag: /Od
 
@@ -710,14 +709,13 @@ class CPPFlags(Flags):
             default_value: {}
         }
 
-        for setting in self.settings:
-            self.set_flag(
-                setting,
-                '{0}/ns:ClCompile/ns:Optimization'.format(self.definition_groups[setting]),
-                flag_values
-            )
+        for setting in context.settings:
+            self.set_flag(context, setting,
+                          '{0}/ns:ClCompile/ns:Optimization'
+                          .format(context.definition_groups[setting]), flag_values
+                          )
 
-    def set_inline_function_expansion(self):
+    def set_inline_function_expansion(self, context):
         """
         Set Inline Function Expansion flag: /Ob
 
@@ -729,15 +727,13 @@ class CPPFlags(Flags):
             default_value: {}
         }
 
-        for setting in self.settings:
-            self.set_flag(
-                setting,
-                '{0}/ns:ClCompile/ns:InlineFunctionExpansion'.format(
-                    self.definition_groups[setting]),
-                flag_values
-            )
+        for setting in context.settings:
+            self.set_flag(context, setting,
+                          '{0}/ns:ClCompile/ns:InlineFunctionExpansion'
+                          .format(context.definition_groups[setting]), flag_values
+                          )
 
-    def set_intrinsic_functions(self):
+    def set_intrinsic_functions(self, context):
         """
         Set Intrinsic Functions flag: /Oi
 
@@ -748,14 +744,13 @@ class CPPFlags(Flags):
             default_value: {}
         }
 
-        for setting in self.settings:
-            self.set_flag(
-                setting,
-                '{0}/ns:ClCompile/ns:IntrinsicFunctions'.format(self.definition_groups[setting]),
-                flag_values
-            )
+        for setting in context.settings:
+            self.set_flag(context, setting,
+                          '{0}/ns:ClCompile/ns:IntrinsicFunctions'
+                          .format(context.definition_groups[setting]), flag_values
+                          )
 
-    def set_runtime_type_info(self):
+    def set_runtime_type_info(self, context):
         """
         Set RuntimeTypeInfo flag: /GR
 
@@ -766,14 +761,13 @@ class CPPFlags(Flags):
             default_value: {}
         }
 
-        for setting in self.settings:
-            self.set_flag(
-                setting,
-                '{0}/ns:ClCompile/ns:RuntimeTypeInfo'.format(self.definition_groups[setting]),
-                flag_values
-            )
+        for setting in context.settings:
+            self.set_flag(context, setting,
+                          '{0}/ns:ClCompile/ns:RuntimeTypeInfo'
+                          .format(context.definition_groups[setting]), flag_values
+                          )
 
-    def set_function_level_linking(self):
+    def set_function_level_linking(self, context):
         """
         Set FunctionLevelLinking flag: /Gy
 
@@ -784,14 +778,13 @@ class CPPFlags(Flags):
             default_value: {}
         }
 
-        for setting in self.settings:
-            self.set_flag(
-                setting,
-                '{0}/ns:ClCompile/ns:FunctionLevelLinking'.format(self.definition_groups[setting]),
-                flag_values
-            )
+        for setting in context.settings:
+            self.set_flag(context, setting,
+                          '{0}/ns:ClCompile/ns:FunctionLevelLinking'
+                          .format(context.definition_groups[setting]), flag_values
+                          )
 
-    def set_debug_information_format(self):
+    def set_debug_information_format(self, context):
         """
         Set GenerateDebugInformation flag: /Zi
 
@@ -802,14 +795,13 @@ class CPPFlags(Flags):
             default_value: {}
         }
 
-        for setting in self.settings:
-            self.set_flag(
-                setting,
-                '{0}/ns:ClCompile/ns:DebugInformationFormat'.format(
-                    self.definition_groups[setting]), flag_values
-            )
+        for setting in context.settings:
+            self.set_flag(context, setting,
+                          '{0}/ns:ClCompile/ns:DebugInformationFormat'
+                          .format(context.definition_groups[setting]), flag_values
+                          )
 
-    def set_compile_as(self):
+    def set_compile_as(self, context):
         """
         Set Compile As flag: /TP, TC
 
@@ -820,14 +812,13 @@ class CPPFlags(Flags):
             default_value: {}
         }
 
-        for setting in self.settings:
-            self.set_flag(
-                setting,
-                '{0}/ns:ClCompile/ns:CompileAs'.format(self.definition_groups[setting]),
-                flag_values
-            )
+        for setting in context.settings:
+            self.set_flag(context, setting,
+                          '{0}/ns:ClCompile/ns:CompileAs'
+                          .format(context.definition_groups[setting]), flag_values
+                          )
 
-    def set_generate_debug_information(self):
+    def set_generate_debug_information(self, context):
         """
         Set GenerateDebugInformation flag: /DEBUG
 
@@ -840,18 +831,17 @@ class CPPFlags(Flags):
             default_value: {ln_flags: '/DEBUG:FULL'}
         }
 
-        for setting in self.settings:
-            conf_type = get_configuration_type(setting, self.context)
+        for setting in context.settings:
+            conf_type = get_configuration_type(setting, context)
             if conf_type and 'StaticLibrary' in conf_type:
                 continue
 
-            self.set_flag(
-                setting,
-                '{0}/ns:Link/ns:GenerateDebugInformation'.format(self.definition_groups[setting]),
-                flag_values
-            )
+            self.set_flag(context, setting,
+                          '{0}/ns:Link/ns:GenerateDebugInformation'
+                          .format(context.definition_groups[setting]), flag_values
+                          )
 
-    def set_floating_point_model(self):
+    def set_floating_point_model(self, context):
         """
         Set FloatingPointModel flag: /fp
 
@@ -863,14 +853,12 @@ class CPPFlags(Flags):
             default_value: {cl_flags: '/fp:precise'}
         }
 
-        for setting in self.settings:
-            self.set_flag(
-                setting, '{0}/ns:ClCompile/ns:FloatingPointModel'.format(
-                    self.definition_groups[setting]),
-                flag_values
-            )
+        for setting in context.settings:
+            self.set_flag(context, setting, '{0}/ns:ClCompile/ns:FloatingPointModel'
+                          .format(context.definition_groups[setting]), flag_values
+                          )
 
-    def set_exception_handling(self):
+    def set_exception_handling(self, context):
         """
         Set ExceptionHandling flag: /EHsc
 
@@ -882,14 +870,12 @@ class CPPFlags(Flags):
             default_value: {cl_flags: '/EHsc'}
         }
 
-        for setting in self.settings:
-            self.set_flag(
-                setting, '{0}/ns:ClCompile/ns:ExceptionHandling'.format(
-                    self.definition_groups[setting]),
-                flag_values
-            )
+        for setting in context.settings:
+            self.set_flag(context, setting, '{0}/ns:ClCompile/ns:ExceptionHandling'
+                          .format(context.definition_groups[setting]), flag_values
+                          )
 
-    def set_buffer_security_check(self):
+    def set_buffer_security_check(self, context):
         """
         Set BufferSecurityCheck flag: /GS
 
@@ -900,14 +886,13 @@ class CPPFlags(Flags):
             default_value: {cl_flags: '/GS'}
         }
 
-        for setting in self.settings:
-            self.set_flag(
-                setting,
-                '{0}/ns:ClCompile/ns:BufferSecurityCheck'.format(self.definition_groups[setting]),
-                flag_values
-            )
+        for setting in context.settings:
+            self.set_flag(context, setting,
+                          '{0}/ns:ClCompile/ns:BufferSecurityCheck'
+                          .format(context.definition_groups[setting]), flag_values
+                          )
 
-    def set_diagnostics_format(self):
+    def set_diagnostics_format(self, context):
         """
         Set DiagnosticsFormat flag : /GS
 
@@ -919,14 +904,13 @@ class CPPFlags(Flags):
             default_value: {cl_flags: '/diagnostics:classic'}
         }
 
-        for setting in self.settings:
-            self.set_flag(
-                setting,
-                '{0}/ns:ClCompile/ns:DiagnosticsFormat'.format(self.definition_groups[setting]),
-                flag_values
-            )
+        for setting in context.settings:
+            self.set_flag(context, setting,
+                          '{0}/ns:ClCompile/ns:DiagnosticsFormat'
+                          .format(context.definition_groups[setting]), flag_values
+                          )
 
-    def set_treatwchar_t_as_built_in_type(self):
+    def set_treatwchar_t_as_built_in_type(self, context):
         """
         Set TreatWChar_tAsBuiltInType /Zc:wchar_t
 
@@ -937,84 +921,95 @@ class CPPFlags(Flags):
             default_value: {cl_flags: '/Zc:wchar_t'}
         }
 
-        for setting in self.settings:
-            self.set_flag(
-                setting,
-                '{0}/ns:ClCompile/ns:TreatWChar_tAsBuiltInType'.format(
-                    self.definition_groups[setting]),
-                flag_values
-            )
+        for setting in context.settings:
+            self.set_flag(context,
+                          setting,
+                          '{0}/ns:ClCompile/ns:TreatWChar_tAsBuiltInType'.format(
+                              context.definition_groups[setting]),
+                          flag_values
+                          )
 
-    def setting_has_pch(self, setting):
+    @staticmethod
+    def setting_has_pch(context, setting):
         """
         Return if there is precompiled header or not for given setting
 
+        :param context: converter Context
+        :type context: Context
         :param setting: related setting (Release|x64, Debug|Win32,...)
         :type setting: str
         :return: if use PCH or not
         :rtype: bool
         """
 
-        has_pch = self.settings[setting]['PrecompiledHeader']
+        has_pch = context.settings[setting]['PrecompiledHeader']
 
         return 'Use' in has_pch
 
-    def write_precompiled_headers_macro(self, cmake_file):
+    def write_precompiled_headers_macro(self, context, cmake_file):
         """
         Write Precompiled header macro (only for MSVC compiler)
 
+        :param context: converter Context
+        :type context: Context
         :param cmake_file: CMakeLIsts.txt IO wrapper
         :type cmake_file: _io.TextIOWrapper
         """
 
         need_pch_macro = False
-        for setting in self.settings:
-            if self.setting_has_pch(setting):
+        for setting in context.settings:
+            if self.setting_has_pch(context, setting):
                 need_pch_macro = True
                 break
 
         if need_pch_macro:
             cmake_file.write(pch_macro_text)
 
-    def write_precompiled_headers(self, setting, cmake_file):
+    @staticmethod
+    def write_precompiled_headers(context, setting, cmake_file):
         """
         Write precompiled headers, if needed, on given CMake file
 
+        :param context: converter Context
+        :type context: Context
         :param setting: related setting (Release|x64, Debug|Win32,...)
         :type setting: str
         :param cmake_file: CMakeLIsts.txt IO wrapper
         :type cmake_file: _io.TextIOWrapper
         """
 
-        pch_header = self.settings[setting]['PrecompiledHeaderFile']
-        pch_source = self.settings[setting]['PrecompiledSourceFile']
-        working_path = os.path.dirname(self.context.vcxproj_path)
+        pch_header = context.settings[setting]['PrecompiledHeaderFile']
+        pch_source = context.settings[setting]['PrecompiledSourceFile']
+        working_path = os.path.dirname(context.vcxproj_path)
         cmake_file.write(
             'ADD_PRECOMPILED_HEADER("{0}" "{1}" SRC_FILES)\n\n'.format(
                 os.path.basename(pch_header), normalize_path(working_path, pch_source)
             )
         )
 
-    def write_use_pch_macro(self, cmake_file):
+    def write_use_pch_macro(self, context, cmake_file):
         setting = ''
-        for s in self.settings:
+        for s in context.settings:
             setting = s
 
         cmake_file.write('# Warning: pch and target are the same for every configuration\n')
-        if self.setting_has_pch(setting):
-            self.write_precompiled_headers(setting, cmake_file)
+        if self.setting_has_pch(context, setting):
+            self.write_precompiled_headers(context, setting, cmake_file)
 
-    def write_target_artifact(self, cmake_file):
+    @staticmethod
+    def write_target_artifact(context, cmake_file):
         """
         Add Library or Executable target
 
+        :param context: converter Context
+        :type context: Context
         :param cmake_file: CMakeLIsts.txt IO wrapper
         :type cmake_file: _io.TextIOWrapper
         """
 
         configuration_type = None
-        for s in self.settings:
-            configuration_type = get_configuration_type(s, self.context)
+        for s in context.settings:
+            configuration_type = get_configuration_type(s, context)
             if configuration_type:
                 break
         if configuration_type:
@@ -1027,9 +1022,9 @@ class CPPFlags(Flags):
             else:  # pragma: no cover
                 cmake_file.write('add_executable(${PROJECT_NAME} ')
                 message('CMake will build an EXECUTABLE.', '')
-            if not self.context.has_only_headers:
+            if not context.has_only_headers:
                 cmake_file.write(' ${SRC_FILES}')
-            if self.context.has_headers:
+            if context.has_headers:
                 cmake_file.write(' ${HEADERS_FILES}')
             cmake_file.write(')\n\n')
 
@@ -1039,27 +1034,26 @@ class FortranFlags(Flags):
         Class who check and create compilation flags for Fortran compiler
     """
 
-    def __init__(self, context):
-        Flags.__init__(self, context)
-        self.vcxproj_path = context.vcxproj_path
-
-    def set_flag(self, node, attr, flag_values):
+    @staticmethod
+    def set_flag(context, node, attr, flag_values):
         """
         Set flag helper
 
+        :param context: converter Context
+        :type context: Context
         :param node:
         :param attr:
         :param flag_values:
         :return:
         """
 
-        for setting in self.settings:
+        for setting in context.settings:
             values = None
             if default_value in flag_values:
                 values = flag_values[default_value]
 
             # flag_text = ''
-            flag_text = self.settings[setting][node].get(attr)
+            flag_text = context.settings[setting][node].get(attr)
             if flag_text in flag_values:
                 values = flag_values[flag_text]
 
@@ -1067,48 +1061,48 @@ class FortranFlags(Flags):
             if values is not None:
                 for key in values:
                     value = values[key]
-                    if key not in self.settings[setting]:
-                        self.settings[setting][key] = []
-                    self.settings[setting][key].append(value)
+                    if key not in context.settings[setting]:
+                        context.settings[setting][key] = []
+                    context.settings[setting][key].append(value)
                     flags_message += value
 
             message('{0} for {1} is {2} '.format(attr, setting, flags_message), '')
 
-    def define_flags(self):
+    def define_flags(self, context):
         """
         Parse all flags properties and write them inside "CMakeLists.txt" file
 
         """
-        for setting in self.settings:
-            self.settings[setting][ifort_cl_win] = []
-            self.settings[setting][ifort_cl_unix] = []
-            self.settings[setting][ifort_ln] = []
+        for setting in context.settings:
+            context.settings[setting][ifort_cl_win] = []
+            context.settings[setting][ifort_cl_unix] = []
+            context.settings[setting][ifort_ln] = []
 
-        self.set_suppress_startup_banner()
-        self.set_debug_information_format()
-        self.set_optimization()
-        self.set_preprocess_source_file()
-        self.set_source_file_format()
-        self.set_debug_parameter()
-        self.set_default_inc_and_use_path()
-        self.set_fixed_form_line_length()
-        self.set_open_mp()
-        self.set_disable_specific_diagnostics()
-        self.set_diagnostics()
-        self.set_real_kind()
-        self.set_local_variable_storage()
-        self.set_init_local_var_to_nan()
-        self.set_floating_point_exception_handling()
-        self.set_extend_single_precision_constants()
-        self.set_string_length_arg_passing()
-        self.set_traceback()
-        self.set_runtime_checks()
-        self.set_arg_temp_created_check()
-        self.set_runtime_library()
-        self.set_disable_default_lib_search()
-        self.set_additional_options()
+        self.set_suppress_startup_banner(context)
+        self.set_debug_information_format(context)
+        self.set_optimization(context)
+        self.set_preprocess_source_file(context)
+        self.set_source_file_format(context)
+        self.set_debug_parameter(context)
+        self.set_default_inc_and_use_path(context)
+        self.set_fixed_form_line_length(context)
+        self.set_open_mp(context)
+        self.set_disable_specific_diagnostics(context)
+        self.set_diagnostics(context)
+        self.set_real_kind(context)
+        self.set_local_variable_storage(context)
+        self.set_init_local_var_to_nan(context)
+        self.set_floating_point_exception_handling(context)
+        self.set_extend_single_precision_constants(context)
+        self.set_string_length_arg_passing(context)
+        self.set_traceback(context)
+        self.set_runtime_checks(context)
+        self.set_arg_temp_created_check(context)
+        self.set_runtime_library(context)
+        self.set_disable_default_lib_search(context)
+        self.set_additional_options(context)
 
-    def set_diagnostics(self):
+    def set_diagnostics(self, context):
         flag_values = {
             'diagnosticsShowAll': {ifort_cl_win: '-warn:all',
                                    ifort_cl_unix: '-warn all'},
@@ -1116,9 +1110,9 @@ class FortranFlags(Flags):
                                       ifort_cl_unix: '-warn none'},
             default_value: {}
         }
-        self.set_flag('VFFortranCompilerTool', 'Diagnostics', flag_values)
+        self.set_flag(context, 'VFFortranCompilerTool', 'Diagnostics', flag_values)
 
-    def set_arg_temp_created_check(self):
+    def set_arg_temp_created_check(self, context):
         """
         """
         flag_values = {
@@ -1126,9 +1120,9 @@ class FortranFlags(Flags):
                      ifort_cl_unix: '-check arg_temp_created'},
             default_value: {}
         }
-        self.set_flag('VFFortranCompilerTool', 'ArgTempCreatedCheck', flag_values)
+        self.set_flag(context, 'VFFortranCompilerTool', 'ArgTempCreatedCheck', flag_values)
 
-    def set_debug_parameter(self):
+    def set_debug_parameter(self, context):
         """
         """
         flag_values = {
@@ -1138,9 +1132,9 @@ class FortranFlags(Flags):
                                    ifort_cl_unix: '-debug-parameters used'},
             default_value: {}
         }
-        self.set_flag('VFFortranCompilerTool', 'DebugParameter', flag_values)
+        self.set_flag(context, 'VFFortranCompilerTool', 'DebugParameter', flag_values)
 
-    def set_fixed_form_line_length(self):
+    def set_fixed_form_line_length(self, context):
         """
         Set fixed form line length
 
@@ -1152,9 +1146,9 @@ class FortranFlags(Flags):
                                ifort_cl_unix: '-extend-source 132'},
             default_value: {}
         }
-        self.set_flag('VFFortranCompilerTool', 'FixedFormLineLength', flag_values)
+        self.set_flag(context, 'VFFortranCompilerTool', 'FixedFormLineLength', flag_values)
 
-    def set_default_inc_and_use_path(self):
+    def set_default_inc_and_use_path(self, context):
         """
         Set default include and path
 
@@ -1166,9 +1160,9 @@ class FortranFlags(Flags):
             default_value: {ifort_cl_win: '-assume:source_include',
                             ifort_cl_unix: '-assume source_include'}
         }
-        self.set_flag('VFFortranCompilerTool', 'DefaultIncAndUsePath', flag_values)
+        self.set_flag(context, 'VFFortranCompilerTool', 'DefaultIncAndUsePath', flag_values)
 
-    def set_open_mp(self):
+    def set_open_mp(self, context):
         """
         Set open MP flag
 
@@ -1180,22 +1174,24 @@ class FortranFlags(Flags):
                                      ifort_cl_unix: '-qopenmp-stubs'},
             default_value: {}
         }
-        self.set_flag('VFFortranCompilerTool', 'OpenMP', flag_values)
+        self.set_flag(context, 'VFFortranCompilerTool', 'OpenMP', flag_values)
 
-    def set_disable_specific_diagnostics(self):
+    @staticmethod
+    def set_disable_specific_diagnostics(context):
         """
         Set disable specific diagnostic flag
 
         """
 
-        for setting in self.settings:
+        for setting in context.settings:
             # TODO: split list
-            opt = self.settings[setting]['VFFortranCompilerTool'].get('DisableSpecificDiagnostics')
+            opt = context.settings[setting]['VFFortranCompilerTool']\
+                .get('DisableSpecificDiagnostics')
             if opt:
-                self.settings[setting][ifort_cl_win].append('-Qdiag-disable:{0}'.format(opt))
-                self.settings[setting][ifort_cl_unix].append('-diag-disable={0}'.format(opt))
+                context.settings[setting][ifort_cl_win].append('-Qdiag-disable:{0}'.format(opt))
+                context.settings[setting][ifort_cl_unix].append('-diag-disable={0}'.format(opt))
 
-    def set_string_length_arg_passing(self):
+    def set_string_length_arg_passing(self, context):
         """
         Set string lengh arg parsing
 
@@ -1204,9 +1200,9 @@ class FortranFlags(Flags):
             'strLenArgsMixed': {ifort_cl_win: '-iface:mixed_str_len_arg'},
             default_value: {}
         }
-        self.set_flag('VFFortranCompilerTool', 'StringLengthArgPassing', flag_values)
+        self.set_flag(context, 'VFFortranCompilerTool', 'StringLengthArgPassing', flag_values)
 
-    def set_runtime_library(self):
+    def set_runtime_library(self, context):
         """
         Set runtime library flag
 
@@ -1225,9 +1221,9 @@ class FortranFlags(Flags):
             default_value: {ifort_cl_win: '-libs:static;-threads',
                             ifort_cl_unix: '-threads'}
         }
-        self.set_flag('VFFortranCompilerTool', 'RuntimeLibrary', flag_values)
+        self.set_flag(context, 'VFFortranCompilerTool', 'RuntimeLibrary', flag_values)
 
-    def set_disable_default_lib_search(self):
+    def set_disable_default_lib_search(self, context):
         """
         Set disable default lib search
 
@@ -1236,9 +1232,9 @@ class FortranFlags(Flags):
             'true': {ifort_cl_win: '-libdir:noauto'},
             default_value: {}
         }
-        self.set_flag('VFFortranCompilerTool', 'DisableDefaultLibSearch', flag_values)
+        self.set_flag(context, 'VFFortranCompilerTool', 'DisableDefaultLibSearch', flag_values)
 
-    def set_runtime_checks(self):
+    def set_runtime_checks(self, context):
         """
         Set runtime checks flag
 
@@ -1250,9 +1246,9 @@ class FortranFlags(Flags):
                              ifort_cl_unix: '-nocheck'},
             default_value: {}
         }
-        self.set_flag('VFFortranCompilerTool', 'RuntimeChecks', flag_values)
+        self.set_flag(context, 'VFFortranCompilerTool', 'RuntimeChecks', flag_values)
 
-    def set_traceback(self):
+    def set_traceback(self, context):
         """
         Set traceback flag
 
@@ -1264,9 +1260,9 @@ class FortranFlags(Flags):
                       ifort_cl_unix: '-notraceback'},
             default_value: {}
         }
-        self.set_flag('VFFortranCompilerTool', 'Traceback', flag_values)
+        self.set_flag(context, 'VFFortranCompilerTool', 'Traceback', flag_values)
 
-    def set_extend_single_precision_constants(self):
+    def set_extend_single_precision_constants(self, context):
         """
         Set extend single precision constants flag
 
@@ -1276,9 +1272,10 @@ class FortranFlags(Flags):
                      ifort_cl_unix: '-fpconstant'},
             default_value: {}
         }
-        self.set_flag('VFFortranCompilerTool', 'ExtendSinglePrecisionConstants', flag_values)
+        self.set_flag(context, 'VFFortranCompilerTool', 'ExtendSinglePrecisionConstants',
+                      flag_values)
 
-    def set_floating_point_exception_handling(self):
+    def set_floating_point_exception_handling(self, context):
         """
         Set floating exception handling
 
@@ -1290,9 +1287,10 @@ class FortranFlags(Flags):
                      ifort_cl_unix: '-fpe1'},
             default_value: {}
         }
-        self.set_flag('VFFortranCompilerTool', 'FloatingPointExceptionHandling', flag_values)
+        self.set_flag(context, 'VFFortranCompilerTool', 'FloatingPointExceptionHandling',
+                      flag_values)
 
-    def set_init_local_var_to_nan(self):
+    def set_init_local_var_to_nan(self, context):
         """
         Set init local var to NaN flag
 
@@ -1302,9 +1300,9 @@ class FortranFlags(Flags):
                      ifort_cl_unix: '-ftrapuv'},
             default_value: {}
         }
-        self.set_flag('VFFortranCompilerTool', 'InitLocalVarToNAN', flag_values)
+        self.set_flag(context, 'VFFortranCompilerTool', 'InitLocalVarToNAN', flag_values)
 
-    def set_preprocess_source_file(self):
+    def set_preprocess_source_file(self, context):
         """
         Set preprocess source file flag
 
@@ -1314,9 +1312,9 @@ class FortranFlags(Flags):
                               ifort_cl_unix: '-fpp'},
             default_value: {}
         }
-        self.set_flag('VFFortranCompilerTool', 'Preprocess', flag_values)
+        self.set_flag(context, 'VFFortranCompilerTool', 'Preprocess', flag_values)
 
-    def set_optimization(self):
+    def set_optimization(self, context):
         """
         Set optimization flag
 
@@ -1330,9 +1328,9 @@ class FortranFlags(Flags):
             default_value: {ifort_cl_win: '-O2',
                             ifort_cl_unix: '-O2'}
         }
-        self.set_flag('VFFortranCompilerTool', 'Optimization', flag_values)
+        self.set_flag(context, 'VFFortranCompilerTool', 'Optimization', flag_values)
 
-    def set_debug_information_format(self):
+    def set_debug_information_format(self, context):
         """
         Set debug inforamtion format flag
 
@@ -1344,9 +1342,9 @@ class FortranFlags(Flags):
                                   ifort_cl_unix: '-debug minimal'},
             default_value: {}
         }
-        self.set_flag('VFFortranCompilerTool', 'DebugInformationFormat', flag_values)
+        self.set_flag(context, 'VFFortranCompilerTool', 'DebugInformationFormat', flag_values)
 
-    def set_suppress_startup_banner(self):
+    def set_suppress_startup_banner(self, context):
         """
         Set supress banner flag
 
@@ -1355,9 +1353,9 @@ class FortranFlags(Flags):
             'true': {ifort_cl_win: '-nologo'},
             default_value: {}
         }
-        self.set_flag('VFFortranCompilerTool', 'SuppressStartupBanner', flag_values)
+        self.set_flag(context, 'VFFortranCompilerTool', 'SuppressStartupBanner', flag_values)
 
-    def set_source_file_format(self):
+    def set_source_file_format(self, context):
         """
         Set source file format flag
 
@@ -1369,9 +1367,9 @@ class FortranFlags(Flags):
                                 ifort_cl_unix: '-fixed'},
             default_value: {}
         }
-        self.set_flag('VFFortranCompilerTool', 'SourceFileFormat', flag_values)
+        self.set_flag(context, 'VFFortranCompilerTool', 'SourceFileFormat', flag_values)
 
-    def set_local_variable_storage(self):
+    def set_local_variable_storage(self, context):
         """
         Set local variable storage flag
 
@@ -1381,9 +1379,9 @@ class FortranFlags(Flags):
                                       ifort_cl_unix: '-auto'},
             default_value: {}
         }
-        self.set_flag('VFFortranCompilerTool', 'LocalVariableStorage', flag_values)
+        self.set_flag(context, 'VFFortranCompilerTool', 'LocalVariableStorage', flag_values)
 
-    def set_real_kind(self):
+    def set_real_kind(self, context):
         """
         Set real kind flag
 
@@ -1395,15 +1393,16 @@ class FortranFlags(Flags):
                            ifort_cl_unix: '-real-size 128'},
             default_value: {}
         }
-        self.set_flag('VFFortranCompilerTool', 'RealKIND', flag_values)
+        self.set_flag(context, 'VFFortranCompilerTool', 'RealKIND', flag_values)
 
-    def set_additional_options(self):
+    @staticmethod
+    def set_additional_options(context):
         """
         Set Additional options
 
         """
-        for setting in self.settings:
-            add_opts = self.settings[setting]['VFFortranCompilerTool'].get('AdditionalOptions')
+        for setting in context.settings:
+            add_opts = context.settings[setting]['VFFortranCompilerTool'].get('AdditionalOptions')
             if add_opts:
                 add_opts = set_unix_slash(add_opts).split()
                 ready_add_opts = []
@@ -1412,7 +1411,7 @@ class FortranFlags(Flags):
                     if '/Qprof-dir' in add_opt:
                         name_value = add_opt.split(':')
                         add_opt = name_value[0] + ':' + normalize_path(
-                            os.path.dirname(self.vcxproj_path), name_value[1]
+                            os.path.dirname(context.vcxproj_path), name_value[1]
                         )
 
                     add_opt = '-' + add_opt[1:]
@@ -1432,8 +1431,8 @@ class FortranFlags(Flags):
                         message('Unix ifort option "{0}" may be incorrect. '
                                 'Check it and set it with visual studio UI if possible.'
                                 .format(unix_option), 'warn')
-                    self.settings[setting][ifort_cl_win].append(add_opt)
-                    self.settings[setting][ifort_cl_unix].append(unix_option)
+                    context.settings[setting][ifort_cl_win].append(add_opt)
+                    context.settings[setting][ifort_cl_unix].append(unix_option)
                 message('Additional Options for {0} : {1}'.format(setting, str(ready_add_opts)), '')
             else:
                 message('No Additional Options for {0}'.format(setting), '')
