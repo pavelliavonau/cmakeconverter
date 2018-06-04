@@ -243,7 +243,7 @@ class VCXProjectConverter(DataConverter):
 
     def __init__(self, context, xml_project_path, cmake_lists_destination_path):
         DataConverter.__init__(self, context, xml_project_path, cmake_lists_destination_path)
-        self.variables = VCXProjectVariables(context)
+        self.variables = VCXProjectVariables()
         self.files = ProjectFiles()
         self.flags = CPPFlags(context)
         self.dependencies = Dependencies()
@@ -294,7 +294,7 @@ class VCXProjectConverter(DataConverter):
 
         """
 
-        self.variables.find_outputs_variables()
+        self.variables.find_outputs_variables(context)
         self.files.collects_source_files(context)
         self.files.find_cmake_project_language(context)
         if not context.has_only_headers:
@@ -320,7 +320,7 @@ class VCXProjectConverter(DataConverter):
         if not context.is_converting_solution:
             self.add_cmake_version_required(cmake_file)
 
-        self.variables.add_project_variables(cmake_file)
+        self.variables.add_project_variables(context, cmake_file)
         self.files.write_cmake_project(context, cmake_file)
         # self.variables.add_default_target() # TODO: add conversion option to cmd line
 
@@ -361,7 +361,7 @@ class VFProjectConverter(DataConverter):
 
     def __init__(self, context, xml_project_path, cmake_lists_destination_path):
         DataConverter.__init__(self, context, xml_project_path, cmake_lists_destination_path)
-        self.variables = VFProjectVariables(context)
+        self.variables = VFProjectVariables()
         self.files = ProjectFiles()
         self.flags = FortranFlags(context)
 
@@ -416,7 +416,7 @@ class VFProjectConverter(DataConverter):
 
         """
 
-        self.variables.find_outputs_variables()
+        self.variables.find_outputs_variables(context)
 
         self.files.collects_source_files(context)
         self.files.find_cmake_project_language(context)
@@ -447,7 +447,7 @@ class VFProjectConverter(DataConverter):
         if not context.is_converting_solution:
             self.add_cmake_version_required(cmake_file)
 
-        self.variables.add_project_variables(cmake_file)
+        self.variables.add_project_variables(context, cmake_file)
         self.files.write_cmake_project(context, cmake_file)
         # Add additional code or not
         if context.additional_code is not None:
