@@ -25,7 +25,6 @@
      Utils manage function needed by converter
 """
 
-import sys
 import os
 import glob
 import colorama
@@ -76,7 +75,7 @@ def get_configuration_type(setting, context):
     :param setting: current setting (ReleaseDebug|Win32, ...)
     :type setting: str
     :param context: current context
-    :type context: dict
+    :type context: Context
     :return: configuration type
     :rtype: str
     """

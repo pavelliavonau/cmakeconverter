@@ -138,10 +138,13 @@ class ProjectFiles(object):
             context.solution_languages.add(project_language)
         context.project_language = project_language
 
-    def write_cmake_project(self, context, cmake_file):
+    @staticmethod
+    def write_cmake_project(context, cmake_file):
         """
         Write cmake project for given CMake file
 
+        :param context: Converter context
+        :type context: Context
         :param cmake_file: CMakeLists.txt IO wrapper
         :type cmake_file: _io.TextIOWrapper
         """
@@ -155,6 +158,8 @@ class ProjectFiles(object):
         """
         Write header files variables to file() cmake function
 
+        :param context: Converter context
+        :type context: Context
         :param cmake_file: CMakeLists.txt IO wrapper
         :type cmake_file: _io.TextIOWrapper
         """
@@ -185,6 +190,8 @@ class ProjectFiles(object):
         """
         Write source files variables to file() cmake function
 
+        :param context: Converter context
+        :type context: Context
         :param cmake_file: CMakeLists.txt IO wrapper
         :type cmake_file: _io.TextIOWrapper
         """

@@ -95,7 +95,7 @@ class Dependencies(object):
         :param setting: current setting (Debug|x64, Release|Win32,...)
         :type setting: str
         :param context: current context
-        :type context: dict
+        :type context: Context
         :return: include directories of context, separated by semicolons
         :rtype: str
         """
@@ -166,6 +166,8 @@ class Dependencies(object):
         """
         Write target references on given CMakeLists.txt file
 
+        :param context: current context
+        :type context: Context
         :param cmake_file: CMakeLists.txt IO wrapper
         :type cmake_file: _io.TextIOWrapper
         """
@@ -241,6 +243,8 @@ class Dependencies(object):
         """
         Write link dependencies of project to given cmake file
 
+        :param context: current context
+        :type context: Context
         :param cmake_file: CMakeLists.txt IO wrapper
         :type cmake_file: _io.TextIOWrapper
         """
@@ -304,6 +308,8 @@ class Dependencies(object):
         """
         Write target property sheets of current context
 
+        :param context: current context
+        :type context: Context
         :param cmake_file: CMakeLists.txt IO wrapper
         :type cmake_file: _io.TextIOWrapper
         """
@@ -372,7 +378,7 @@ class Dependencies(object):
                                 .format(id_version), 'warn')
 
                     context.packages.append([package_id, package_version, ext_properties])
-                    message('Used package {0} {1}.'.format(package_id, package_version),'')
+                    message('Used package {0} {1}.'.format(package_id, package_version), '')
 
                     for ext_property in ext_properties:
                         for setting in context.settings:
@@ -398,6 +404,8 @@ class Dependencies(object):
         """
         Write target dependency packages of current context
 
+        :param context: current context
+        :type context: Context
         :param cmake_file: CMakeLists.txt IO wrapper
         :type cmake_file: _io.TextIOWrapper
         """

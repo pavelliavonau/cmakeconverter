@@ -41,7 +41,7 @@ def convert_project(context, xml_project_path, cmake_lists_destination_path):
     Convert a ``vcxproj`` to a ``CMakeLists.txt``
 
     :param context: input data of user
-    :type context: dict
+    :type context: Context
     :param xml_project_path: input xml_proj
     :type xml_project_path: str
     :param cmake_lists_destination_path: Destination folder of CMakeLists.txt

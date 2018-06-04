@@ -40,6 +40,8 @@ class ProjectVariables(object):
         """
         Add main CMake project variables
 
+        :param context: Converter context
+        :type context: Context
         :param cmake_file: CMakeLists.txt IO wrapper
         :type cmake_file: _io.TextIOWrapper
         """
