@@ -1094,13 +1094,47 @@ class FortranFlags(Flags):
         self.set_init_local_var_to_nan(context)
         self.set_floating_point_exception_handling(context)
         self.set_extend_single_precision_constants(context)
+        self.set_external_name_interpretation(context)
         self.set_string_length_arg_passing(context)
+        self.set_external_name_underscore(context)
         self.set_traceback(context)
         self.set_runtime_checks(context)
         self.set_arg_temp_created_check(context)
         self.set_runtime_library(context)
         self.set_disable_default_lib_search(context)
         self.set_additional_options(context)
+
+        self.set_assume_with_params(context)
+
+    @staticmethod
+    def set_assume_with_params(context):
+        for setting in context.settings:
+            current_setting = context.settings[setting]
+            if 'assume_args' in current_setting:
+                args = current_setting['assume_args']
+                current_setting[ifort_cl_win].append('-assume:' + ','.join(args))
+                current_setting[ifort_cl_unix].append('-assume ' + ','.join(args))
+
+    def set_external_name_underscore(self, context):
+        flag_values = {
+            'true': {'assume_args': 'underscore'},
+            'false': {'assume_args': 'nounderscore'},
+            default_value: {'assume_args': 'nounderscore'}
+        }
+        self.set_flag(context, 'VFFortranCompilerTool', 'ExternalNameUnderscore', flag_values)
+
+    def set_external_name_interpretation(self, context):
+        flag_values = {
+            'extNameUpperCase': {ifort_cl_win: '-names:uppercase',
+                                 ifort_cl_unix: '-names uppercase'},
+            'extNameLowerCase': {ifort_cl_win: '-names:lowercase',
+                                 ifort_cl_unix: '-names lowercase'},
+            'extNameAsIs': {ifort_cl_win: '-names:as_is',
+                            ifort_cl_unix: '-names as_is'},
+            default_value: {ifort_cl_win: '-names:uppercase',
+                            ifort_cl_unix: '-names lowercase'}
+        }
+        self.set_flag(context, 'VFFortranCompilerTool', 'ExternalNameInterpretation', flag_values)
 
     def set_diagnostics(self, context):
         flag_values = {
