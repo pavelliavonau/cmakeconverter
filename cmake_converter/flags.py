@@ -1215,10 +1215,8 @@ class FortranFlags(Flags):
         """
 
         flag_values = {
-            'defaultIncludeCurrent': {ifort_cl_win: '-assume:nosource_include',
-                                      ifort_cl_unix: '-assume nosource_include'},
-            default_value: {ifort_cl_win: '-assume:source_include',
-                            ifort_cl_unix: '-assume source_include'}
+            'defaultIncludeCurrent': {'assume_args': 'nosource_include'},
+            default_value: {'assume_args': 'source_include'}
         }
         self.set_flag(context, 'VFFortranCompilerTool', 'DefaultIncAndUsePath', flag_values)
 
