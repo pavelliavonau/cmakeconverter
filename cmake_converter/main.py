@@ -30,8 +30,8 @@ import re
 import os
 import copy
 
-from cmake_converter.data_converter import DataConverter, VCXProjectConverter, VFProjectConverter,\
-    Context
+from cmake_converter.data_converter import DataConverter
+from cmake_converter.context import VCXContextInitializer, VFContextInitializer, Context
 from cmake_converter.data_files import get_cmake_lists
 from cmake_converter.utils import set_unix_slash, message, write_comment
 
@@ -48,16 +48,14 @@ def convert_project(context, xml_project_path, cmake_lists_destination_path):
     :type cmake_lists_destination_path: str
     """
 
-    # Give data to DataConverter()
+    # Initialize Context of DataConverter
     data_converter = None
     if 'vcxproj' in xml_project_path:
-        data_converter = VCXProjectConverter(
-            context, xml_project_path, cmake_lists_destination_path
-        )
+        VCXContextInitializer(context, xml_project_path, cmake_lists_destination_path)
+        data_converter = DataConverter()
     if 'vfproj' in xml_project_path:
-        data_converter = VFProjectConverter(
-            context, xml_project_path, cmake_lists_destination_path
-        )
+        VFContextInitializer(context, xml_project_path, cmake_lists_destination_path)
+        data_converter = DataConverter()
     if data_converter is None:
         message('Unknown project type at {0}'.format(xml_project_path), 'error')
         return

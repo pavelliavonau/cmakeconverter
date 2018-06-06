@@ -187,6 +187,12 @@ class Flags(object):
         message('CMake will show fake custom Library.', 'warn')
         cmake_file.write('add_custom_target(${PROJECT_NAME} SOURCES ${HEADERS_FILES})\n\n')
 
+    def write_precompiled_headers_macro(self, context, cmake_file):
+        pass
+
+    def write_use_pch_macro(self, context, cmake_file):
+        pass
+
 
 class CPPFlags(Flags):
     """
@@ -1492,7 +1498,7 @@ class FortranFlags(Flags):
                 message('No Additional Options for {0}'.format(setting), '')
 
     @staticmethod
-    def write_target_artifact(cmake_file):
+    def write_target_artifact(context, cmake_file):
         """
         Add Library or Executable target
 

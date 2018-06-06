@@ -40,27 +40,25 @@ class Dependencies(object):
         Class who find and write dependencies of project, additionnal directories...
     """
 
-    def find_include_dir(self, context):
-        """
-        Write on "CMakeLists.txt" include directories required for compilation.
+    @staticmethod
+    def find_target_references(context):
+        pass
 
-        """
+    @staticmethod
+    def find_target_additional_dependencies(context):
+        pass
 
-        for setting in context.settings:
-            incl_dir = context.vcxproj['tree'].find(
-                '{0}/ns:ClCompile/ns:AdditionalIncludeDirectories'.format(
-                    context.definition_groups[setting]
-                ),
-                namespaces=context.vcxproj['ns']
-            )
+    @staticmethod
+    def find_target_additional_library_directories(context):
+        pass
 
-            if incl_dir is not None:
-                inc_dirs = self.get_additional_include_directories(
-                    incl_dir.text, setting, context
-                )
-                message('Include Directories found : {0}'.format(inc_dirs), '')
-            else:  # pragma: no cover
-                message('Include Directories not found for this project.', '')
+    @staticmethod
+    def find_target_property_sheets(context):
+        pass
+
+    @staticmethod
+    def find_target_dependency_packages(context):
+        pass
 
     @staticmethod
     def write_include_directories(context, cmake_file):
@@ -135,32 +133,6 @@ class Dependencies(object):
         else:
             return os.path.splitext(ntpath.basename(vs_project))[0]
 
-    def find_target_references(self, context):
-        """
-        Find and set references of project to current context
-
-        """
-
-        references_found = []
-        references = context.vcxproj['tree'].xpath('//ns:ProjectReference',
-                                                   namespaces=context.vcxproj['ns'])
-        if references:
-            for ref in references:
-                if ref is None:
-                    continue
-
-                ref_inc = ref.get('Include')
-                if ref_inc is None:
-                    continue
-
-                if ref_inc not in references_found:
-                    ref = self.get_dependency_target_name(
-                        os.path.join(os.path.dirname(context.vcxproj_path), ref_inc)
-                    )
-                    references_found.append(ref)
-
-        context.target_references = references_found
-
     @staticmethod
     def write_target_references(context, cmake_file):
         """
@@ -187,6 +159,152 @@ class Dependencies(object):
             for dep in deps_to_write:
                 cmake_file.write(' {0}'.format(dep))
             cmake_file.write(')\n\n')
+
+    @staticmethod
+    def write_link_dependencies(context, cmake_file):
+        """
+        Write link dependencies of project to given cmake file
+
+        :param context: current context
+        :type context: Context
+        :param cmake_file: CMakeLists.txt IO wrapper
+        :type cmake_file: _io.TextIOWrapper
+        """
+
+        if context.target_references:
+            cmake_file.write('# Link with other targets.\n')
+            cmake_file.write('target_link_libraries(${PROJECT_NAME}')
+            for reference in context.target_references:
+                cmake_file.write(' ' + reference)
+                msg = 'External library found : {0}'.format(reference)
+                message(msg, '')
+            cmake_file.write(')\n\n')
+
+        if context.add_lib_deps:
+            cmake_file.write('# Link with other additional libraries.\n')
+            cmake_file.write('target_link_libraries(${PROJECT_NAME}')
+            for dep in context.add_lib_deps:
+                cmake_file.write(' ' + dep)
+            cmake_file.write(')\n')
+
+        if context.add_lib_dirs:
+            cmake_file.write('if(MSVC)\n')
+            cmake_file.write('    target_link_libraries(${PROJECT_NAME}')
+            for dep in context.add_lib_dirs:
+                cmake_file.write(' -LIBPATH:' + cleaning_output(dep))
+            cmake_file.write(')\nelseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")\n')
+            cmake_file.write('    target_link_libraries(${PROJECT_NAME}')
+            for dep in context.add_lib_dirs:
+                cmake_file.write(' -L' + cleaning_output(dep))
+            cmake_file.write(')\nendif()\n\n')
+
+    @staticmethod
+    def write_target_property_sheets(context, cmake_file):
+        """
+        Write target property sheets of current context
+
+        :param context: current context
+        :type context: Context
+        :param cmake_file: CMakeLists.txt IO wrapper
+        :type cmake_file: _io.TextIOWrapper
+        """
+
+        if context.property_sheets:
+            cmake_file.write('# Includes for CMake from *.props\n')
+            for property_sheet in context.property_sheets:
+                cmake_file.write('include({0} OPTIONAL)\n'.format(property_sheet))
+            cmake_file.write('\n')
+
+    @staticmethod
+    def write_target_dependency_packages(context, cmake_file):
+        """
+        Write target dependency packages of current context
+
+        :param context: current context
+        :type context: Context
+        :param cmake_file: CMakeLists.txt IO wrapper
+        :type cmake_file: _io.TextIOWrapper
+        """
+
+        for package in context.packages:
+            for package_property in package[2]:
+                id_version = '{0}.{1}'.format(package[0], package[1])
+                for setting in context.settings:
+                    if 'packages' not in context.settings[setting]:
+                        continue
+                    if id_version not in context.settings[setting]['packages']:
+                        continue
+                    if package_property not in context.settings[setting]['packages'][id_version]:
+                        continue
+                    context.settings[setting][id_version + package_property] =\
+                        context.settings[setting]['packages'][id_version][package_property]
+
+                package_property_variable = package_property + '_VAR'
+                has_written = write_property_of_settings(
+                    cmake_file, context.settings,
+                    context.sln_configurations_map,
+                    'string(CONCAT "{0}"'.format(package_property_variable), ')',
+                    id_version + package_property, ''
+                )
+                if has_written:
+                    cmake_file.write(
+                        'set_target_properties(${{PROJECT_NAME}} PROPERTIES "{0}" ${{{1}}})\n'
+                        .format(package_property, package_property_variable)
+                    )
+            cmake_file.write(
+                'use_package(${{PROJECT_NAME}} {0} {1})\n'.format(package[0], package[1])
+            )
+
+
+class VCXDependencies(Dependencies):
+
+    def find_include_dir(self, context):
+        """
+        Write on "CMakeLists.txt" include directories required for compilation.
+
+        """
+
+        for setting in context.settings:
+            incl_dir = context.vcxproj['tree'].find(
+                '{0}/ns:ClCompile/ns:AdditionalIncludeDirectories'.format(
+                    context.definition_groups[setting]
+                ),
+                namespaces=context.vcxproj['ns']
+            )
+
+            if incl_dir is not None:
+                inc_dirs = self.get_additional_include_directories(
+                    incl_dir.text, setting, context
+                )
+                message('Include Directories found : {0}'.format(inc_dirs), '')
+            else:  # pragma: no cover
+                message('Include Directories not found for this project.', '')
+
+    def find_target_references(self, context):
+        """
+        Find and set references of project to current context
+
+        """
+
+        references_found = []
+        references = context.vcxproj['tree'].xpath('//ns:ProjectReference',
+                                                   namespaces=context.vcxproj['ns'])
+        if references:
+            for ref in references:
+                if ref is None:
+                    continue
+
+                ref_inc = ref.get('Include')
+                if ref_inc is None:
+                    continue
+
+                if ref_inc not in references_found:
+                    ref = self.get_dependency_target_name(
+                        os.path.join(os.path.dirname(context.vcxproj_path), ref_inc)
+                    )
+                    references_found.append(ref)
+
+        context.target_references = references_found
 
     @staticmethod
     def find_target_additional_dependencies(context):
@@ -239,44 +357,6 @@ class Dependencies(object):
             message('No additional library dependencies.', '')
 
     @staticmethod
-    def write_link_dependencies(context, cmake_file):
-        """
-        Write link dependencies of project to given cmake file
-
-        :param context: current context
-        :type context: Context
-        :param cmake_file: CMakeLists.txt IO wrapper
-        :type cmake_file: _io.TextIOWrapper
-        """
-
-        if context.target_references:
-            cmake_file.write('# Link with other targets.\n')
-            cmake_file.write('target_link_libraries(${PROJECT_NAME}')
-            for reference in context.target_references:
-                cmake_file.write(' ' + reference)
-                msg = 'External library found : {0}'.format(reference)
-                message(msg, '')
-            cmake_file.write(')\n\n')
-
-        if context.add_lib_deps:
-            cmake_file.write('# Link with other additional libraries.\n')
-            cmake_file.write('target_link_libraries(${PROJECT_NAME}')
-            for dep in context.add_lib_deps:
-                cmake_file.write(' ' + dep)
-            cmake_file.write(')\n')
-
-        if context.add_lib_dirs:
-            cmake_file.write('if(MSVC)\n')
-            cmake_file.write('    target_link_libraries(${PROJECT_NAME}')
-            for dep in context.add_lib_dirs:
-                cmake_file.write(' -LIBPATH:' + cleaning_output(dep))
-            cmake_file.write(')\nelseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")\n')
-            cmake_file.write('    target_link_libraries(${PROJECT_NAME}')
-            for dep in context.add_lib_dirs:
-                cmake_file.write(' -L' + cleaning_output(dep))
-            cmake_file.write(')\nendif()\n\n')
-
-    @staticmethod
     def find_target_property_sheets(context):
         """
         Find and set in current context property sheets
@@ -302,23 +382,6 @@ class Dependencies(object):
         props_list = list(props_set)
         props_list.sort()
         context.property_sheets = props_list
-
-    @staticmethod
-    def write_target_property_sheets(context, cmake_file):
-        """
-        Write target property sheets of current context
-
-        :param context: current context
-        :type context: Context
-        :param cmake_file: CMakeLists.txt IO wrapper
-        :type cmake_file: _io.TextIOWrapper
-        """
-
-        if context.property_sheets:
-            cmake_file.write('# Includes for CMake from *.props\n')
-            for property_sheet in context.property_sheets:
-                cmake_file.write('include({0} OPTIONAL)\n'.format(property_sheet))
-            cmake_file.write('\n')
 
     @staticmethod
     def find_target_dependency_packages(context):
@@ -399,42 +462,62 @@ class Dependencies(object):
                                                 setting,
                                                 ext_property_node[0].text), '')
 
+
+class VFDependencies(Dependencies):
+
     @staticmethod
-    def write_target_dependency_packages(context, cmake_file):
-        """
-        Write target dependency packages of current context
-
-        :param context: current context
-        :type context: Context
-        :param cmake_file: CMakeLists.txt IO wrapper
-        :type cmake_file: _io.TextIOWrapper
-        """
-
-        for package in context.packages:
-            for package_property in package[2]:
-                id_version = '{0}.{1}'.format(package[0], package[1])
-                for setting in context.settings:
-                    if 'packages' not in context.settings[setting]:
-                        continue
-                    if id_version not in context.settings[setting]['packages']:
-                        continue
-                    if package_property not in context.settings[setting]['packages'][id_version]:
-                        continue
-                    context.settings[setting][id_version + package_property] =\
-                        context.settings[setting]['packages'][id_version][package_property]
-
-                package_property_variable = package_property + '_VAR'
-                has_written = write_property_of_settings(
-                    cmake_file, context.settings,
-                    context.sln_configurations_map,
-                    'string(CONCAT "{0}"'.format(package_property_variable), ')',
-                    id_version + package_property, ''
-                )
-                if has_written:
-                    cmake_file.write(
-                        'set_target_properties(${{PROJECT_NAME}} PROPERTIES "{0}" ${{{1}}})\n'
-                        .format(package_property, package_property_variable)
-                    )
-            cmake_file.write(
-                'use_package(${{PROJECT_NAME}} {0} {1})\n'.format(package[0], package[1])
+    def find_include_dir(context):
+        for setting in context.settings:
+            ad_inc = context.settings[setting]['VFFortranCompilerTool'].get(
+                'AdditionalIncludeDirectories'
             )
+            if ad_inc:
+                Dependencies.get_additional_include_directories(ad_inc, setting, context)
+            if 'inc_dirs' in context.settings[setting]:
+                context.settings[setting]['inc_dirs'] += ';${CMAKE_CURRENT_SOURCE_DIR}/'
+            else:
+                context.settings[setting]['inc_dirs'] = '${CMAKE_CURRENT_SOURCE_DIR}/'
+
+    @staticmethod
+    def find_target_additional_dependencies(context):
+        for setting in context.settings:
+            context.add_lib_deps = []
+            ad_libs = context.settings[setting]['VFLibrarianTool'].get('AdditionalDependencies')
+            if ad_libs:
+                message('Additional Dependencies = {0}'.format(ad_libs), '')
+                add_lib_dirs = []
+                for d in ad_libs.split(';'):
+                    if d != '%(AdditionalDependencies)':
+                        if os.path.splitext(d)[1] == '.lib':
+                            add_lib_dirs.append(d.replace('.lib', ''))
+                context.add_lib_deps = add_lib_dirs
+            else:
+                message('No additional dependencies.', '')
+            break
+
+    @staticmethod
+    def find_target_additional_library_directories(context):
+        """
+        Find and set additional library directories in context
+
+        """
+
+        for setting in context.settings:
+            context.add_lib_dirs = []
+            additional_library_directories = context.settings[setting]['VFLibrarianTool']\
+                .get('AdditionalLibraryDirectories')
+
+            if additional_library_directories:
+                list_depends = additional_library_directories.replace(
+                    '%(AdditionalLibraryDirectories)', ''
+                )
+                if list_depends != '':
+                    message('Additional Library Directories = {0}'.format(list_depends), '')
+                    add_lib_dirs = []
+                    for d in list_depends.split(';'):
+                        d = d.strip()
+                        if d != '':
+                            add_lib_dirs.append(d)
+                    context.add_lib_dirs = add_lib_dirs
+            else:  # pragma: no cover
+                message('No additional library dependencies.', '')
