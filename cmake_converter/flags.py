@@ -389,6 +389,7 @@ class CPPFlags(Flags):
         self.set_exception_handling(context)
         self.set_buffer_security_check(context)
         self.set_diagnostics_format(context)
+        self.set_disable_language_extensions(context)
         self.set_treatwchar_t_as_built_in_type(context)
         self.set_force_conformance_in_for_loop_scope(context)
         self.set_remove_unreferenced_code_data(context)
@@ -908,6 +909,25 @@ class CPPFlags(Flags):
             self.set_flag(context, setting,
                           '{0}/ns:ClCompile/ns:DiagnosticsFormat'
                           .format(context.definition_groups[setting]), flag_values
+                          )
+
+    def set_disable_language_extensions(self, context):
+        """
+                Set DisableLanguageExtensions /Za
+
+        """
+        flag_values = {
+            'false': {},
+            'true': {cl_flags: '/Za'},
+            default_value: {}
+        }
+
+        for setting in context.settings:
+            self.set_flag(context,
+                          setting,
+                          '{0}/ns:ClCompile/ns:DisableLanguageExtensions'.format(
+                              context.definition_groups[setting]),
+                          flag_values
                           )
 
     def set_treatwchar_t_as_built_in_type(self, context):
