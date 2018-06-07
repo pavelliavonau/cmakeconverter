@@ -430,12 +430,33 @@ class VCXDependencies(Dependencies):
                         targets_file = get_xml_data(targets_file_path)
                         if targets_file is None:
                             continue
-                        ext_property_nodes = targets_file['tree']\
-                            .xpath('//ns:PropertyGroup'
-                                   '[@Label="Default initializers for properties"]/*',
+
+                        property_page_schema_nodes = targets_file['tree']\
+                            .xpath('//ns:ItemGroup/ns:PropertyPageSchema',
                                    namespaces=targets_file['ns'])
-                        for ext_property_node in ext_property_nodes:
-                            ext_properties.append(re.sub(r'{.*\}', '', ext_property_node.tag))
+
+                        if property_page_schema_nodes:
+                            for property_page_schema_node in property_page_schema_nodes:
+                                xml_schema_path = property_page_schema_node.get('Include')
+                                xml_schema_path = xml_schema_path.replace(
+                                    '$(MSBuildThisFileDirectory)',
+                                    os.path.dirname(targets_file_path) + '/'
+                                )
+                                xml_schema_file = get_xml_data(xml_schema_path)
+                                if xml_schema_file:
+                                    ext_property_nodes = xml_schema_file['tree'] \
+                                        .xpath('//ns:EnumProperty',
+                                               namespaces=xml_schema_file['ns'])
+                                    for ext_property_node in ext_property_nodes:
+                                        ext_properties.append(ext_property_node.get('Name'))
+                        # TODO: remove next if due specific hack
+                        if not ext_properties:
+                            ext_property_nodes = targets_file['tree']\
+                                .xpath('//ns:PropertyGroup'
+                                       '[@Label="Default initializers for properties"]/*',
+                                       namespaces=targets_file['ns'])
+                            for ext_property_node in ext_property_nodes:
+                                ext_properties.append(re.sub(r'{.*\}', '', ext_property_node.tag))
                     else:
                         message('Path of file {0}.targets not found at vs project xml.'
                                 .format(id_version), 'warn')
