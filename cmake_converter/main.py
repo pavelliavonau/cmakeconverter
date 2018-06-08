@@ -151,7 +151,7 @@ def main():  # pragma: no cover
 
     """
 
-    usage = "cmake-converter -p <vcxproj> [-c | -a | -D | -O | -i | -std]"
+    usage = "cmake-converter -p <vcxproj> [-c | -a | -D | -O | -i | -std | -dry]"
     # Init parser
     parser = argparse.ArgumentParser(
         usage=usage,
@@ -189,6 +189,12 @@ def main():  # pragma: no cover
         dest='cmakeoutput'
     )
     parser.add_argument(
+        '-dry', '--dry-run',
+        help='run converter without writing files.',
+        dest='dry',
+        action='store_true'
+    )
+    parser.add_argument(
         '-std', '--std',
         help='choose your C++ std version. Default : c++11',
         dest='std'
@@ -212,6 +218,10 @@ def main():  # pragma: no cover
     if args.std:
         initial_context.std = args.std
 
+    if args.dry:
+        initial_context.dry = True
+        message('Converter runs in dry mode', '')
+
     if not args.solution:
         cmake_lists_path = os.path.dirname(args.project)
         if args.cmake:
@@ -224,11 +234,6 @@ def main():  # pragma: no cover
         sln.close()
 
         solution_path = os.path.dirname(args.solution)
-        sln_cmake = get_cmake_lists(solution_path)
-        DataConverter.add_cmake_version_required(sln_cmake)
-        sln_cmake.write(
-            'project({0})\n\n'. format(os.path.splitext(os.path.basename(args.solution))[0])
-        )
         subdirectories = []
         subdirectories_to_project_name = {}
         projects_data = solution_data['projects_data']
@@ -248,6 +253,14 @@ def main():  # pragma: no cover
             initial_context.solution_languages.update(project_context.solution_languages)
             print('\n')
 
+        if initial_context.dry:
+            return
+
+        sln_cmake = get_cmake_lists(solution_path)
+        DataConverter.add_cmake_version_required(sln_cmake)
+        sln_cmake.write(
+            'project({0})\n\n'. format(os.path.splitext(os.path.basename(args.solution))[0])
+        )
         write_comment(
             sln_cmake,
             'Set target arch type if empty. Visual studio solution generator provides it.'

@@ -109,6 +109,8 @@ class DataConverter(object):
         """
 
         self.collect_data(context)
+        if context.dry:
+            return
         cmake_file = get_cmake_lists(context.cmake)
         self.write_data(context, cmake_file)
         cmake_file.close()
