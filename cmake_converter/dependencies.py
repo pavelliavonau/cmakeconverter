@@ -503,7 +503,11 @@ class VFDependencies(Dependencies):
     def find_target_additional_dependencies(context):
         for setting in context.settings:
             context.add_lib_deps = []
-            ad_libs = context.settings[setting]['VFLibrarianTool'].get('AdditionalDependencies')
+            ad_libs = None
+            if 'VFLibrarianTool' in context.settings[setting]:
+                ad_libs = context.settings[setting]['VFLibrarianTool'].get('AdditionalDependencies')
+            if 'VFLinkerTool' in context.settings[setting]:
+                ad_libs = context.settings[setting]['VFLinkerTool'].get('AdditionalDependencies')
             if ad_libs:
                 message('Additional Dependencies = {0}'.format(ad_libs), '')
                 add_lib_dirs = []
@@ -525,8 +529,13 @@ class VFDependencies(Dependencies):
 
         for setting in context.settings:
             context.add_lib_dirs = []
-            additional_library_directories = context.settings[setting]['VFLibrarianTool']\
-                .get('AdditionalLibraryDirectories')
+            additional_library_directories = None
+            if 'VFLibrarianTool' in context.settings[setting]:
+                additional_library_directories = context.settings[setting]['VFLibrarianTool'] \
+                    .get('AdditionalLibraryDirectories')
+            if 'VFLinkerTool' in context.settings[setting]:
+                additional_library_directories = context.settings[setting]['VFLinkerTool'] \
+                    .get('AdditionalLibraryDirectories')
 
             if additional_library_directories:
                 list_depends = additional_library_directories.replace(
