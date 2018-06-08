@@ -680,8 +680,9 @@ class CPPFlags(Flags):
                     cl_flag_value = mtd
                 message('RuntimeLibrary {0} for {1}'.format(mdd_value.text, setting), '')
             else:
-                cl_flag_value = m_d  # default
-                message('Default RuntimeLibrary {0} for {1}'.format(m_d, setting), '')
+                cl_flag_value = m_d  # TODO: investigate what is default?
+                message('Default RuntimeLibrary {0} for {1} but may be error. Check!'
+                        .format(m_d, setting), 'warn')
 
             if cl_flag_value:
                 context.settings[setting][cl_flags].append(cl_flag_value)
