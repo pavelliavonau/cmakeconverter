@@ -31,6 +31,15 @@ import colorama
 
 path_prefix = ''
 
+if 'PYCHARM_HOSTED' in os.environ:
+    convert = False  # in PyCharm, we should disable convert
+    strip = False
+    print("Hi! You are using PyCharm")
+else:
+    convert = None
+    strip = None
+colorama.init(convert=convert, strip=strip)
+
 DONE = colorama.Fore.GREEN + colorama.Style.BRIGHT
 OK = colorama.Fore.CYAN + colorama.Style.BRIGHT
 WARN = colorama.Fore.YELLOW + colorama.Style.BRIGHT
