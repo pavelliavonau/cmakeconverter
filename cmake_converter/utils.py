@@ -28,6 +28,7 @@
 import os
 import glob
 import colorama
+import re
 
 path_prefix = ''
 
@@ -114,8 +115,16 @@ def is_settings_has_data(sln_configurations_map, settings, settings_key, arch=No
     return False
 
 
+def write_property_of_setting(cmake_file, indent, config_condition_expr, property_value, width):
+    config_width = width + 2  # for '$<'
+    cmake_file.write('{0}        {1:>{width}}:{2}>\n'
+                     .format(indent, '$<' + config_condition_expr, property_value,
+                             width=config_width))
+
+
 def write_property_of_settings(cmake_file, settings, sln_setting_2_project_setting, begin_text,
-                               end_text, property_name, indent='', default=None):
+                               end_text, property_name, indent='', default=None,
+                               write_setting_property_func=write_property_of_setting):
     """
     Write property of given settings. TODO: Add **kwargs to decrease number of parameters
 
@@ -135,16 +144,18 @@ def write_property_of_settings(cmake_file, settings, sln_setting_2_project_setti
     :type indent: str
     :param default: default text to add
     :type default: None | str
+    :param write_setting_property_func: function for writing property for setting
+    :type write_setting_property_func: write_property_of_setting | lambda
     """
 
-    width = 0
+    max_config_condition_width = 0
     settings_of_arch = {}
     for sln_setting in sln_setting_2_project_setting:
         conf = sln_setting.split('|')[0]
         arch = sln_setting.split('|')[1]
-        length = len('$<$<CONFIG:{0}>'.format(conf))
-        if length > width:
-            width = length
+        length = len('$<CONFIG:{0}>'.format(conf))
+        if length > max_config_condition_width:
+            max_config_condition_width = length
         if arch not in settings_of_arch:
             settings_of_arch[arch] = {}
         settings_of_arch[arch][sln_setting] = sln_setting
@@ -174,11 +185,13 @@ def write_property_of_settings(cmake_file, settings, sln_setting_2_project_setti
                         cmake_file.write('{0}    {1}\n'.format(indent, begin_text))
                         has_property_value = True
                     property_value = mapped_setting[property_name]
-                    config_expr_begin = '$<CONFIG:{0}>'.format(sln_conf)
-                    config_expressions.append(config_expr_begin)
-                    cmake_file.write('{0}        {1:>{width}}:{2}>\n'
-                                     .format(indent, '$<' + config_expr_begin, property_value,
-                                             width=width))
+                    config_condition_expr = '$<CONFIG:{0}>'.format(sln_conf)
+                    config_expressions.append(config_condition_expr)
+                    write_setting_property_func(cmake_file,
+                                                indent,
+                                                config_condition_expr,
+                                                property_value,
+                                                max_config_condition_width)
         if has_property_value:
             if default:
                 cmake_file.write('{0}        $<$<NOT:$<OR:{1}>>:{2}>\n'
@@ -243,6 +256,44 @@ def remove_relative_from_path(path):
     return path
 
 
+def make_os_specific_shell_path(output):
+    variables_to_replace = [
+        '${CMAKE_SOURCE_DIR}',
+        '${CMAKE_CURRENT_SOURCE_DIR}',
+        '${OUT_DIR}'
+    ]
+    for var in variables_to_replace:
+        if var in output:
+            output = output.replace(var, '$<SHELL_PATH:{0}>'.format(var))
+
+    return output
+
+
+def replace_vs_vars_with_cmake_vars(output):
+    variables_to_replace = {
+        '$(SolutionDir)': '${CMAKE_SOURCE_DIR}\\',
+        '$(Platform)': '${CMAKE_VS_PLATFORM_NAME}',
+        '$(Configuration)': '$<CONFIG>',
+        '$(ConfigurationName)': '$<CONFIG>',
+        '$(ProjectDir)': '${CMAKE_CURRENT_SOURCE_DIR}\\',
+        '$(ProjectName)': '${PROJECT_NAME}',
+        '$(OutDir)': '${OUT_DIR}',
+        '$(TargetDir)': '${OUT_DIR}',
+        '$(TargetName)': '${TARGET_NAME}',
+    }
+
+    for var in variables_to_replace:
+        if var in output:
+            output = output.replace(var, variables_to_replace[var])
+
+    vs_variables_re = re.compile(r'(\$\(.*?\))')
+    vs_variables_matches = vs_variables_re.findall(output)
+    for vs_variable_match in vs_variables_matches:
+        message('Unknown variable: {0}'.format(vs_variable_match), 'warn')
+
+    return output
+
+
 def cleaning_output(output):
     """
     Clean Output string by remove VS Project Variables
@@ -253,20 +304,9 @@ def cleaning_output(output):
     :rtype: str
     """
 
-    variables_to_replace = {
-        '$(SolutionDir)': '${CMAKE_SOURCE_DIR}/',
-        '$(Platform)': '${CMAKE_VS_PLATFORM_NAME}',
-        '$(Configuration)': '$<CONFIG>',
-        '$(ConfigurationName)': '$<CONFIG>',
-        '$(ProjectDir)': '${CMAKE_CURRENT_SOURCE_DIR}/',
-        '$(ProjectName)': '${PROJECT_NAME}'
-    }
+    output = replace_vs_vars_with_cmake_vars(output)
 
     output = set_unix_slash(output)
-
-    for var in variables_to_replace:
-        if var in output:
-            output = output.replace(var, variables_to_replace[var])
 
     output = remove_relative_from_path(output)
     # TODO: Next action is strange. turned off

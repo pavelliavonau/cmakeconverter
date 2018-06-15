@@ -54,6 +54,8 @@ class DataConverter(object):
             context.dependencies.find_target_additional_dependencies(context)
             context.dependencies.find_target_additional_library_directories(context)
             context.dependencies.find_target_property_sheets(context)
+            context.dependencies.find_target_pre_build_events(context)
+            context.dependencies.find_target_post_build_events(context)
             context.dependencies.find_target_dependency_packages(context)
 
     def write_data(self, context, cmake_file):
@@ -91,6 +93,8 @@ class DataConverter(object):
             context.dependencies.write_include_directories(context, cmake_file)
             context.flags.write_defines(context, cmake_file)
             context.flags.write_flags(context, cmake_file)
+            context.dependencies.write_target_pre_build_events(context, cmake_file)
+            context.dependencies.write_target_post_build_events(context, cmake_file)
             if (context.target_references or
                     context.add_lib_deps or
                     context.add_lib_dirs or

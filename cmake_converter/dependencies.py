@@ -32,7 +32,8 @@ import re
 from cmake_converter.data_files import get_vcxproj_data, get_xml_data, get_propertygroup
 from cmake_converter.utils import get_global_project_name_from_vcxproj_file, normalize_path, message
 from cmake_converter.utils import write_property_of_settings, cleaning_output, write_comment
-from cmake_converter.utils import is_settings_has_data
+from cmake_converter.utils import is_settings_has_data, replace_vs_vars_with_cmake_vars, \
+    make_os_specific_shell_path
 
 
 class Dependencies(object):
@@ -58,6 +59,14 @@ class Dependencies(object):
 
     @staticmethod
     def find_target_dependency_packages(context):
+        pass
+
+    @staticmethod
+    def find_target_pre_build_events(context):
+        pass
+
+    @staticmethod
+    def find_target_post_build_events(context):
         pass
 
     @staticmethod
@@ -254,6 +263,51 @@ class Dependencies(object):
             cmake_file.write(
                 'use_package(${{PROJECT_NAME}} {0} {1})\n'.format(package[0], package[1])
             )
+
+    @staticmethod
+    def write_build_event_of_setting(cmake_file, indent, config_condition_expr, property_value,
+                                     width):
+        for command in property_value:
+            cmake_file.write('{0}        COMMAND {1:>{width}} {2}\n'
+                             .format(indent, config_condition_expr, command,
+                                     width=width))
+
+    @staticmethod
+    def __write_target_build_events(context, cmake_file, comment, value_name, event_type):
+        has_post_build_events = is_settings_has_data(context.sln_configurations_map,
+                                                     context.settings,
+                                                     value_name)
+        if has_post_build_events:
+            write_comment(cmake_file, comment)
+            write_property_of_settings(
+                cmake_file, context.settings, context.sln_configurations_map,
+                'add_custom_command_if(\n'
+                '        TARGET ${{PROJECT_NAME}}\n'
+                '        {0}'.format(event_type), ')',
+                value_name,
+                '',
+                None,
+                Dependencies.write_build_event_of_setting
+            )
+            cmake_file.write('\n')
+
+    def write_target_pre_build_events(self, context, cmake_file):
+        self.__write_target_build_events(
+            context,
+            cmake_file,
+            'Pre build events',
+            'pre_build_events',
+            'PRE_BUILD'
+        )
+
+    def write_target_post_build_events(self, context, cmake_file):
+        self.__write_target_build_events(
+            context,
+            cmake_file,
+            'Post build events',
+            'post_build_events',
+            'POST_BUILD'
+        )
 
 
 class VCXDependencies(Dependencies):
@@ -482,6 +536,42 @@ class VCXDependencies(Dependencies):
                                                 package_version,
                                                 setting,
                                                 ext_property_node[0].text), '')
+
+    @staticmethod
+    def __find_target_build_events(context, tree_xpath, value_name, event_type):
+        for setting in context.settings:
+            build_events = context.vcxproj['tree'].xpath(
+                tree_xpath.format(context.definition_groups[setting]),
+                namespaces=context.vcxproj['ns']
+            )
+            context.settings[setting][value_name] = []
+            for build_event_node in build_events:
+                for build_event in build_event_node.text.split('\n'):
+                    build_event = build_event.strip()
+                    if build_event:
+                        cmake_build_event = replace_vs_vars_with_cmake_vars(build_event)
+                        cmake_build_event = cmake_build_event.replace('\\', '\\\\')
+                        cmake_build_event = make_os_specific_shell_path(cmake_build_event)
+                        context.settings[setting][value_name] \
+                            .append(cmake_build_event)
+                        message('{0} event for {1}: {2}'
+                                .format(event_type, setting, cmake_build_event), 'info')
+
+    def find_target_pre_build_events(self, context):
+        self.__find_target_build_events(
+            context,
+            '{0}/ns:PreBuildEvent/ns:Command',
+            'pre_build_events',
+            'Pre build'
+        )
+
+    def find_target_post_build_events(self, context):
+        self.__find_target_build_events(
+            context,
+            '{0}/ns:PostBuildEvent/ns:Command',
+            'post_build_events',
+            'Post build'
+        )
 
 
 class VFDependencies(Dependencies):

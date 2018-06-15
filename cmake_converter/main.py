@@ -29,6 +29,7 @@ import argparse
 import re
 import os
 import copy
+import shutil
 
 from cmake_converter.data_converter import DataConverter
 from cmake_converter.context import VCXContextInitializer, VFContextInitializer, Context
@@ -322,6 +323,13 @@ def main():  # pragma: no cover
         sln_cmake.write('function(use_package TARGET PACKAGE VERSION)\n')
         sln_cmake.write('    message(WARNING "No implementation of use_package. Create yours.")\n')
         sln_cmake.write('endfunction()\n\n')
+
+        write_comment(sln_cmake, 'Common utils')
+        sln_cmake.write('include(CMake/Utils.cmake)\n\n')
+        utils_path = os.path.join(solution_path, 'CMake')
+        if not os.path.exists(utils_path):
+            os.makedirs(utils_path)
+        shutil.copyfile('utils.cmake', utils_path + '/Utils.cmake')
 
         write_comment(sln_cmake, 'Additional Global Settings(add specific info there)')
         sln_cmake.write('include(CMake/GlobalSettingsInclude.cmake OPTIONAL)\n\n')
