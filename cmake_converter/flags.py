@@ -287,7 +287,7 @@ class CPPFlags(Flags):
                         context.settings[setting][defines].append('_UNICODE')
                     if 'MultiByte' in character_set[0].text:
                         context.settings[setting][defines].append('_MBCS')
-                message('PreprocessorDefinitions for {0}'.format(setting), '')
+                message('PreprocessorDefinitions for {0} are '.format(setting), '')
 
     def do_precompiled_headers(self, context):
         """
@@ -428,17 +428,18 @@ class CPPFlags(Flags):
             if flag_text in flag_values:
                 values = flag_values[flag_text]
 
-        flags_message = ''
+        flags_message = {}
         if values is not None:
             for key in values:
                 value = values[key]
                 if key not in context.settings[setting]:
                     context.settings[setting][key] = []
                 context.settings[setting][key].append(value)
-                flags_message += value
+                flags_message[key] = value
 
-        flag_name = xpath.split(':')[-1]
-        message('{0} for {1} is {2} '.format(flag_name, setting, flags_message), '')
+        if flags_message:
+            flag_name = xpath.split(':')[-1]
+            message('{0} for {1} is {2} '.format(flag_name, setting, flags_message), '')
 
         return flag_text
 
@@ -678,7 +679,8 @@ class CPPFlags(Flags):
                     cl_flag_value = m_t
                 if 'MultiThreadedDebug' == mdd_value.text:
                     cl_flag_value = mtd
-                message('RuntimeLibrary {0} for {1}'.format(mdd_value.text, setting), '')
+                message('RuntimeLibrary {0} for {1} is {2}'
+                        .format(mdd_value.text, setting, cl_flag_value), '')
             else:
                 cl_flag_value = m_d  # TODO: investigate what is default?
                 message('Default RuntimeLibrary {0} for {1} but may be error. Check!'
@@ -1084,16 +1086,17 @@ class FortranFlags(Flags):
             if flag_text in flag_values:
                 values = flag_values[flag_text]
 
-            flags_message = ''
+            flags_message = {}
             if values is not None:
                 for key in values:
                     value = values[key]
                     if key not in context.settings[setting]:
                         context.settings[setting][key] = []
                     context.settings[setting][key].append(value)
-                    flags_message += value
+                    flags_message[key] = value
 
-            message('{0} for {1} is {2} '.format(attr, setting, flags_message), '')
+            if flags_message:
+                message('{0} for {1} is {2} '.format(attr, setting, flags_message), '')
 
     def define_flags(self, context):
         """
