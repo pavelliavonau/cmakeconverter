@@ -66,6 +66,10 @@ class Dependencies(object):
         pass
 
     @staticmethod
+    def find_target_pre_link_events(context):
+        pass
+
+    @staticmethod
     def find_target_post_build_events(context):
         pass
 
@@ -298,6 +302,15 @@ class Dependencies(object):
             'Pre build events',
             'pre_build_events',
             'PRE_BUILD'
+        )
+
+    def write_target_pre_link_events(self, context, cmake_file):
+        self.__write_target_build_events(
+            context,
+            cmake_file,
+            'Pre link events',
+            'pre_link_events',
+            'PRE_LINK'
         )
 
     def write_target_post_build_events(self, context, cmake_file):
@@ -563,6 +576,14 @@ class VCXDependencies(Dependencies):
             '{0}/ns:PreBuildEvent/ns:Command',
             'pre_build_events',
             'Pre build'
+        )
+
+    def find_target_pre_link_events(self, context):
+        self.__find_target_build_events(
+            context,
+            '{0}/ns:PreLinkEvent/ns:Command',
+            'pre_link_events',
+            'Pre link'
         )
 
     def find_target_post_build_events(self, context):

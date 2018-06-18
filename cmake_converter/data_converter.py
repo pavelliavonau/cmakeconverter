@@ -55,6 +55,7 @@ class DataConverter(object):
             context.dependencies.find_target_additional_library_directories(context)
             context.dependencies.find_target_property_sheets(context)
             context.dependencies.find_target_pre_build_events(context)
+            context.dependencies.find_target_pre_link_events(context)
             context.dependencies.find_target_post_build_events(context)
             context.dependencies.find_target_dependency_packages(context)
 
@@ -94,6 +95,7 @@ class DataConverter(object):
             context.flags.write_defines(context, cmake_file)
             context.flags.write_flags(context, cmake_file)
             context.dependencies.write_target_pre_build_events(context, cmake_file)
+            context.dependencies.write_target_pre_link_events(context, cmake_file)
             context.dependencies.write_target_post_build_events(context, cmake_file)
             if (context.target_references or
                     context.add_lib_deps or
