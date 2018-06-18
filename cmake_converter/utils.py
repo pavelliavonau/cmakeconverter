@@ -29,8 +29,10 @@ import os
 import glob
 import colorama
 import re
+import time
 
 path_prefix = ''
+time0 = 0
 
 if 'PYCHARM_HOSTED' in os.environ:
     convert = False  # in PyCharm, we should disable convert
@@ -372,16 +374,20 @@ def message(text, status):  # pragma: no cover
     :type status: str
     """
 
+    current_time = time.time()
+    global time0
+    delta_time = current_time - time0
+    dt = '{0:f} '.format(delta_time)
     if status == 'error':
-        print('ERR  : ' + FAIL + text + ENDC)
+        print(dt + 'ERR  : ' + FAIL + text + ENDC)
     elif status == 'warn':
-        print('WARN : ' + WARN + text + ENDC)
+        print(dt + 'WARN : ' + WARN + text + ENDC)
     elif status == 'ok':
-        print('OK   : ' + OK + text + ENDC)
+        print(dt + 'OK   : ' + OK + text + ENDC)
     elif status == 'done':
-        print(DONE + text + ENDC)
+        print(dt + DONE + text + ENDC)
     else:
-        print('INFO : ' + text)
+        print(dt + 'INFO : ' + text)
 
 
 def write_comment(cmake_file, text):
@@ -403,3 +409,8 @@ def write_comment(cmake_file, text):
     cmake_file.write(title_line + '\n')
     cmake_file.write('# {0}\n'.format(text))
     cmake_file.write(title_line + '\n')
+
+
+def reset_zero_time():
+    global time0
+    time0 = time.time()

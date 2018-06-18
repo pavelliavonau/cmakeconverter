@@ -34,7 +34,7 @@ import shutil
 from cmake_converter.data_converter import DataConverter
 from cmake_converter.context import VCXContextInitializer, VFContextInitializer, Context
 from cmake_converter.data_files import get_cmake_lists
-from cmake_converter.utils import set_unix_slash, message, write_comment
+from cmake_converter.utils import set_unix_slash, message, write_comment, reset_zero_time
 
 
 def convert_project(context, xml_project_path, cmake_lists_destination_path):
@@ -151,6 +151,8 @@ def main():  # pragma: no cover
     Define arguments and message to DataConverter()
 
     """
+
+    reset_zero_time()
 
     usage = "cmake-converter -p <vcxproj> [-c | -a | -D | -O | -i | -std | -dry]"
     # Init parser
@@ -346,6 +348,8 @@ def main():  # pragma: no cover
                 set_unix_slash(subdirectory), binary_dir))
         sln_cmake.write('\n')
         sln_cmake.close()
+
+        message('Convertion finished', 'done')
 
 
 if __name__ == "__main__":  # pragma: no cover
