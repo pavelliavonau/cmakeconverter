@@ -127,7 +127,8 @@ class ProjectVariables(object):
             '${PROJECT_NAME}'
         )
         cmake_file.write(
-            'set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME ${TARGET_NAME})\n\n'
+            'set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME ${TARGET_NAME})\n'
+            'set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "")\n\n'
         )
 
 
