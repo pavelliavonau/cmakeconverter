@@ -1124,6 +1124,7 @@ class FortranFlags(Flags):
         self.set_init_local_var_to_nan(context)
         self.set_floating_point_exception_handling(context)
         self.set_extend_single_precision_constants(context)
+        self.set_floating_point_stack_check(context)
         self.set_external_name_interpretation(context)
         self.set_string_length_arg_passing(context)
         self.set_external_name_underscore(context)
@@ -1135,6 +1136,15 @@ class FortranFlags(Flags):
         self.set_additional_options(context)
 
         self.set_assume_with_params(context)
+
+    def set_floating_point_stack_check(self, context):
+        flag_values = {
+            'true': {ifort_cl_win: '-Qfp-stack-check',
+                     ifort_cl_unix: '-fp-stack-check'},
+            'false': {},
+            default_value: {}
+        }
+        self.set_flag(context, 'VFFortranCompilerTool', 'FloatingPointStackCheck', flag_values)
 
     @staticmethod
     def set_assume_with_params(context):
@@ -1458,6 +1468,13 @@ class FortranFlags(Flags):
         self.set_flag(context, 'VFFortranCompilerTool', 'RealKIND', flag_values)
 
     @staticmethod
+    def __get_no_prefix(unix_option):
+        no = ''
+        if unix_option[-1:] == '-':
+            no = '-no'
+        return no
+
+    @staticmethod
     def set_additional_options(context):
         """
         Set Additional options
@@ -1482,13 +1499,18 @@ class FortranFlags(Flags):
                     if 'gen-interfaces' in unix_option:
                         pass
                     elif 'Qprec-div' in unix_option:
-                        unix_option = unix_option.replace('Qprec-div', 'prec-div')
+                        unix_option = FortranFlags.__get_no_prefix(unix_option) + '-prec-div'
                     elif '-static' == unix_option:
                         pass
                     elif 'Qprof-dir' in unix_option:
                         unix_option = unix_option.replace('Qprof-dir', 'prof-dir')
                     elif 'Qprof-use' in unix_option:
                         unix_option = unix_option.replace('Qprof-use', 'prof-use')
+                    elif 'Qprec-sqrt' in unix_option:
+                        unix_option = FortranFlags.__get_no_prefix(unix_option) + '-prec-sqrt'
+                    elif 'Qopenmp-lib' in unix_option:
+                        unix_option = unix_option.replace('Qopenmp-lib', 'openmp-lib')
+                        unix_option = unix_option.replace('lib ', 'lib=')
                     else:
                         message('Unix ifort option "{0}" may be incorrect. '
                                 'Check it and set it with visual studio UI if possible.'
