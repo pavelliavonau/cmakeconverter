@@ -259,14 +259,15 @@ def remove_relative_from_path(path):
 
 
 def make_os_specific_shell_path(output):
-    variables_to_replace = [
-        '${CMAKE_SOURCE_DIR}',
-        '${CMAKE_CURRENT_SOURCE_DIR}',
-        '${OUT_DIR}'
-    ]
+    variables_to_replace = {
+        '$(SolutionDir)': '${CMAKE_SOURCE_DIR}/',
+        '$(ProjectDir)': '${CMAKE_CURRENT_SOURCE_DIR}/',
+        '$(OutDir)': '${OUT_DIR}',
+        '$(TargetPath)': '$<TARGET_FILE:${PROJECT_NAME}>',
+    }
     for var in variables_to_replace:
         if var in output:
-            output = output.replace(var, '$<SHELL_PATH:{0}>'.format(var))
+            output = output.replace(var, '$<SHELL_PATH:{0}>'.format(variables_to_replace[var]))
 
     return output
 
@@ -282,6 +283,7 @@ def replace_vs_vars_with_cmake_vars(output):
         '$(OutDir)': '${OUT_DIR}',
         '$(TargetDir)': '${OUT_DIR}',
         '$(TargetName)': '${TARGET_NAME}',
+        '$(TargetPath)': '$<TARGET_FILE:${PROJECT_NAME}>',
     }
 
     for var in variables_to_replace:
