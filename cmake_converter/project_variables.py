@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# Copyright (c) 2016-2017:
+# Copyright (c) 2016-2018:
 #   Matthieu Estrada, ttamalfor@gmail.com
+#   Pavel Liavonau, liavonlida@gmail.com
 #
 # This file is part of (CMakeConverter).
 #
@@ -25,9 +26,8 @@
      Manage creation of CMake variables that will be used during compilation
 """
 
-from cmake_converter.data_files import get_propertygroup
 from cmake_converter.utils import get_configuration_type, write_property_of_settings
-from cmake_converter.utils import cleaning_output, message, write_comment
+from cmake_converter.utils import message, write_comment
 
 
 class ProjectVariables(object):
@@ -130,115 +130,3 @@ class ProjectVariables(object):
             'set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME ${TARGET_NAME})\n'
             'set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "")\n\n'
         )
-
-
-class VCXProjectVariables(ProjectVariables):
-    """
-        Class who defines all the CMake variables to be used by the C/C++ project
-    """
-
-    @staticmethod
-    def find_outputs_variables(context):
-        """
-        Add Outputs Variables
-
-        """
-
-        vs_outputs = {}
-
-        for setting in context.settings:
-            prop = get_propertygroup(setting)
-            conf = context.settings[setting]['conf']
-            arch = context.settings[setting]['arch']
-            if conf not in vs_outputs:
-                vs_outputs[conf] = {}
-            if arch not in vs_outputs[conf]:
-                vs_outputs[conf][arch] = None
-
-            if not vs_outputs[conf][arch]:
-                vs_outputs[conf][arch] = context.vcxproj['tree'].find(
-                    '%s/ns:OutDir' % prop, namespaces=context.vcxproj['ns']
-                )
-                if vs_outputs[conf][arch] is None:
-                    vs_output = context.vcxproj['tree'].xpath(
-                        '//ns:PropertyGroup[@Label="UserMacros"]/ns:OutDir',
-                        namespaces=context.vcxproj['ns'])
-                    if vs_output:
-                        vs_outputs[conf][arch] = vs_output[0]
-                if vs_outputs[conf][arch] is None:
-                    vs_output = context.vcxproj['tree'].xpath(
-                        '//ns:OutDir[@Condition="\'$(Configuration)|$(Platform)\'==\'{0}\'"]'
-                        .format(setting), namespaces=context.vcxproj['ns'])
-                    if vs_output:
-                        vs_outputs[conf][arch] = vs_output[0]
-
-            output_name = '$(ProjectName)'  # default
-            output_name_node = context.vcxproj['tree'].find(
-                '{0}/ns:TargetName'.format(prop), namespaces=context.vcxproj['ns']
-            )
-            if output_name_node is not None:
-                output_name = output_name_node.text
-            context.settings[setting]['output_name'] = cleaning_output(output_name)
-
-        for setting in context.settings:
-            conf = context.settings[setting]['conf']
-            arch = context.settings[setting]['arch']
-
-            output_path = '$(SolutionDir)$(Platform)/$(Configuration)/'  # default value
-
-            if not context.cmake_output:
-                    if vs_outputs[conf][arch] is not None:
-                        output_path = cleaning_output(vs_outputs[conf][arch].text)
-                    else:
-                        output_path = cleaning_output(output_path)
-            else:
-                if context.cmake_output[-1:] == '/' or context.cmake_output[-1:] == '\\':
-                    build_type = '${CMAKE_BUILD_TYPE}'
-                else:
-                    build_type = '/${CMAKE_BUILD_TYPE}'
-                output_path = context.cmake_output + build_type
-
-            output_path = output_path.strip().replace('\n', '')
-            context.settings[setting]['out_dir'] = output_path
-
-            if output_path:
-                message('Output {0} = {1}'.format(setting, output_path), '')
-            else:  # pragma: no cover
-                message('No Output found. Use [{0}/bin] by default !'.format(arch), 'warn')
-
-
-class VFProjectVariables(ProjectVariables):
-    """
-         Class who defines all the CMake variables to be used by the Fortran project
-    """
-
-    @staticmethod
-    def find_outputs_variables(context):
-        """
-             Add Outputs Variables
-        """
-
-        for setting in context.settings:
-            arch = context.settings[setting]['arch']
-
-            output_path = '$(SolutionDir)$(Platform)/$(Configuration)/'  # default value
-
-            if not context.cmake_output:
-                if 'out_dir' in context.settings[setting]:
-                    output_path = cleaning_output(context.settings[setting]['out_dir'])
-                else:
-                    output_path = cleaning_output(output_path)
-            else:
-                if context.cmake_output[-1:] == '/' or context.cmake_output[-1:] == '\\':
-                    build_type = '${CMAKE_BUILD_TYPE}'
-                else:
-                    build_type = '/${CMAKE_BUILD_TYPE}'
-                output_path = context.cmake_output + build_type
-
-            output_path = output_path.strip().replace('\n', '')
-            context.settings[setting]['out_dir'] = output_path
-
-            if output_path:
-                message('Output {0} = {1}'.format(setting, output_path), '')
-            else:  # pragma: no cover
-                message('No Output found. Use [{0}/bin] by default !'.format(arch), 'warn')

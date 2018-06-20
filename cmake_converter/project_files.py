@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# Copyright (c) 2016-2017:
+# Copyright (c) 2016-2018:
 #   Matthieu Estrada, ttamalfor@gmail.com
+#   Pavel Liavonau, liavonlida@gmail.com
 #
 # This file is part of (CMakeConverter).
 #

@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-# Copyright (c) 2016-2017:
+# Copyright (c) 2016-2018:
 #   Matthieu Estrada, ttamalfor@gmail.com
+#   Pavel Liavonau, liavonlida@gmail.com
 #
 # This file is part of (CMakeConverter).
 #
@@ -32,7 +33,9 @@ import copy
 import shutil
 
 from cmake_converter.data_converter import DataConverter
-from cmake_converter.context import VCXContextInitializer, VFContextInitializer, Context
+from cmake_converter.context import Context
+from cmake_converter.visual_studio.vcxproj.context import VCXContextInitializer
+from cmake_converter.visual_studio.vfproj.context import VFContextInitializer
 from cmake_converter.data_files import get_cmake_lists
 from cmake_converter.utils import set_unix_slash, message, write_comment, reset_zero_time
 

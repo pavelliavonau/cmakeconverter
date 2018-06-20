@@ -22,13 +22,8 @@
 
 import os
 
-from cmake_converter.data_files import get_vcxproj_data, get_cmake_lists, get_propertygroup
-from cmake_converter.data_files import get_definitiongroup, get_xml_data
+from cmake_converter.data_files import get_cmake_lists
 
-from cmake_converter.dependencies import VCXDependencies, VFDependencies
-from cmake_converter.flags import CPPFlags, FortranFlags
-from cmake_converter.project_files import ProjectFiles
-from cmake_converter.project_variables import VCXProjectVariables, VFProjectVariables
 from cmake_converter.utils import message
 import cmake_converter.utils
 
@@ -177,104 +172,4 @@ class ContextInitializer(object):
             context.cmake = None
 
 
-class VCXContextInitializer(ContextInitializer):
-    def __init__(self, context, xml_project_path, cmake_lists_destination_path):
-        ContextInitializer.__init__(self, context, xml_project_path, cmake_lists_destination_path)
-        context.variables = VCXProjectVariables()
-        context.files = ProjectFiles()
-        context.flags = CPPFlags()
-        context.dependencies = VCXDependencies()
 
-    def init_context(self, context, vs_project):
-        """
-        Initialize context for given VS project
-
-        :param context: converter context
-        :type context: Context
-        :param vs_project: VS project path (.vcxproj)
-        :type vs_project: str
-        """
-
-        project_name = context.project_name
-        context.vcxproj = get_vcxproj_data(vs_project)
-        project_name_value = \
-            cmake_converter.utils.get_global_project_name_from_vcxproj_file(context.vcxproj)
-        if project_name_value:
-            project_name = project_name_value
-        context.project_name = project_name
-
-    def define_settings(self, context):
-        """
-        Define the settings of vcxproj
-
-        """
-
-        tree = context.vcxproj['tree']
-        ns = context.vcxproj['ns']
-        configuration_nodes = tree.xpath('//ns:ProjectConfiguration', namespaces=ns)
-        if configuration_nodes:
-            for configuration_node in configuration_nodes:
-                configuration_data = str(configuration_node.get('Include'))
-                if configuration_data not in context.sln_configurations_map:
-                    continue
-                self.init_context_setting(context, configuration_data)
-                context.property_groups[configuration_data] = get_propertygroup(
-                    configuration_data, ' and @Label="Configuration"'
-                )
-                context.definition_groups[configuration_data] = get_definitiongroup(
-                    configuration_data
-                )
-
-
-class VFContextInitializer(ContextInitializer):
-    def __init__(self, context, xml_project_path, cmake_lists_destination_path):
-        ContextInitializer.__init__(self, context, xml_project_path, cmake_lists_destination_path)
-        context.variables = VFProjectVariables()
-        context.files = ProjectFiles()
-        context.flags = FortranFlags()
-        context.dependencies = VFDependencies()
-
-    def init_context(self, context, vs_project):
-        """
-        Initialize context for given VS project
-
-        :param context: converter context
-        :type context: Context
-        :param vs_project: VS project path (.vcxproj)
-        :type vs_project: str
-        """
-
-        context.vcxproj = get_xml_data(vs_project)
-
-    def define_settings(self, context):
-        """
-        Define the settings of vfproj
-
-        """
-
-        tree = context.vcxproj['tree']
-        configuration_nodes = tree.xpath('/VisualStudioProject/Configurations/Configuration')
-        if configuration_nodes:
-            for configuration_node in configuration_nodes:
-                configuration_data = str(configuration_node.get('Name'))
-                self.init_context_setting(context, configuration_data)
-
-                out_dir_node = configuration_node.get('OutputDirectory')
-                if out_dir_node:
-                    context.settings[configuration_data]['out_dir'] = out_dir_node
-
-                target_name_node = configuration_node.get('TargetName')
-                if target_name_node:
-                    context.settings[configuration_data]['output_name'] = target_name_node
-                else:
-                    context.settings[configuration_data]['output_name'] = \
-                        context.project_name
-
-                tools = configuration_node.xpath('Tool')
-                for tool in tools:
-                    tool_name = str(tool.get('Name'))
-                    context.settings[configuration_data][tool_name] = tool.attrib
-                    if 'VFFortranCompilerTool' in tool_name:
-                        if 'PreprocessorDefinitions' in tool.attrib:
-                            context.settings[configuration_data]['defines'] = \
-                                tool.attrib['PreprocessorDefinitions'].split(';')
