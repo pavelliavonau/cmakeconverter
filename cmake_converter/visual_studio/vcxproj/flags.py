@@ -115,7 +115,7 @@ class CPPFlags(Flags):
                 character_set = context.vcxproj['tree'].xpath(
                     '{0}/ns:CharacterSet'.format(context.property_groups[setting]),
                     namespaces=context.vcxproj['ns'])
-                if character_set is not None:
+                if character_set:
                     if 'Unicode' in character_set[0].text:
                         context.settings[setting][defines].append('UNICODE')
                         context.settings[setting][defines].append('_UNICODE')
