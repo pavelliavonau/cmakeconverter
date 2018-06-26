@@ -116,12 +116,13 @@ class Dependencies(object):
 
         working_path = os.path.dirname(context.vcxproj_path)
         inc_dir = aid_text.replace('$(ProjectDir)', './')
-        inc_dir = inc_dir.replace(';%(AdditionalIncludeDirectories)', '')
+        inc_dir = inc_dir.replace('%(AdditionalIncludeDirectories)', '')
         dirs = []
         for i in inc_dir.split(';'):
-            i = normalize_path(working_path, i)
-            i = re.sub(r'\$\((.+?)\)', r'$ENV{\1}', i)
-            dirs.append(i)
+            if i:
+                i = normalize_path(working_path, i)
+                i = re.sub(r'\$\((.+?)\)', r'$ENV{\1}', i)
+                dirs.append(i)
         inc_dirs = ';'.join(dirs)
         context.settings[setting]['inc_dirs'] = inc_dirs
 
