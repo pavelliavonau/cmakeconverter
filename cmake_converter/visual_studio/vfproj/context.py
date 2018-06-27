@@ -25,7 +25,7 @@ from cmake_converter.data_files import get_xml_data
 
 from .dependencies import VFDependencies
 from .flags import FortranFlags
-from cmake_converter.project_files import ProjectFiles
+from .project_files import VFProjectFiles
 from .project_variables import VFProjectVariables
 
 
@@ -33,7 +33,7 @@ class VFContextInitializer(ContextInitializer):
     def __init__(self, context, xml_project_path, cmake_lists_destination_path):
         ContextInitializer.__init__(self, context, xml_project_path, cmake_lists_destination_path)
         context.variables = VFProjectVariables()
-        context.files = ProjectFiles()
+        context.files = VFProjectFiles()
         context.flags = FortranFlags()
         context.dependencies = VFDependencies()
 

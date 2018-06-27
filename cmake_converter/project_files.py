@@ -40,11 +40,18 @@ class ProjectFiles(object):
     def __init__(self):
         self.languages = []
 
-    def __get_info_from_file_nodes(self, context, context_files, files_nodes, file_node_attr,
-                                   file_lists):
+    def get_source_files_descriptors(self, context):
+        return []
+
+    def __get_info_from_file_nodes(self, context, descriptor, file_lists):
         """
 
         """
+
+        context_files = descriptor[0]
+        files_nodes = descriptor[1]
+        file_node_attr = descriptor[2]
+
         vcxproj_dir = os.path.dirname(context.vcxproj_path)
 
         for file_node in files_nodes:
@@ -72,43 +79,21 @@ class ProjectFiles(object):
 
         """
 
-        if '.vcxproj' in context.vcxproj_path:
-            source_files_nodes = context.vcxproj['tree'].xpath(
-                '//ns:ItemGroup/ns:ClCompile', namespaces=context.vcxproj['ns'])
-            header_files_nodes = context.vcxproj['tree'].xpath(
-                '//ns:ItemGroup/ns:ClInclude', namespaces=context.vcxproj['ns'])
-            file_node_attr = 'Include'
-        elif '.vfproj' in context.vcxproj_path:
-            source_files_nodes = context.vcxproj['tree'].xpath('//File')
-            header_files_nodes = []
-            file_node_attr = 'RelativePath'
-        else:
-            message("Unsupported project type in ProjectFiles class: {0}"
-                    .format(context.vcxproj_path), 'ERROR')
-            return
-
         file_lists = {}
 
-        self.__get_info_from_file_nodes(
-            context,
-            context.sources,
-            source_files_nodes,
-            file_node_attr,
-            file_lists
-        )
+        descriptors = self.get_source_files_descriptors(context)
 
-        self.__get_info_from_file_nodes(
-            context,
-            context.headers,
-            header_files_nodes,
-            file_node_attr,
-            file_lists
-        )
+        for descriptor in descriptors:
+            self.__get_info_from_file_nodes(
+                context,
+                descriptor,
+                file_lists
+            )
 
-        has_headers = True if header_files_nodes else False
+        has_headers = True if context.headers else False
         context.has_headers = has_headers
-        context.has_only_headers = True if has_headers and not source_files_nodes else False
-        message("Source files extensions found: %s" % self.languages, 'INFO')
+        context.has_only_headers = True if has_headers and not context.sources else False
+        message("Source files extensions found: {0}".format(self.languages), 'INFO')
 
     def find_cmake_project_language(self, context):
         """

@@ -25,7 +25,7 @@ from cmake_converter.data_files import get_vcxproj_data, get_propertygroup, get_
 
 from .dependencies import VCXDependencies
 from .flags import CPPFlags
-from cmake_converter.project_files import ProjectFiles
+from .project_files import VCXProjectFiles
 from .project_variables import VCXProjectVariables
 
 from cmake_converter.utils import get_global_project_name_from_vcxproj_file
@@ -35,7 +35,7 @@ class VCXContextInitializer(ContextInitializer):
     def __init__(self, context, xml_project_path, cmake_lists_destination_path):
         ContextInitializer.__init__(self, context, xml_project_path, cmake_lists_destination_path)
         context.variables = VCXProjectVariables()
-        context.files = ProjectFiles()
+        context.files = VCXProjectFiles()
         context.flags = CPPFlags()
         context.dependencies = VCXDependencies()
 
