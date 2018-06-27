@@ -288,7 +288,8 @@ class Dependencies(object):
                 cmake_file, context.settings, context.sln_configurations_map,
                 'add_custom_command_if(\n'
                 '        TARGET ${{PROJECT_NAME}}\n'
-                '        {0}'.format(event_type), ')',
+                '        {0}\n'
+                '        COMMANDS'.format(event_type), ')',
                 value_name,
                 '',
                 None,
