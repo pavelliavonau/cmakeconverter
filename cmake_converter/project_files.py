@@ -43,6 +43,9 @@ class ProjectFiles(object):
     def get_source_files_descriptors(self, context):
         return []
 
+    def parse_file_node_options(self, context, file_node, node_text):
+        pass
+
     def __get_info_from_file_nodes(self, context, descriptor, file_lists):
         """
 
@@ -70,6 +73,7 @@ class ProjectFiles(object):
                                                                 file_name)
                     if real_name:
                         context_files[file_path].append(real_name)
+                    self.parse_file_node_options(context, file_node, real_name)
         for file_path in context_files:
             context_files[file_path].sort(key=str.lower)
 

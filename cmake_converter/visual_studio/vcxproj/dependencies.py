@@ -25,8 +25,7 @@ import re
 
 from cmake_converter.dependencies import Dependencies
 from cmake_converter.data_files import get_xml_data, get_propertygroup
-from cmake_converter.utils import normalize_path, message, replace_vs_vars_with_cmake_vars, \
-    make_os_specific_shell_path
+from cmake_converter.utils import normalize_path, message, prepare_build_event_cmd_line_for_cmake
 
 
 class VCXDependencies(Dependencies):
@@ -268,9 +267,7 @@ class VCXDependencies(Dependencies):
                 for build_event in build_event_node.text.split('\n'):
                     build_event = build_event.strip()
                     if build_event:
-                        cmake_build_event = make_os_specific_shell_path(build_event)
-                        cmake_build_event = replace_vs_vars_with_cmake_vars(cmake_build_event)
-                        cmake_build_event = cmake_build_event.replace('\\', '\\\\')
+                        cmake_build_event = prepare_build_event_cmd_line_for_cmake(build_event)
                         context.settings[setting][value_name] \
                             .append(cmake_build_event)
                         message('{0} event for {1}: {2}'

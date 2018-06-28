@@ -36,3 +36,13 @@ class VFProjectFiles(ProjectFiles):
             ]
         ]
         return descriptors
+
+    def parse_file_node_options(self, context, file_node, node_text):
+        for file_configuration_node in file_node:
+            setting_name = file_configuration_node.get('Name')
+            if node_text not in context.file_spec_raw_options:
+                context.file_spec_raw_options[node_text] = {}
+            context.file_spec_raw_options[node_text][setting_name] = {}
+            for tool_node in file_configuration_node:
+                tool_name = tool_node.get('Name')
+                context.file_spec_raw_options[node_text][setting_name][tool_name] = tool_node.attrib

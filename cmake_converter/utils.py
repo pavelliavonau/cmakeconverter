@@ -120,7 +120,7 @@ def is_settings_has_data(sln_configurations_map, settings, settings_key, arch=No
 
 def write_property_of_setting(cmake_file, indent, config_condition_expr, property_value, width):
     config_width = width + 2  # for '$<'
-    cmake_file.write('{0}        {1:>{width}}:{2}>\n'
+    cmake_file.write('{0}    {1:>{width}}:{2}>\n'
                      .format(indent, '$<' + config_condition_expr, property_value,
                              width=config_width))
 
@@ -178,6 +178,7 @@ def write_property_of_settings(cmake_file, settings, sln_setting_2_project_setti
                              .format(indent, arch))
         first_arch = False
         has_property_value = False
+        command_indent = '    '
         config_expressions = []
         for sln_setting in settings_of_arch[arch]:
             sln_conf = sln_setting.split('|')[0]
@@ -185,21 +186,24 @@ def write_property_of_settings(cmake_file, settings, sln_setting_2_project_setti
             if property_name in mapped_setting:
                 if mapped_setting[property_name] != '':
                     if not has_property_value:
-                        cmake_file.write('{0}    {1}\n'.format(indent, begin_text))
+                        begin_text = begin_text.replace('\n', '\n' + indent + command_indent )
+                        cmake_file.write('{0}{1}\n'.format(indent + command_indent, begin_text))
                         has_property_value = True
                     property_value = mapped_setting[property_name]
                     config_condition_expr = '$<CONFIG:{0}>'.format(sln_conf)
                     config_expressions.append(config_condition_expr)
                     write_setting_property_func(cmake_file,
-                                                indent,
+                                                indent + command_indent,
                                                 config_condition_expr,
                                                 property_value,
                                                 max_config_condition_width)
         if has_property_value:
             if default:
-                cmake_file.write('{0}        $<$<NOT:$<OR:{1}>>:{2}>\n'
-                                 .format(indent, ','.join(config_expressions), default))
-            cmake_file.write('{0}    {1}\n'.format(indent, end_text))
+                cmake_file.write('{0}    $<$<NOT:$<OR:{1}>>:{2}>\n'
+                                 .format(indent + command_indent, ','.join(config_expressions),
+                                         default))
+            end_text = end_text.replace('\n', '\n' + indent + command_indent)
+            cmake_file.write('{0}{1}\n'.format(indent + command_indent, end_text))
     if not first_arch:
         cmake_file.write('{0}endif()\n'.format(indent))
 
@@ -365,6 +369,13 @@ def normalize_path(working_path, path_to_normalize):
     normal_path = remove_relative_from_path(normal_path)
 
     return normal_path
+
+
+def prepare_build_event_cmd_line_for_cmake(build_event):
+    cmake_build_event = make_os_specific_shell_path(build_event)
+    cmake_build_event = replace_vs_vars_with_cmake_vars(cmake_build_event)
+    cmake_build_event = cmake_build_event.replace('\\', '\\\\')
+    return cmake_build_event
 
 
 def message(text, status):  # pragma: no cover

@@ -74,6 +74,10 @@ class Dependencies(object):
         pass
 
     @staticmethod
+    def find_custom_build_events_of_files(context):
+        pass
+
+    @staticmethod
     def write_include_directories(context, cmake_file):
         """
         Write include directories of given context to given CMakeLists.txt file
@@ -270,32 +274,72 @@ class Dependencies(object):
             )
 
     @staticmethod
-    def write_build_event_of_setting(cmake_file, indent, config_condition_expr, property_value,
-                                     width):
+    def write_target_build_event_of_setting(cmake_file, indent, config_condition_expr,
+                                            property_value, width):
         for command in property_value:
-            cmake_file.write('{0}        COMMAND {1:>{width}} {2}\n'
+            cmake_file.write('{0}    COMMAND {1:>{width}} {2}\n'
                              .format(indent, config_condition_expr, command,
                                      width=width))
 
     @staticmethod
     def __write_target_build_events(context, cmake_file, comment, value_name, event_type):
-        has_post_build_events = is_settings_has_data(context.sln_configurations_map,
+        has_build_events = is_settings_has_data(context.sln_configurations_map,
                                                      context.settings,
                                                      value_name)
-        if has_post_build_events:
+        if has_build_events:
             write_comment(cmake_file, comment)
             write_property_of_settings(
                 cmake_file, context.settings, context.sln_configurations_map,
                 'add_custom_command_if(\n'
-                '        TARGET ${{PROJECT_NAME}}\n'
-                '        {0}\n'
-                '        COMMANDS'.format(event_type), ')',
+                '    TARGET ${{PROJECT_NAME}}\n'
+                '    {0}\n'
+                '    COMMANDS'.format(event_type), ')',
                 value_name,
                 '',
                 None,
-                Dependencies.write_build_event_of_setting
+                Dependencies.write_target_build_event_of_setting
             )
             cmake_file.write('\n')
+
+    @staticmethod
+    def write_file_build_event_of_setting(cmake_file, indent, config_condition_expr,
+                                          property_value, width):
+        # for command in property_value:
+        cmake_file.write('{0}    COMMAND {1:>{width}} {2}\n'
+                         .format(indent, config_condition_expr, property_value['command_line'],
+                                 width=width))
+
+    @staticmethod
+    def __write_file_custom_build_events(context, cmake_file, comment, value_name, event_type):
+        has_build_events = is_settings_has_data(context.sln_configurations_map,
+                                                     context.settings,
+                                                     value_name)
+        if has_build_events:
+            write_comment(cmake_file, comment)
+            files = {}
+            for setting in context.settings:
+                value_data = context.settings[setting][value_name]
+                for key in value_data:
+                    files[key] = [value_data[key]['outputs'], value_data[key]['description']]
+                    context.settings[setting][key] = value_data[key]
+
+            for file in files:
+                write_property_of_settings(
+                    cmake_file, context.settings, context.sln_configurations_map,
+                    'add_custom_command_if(\n'
+                    '    OUTPUT "{0}"\n'
+                    '    COMMANDS'.format(files[file][0]),
+                    '    DEPENDS "{0}"\n'
+                    '    COMMENT "{1}"\n)'.format(file, files[file][1]),
+                    file,
+                    '',
+                    None,
+                    Dependencies.write_file_build_event_of_setting
+                )
+                cmake_file.write('\n')
+                for setting in context.settings:
+                    if file in context.settings[setting]:
+                        context.settings[setting].pop(file, None)
 
     def write_target_pre_build_events(self, context, cmake_file):
         self.__write_target_build_events(
@@ -323,3 +367,13 @@ class Dependencies(object):
             'post_build_events',
             'POST_BUILD'
         )
+
+    def write_custom_build_events_of_files(self, context, cmake_file):
+        self.__write_file_custom_build_events(
+            context,
+            cmake_file,
+            'Custom build events of files',
+            'file_custom_build_events',
+            None
+        )
+
