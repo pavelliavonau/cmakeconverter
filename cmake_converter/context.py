@@ -74,6 +74,7 @@ class ContextInitializer(object):
     def __init__(self, context, vs_project, cmake_lists_destination_path):
         self.init_files(context, vs_project, cmake_lists_destination_path)
         self.define_settings(context)
+        self.__remove_unused_settings(context)
 
     def define_settings(self, context):
         """
@@ -82,6 +83,18 @@ class ContextInitializer(object):
         """
 
         raise NotImplementedError('You need to define a define_settings method!')
+
+    @staticmethod
+    def __remove_unused_settings(context):
+        mapped_configurations = set()
+        for sln_config in context.sln_configurations_map:
+            mapped_configurations.add(context.sln_configurations_map[sln_config])
+        settings_to_remove = []
+        for setting in context.settings:
+            if setting not in mapped_configurations:
+                settings_to_remove.append(setting)
+        for setting in settings_to_remove:
+            context.settings.pop(setting, None)
 
     def init_context(self, context, vs_project):
         """
