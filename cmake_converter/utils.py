@@ -32,7 +32,6 @@ import colorama
 import re
 import time
 
-path_prefix = ''
 time0 = 0
 
 if 'PYCHARM_HOSTED' in os.environ:
@@ -254,8 +253,6 @@ def remove_relative_from_path(path):
     :rtype: str
     """
 
-    if '${' not in path[:2]:
-        path = path_prefix + path
     if '.' in path[:1]:
         # add current directory for relative path (CMP0021)
         path = '${CMAKE_CURRENT_SOURCE_DIR}/' + path

@@ -22,10 +22,7 @@
 
 import os
 
-from cmake_converter.data_files import get_cmake_lists
-
 from cmake_converter.utils import message
-import cmake_converter.utils
 
 
 class Context(object):
@@ -139,14 +136,13 @@ class ContextInitializer(object):
         if vs_project:
             temp_path = os.path.splitext(vs_project)
             project_name = os.path.basename(temp_path[0])
-            message('Project to convert = ' + vs_project, '')
             context.project_name = project_name
             context.vcxproj_path = vs_project
             self.init_context(context, vs_project)
-            self.set_cmake_lists_name(context, cmake_lists, context.project_name)
+            self.set_cmake_lists_path(context, cmake_lists)
 
     @staticmethod
-    def set_cmake_lists_name(context, cmake_lists, project_name):
+    def set_cmake_lists_path(context, cmake_lists):
         """
         Set CMakeLists.txt path in context, for given project
 
@@ -154,36 +150,22 @@ class ContextInitializer(object):
         :type context: Context
         :param cmake_lists: path of CMakeLists related to project name
         :type cmake_lists: str
-        :param project_name: name of project
-        :type project_name: str
         """
+
+        context_cmake = None
 
         if cmake_lists:
             if os.path.exists(cmake_lists):
-                cmake = get_cmake_lists(cmake_lists, 'r')
-                cmake_converter.utils.path_prefix = ''
-                if cmake:
-                    file_text = cmake.read()
-                    cmake.close()
-                    if 'PROJECT_NAME {0}'.format(project_name) in file_text or file_text == '':
-                        context.cmake = cmake_lists  # updating
-                    else:
-                        directory = cmake_lists + '/{0}_cmakelists'.format(project_name)
-                        if not os.path.exists(directory):
-                            os.makedirs(directory)
-                        context.cmake = directory
-                        cmake_converter.utils.path_prefix = '../'
-                        message('CMakeLists will be written at subdirectory.', 'warn')
-                else:
-                    context.cmake = cmake_lists  # writing first time
-
-        if not context.cmake:
+                context_cmake = cmake_lists
+        if context_cmake is None:
             message(
                 'CMakeLists.txt path is not set. '
                 'He will be generated in current directory.',
                 'warn'
             )
-            context.cmake = None
+        if context:
+            context.cmake = context_cmake
 
+        return context_cmake
 
 

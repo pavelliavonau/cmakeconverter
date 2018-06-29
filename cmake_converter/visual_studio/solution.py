@@ -28,6 +28,7 @@ import shutil
 from .vcxproj.context import VCXContextInitializer
 from .vfproj.context import VFContextInitializer
 from cmake_converter.data_converter import DataConverter
+from cmake_converter.context import ContextInitializer
 from cmake_converter.data_files import get_cmake_lists
 from cmake_converter.utils import set_unix_slash, message, write_comment
 
@@ -141,6 +142,32 @@ def set_dependencies_for_project(context, project_data):
     context.sln_deps = project_data['sln_deps']
 
 
+def clean_cmake_lists_of_solution(context, solution_path, projects_data):
+    message('Cleaning CMake Scripts', '')
+    cmake_lists_set = set()
+    for guid in projects_data:
+        project_path = projects_data[guid]['path']
+        project_path = '/'.join(project_path.split('\\'))
+        project_abs = os.path.join(solution_path, project_path)
+        subdirectory = os.path.dirname(project_abs)
+        cmake_path_to_clean = \
+            ContextInitializer.set_cmake_lists_path(None, subdirectory) + '/CMakeLists.txt'
+
+        if context.dry:
+            continue
+
+        if cmake_path_to_clean in cmake_lists_set:
+            continue
+        cmake_lists_set.add(cmake_path_to_clean)
+
+        if os.path.exists(cmake_path_to_clean):
+            os.remove(cmake_path_to_clean)
+            message('removed {}'.format(cmake_path_to_clean), '')
+        else:
+            message('not found {}'.format(cmake_path_to_clean), 'warn')
+    print('\n')
+
+
 def convert_solution(initial_context, sln_path):
     initial_context.is_converting_solution = True
     sln = open(sln_path, encoding='utf8')
@@ -148,9 +175,10 @@ def convert_solution(initial_context, sln_path):
     sln.close()
 
     solution_path = os.path.dirname(sln_path)
-    subdirectories = []
+    subdirectories_set = set()
     subdirectories_to_project_name = {}
     projects_data = solution_data['projects_data']
+    clean_cmake_lists_of_solution(initial_context, solution_path, projects_data)
     for guid in projects_data:
         project_context = copy.deepcopy(initial_context)
         project_path = projects_data[guid]['path']
@@ -162,7 +190,7 @@ def convert_solution(initial_context, sln_path):
             projects_data[guid]['sln_configs_2_project_configs']
         convert_project(project_context, project_abs, subdirectory)
         subdirectory = os.path.relpath(project_context.cmake, solution_path)
-        subdirectories.append(subdirectory)
+        subdirectories_set.add(subdirectory)
         subdirectories_to_project_name[subdirectory] = project_context.project_name
         initial_context.solution_languages.update(project_context.solution_languages)
         print('\n')
@@ -249,6 +277,7 @@ def convert_solution(initial_context, sln_path):
 
     write_comment(sln_cmake, 'Sub-projects')
 
+    subdirectories = list(subdirectories_set)
     subdirectories.sort(key=str.lower)
     for subdirectory in subdirectories:
         binary_dir = ''

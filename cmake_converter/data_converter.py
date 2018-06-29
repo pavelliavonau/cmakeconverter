@@ -28,8 +28,9 @@
 
 from cmake_converter.data_files import get_cmake_lists
 from cmake_converter.flags import Flags
-from cmake_converter.utils import write_comment
+from cmake_converter.utils import write_comment, message
 from cmake_converter.context import Context
+import os
 
 
 class DataConverter(object):
@@ -117,10 +118,15 @@ class DataConverter(object):
 
         """
 
+        message('Project to convert = ' + context.vcxproj_path, '')
         self.collect_data(context)
         if context.dry:
             return
-        cmake_file = get_cmake_lists(context.cmake)
+        if os.path.exists(context.cmake + '/CMakeLists.txt'):
+            cmake_file = get_cmake_lists(context.cmake, 'a')
+            cmake_file.write('\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n')
+        else:
+            cmake_file = get_cmake_lists(context.cmake)
         self.write_data(context, cmake_file)
         cmake_file.close()
 
