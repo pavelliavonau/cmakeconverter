@@ -36,27 +36,6 @@ class ProjectVariables(object):
     """
 
     @staticmethod
-    def add_project_variables(context, cmake_file):
-        """
-        Add main CMake project variables
-
-        :param context: Converter context
-        :type context: Context
-        :param cmake_file: CMakeLists.txt IO wrapper
-        :type cmake_file: _io.TextIOWrapper
-        """
-
-        if not context.project_name == '':
-            cmake_file.write('set(PROJECT_NAME ' + context.project_name + ')\n')
-        else:
-            cmake_file.write('set(PROJECT_NAME <PLEASE SET YOUR PROJECT NAME !!>)\n')
-            message(
-                'No PROJECT NAME found or define. '
-                'Please set [PROJECT_NAME] variable in CMakeLists.txt.',
-                'error'
-            )
-
-    @staticmethod
     def add_default_target(cmake_file):
         """
         Add default target release if not define

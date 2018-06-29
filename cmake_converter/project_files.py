@@ -143,7 +143,14 @@ class ProjectFiles(object):
         lang = ''
         if context.project_language:
             lang = ' ' + context.project_language
-        cmake_file.write('project(${{PROJECT_NAME}}{0})\n\n'.format(lang))
+        if context.project_name == '':
+            message(
+                'No PROJECT NAME found or define. '
+                'Check it!!',
+                'error'
+            )
+
+        cmake_file.write('project({0}{1})\n\n'.format(context.project_name, lang))
 
     @staticmethod
     def write_header_files(context, cmake_file):

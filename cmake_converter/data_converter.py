@@ -75,7 +75,6 @@ class DataConverter(object):
         if not context.is_converting_solution:
             self.add_cmake_version_required(cmake_file)
 
-        context.variables.add_project_variables(context, cmake_file)
         context.files.write_cmake_project(context, cmake_file)
         # context.variables.add_default_target() # TODO: add conversion option to cmd line
 
