@@ -153,7 +153,7 @@ function(add_custom_command_if)
                 WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
                 COMMENT ${COMMENT})
             add_dependencies(${TARGET} ${NAME})
-        elseif()
+        else()
             add_custom_command(
                 TARGET ${TARGET}
                 ${STEP}
