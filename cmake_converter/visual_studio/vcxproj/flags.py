@@ -233,6 +233,7 @@ class CPPFlags(Flags):
         self.set_treatwchar_t_as_built_in_type(context)
         self.set_force_conformance_in_for_loop_scope(context)
         self.set_remove_unreferenced_code_data(context)
+        self.set_openmp_support(context)
 
     @staticmethod
     def set_flag(context, setting, xpath, flag_values):
@@ -353,6 +354,19 @@ class CPPFlags(Flags):
         for setting in context.settings:
             self.set_flag(context, setting,
                           '{0}/ns:ClCompile/ns:RemoveUnreferencedCodeData'
+                          .format(context.definition_groups[setting]), flag_values
+                          )
+
+    def set_openmp_support(self, context):
+        flag_values = {
+            'true': {cl_flags: '/openmp'},
+            'false': {cl_flags: ''},
+            default_value: {}
+        }
+
+        for setting in context.settings:
+            self.set_flag(context, setting,
+                          '{0}/ns:ClCompile/ns:OpenMPSupport'
                           .format(context.definition_groups[setting]), flag_values
                           )
 
