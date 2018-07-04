@@ -95,7 +95,7 @@ class Dependencies(object):
             write_comment(cmake_file, 'Include directories')
         write_property_of_settings(
             cmake_file, context.settings, context.sln_configurations_map,
-            'target_include_directories(${PROJECT_NAME} PRIVATE ', ')', 'inc_dirs'
+            'target_include_directories(${PROJECT_NAME} PUBLIC', ')', 'inc_dirs'
         )
         if has_includes:
             cmake_file.write('\n')
