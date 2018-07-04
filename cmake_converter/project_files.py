@@ -99,7 +99,7 @@ class ProjectFiles(object):
         context.has_only_headers = True if has_headers and not context.sources else False
         message("Source files extensions found: {0}".format(self.languages), 'INFO')
 
-    def find_cmake_project_language(self, context):
+    def find_cmake_project_languages(self, context):
         """
         Add CMake Project
 
@@ -113,21 +113,16 @@ class ProjectFiles(object):
         fortran_extensions = ['F90', 'F', 'f90', 'f', 'fi', 'FI']
         available_language.update(dict.fromkeys(fortran_extensions, 'Fortran'))
 
-        files_language = ''
-        if self.languages:
-            for l in self.languages:
-                if l in available_language:
-                    files_language = l
-                    break
-            if 'cpp' in self.languages:  # priority for C++ for mixes with C
-                files_language = 'cpp'
+        project_languages_set = set()
+        for l in self.languages:
+            if l in available_language:
+                project_languages_set.add(available_language[l])
 
-        project_language = ''
-        if files_language in available_language:
-            project_language = available_language[files_language]
-        if project_language:
+        project_languages = list(project_languages_set)
+        project_languages.sort()
+        for project_language in project_languages:
             context.solution_languages.add(project_language)
-        context.project_language = project_language
+        context.project_languages = project_languages
 
     @staticmethod
     def write_cmake_project(context, cmake_file):
@@ -141,8 +136,8 @@ class ProjectFiles(object):
         """
 
         lang = ''
-        if context.project_language:
-            lang = ' ' + context.project_language
+        if context.project_languages:
+            lang = ' ' + ' '.join(context.project_languages)
         if context.project_name == '':
             message(
                 'No PROJECT NAME found or define. '

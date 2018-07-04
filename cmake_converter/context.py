@@ -35,7 +35,7 @@ class Context(object):
         self.has_headers = False
         self.has_only_headers = False
         self.solution_languages = set()
-        self.project_language = ''
+        self.project_languages = []
         self.sln_deps = []
         self.target_references = []
         self.add_lib_deps = []
