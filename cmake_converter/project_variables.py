@@ -102,7 +102,7 @@ class ProjectVariables(object):
         write_property_of_settings(
             cmake_file, context.settings,
             context.sln_configurations_map,
-            'string(CONCAT TARGET_NAME', ')', 'output_name', '',
+            'string(CONCAT TARGET_NAME', ')', 'target_name', '',
             '${PROJECT_NAME}'
         )
         cmake_file.write(

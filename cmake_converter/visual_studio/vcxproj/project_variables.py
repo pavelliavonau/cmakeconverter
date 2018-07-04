@@ -65,13 +65,20 @@ class VCXProjectVariables(ProjectVariables):
                     if vs_output:
                         vs_outputs[conf][arch] = vs_output[0]
 
-            output_name = '$(ProjectName)'  # default
-            output_name_node = context.vcxproj['tree'].find(
+            target_name = '$(ProjectName)'  # default
+            target_name_node = context.vcxproj['tree'].find(
                 '{0}/ns:TargetName'.format(prop), namespaces=context.vcxproj['ns']
             )
-            if output_name_node is not None:
-                output_name = output_name_node.text
-            context.settings[setting]['output_name'] = cleaning_output(output_name)
+            if target_name_node is None:
+                target_name_node = context.vcxproj['tree'].find(
+                    '//ns:TargetName[@Condition="\'$(Configuration)|$(Platform)\'==\'{0}\'"]'
+                    .format(setting),
+                    namespaces=context.vcxproj['ns']
+                )
+
+            if target_name_node is not None:
+                target_name = target_name_node.text
+            context.settings[setting]['target_name'] = cleaning_output(target_name)
 
         for setting in context.settings:
             conf = context.settings[setting]['conf']

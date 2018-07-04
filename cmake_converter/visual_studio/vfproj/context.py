@@ -68,9 +68,9 @@ class VFContextInitializer(ContextInitializer):
 
                 target_name_node = configuration_node.get('TargetName')
                 if target_name_node:
-                    context.settings[configuration_data]['output_name'] = target_name_node
+                    context.settings[configuration_data]['target_name'] = target_name_node
                 else:
-                    context.settings[configuration_data]['output_name'] = \
+                    context.settings[configuration_data]['target_name'] = \
                         context.project_name
 
                 tools = configuration_node.xpath('Tool')
