@@ -25,7 +25,7 @@ from os import path
 
 from cmake_converter.flags import *
 from cmake_converter.utils import take_name_from_list_case_ignore, normalize_path
-from cmake_converter.utils import set_unix_slash, get_configuration_type
+from cmake_converter.utils import set_unix_slash
 
 
 class CPPFlags(Flags):
@@ -304,7 +304,7 @@ class CPPFlags(Flags):
         }
 
         for setting in context.settings:
-            conf_type = get_configuration_type(setting, context)
+            conf_type = context.settings[setting]['target_type']
             if conf_type and 'StaticLibrary' in conf_type:
                 continue
             value = self.set_flag(context, setting, '{0}/ns:LinkIncremental'
@@ -690,7 +690,7 @@ class CPPFlags(Flags):
         }
 
         for setting in context.settings:
-            conf_type = get_configuration_type(setting, context)
+            conf_type = context.settings[setting]['target_type']
             if conf_type and 'StaticLibrary' in conf_type:
                 continue
 
@@ -872,35 +872,3 @@ class CPPFlags(Flags):
         cmake_file.write('# Warning: pch and target are the same for every configuration\n')
         if self.setting_has_pch(context, setting):
             self.write_precompiled_headers(context, setting, cmake_file)
-
-    @staticmethod
-    def write_target_artifact(context, cmake_file):
-        """
-        Add Library or Executable target
-
-        :param context: converter Context
-        :type context: Context
-        :param cmake_file: CMakeLIsts.txt IO wrapper
-        :type cmake_file: _io.TextIOWrapper
-        """
-
-        configuration_type = None
-        for s in context.settings:
-            configuration_type = get_configuration_type(s, context)
-            if configuration_type:
-                break
-        if configuration_type:
-            if configuration_type == 'DynamicLibrary':
-                cmake_file.write('add_library(${PROJECT_NAME} SHARED')
-                message('CMake will build a SHARED Library.', '')
-            elif configuration_type == 'StaticLibrary':  # pragma: no cover
-                cmake_file.write('add_library(${PROJECT_NAME} STATIC')
-                message('CMake will build a STATIC Library.', '')
-            else:  # pragma: no cover
-                cmake_file.write('add_executable(${PROJECT_NAME} ')
-                message('CMake will build an EXECUTABLE.', '')
-            if not context.has_only_headers:
-                cmake_file.write(' ${SRC_FILES}')
-            if context.has_headers:
-                cmake_file.write(' ${HEADERS_FILES}')
-            cmake_file.write(')\n\n')

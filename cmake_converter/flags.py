@@ -27,7 +27,7 @@
 """
 
 from cmake_converter.utils import message, write_comment, is_settings_has_data
-from cmake_converter.utils import write_property_of_settings, get_configuration_type
+from cmake_converter.utils import write_property_of_settings
 
 cl_flags = 'cl_flags'               # MSVC compile flags (Windows only)
 ln_flags = 'ln_flags'               # MSVC link flags (Windows only)
@@ -115,7 +115,7 @@ class Flags(object):
                 mapped_setting_name = context.sln_configurations_map[sln_setting]
                 mapped_setting = context.settings[mapped_setting_name]
                 if mapped_setting[linker_flags_key]:
-                    configuration_type = get_configuration_type(mapped_setting_name, context)
+                    configuration_type = context.settings[mapped_setting_name]['target_type']
                     if configuration_type:
                         if 'StaticLibrary' in configuration_type:
                             cmake_file.write(
@@ -188,3 +188,35 @@ class Flags(object):
 
     def write_use_pch_macro(self, context, cmake_file):
         pass
+
+    @staticmethod
+    def write_target_artifact(context, cmake_file):
+        """
+        Add Library or Executable target
+
+        :param context: converter Context
+        :type context: Context
+        :param cmake_file: CMakeLIsts.txt IO wrapper
+        :type cmake_file: _io.TextIOWrapper
+        """
+
+        configuration_type = None
+        for s in context.settings:
+            configuration_type = context.settings[s]['target_type']
+            if configuration_type:
+                break
+        if configuration_type:
+            if configuration_type == 'DynamicLibrary':
+                cmake_file.write('add_library(${PROJECT_NAME} SHARED')
+                message('CMake will build a SHARED Library.', '')
+            elif configuration_type == 'StaticLibrary':  # pragma: no cover
+                cmake_file.write('add_library(${PROJECT_NAME} STATIC')
+                message('CMake will build a STATIC Library.', '')
+            else:  # pragma: no cover
+                cmake_file.write('add_executable(${PROJECT_NAME}')
+                message('CMake will build an EXECUTABLE.', '')
+            if not context.has_only_headers:
+                cmake_file.write(' ${SRC_FILES}')
+            if context.has_headers:
+                cmake_file.write(' ${HEADERS_FILES}')
+            cmake_file.write(')\n\n')

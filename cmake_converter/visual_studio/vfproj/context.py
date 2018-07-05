@@ -27,6 +27,7 @@ from .dependencies import VFDependencies
 from .flags import FortranFlags
 from .project_files import VFProjectFiles
 from .project_variables import VFProjectVariables
+from .utils import Utils
 
 
 class VFContextInitializer(ContextInitializer):
@@ -36,6 +37,7 @@ class VFContextInitializer(ContextInitializer):
         context.files = VFProjectFiles()
         context.flags = FortranFlags()
         context.dependencies = VFDependencies()
+        context.utils = Utils()
 
     def init_context(self, context, vs_project):
         """
@@ -65,6 +67,13 @@ class VFContextInitializer(ContextInitializer):
                 out_dir_node = configuration_node.get('OutputDirectory')
                 if out_dir_node:
                     context.settings[configuration_data]['out_dir'] = out_dir_node
+
+                config_type_node = configuration_node.get('ConfigurationType')
+                if config_type_node:
+                    config_type_node = config_type_node.replace('type', '')
+                    context.settings[configuration_data]['target_type'] = config_type_node
+                else:
+                    context.settings[configuration_data]['target_type'] = 'Application'
 
                 target_name_node = configuration_node.get('TargetName')
                 if target_name_node:

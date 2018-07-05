@@ -489,17 +489,3 @@ class FortranFlags(Flags):
                 message('Additional Options for {0} : {1}'.format(setting, str(ready_add_opts)), '')
             else:
                 message('No Additional Options for {0}'.format(setting), '')
-
-    @staticmethod
-    def write_target_artifact(context, cmake_file):
-        """
-        Add Library or Executable target
-
-        :param cmake_file: CMakeLists.txt IO wrapper
-        :type cmake_file: _io.TextIOWrapper
-        """
-
-        message('CMake will build a STATIC Library.', '')
-        cmake_file.write('add_library(${PROJECT_NAME} STATIC')
-        cmake_file.write(' ${SRC_FILES}')
-        cmake_file.write(')\n\n')

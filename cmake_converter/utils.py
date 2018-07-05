@@ -80,27 +80,6 @@ def take_name_from_list_case_ignore(search_list, name_to_search):
         return real_name
 
 
-def get_configuration_type(setting, context):
-    """
-    Return configuration type from given setting and context
-
-    :param setting: current setting (ReleaseDebug|Win32, ...)
-    :type setting: str
-    :param context: current context
-    :type context: Context
-    :return: configuration type
-    :rtype: str
-    """
-
-    configurationtype = context.vcxproj['tree'].xpath(
-        '{0}/ns:ConfigurationType'.format(context.property_groups[setting]),
-        namespaces=context.vcxproj['ns'])
-    if len(configurationtype) == 0:
-        return None
-
-    return configurationtype[0].text
-
-
 def is_settings_has_data(sln_configurations_map, settings, settings_key, arch=None, conf=None):
     for sln_setting in settings:
         if sln_setting not in sln_configurations_map:

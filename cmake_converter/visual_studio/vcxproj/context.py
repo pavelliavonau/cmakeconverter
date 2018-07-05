@@ -22,13 +22,13 @@
 
 from cmake_converter.context import ContextInitializer
 from cmake_converter.data_files import get_vcxproj_data, get_propertygroup, get_definitiongroup
+from cmake_converter.utils import get_global_project_name_from_vcxproj_file, message
 
 from .dependencies import VCXDependencies
 from .flags import CPPFlags
 from .project_files import VCXProjectFiles
 from .project_variables import VCXProjectVariables
-
-from cmake_converter.utils import get_global_project_name_from_vcxproj_file
+from .utils import Utils
 
 
 class VCXContextInitializer(ContextInitializer):
@@ -38,6 +38,18 @@ class VCXContextInitializer(ContextInitializer):
         context.files = VCXProjectFiles()
         context.flags = CPPFlags()
         context.dependencies = VCXDependencies()
+        context.utils = Utils()
+
+    @staticmethod
+    def __set_target_type(setting, context):
+        configuration_type = context.vcxproj['tree'].xpath(
+            '{0}/ns:ConfigurationType'.format(context.property_groups[setting]),
+            namespaces=context.vcxproj['ns'])
+        if len(configuration_type) == 0:
+            message('ConfigurationType not found', 'warn')
+            return
+
+        context.settings[setting]['target_type'] = configuration_type[0].text
 
     def init_context(self, context, vs_project):
         """
@@ -78,3 +90,4 @@ class VCXContextInitializer(ContextInitializer):
                 context.definition_groups[configuration_data] = get_definitiongroup(
                     configuration_data
                 )
+                self.__set_target_type(configuration_data, context)

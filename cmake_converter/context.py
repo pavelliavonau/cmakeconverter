@@ -65,12 +65,18 @@ class Context(object):
         self.files = None
         self.flags = None
         self.dependencies = None
+        self.utils = None
 
 
 class ContextInitializer(object):
     def __init__(self, context, vs_project, cmake_lists_destination_path):
         self.init_files(context, vs_project, cmake_lists_destination_path)
+        message(
+            'Initialization data for conversion of project {0}'.format(context.vcxproj_path),
+            ''
+        )
         self.define_settings(context)
+        self.__verify_settings(context)
         self.__remove_unused_settings(context)
 
     def define_settings(self, context):
@@ -80,6 +86,18 @@ class ContextInitializer(object):
         """
 
         raise NotImplementedError('You need to define a define_settings method!')
+
+    @staticmethod
+    def __verify_settings(context):
+        target_types = set()
+        for setting in context.settings:
+            target_types.add(context.settings[setting]['target_type'])
+
+        if len(target_types) > 1:
+            message(
+                'Target has more than one output binary type. CMake does not support it!',
+                'warn'
+            )
 
     @staticmethod
     def __remove_unused_settings(context):
@@ -100,8 +118,7 @@ class ContextInitializer(object):
         """
         pass
 
-    @staticmethod
-    def init_context_setting(context, configuration_data):
+    def init_context_setting(self, context, configuration_data):
         """
         Define settings of converter. Need to be reimplemented.
 

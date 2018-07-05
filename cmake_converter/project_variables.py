@@ -26,8 +26,8 @@
      Manage creation of CMake variables that will be used during compilation
 """
 
-from cmake_converter.utils import get_configuration_type, write_property_of_settings
-from cmake_converter.utils import message, write_comment
+from cmake_converter.utils import write_property_of_settings
+from cmake_converter.utils import write_comment
 
 
 class ProjectVariables(object):
@@ -78,10 +78,7 @@ class ProjectVariables(object):
         for setting in context.settings:
             break
 
-        if 'vfproj' in context.vcxproj_path:
-            configuration_type = 'StaticLibrary'
-        else:
-            configuration_type = get_configuration_type(setting, context)
+        configuration_type = context.settings[setting]['target_type']
 
         if configuration_type:
             left_string = 'set_target_properties(${PROJECT_NAME} PROPERTIES '

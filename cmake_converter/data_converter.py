@@ -117,7 +117,7 @@ class DataConverter(object):
 
         """
 
-        message('Project to convert = ' + context.vcxproj_path, '')
+        message('Collecting data for project {0}'.format(context.vcxproj_path), '')
         self.collect_data(context)
         if context.dry:
             return
@@ -126,6 +126,7 @@ class DataConverter(object):
             cmake_file.write('\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n')
         else:
             cmake_file = get_cmake_lists(context.cmake)
+        message('Writing data for project {0}'.format(context.vcxproj_path), '')
         self.write_data(context, cmake_file)
         cmake_file.close()
 
