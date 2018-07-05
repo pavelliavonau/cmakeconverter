@@ -20,6 +20,8 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
+import os
+
 from cmake_converter.project_variables import ProjectVariables
 from cmake_converter.utils import cleaning_output, message
 from cmake_converter.data_files import get_propertygroup
@@ -99,6 +101,19 @@ class VCXProjectVariables(ProjectVariables):
                 output_path = context.cmake_output + build_type
 
             output_path = output_path.strip().replace('\n', '')
+
+            output_file_node = context.vcxproj['tree'].find(
+                '{0}/ns:Link/ns:OutputFile'.format(
+                    context.definition_groups[setting]),
+                namespaces=context.vcxproj['ns']
+            )
+            if output_file_node is not None:
+                output_file = output_file_node.text
+                path = os.path.dirname(output_file)
+                name, ext = os.path.splitext(os.path.basename(output_file))
+                output_path = cleaning_output(path)
+                context.settings[setting]['target_name'] = cleaning_output(name)
+
             context.settings[setting]['out_dir'] = output_path
 
             if output_path:

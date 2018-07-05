@@ -23,6 +23,8 @@
 from cmake_converter.project_variables import ProjectVariables
 from cmake_converter.utils import cleaning_output, message
 
+import os
+
 
 class VFProjectVariables(ProjectVariables):
     """
@@ -53,6 +55,19 @@ class VFProjectVariables(ProjectVariables):
                 output_path = context.cmake_output + build_type
 
             output_path = output_path.strip().replace('\n', '')
+
+            output_file = ''
+            if 'VFLinkerTool' in context.settings[setting]:
+                output_file = context.settings[setting]['VFLinkerTool'].get('OutputFile')
+            if 'VFLibrarianTool' in context.settings[setting]:
+                output_file = context.settings[setting]['VFLibrarianTool'].get('OutputFile')
+
+            if output_file:
+                path = os.path.dirname(output_file)
+                name, ext = os.path.splitext(os.path.basename(output_file))
+                output_path = cleaning_output(path)
+                context.settings[setting]['target_name'] = cleaning_output(name)
+
             context.settings[setting]['out_dir'] = output_path
 
             if output_path:
