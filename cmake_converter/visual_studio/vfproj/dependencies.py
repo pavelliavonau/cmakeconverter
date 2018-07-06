@@ -42,6 +42,12 @@ class VFDependencies(Dependencies):
                 context.settings[setting]['inc_dirs'] = '${CMAKE_CURRENT_SOURCE_DIR}/'
 
     @staticmethod
+    def find_target_references(context):
+        if context.sln_deps:
+            context.target_references = context.target_references + context.sln_deps
+            message('References : {}'.format(context.target_references), '')
+
+    @staticmethod
     def find_target_additional_dependencies(context):
         for setting in context.settings:
             ad_libs = None

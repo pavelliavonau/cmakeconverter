@@ -75,6 +75,7 @@ class VCXDependencies(Dependencies):
                         os.path.join(os.path.dirname(context.vcxproj_path), ref_inc)
                     )
                     references_found.append(ref)
+                message('References : {}'.format(context.target_references), '')
 
         context.target_references = references_found
 

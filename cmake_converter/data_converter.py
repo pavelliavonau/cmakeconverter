@@ -103,6 +103,7 @@ class DataConverter(object):
             if (context.target_references or
                     context.add_lib_deps or
                     context.add_lib_dirs or
+                    context.sln_deps or
                     context.packages):
                 write_comment(cmake_file, 'Dependencies')
             context.dependencies.write_target_references(context, cmake_file)
