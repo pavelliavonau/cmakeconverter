@@ -38,7 +38,7 @@ class Context(object):
         self.project_languages = []
         self.sln_deps = []
         self.target_references = []
-        self.add_lib_deps = []
+        self.add_lib_deps = False
         self.add_lib_dirs = []
         self.packages = []
 

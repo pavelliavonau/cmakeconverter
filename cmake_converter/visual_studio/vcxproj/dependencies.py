@@ -85,21 +85,28 @@ class VCXDependencies(Dependencies):
 
         """
 
-        dependencies = context.vcxproj['tree'].xpath('//ns:AdditionalDependencies',
-                                                     namespaces=context.vcxproj['ns'])
-        context.add_lib_deps = []
-        if dependencies:
-            list_depends = dependencies[0].text.replace('%(AdditionalDependencies)', '')
-            if list_depends != '':
-                message('Additional Dependencies = %s' % list_depends, '')
-                add_lib_dirs = []
-                for d in list_depends.split(';'):
-                    if d != '%(AdditionalDependencies)':
-                        if os.path.splitext(d)[1] == '.lib':
-                            add_lib_dirs.append(d.replace('.lib', ''))
-                context.add_lib_deps = add_lib_dirs
-        else:  # pragma: no cover
-            message('No additional dependencies.', '')
+        for setting in context.settings:
+            dependencies = context.vcxproj['tree'].xpath(
+                '{0}/ns:Link/ns:AdditionalDependencies'.format(
+                        context.definition_groups[setting]),
+                namespaces=context.vcxproj['ns'])
+            if not dependencies:
+                dependencies = context.vcxproj['tree'].xpath(
+                    '{0}/ns:Lib/ns:AdditionalDependencies'.format(
+                        context.definition_groups[setting]),
+                    namespaces=context.vcxproj['ns'])
+            if dependencies:
+                list_depends = dependencies[0].text.replace('%(AdditionalDependencies)', '')
+                if list_depends != '':
+                    add_libs = []
+                    for d in list_depends.split(';'):
+                        if d != '%(AdditionalDependencies)':
+                            if os.path.splitext(d)[1] == '.lib':
+                                add_libs.append(d.replace('.lib', ''))
+                    message('Additional Dependencies for {0} = {1}'.format(setting, add_libs),
+                            '')
+                    context.add_lib_deps = True
+                    context.settings[setting]['add_lib_deps'] = '$<SEMICOLON>'.join(add_libs)
 
     @staticmethod
     def find_target_additional_library_directories(context):

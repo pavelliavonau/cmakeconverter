@@ -44,23 +44,21 @@ class VFDependencies(Dependencies):
     @staticmethod
     def find_target_additional_dependencies(context):
         for setting in context.settings:
-            context.add_lib_deps = []
             ad_libs = None
             if 'VFLibrarianTool' in context.settings[setting]:
                 ad_libs = context.settings[setting]['VFLibrarianTool'].get('AdditionalDependencies')
             if 'VFLinkerTool' in context.settings[setting]:
                 ad_libs = context.settings[setting]['VFLinkerTool'].get('AdditionalDependencies')
             if ad_libs:
-                message('Additional Dependencies = {0}'.format(ad_libs), '')
-                add_lib_dirs = []
+                add_libs = []
                 for d in ad_libs.split(';'):
                     if d != '%(AdditionalDependencies)':
                         if os.path.splitext(d)[1] == '.lib':
-                            add_lib_dirs.append(d.replace('.lib', ''))
-                context.add_lib_deps = add_lib_dirs
-            else:
-                message('No additional dependencies.', '')
-            break
+                            add_libs.append(d.replace('.lib', ''))
+                context.add_lib_deps = True
+                message('Additional Dependencies for {0} = {1}'.format(setting, add_libs),
+                        '')
+                context.settings[setting]['add_lib_deps'] = '$<SEMICOLON>'.join(add_libs)
 
     @staticmethod
     def find_target_additional_library_directories(context):

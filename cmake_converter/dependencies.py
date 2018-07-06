@@ -198,12 +198,16 @@ class Dependencies(object):
                 message(msg, '')
             cmake_file.write(')\n\n')
 
-        if context.add_lib_deps:
+        if is_settings_has_data(context.sln_configurations_map,
+                                context.settings,
+                                'add_lib_deps'):
             cmake_file.write('# Link with other additional libraries.\n')
-            cmake_file.write('target_link_libraries(${PROJECT_NAME}')
-            for dep in context.add_lib_deps:
-                cmake_file.write(' ' + dep)
-            cmake_file.write(')\n')
+            write_property_of_settings(
+                cmake_file, context.settings,
+                context.sln_configurations_map,
+                'target_link_libraries(${PROJECT_NAME}', ')',
+                'add_lib_deps', ''
+            )
 
         if context.add_lib_dirs:
             cmake_file.write('if(MSVC)\n')
