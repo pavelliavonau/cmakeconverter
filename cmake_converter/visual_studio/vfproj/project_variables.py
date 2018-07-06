@@ -65,7 +65,8 @@ class VFProjectVariables(ProjectVariables):
             if output_file:
                 path = os.path.dirname(output_file)
                 name, ext = os.path.splitext(os.path.basename(output_file))
-                output_path = cleaning_output(path)
+                path = cleaning_output(path)
+                output_path = path.replace('${OUT_DIR}', output_path)
                 context.settings[setting]['target_name'] = cleaning_output(name)
 
             context.settings[setting]['out_dir'] = output_path
