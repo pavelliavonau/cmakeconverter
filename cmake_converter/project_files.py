@@ -113,9 +113,6 @@ class ProjectFiles(object):
         fortran_extensions = ['F90', 'F', 'f90', 'f', 'fi', 'FI']
         available_language.update(dict.fromkeys(fortran_extensions, 'Fortran'))
 
-        resource_extensions = ['rc']
-        available_language.update(dict.fromkeys(resource_extensions, 'RC'))
-
         project_languages_set = set()
         for l in self.languages:
             if l in available_language:
@@ -147,7 +144,6 @@ class ProjectFiles(object):
                 'Check it!!',
                 'error'
             )
-
         cmake_file.write('project({0}{1})\n\n'.format(context.project_name, lang))
 
     @staticmethod
