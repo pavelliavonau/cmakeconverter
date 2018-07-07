@@ -124,7 +124,8 @@ class VFDependencies(Dependencies):
             if tree_xpath in context.settings[setting]:
                 build_events_data = context.settings[setting][tree_xpath]
                 build_events = ''
-                if 'CommandLine' in build_events_data:
+                if ('CommandLine' in build_events_data
+                        and 'ExcludedFromBuild' not in build_events_data):
                     build_events = build_events_data['CommandLine']
                 context.settings[setting][value_name] = []
                 for build_event in build_events.split('\n'):
