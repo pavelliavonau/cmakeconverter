@@ -117,3 +117,45 @@ class VFDependencies(Dependencies):
                     context.settings[setting]['file_custom_build_events'][file] = custom_event_data
                     message('Custom build for {0} file {1} is {2}'
                             .format(setting, file, custom_build), '')
+
+    @staticmethod
+    def __find_target_build_events(context, tree_xpath, value_name, event_type):
+        for setting in context.settings:
+            if tree_xpath in context.settings[setting]:
+                build_events_data = context.settings[setting][tree_xpath]
+                build_events = ''
+                if 'CommandLine' in build_events_data:
+                    build_events = build_events_data['CommandLine']
+                context.settings[setting][value_name] = []
+                for build_event in build_events.split('\n'):
+                    build_event = build_event.strip()
+                    if build_event:
+                        cmake_build_event = prepare_build_event_cmd_line_for_cmake(build_event)
+                        context.settings[setting][value_name] \
+                            .append(cmake_build_event)
+                        message('{0} event for {1}: {2}'
+                                .format(event_type, setting, cmake_build_event), 'info')
+
+    def find_target_pre_build_events(self, context):
+        self.__find_target_build_events(
+            context,
+            'VFPreBuildEventTool',
+            'pre_build_events',
+            'Pre build'
+        )
+
+    def find_target_pre_link_events(self, context):
+        self.__find_target_build_events(
+            context,
+            'VFPreLinkEventTool',
+            'pre_link_events',
+            'Pre link'
+        )
+
+    def find_target_post_build_events(self, context):
+        self.__find_target_build_events(
+            context,
+            'VFPostBuildEventTool',
+            'post_build_events',
+            'Post build'
+        )
