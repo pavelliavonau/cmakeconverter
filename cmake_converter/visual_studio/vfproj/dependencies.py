@@ -159,3 +159,12 @@ class VFDependencies(Dependencies):
             'post_build_events',
             'Post build'
         )
+
+    # TODO: implement
+    # def find_custom_build_step(self, context):
+    #     self.__find_target_build_events(
+    #         context,
+    #         'VFCustomBuildTool',
+    #         'custom_build_step',
+    #         'Custom build'
+    #     )

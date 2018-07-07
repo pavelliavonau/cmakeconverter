@@ -74,6 +74,10 @@ class Dependencies(object):
         pass
 
     @staticmethod
+    def find_custom_build_step(context):
+        pass
+
+    @staticmethod
     def find_custom_build_events_of_files(context):
         pass
 

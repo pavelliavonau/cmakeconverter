@@ -304,3 +304,12 @@ class VCXDependencies(Dependencies):
             'post_build_events',
             'Post build'
         )
+
+    # TODO: implement
+    # def find_custom_build_step(self, context):
+    #     self.__find_target_build_events(
+    #         context,
+    #         '{0}/ns:CustomBuildStep/ns:Command',
+    #         'custom_build_step',
+    #         'Custom build'
+    #     )
