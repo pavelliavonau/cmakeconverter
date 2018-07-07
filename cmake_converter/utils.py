@@ -264,6 +264,7 @@ def replace_vs_vars_with_cmake_vars(output):
         '$(OutDir)': '${OUT_DIR}',
         '$(TargetDir)': '${OUT_DIR}',
         '$(TargetName)': '${TARGET_NAME}',
+        '$(TargetFileName)': '$<TARGET_FILE_NAME:${TARGET_NAME}>',
         '$(TargetPath)': '$<TARGET_FILE:${PROJECT_NAME}>',
     }
 
