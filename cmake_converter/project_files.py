@@ -73,7 +73,9 @@ class ProjectFiles(object):
                                                                 file_name)
                     if real_name:
                         context_files[file_path].append(real_name)
-                    self.parse_file_node_options(context, file_node, real_name)
+                        if file_path:
+                            file_path = file_path + '/'
+                        self.parse_file_node_options(context, file_node, file_path + real_name)
         for file_path in context_files:
             context_files[file_path].sort(key=str.lower)
 

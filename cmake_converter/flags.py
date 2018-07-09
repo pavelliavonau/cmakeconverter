@@ -74,18 +74,26 @@ class Flags(object):
     @staticmethod
     def write_compiler_and_linker_flags(context, os_check_str, compiler_check_str,
                                         compiler_flags_key, linker_flags_key, cmake_file):
-        for setting in context.settings:
-            context.settings[setting]['cl_str'] =\
-                ';'.join(context.settings[setting][compiler_flags_key])
-
         and_os_str = ''
         if os_check_str:
             and_os_str = ' AND {0}'.format(os_check_str)
         cmake_file.write('if({0}{1})\n'.format(compiler_check_str, and_os_str))
         write_property_of_settings(
             cmake_file, context.settings, context.sln_configurations_map,
-            'target_compile_options(${PROJECT_NAME} PRIVATE', ')', 'cl_str', indent='    '
+            'target_compile_options(${PROJECT_NAME} PRIVATE', ')', compiler_flags_key, indent='    '
         )
+        for file in context.file_spec_raw_options:
+            file_cl_var = file + "_cl_var"
+            text = write_property_of_settings(
+                cmake_file, context.file_spec_raw_options[file],
+                context.sln_configurations_map,
+                'string(CONCAT "{0}"'.format(file_cl_var),
+                ')', compiler_flags_key, indent='    '
+            )
+            if text:
+                cmake_file.write(
+                    '    set_source_files_properties({0} PROPERTIES COMPILE_FLAGS ${{{1}}})\n'
+                    .format(file, file_cl_var))
 
         settings_of_arch = {}
         for sln_setting in context.sln_configurations_map:

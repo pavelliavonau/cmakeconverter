@@ -78,10 +78,6 @@ class Dependencies(object):
         pass
 
     @staticmethod
-    def find_custom_build_events_of_files(context):
-        pass
-
-    @staticmethod
     def write_include_directories(context, cmake_file):
         """
         Write include directories of given context to given CMakeLists.txt file

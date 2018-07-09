@@ -99,7 +99,7 @@ class VFDependencies(Dependencies):
                 message('No additional library dependencies.', '')
 
     @staticmethod
-    def find_custom_build_events_of_files(context):
+    def __find_custom_build_events_of_files(context):
         for file in context.file_spec_raw_options:
             file_settings = context.file_spec_raw_options[file]
             for setting in file_settings:
@@ -162,7 +162,8 @@ class VFDependencies(Dependencies):
         )
 
     # TODO: implement
-    # def find_custom_build_step(self, context):
+    def find_custom_build_step(self, context):
+        self.__find_custom_build_events_of_files(context)
     #     self.__find_target_build_events(
     #         context,
     #         'VFCustomBuildTool',

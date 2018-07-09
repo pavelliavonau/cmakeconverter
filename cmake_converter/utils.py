@@ -97,10 +97,20 @@ def is_settings_has_data(sln_configurations_map, settings, settings_key, arch=No
 
 
 def write_property_of_setting(cmake_file, indent, config_condition_expr, property_value, width):
+    property_value_str = get_str_value_from_property_value(property_value)
     config_width = width + 2  # for '$<'
     cmake_file.write('{0}    {1:>{width}}:{2}>\n'
-                     .format(indent, '$<' + config_condition_expr, property_value,
+                     .format(indent, '$<' + config_condition_expr, property_value_str,
                              width=config_width))
+
+
+def get_str_value_from_property_value(property_value):
+    if type(property_value) is str:
+        return property_value
+    if type(property_value) is list:
+        return ';'.join(property_value)
+
+    return property_value
 
 
 def write_property_of_settings(cmake_file, settings, sln_setting_2_project_setting, begin_text,
@@ -160,20 +170,21 @@ def write_property_of_settings(cmake_file, settings, sln_setting_2_project_setti
         config_expressions = []
         for sln_setting in settings_of_arch[arch]:
             sln_conf = sln_setting.split('|')[0]
+            if sln_setting_2_project_setting[sln_setting] not in settings:
+                continue
             mapped_setting = settings[sln_setting_2_project_setting[sln_setting]]
             if property_name in mapped_setting:
-                if mapped_setting[property_name] != '':
+                if mapped_setting[property_name]:
                     if not has_property_value:
-                        begin_text = begin_text.replace('\n', '\n' + indent + command_indent )
+                        begin_text = begin_text.replace('\n', '\n' + indent + command_indent)
                         cmake_file.write('{0}{1}\n'.format(indent + command_indent, begin_text))
                         has_property_value = True
-                    property_value = mapped_setting[property_name]
                     config_condition_expr = '$<CONFIG:{0}>'.format(sln_conf)
                     config_expressions.append(config_condition_expr)
                     write_setting_property_func(cmake_file,
                                                 indent + command_indent,
                                                 config_condition_expr,
-                                                property_value,
+                                                mapped_setting[property_name],
                                                 max_config_condition_width)
         if has_property_value:
             if default:

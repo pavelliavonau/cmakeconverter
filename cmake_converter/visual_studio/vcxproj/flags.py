@@ -41,6 +41,12 @@ class CPPFlags(Flags):
 
         """
         self.do_precompiled_headers(context)
+        for file in context.file_spec_raw_options:
+            for setting in context.file_spec_raw_options[file]:
+                context.file_spec_raw_options[file][setting][cl_flags] = []
+                context.file_spec_raw_options[file][setting][ln_flags] = []
+
+        self.__do_precompiled_headers_for_files(context)
 
         for setting in context.settings:
             context.settings[setting][cl_flags] = []
@@ -123,6 +129,16 @@ class CPPFlags(Flags):
                         context.settings[setting][defines].append('_MBCS')
                 message('PreprocessorDefinitions for {0} are '.format(setting), '')
 
+    @staticmethod
+    def __get_precompiled_header_node_values():
+        precompiled_header_values = {
+            'Use': {'PrecompiledHeader': 'Use'},
+            'NotUsing': {'PrecompiledHeader': 'NotUsing'},
+            'Create': {'PrecompiledHeader': 'Create'},
+            default_value: {'PrecompiledHeader': 'NotUsing'}
+        }
+        return precompiled_header_values
+
     def do_precompiled_headers(self, context):
         """
         Add precompiled headers to settings
@@ -135,12 +151,7 @@ class CPPFlags(Flags):
         pch_source_path = ''
 
         for setting in context.settings:
-            precompiled_header_values = {
-                'Use': {'PrecompiledHeader': 'Use'},
-                'NotUsing': {'PrecompiledHeader': 'NotUsing'},
-                'Create': {'PrecompiledHeader': 'Create'},
-                default_value: {'PrecompiledHeader': 'NotUsing'}
-            }
+            precompiled_header_values = self.__get_precompiled_header_node_values()
             self.set_flag(context, setting,
                           '{0}/ns:ClCompile/ns:PrecompiledHeader'
                           .format(context.definition_groups[setting]),
@@ -195,6 +206,40 @@ class CPPFlags(Flags):
             context.settings[setting]['PrecompiledHeaderFile'] = pch_header_path
             context.settings[setting]['PrecompiledSourceFile'] = pch_source_path
 
+    def __do_precompiled_headers_for_files(self, context):
+        for file in context.file_spec_raw_options:
+            for setting in context.file_spec_raw_options[file]:
+                for option in context.file_spec_raw_options[file][setting]:
+                    if 'PrecompiledHeader' == option:
+                        pch_node = context.file_spec_raw_options[file][setting][option]
+
+                        precompiled_header_values = {
+                            'Use': {},  # ignore for files
+                            'NotUsing': {cl_flags: '/Y-'},
+                            'Create': {},  # ignore for files
+                            default_value: {cl_flags: '/Y-'}
+                        }
+                        result_node_values = self.__get_default_flag_values(
+                            precompiled_header_values
+                        )
+
+                        flag_text, result_node_values = self.__add_flag_values_according_node_text(
+                            precompiled_header_values,
+                            [pch_node],
+                            result_node_values
+                        )
+
+                        flags_message = self.__add_flag_values_to_context(
+                            context.file_spec_raw_options[file],
+                            setting,
+                            result_node_values
+                        )
+
+                        if flags_message:
+                            message('{0} for {1} for file {2} is {3}'.format(option, setting,
+                                                                             file, flags_message),
+                                    '')
+
     def define_windows_flags(self, context):
         """
         Define the Flags for Win32 platforms
@@ -235,8 +280,7 @@ class CPPFlags(Flags):
         self.set_remove_unreferenced_code_data(context)
         self.set_openmp_support(context)
 
-    @staticmethod
-    def set_flag(context, setting, xpath, flag_values):
+    def set_flag(self, context, setting, xpath, flag_values):
         """
         Return flag helper
         :param context: converter Context
@@ -245,38 +289,58 @@ class CPPFlags(Flags):
         :type setting: str
         :param xpath: xpath of wanted setting
         :type xpath: str
-        :param flag_values: flag values for given setting
+        :param flag_values: flag result_node_values for given setting
         :type flag_values: dict
-        :return: correspongin flag text of setting
+        :return: corresponding flag text of setting
         :rtype: str
         """
 
         flag_element = context.vcxproj['tree'].xpath(xpath, namespaces=context.vcxproj['ns'])
 
-        values = None
-        if default_value in flag_values:
-            values = flag_values[default_value]
+        result_node_values = self.__get_default_flag_values(flag_values)
 
-        flag_text = ''
-        if flag_element:
-            flag_text = flag_element[0].text
-            if flag_text in flag_values:
-                values = flag_values[flag_text]
+        flag_text, result_node_values = self.__add_flag_values_according_node_text(
+            flag_values,
+            flag_element,
+            result_node_values
+        )
 
-        flags_message = {}
-        if values is not None:
-            for key in values:
-                value = values[key]
-                if key not in context.settings[setting]:
-                    context.settings[setting][key] = []
-                context.settings[setting][key].append(value)
-                flags_message[key] = value
+        flags_message = self.__add_flag_values_to_context(context.settings, setting,
+                                                          result_node_values)
 
         if flags_message:
             flag_name = xpath.split(':')[-1]
             message('{0} for {1} is {2} '.format(flag_name, setting, flags_message), '')
 
         return flag_text
+
+    @staticmethod
+    def __get_default_flag_values(flag_values):
+        node_values = {}
+        if default_value in flag_values:
+            node_values = flag_values[default_value]
+        return node_values
+
+    @staticmethod
+    def __add_flag_values_according_node_text(flag_values, flag_element_node, result_node_values):
+        flag_text = ''
+        if flag_element_node:
+            flag_text = flag_element_node[0].text
+            if flag_text in flag_values:
+                result_node_values = flag_values[flag_text]
+        return flag_text, result_node_values
+
+    @staticmethod
+    def __add_flag_values_to_context(context_destination, setting, result_node_values):
+        flags_message = {}
+        if result_node_values is not None:
+            for key in result_node_values:
+                value = result_node_values[key]
+                if key not in context_destination[setting]:
+                    context_destination[setting][key] = []
+                context_destination[setting][key].append(value)
+                flags_message[key] = value
+        return flags_message
 
     def set_whole_program_optimization(self, context):
         """
