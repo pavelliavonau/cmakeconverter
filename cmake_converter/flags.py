@@ -28,6 +28,7 @@
 
 from cmake_converter.utils import message, write_comment, is_settings_has_data
 from cmake_converter.utils import write_property_of_settings
+from cmake_converter.utils import get_str_value_from_property_value
 
 cl_flags = 'cl_flags'               # MSVC compile flags (Windows only)
 ln_flags = 'ln_flags'               # MSVC link flags (Windows only)
@@ -60,15 +61,32 @@ class Flags(object):
     """
 
     @staticmethod
-    def write_defines(context, cmake_file):
-        for setting in context.settings:
-            context.settings[setting]['defines_str'] = ';'.join(context.settings[setting][defines])
+    def __write_defines_for_flags(cmake_file, indent, config_condition_expr, property_value, width):
+        config = config_condition_expr.replace('$<CONFIG:', '')
+        config = config.replace('>', '')
+        cmake_file.write(
+            '{0}    COMPILE_DEFINITIONS_{1} "{2}"\n'
+            .format(indent, config.upper(), get_str_value_from_property_value(property_value))
+        )
 
+    def write_defines(self, context, cmake_file):
         write_comment(cmake_file, 'Compile definitions')
         write_property_of_settings(
             cmake_file, context.settings, context.sln_configurations_map,
-            'target_compile_definitions(${PROJECT_NAME} PRIVATE', ')', 'defines_str'
+            'target_compile_definitions(${PROJECT_NAME} PRIVATE', ')', defines
         )
+        for file in context.file_spec_raw_options:
+            write_property_of_settings(
+                cmake_file,
+                context.file_spec_raw_options[file],
+                context.sln_configurations_map,
+                'set_source_files_properties({0} PROPERTIES'.format(file),
+                ')',
+                defines,
+                '',
+                None,
+                self.__write_defines_for_flags
+            )
         cmake_file.write('\n')
 
     @staticmethod

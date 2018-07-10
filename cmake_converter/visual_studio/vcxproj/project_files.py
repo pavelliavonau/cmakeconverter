@@ -59,6 +59,7 @@ class VCXProjectFiles(ProjectFiles):
                     context.file_spec_raw_options[node_text][setting] = {
                         'conf': context.settings[setting]['conf'],
                         'arch': context.settings[setting]['arch'],
+                        'defines': [],
                     }
                 tool_name = re.sub(r'{.*\}', '', file_configuration_node.tag)
                 context.file_spec_raw_options[node_text][setting][tool_name] = \

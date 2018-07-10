@@ -46,13 +46,12 @@ class CPPFlags(Flags):
                 context.file_spec_raw_options[file][setting][cl_flags] = []
                 context.file_spec_raw_options[file][setting][ln_flags] = []
 
-        self.__do_precompiled_headers_for_files(context)
-
         for setting in context.settings:
             context.settings[setting][cl_flags] = []
             context.settings[setting][ln_flags] = []
 
         self.define_windows_flags(context)
+        self.__define_windows_flags_for_files(context)
         self.define_defines(context)
         # self.define_linux_flags()
         # TODO: redo with generator expression for each setting(configuration)
@@ -127,7 +126,10 @@ class CPPFlags(Flags):
                         context.settings[setting][defines].append('_UNICODE')
                     if 'MultiByte' in character_set[0].text:
                         context.settings[setting][defines].append('_MBCS')
-                message('PreprocessorDefinitions for {0} are '.format(setting), '')
+                message('PreprocessorDefinitions for {0} are {1}'.format(
+                    setting,
+                    context.settings[setting][defines]
+                ), '')
 
     @staticmethod
     def __get_precompiled_header_node_values():
@@ -206,39 +208,67 @@ class CPPFlags(Flags):
             context.settings[setting]['PrecompiledHeaderFile'] = pch_header_path
             context.settings[setting]['PrecompiledSourceFile'] = pch_source_path
 
-    def __do_precompiled_headers_for_files(self, context):
+    def __set_precompiled_headers_for_files(self, context, setting, file, pch_node, option):
+        precompiled_header_values = {
+            'Use': {},  # ignore for files
+            'NotUsing': {cl_flags: '/Y-'},
+            'Create': {},  # ignore for files
+            default_value: {cl_flags: '/Y-'}
+        }
+        result_node_values = self.__get_default_flag_values(
+            precompiled_header_values
+        )
+
+        flag_text, result_node_values = self.__add_flag_values_according_node_text(
+            precompiled_header_values,
+            [pch_node],
+            result_node_values
+        )
+
+        flags_message = self.__add_flag_values_to_context(
+            context.file_spec_raw_options[file],
+            setting,
+            result_node_values
+        )
+
+        if flags_message:
+            message('{0} for {1} for file {2} is {3}'.format(option, setting,
+                                                             file, flags_message),
+                    '')
+
+    @staticmethod
+    def __define_defines_for_files(defines_node, settings, file, setting):
+        if defines_node is not None:
+            for define in defines_node.text.split(";"):
+                if define != '%(PreprocessorDefinitions)' and define != 'WIN32':
+                    settings[defines].append(define)
+                message('PreprocessorDefinitions for file {0} for {1} are {2}'.format(
+                    file,
+                    setting,
+                    settings[defines]
+                ),
+                    '')
+
+    def __define_windows_flags_for_files(self, context):
         for file in context.file_spec_raw_options:
             for setting in context.file_spec_raw_options[file]:
                 for option in context.file_spec_raw_options[file][setting]:
+                    node = context.file_spec_raw_options[file][setting][option]
                     if 'PrecompiledHeader' == option:
-                        pch_node = context.file_spec_raw_options[file][setting][option]
-
-                        precompiled_header_values = {
-                            'Use': {},  # ignore for files
-                            'NotUsing': {cl_flags: '/Y-'},
-                            'Create': {},  # ignore for files
-                            default_value: {cl_flags: '/Y-'}
-                        }
-                        result_node_values = self.__get_default_flag_values(
-                            precompiled_header_values
-                        )
-
-                        flag_text, result_node_values = self.__add_flag_values_according_node_text(
-                            precompiled_header_values,
-                            [pch_node],
-                            result_node_values
-                        )
-
-                        flags_message = self.__add_flag_values_to_context(
-                            context.file_spec_raw_options[file],
+                        self.__set_precompiled_headers_for_files(
+                            context,
                             setting,
-                            result_node_values
+                            file,
+                            node,
+                            option
                         )
-
-                        if flags_message:
-                            message('{0} for {1} for file {2} is {3}'.format(option, setting,
-                                                                             file, flags_message),
-                                    '')
+                    if 'PreprocessorDefinitions' == option:
+                        self.__define_defines_for_files(
+                            node,
+                            context.file_spec_raw_options[file][setting],
+                            file,
+                            setting
+                        )
 
     def define_windows_flags(self, context):
         """
