@@ -122,13 +122,16 @@ class Dependencies(object):
         inc_dir = aid_text.replace('$(ProjectDir)', './')
         inc_dir = inc_dir.replace('%(AdditionalIncludeDirectories)', '')
         dirs = []
+        dirs_raw = []
         for i in inc_dir.split(';'):
             if i:
+                dirs_raw.append(i)
                 i = normalize_path(working_path, i)
                 i = re.sub(r'\$\((.+?)\)', r'$ENV{\1}', i)
                 dirs.append(i)
         inc_dirs = ';'.join(dirs)
         context.settings[setting]['inc_dirs'] = inc_dirs
+        context.settings[setting]['inc_dirs_list'] = dirs_raw
 
         return inc_dirs
 

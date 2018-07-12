@@ -46,6 +46,9 @@ class ProjectFiles(object):
     def parse_file_node_options(self, context, file_node, node_text):
         pass
 
+    def include_directive_case_check(self, context, file_name, file_lists_for_include_paths):
+        pass
+
     def __get_info_from_file_nodes(self, context, descriptor, file_lists):
         """
 
@@ -56,6 +59,14 @@ class ProjectFiles(object):
         file_node_attr = descriptor[2]
 
         vcxproj_dir = os.path.dirname(context.vcxproj_path)
+
+        file_lists_for_include_paths = {}
+        for setting in context.settings:
+            for include_path in context.settings[setting]['inc_dirs_list']:
+                if include_path not in file_lists_for_include_paths:
+                    abs_include_path = os.path.join(vcxproj_dir, include_path)
+                    if os.path.exists(abs_include_path):
+                        file_lists_for_include_paths[include_path] = os.listdir(abs_include_path)
 
         for file_node in files_nodes:
             if file_node.get(file_node_attr) is not None:
@@ -75,7 +86,11 @@ class ProjectFiles(object):
                         context_files[file_path].append(real_name)
                         if file_path:
                             file_path = file_path + '/'
-                        self.parse_file_node_options(context, file_node, file_path + real_name)
+                        file_path_name = file_path + real_name
+                        self.parse_file_node_options(context, file_node, file_path_name)
+                        self.include_directive_case_check(context,
+                                                          file_path_name,
+                                                          file_lists_for_include_paths)
         for file_path in context_files:
             context_files[file_path].sort(key=str.lower)
 

@@ -38,8 +38,10 @@ class VFDependencies(Dependencies):
                 Dependencies.get_additional_include_directories(ad_inc, setting, context)
             if 'inc_dirs' in context.settings[setting]:
                 context.settings[setting]['inc_dirs'] += ';${CMAKE_CURRENT_SOURCE_DIR}/'
+                context.settings[setting]['inc_dirs_list'].append('./')
             else:
                 context.settings[setting]['inc_dirs'] = '${CMAKE_CURRENT_SOURCE_DIR}/'
+                context.settings[setting]['inc_dirs_list'] = ['./']
 
     @staticmethod
     def find_target_references(context):

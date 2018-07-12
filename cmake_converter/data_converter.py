@@ -46,12 +46,12 @@ class DataConverter(object):
         """
         context.variables.find_outputs_variables(context)
 
+        context.dependencies.find_include_dir(context)
         context.files.collects_source_files(context)
         context.files.find_cmake_project_languages(context)
 
         if not context.has_only_headers:
             context.flags.define_flags(context)
-            context.dependencies.find_include_dir(context)
             context.dependencies.find_target_references(context)
             context.dependencies.find_target_additional_dependencies(context)
             context.dependencies.find_target_additional_library_directories(context)
