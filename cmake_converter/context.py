@@ -48,6 +48,7 @@ class Context(object):
         self.cmake_output = None
         self.std = None
         self.dry = False
+        self.silent = False
         self.is_converting_solution = False
 
         self.sln_configurations_map = None

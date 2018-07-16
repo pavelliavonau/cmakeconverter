@@ -86,6 +86,12 @@ def main():  # pragma: no cover
         action='store_true'
     )
     parser.add_argument(
+        '-silent', '--silent-mode',
+        help='run converter without info messages in log.',
+        dest='silent',
+        action='store_true'
+    )
+    parser.add_argument(
         '-std', '--std',
         help='choose your C++ std version. Default : c++11',
         dest='std'
@@ -112,6 +118,10 @@ def main():  # pragma: no cover
     if args.dry:
         initial_context.dry = True
         message(initial_context, 'Converter runs in dry mode', '')
+
+    if args.silent:
+        initial_context.silent = True
+        message(initial_context, 'Converter runs in silent mode', 'done')
 
     if not args.solution:
         cmake_lists_path = os.path.dirname(args.project)
