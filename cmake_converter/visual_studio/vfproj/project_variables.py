@@ -32,46 +32,45 @@ class VFProjectVariables(ProjectVariables):
     """
 
     @staticmethod
-    def find_outputs_variables(context):
+    def find_outputs_variables(context, setting):
         """
              Add Outputs Variables
         """
 
-        for setting in context.settings:
-            arch = context.settings[setting]['arch']
+        arch = context.settings[setting]['arch']
 
-            output_path = '$(SolutionDir)$(Platform)/$(Configuration)/'  # default value
+        output_path = '$(SolutionDir)$(Platform)/$(Configuration)/'  # default value
 
-            if not context.cmake_output:
-                if 'out_dir' in context.settings[setting]:
-                    output_path = cleaning_output(context, context.settings[setting]['out_dir'])
-                else:
-                    output_path = cleaning_output(context, output_path)
+        if not context.cmake_output:
+            if 'out_dir' in context.settings[setting]:
+                output_path = cleaning_output(context, context.settings[setting]['out_dir'])
             else:
-                if context.cmake_output[-1:] == '/' or context.cmake_output[-1:] == '\\':
-                    build_type = '${CMAKE_BUILD_TYPE}'
-                else:
-                    build_type = '/${CMAKE_BUILD_TYPE}'
-                output_path = context.cmake_output + build_type
+                output_path = cleaning_output(context, output_path)
+        else:
+            if context.cmake_output[-1:] == '/' or context.cmake_output[-1:] == '\\':
+                build_type = '${CMAKE_BUILD_TYPE}'
+            else:
+                build_type = '/${CMAKE_BUILD_TYPE}'
+            output_path = context.cmake_output + build_type
 
-            output_path = output_path.strip().replace('\n', '')
+        output_path = output_path.strip().replace('\n', '')
 
-            output_file = ''
-            if 'VFLinkerTool' in context.settings[setting]:
-                output_file = context.settings[setting]['VFLinkerTool'].get('OutputFile')
-            if 'VFLibrarianTool' in context.settings[setting]:
-                output_file = context.settings[setting]['VFLibrarianTool'].get('OutputFile')
+        output_file = ''
+        if 'VFLinkerTool' in context.settings[setting]:
+            output_file = context.settings[setting]['VFLinkerTool'].get('OutputFile')
+        if 'VFLibrarianTool' in context.settings[setting]:
+            output_file = context.settings[setting]['VFLibrarianTool'].get('OutputFile')
 
-            if output_file:
-                path = os.path.dirname(output_file)
-                name, ext = os.path.splitext(os.path.basename(output_file))
-                path = cleaning_output(context, path)
-                output_path = path.replace('${OUT_DIR}', output_path)
-                context.settings[setting]['target_name'] = cleaning_output(context, name)
+        if output_file:
+            path = os.path.dirname(output_file)
+            name, ext = os.path.splitext(os.path.basename(output_file))
+            path = cleaning_output(context, path)
+            output_path = path.replace('${OUT_DIR}', output_path)
+            context.settings[setting]['target_name'] = cleaning_output(context, name)
 
-            context.settings[setting]['out_dir'] = output_path
+        context.settings[setting]['out_dir'] = output_path
 
-            if output_path:
-                message(context, 'Output {0} = {1}'.format(setting, output_path), '')
-            else:  # pragma: no cover
-                message(context, 'No Output found. Use [{0}/bin] by default !'.format(arch), 'warn')
+        if output_path:
+            message(context, 'Output {0} = {1}'.format(setting, output_path), '')
+        else:  # pragma: no cover
+            message(context, 'No Output found. Use [{0}/bin] by default !'.format(arch), 'warn')

@@ -33,7 +33,7 @@ class VCXProjectVariables(ProjectVariables):
     """
 
     @staticmethod
-    def find_outputs_variables(context):
+    def find_outputs_variables(context, setting):
         """
         Add Outputs Variables
 
@@ -41,83 +41,78 @@ class VCXProjectVariables(ProjectVariables):
 
         vs_outputs = {}
 
-        for setting in context.settings:
-            prop = get_propertygroup(setting)
-            conf = context.settings[setting]['conf']
-            arch = context.settings[setting]['arch']
-            if conf not in vs_outputs:
-                vs_outputs[conf] = {}
-            if arch not in vs_outputs[conf]:
-                vs_outputs[conf][arch] = None
+        prop = get_propertygroup(setting)
+        conf = context.settings[setting]['conf']
+        arch = context.settings[setting]['arch']
+        if conf not in vs_outputs:
+            vs_outputs[conf] = {}
+        if arch not in vs_outputs[conf]:
+            vs_outputs[conf][arch] = None
 
-            if not vs_outputs[conf][arch]:
-                vs_outputs[conf][arch] = context.vcxproj['tree'].find(
-                    '%s/ns:OutDir' % prop, namespaces=context.vcxproj['ns']
-                )
-                if vs_outputs[conf][arch] is None:
-                    vs_output = context.vcxproj['tree'].xpath(
-                        '//ns:PropertyGroup[@Label="UserMacros"]/ns:OutDir',
-                        namespaces=context.vcxproj['ns'])
-                    if vs_output:
-                        vs_outputs[conf][arch] = vs_output[0]
-                if vs_outputs[conf][arch] is None:
-                    vs_output = context.vcxproj['tree'].xpath(
-                        '//ns:OutDir[@Condition="\'$(Configuration)|$(Platform)\'==\'{0}\'"]'
-                        .format(setting), namespaces=context.vcxproj['ns'])
-                    if vs_output:
-                        vs_outputs[conf][arch] = vs_output[0]
-
-            target_name = '$(ProjectName)'  # default
-            target_name_node = context.vcxproj['tree'].find(
-                '{0}/ns:TargetName'.format(prop), namespaces=context.vcxproj['ns']
+        if not vs_outputs[conf][arch]:
+            vs_outputs[conf][arch] = context.vcxproj['tree'].find(
+                '%s/ns:OutDir' % prop, namespaces=context.vcxproj['ns']
             )
-            if target_name_node is None:
-                target_name_node = context.vcxproj['tree'].find(
-                    '//ns:TargetName[@Condition="\'$(Configuration)|$(Platform)\'==\'{0}\'"]'
-                    .format(setting),
-                    namespaces=context.vcxproj['ns']
-                )
+            if vs_outputs[conf][arch] is None:
+                vs_output = context.vcxproj['tree'].xpath(
+                    '//ns:PropertyGroup[@Label="UserMacros"]/ns:OutDir',
+                    namespaces=context.vcxproj['ns'])
+                if vs_output:
+                    vs_outputs[conf][arch] = vs_output[0]
+            if vs_outputs[conf][arch] is None:
+                vs_output = context.vcxproj['tree'].xpath(
+                    '//ns:OutDir[@Condition="\'$(Configuration)|$(Platform)\'==\'{0}\'"]'
+                    .format(setting), namespaces=context.vcxproj['ns'])
+                if vs_output:
+                    vs_outputs[conf][arch] = vs_output[0]
 
-            if target_name_node is not None:
-                target_name = target_name_node.text
-            context.settings[setting]['target_name'] = cleaning_output(context, target_name)
-
-        for setting in context.settings:
-            conf = context.settings[setting]['conf']
-            arch = context.settings[setting]['arch']
-
-            output_path = '$(SolutionDir)$(Platform)/$(Configuration)/'  # default value
-
-            if not context.cmake_output:
-                    if vs_outputs[conf][arch] is not None:
-                        output_path = cleaning_output(context, vs_outputs[conf][arch].text)
-                    else:
-                        output_path = cleaning_output(context, output_path)
-            else:
-                if context.cmake_output[-1:] == '/' or context.cmake_output[-1:] == '\\':
-                    build_type = '${CMAKE_BUILD_TYPE}'
-                else:
-                    build_type = '/${CMAKE_BUILD_TYPE}'
-                output_path = context.cmake_output + build_type
-
-            output_path = output_path.strip().replace('\n', '')
-
-            output_file_node = context.vcxproj['tree'].find(
-                '{0}/ns:Link/ns:OutputFile'.format(
-                    context.definition_groups[setting]),
+        target_name = '$(ProjectName)'  # default
+        target_name_node = context.vcxproj['tree'].find(
+            '{0}/ns:TargetName'.format(prop), namespaces=context.vcxproj['ns']
+        )
+        if target_name_node is None:
+            target_name_node = context.vcxproj['tree'].find(
+                '//ns:TargetName[@Condition="\'$(Configuration)|$(Platform)\'==\'{0}\'"]'
+                .format(setting),
                 namespaces=context.vcxproj['ns']
             )
-            if output_file_node is not None:
-                output_file = output_file_node.text
-                path = os.path.dirname(output_file)
-                name, ext = os.path.splitext(os.path.basename(output_file))
-                path = cleaning_output(context, path)
-                output_path = path.replace('${OUT_DIR}', output_path)
-                context.settings[setting]['target_name'] = cleaning_output(context, name)
 
-            context.settings[setting]['out_dir'] = output_path
+        if target_name_node is not None:
+            target_name = target_name_node.text
+        context.settings[setting]['target_name'] = cleaning_output(context, target_name)
 
-            if output_path:
-                message(context, 'Output {0} = {1}'.format(setting, output_path), '')
-            else:  # pragma: no cover
-                message(context, 'No Output found. Use [{0}/bin] by default !'.format(arch), 'warn')
+        output_path = '$(SolutionDir)$(Platform)/$(Configuration)/'  # default value
+
+        if not context.cmake_output:
+                if vs_outputs[conf][arch] is not None:
+                    output_path = cleaning_output(context, vs_outputs[conf][arch].text)
+                else:
+                    output_path = cleaning_output(context, output_path)
+        else:
+            if context.cmake_output[-1:] == '/' or context.cmake_output[-1:] == '\\':
+                build_type = '${CMAKE_BUILD_TYPE}'
+            else:
+                build_type = '/${CMAKE_BUILD_TYPE}'
+            output_path = context.cmake_output + build_type
+
+        output_path = output_path.strip().replace('\n', '')
+
+        output_file_node = context.vcxproj['tree'].find(
+            '{0}/ns:Link/ns:OutputFile'.format(
+                context.definition_groups[setting]),
+            namespaces=context.vcxproj['ns']
+        )
+        if output_file_node is not None:
+            output_file = output_file_node.text
+            path = os.path.dirname(output_file)
+            name, ext = os.path.splitext(os.path.basename(output_file))
+            path = cleaning_output(context, path)
+            output_path = path.replace('${OUT_DIR}', output_path)
+            context.settings[setting]['target_name'] = cleaning_output(context, name)
+
+        context.settings[setting]['out_dir'] = output_path
+
+        if output_path:
+            message(context, 'Output {0} = {1}'.format(setting, output_path), '')
+        else:  # pragma: no cover
+            message(context, 'No Output found. Use [{0}/bin] by default !'.format(arch), 'warn')
