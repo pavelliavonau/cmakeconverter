@@ -111,7 +111,7 @@ def main():  # pragma: no cover
 
     if args.dry:
         initial_context.dry = True
-        message('Converter runs in dry mode', '')
+        message(initial_context, 'Converter runs in dry mode', '')
 
     if not args.solution:
         cmake_lists_path = os.path.dirname(args.project)

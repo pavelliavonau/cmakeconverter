@@ -50,10 +50,12 @@ FAIL = colorama.Fore.RED + colorama.Style.BRIGHT
 ENDC = colorama.Fore.RESET + colorama.Style.RESET_ALL
 
 
-def take_name_from_list_case_ignore(search_list, name_to_search):
+def take_name_from_list_case_ignore(context, search_list, name_to_search):
     """
     Return real name of name to search
 
+    :param context: the context of converter
+    :type context: Context
     :param search_list: list to makje research
     :type search_list: list
     :param name_to_search: name tosearch in list
@@ -70,10 +72,10 @@ def take_name_from_list_case_ignore(search_list, name_to_search):
 
     if real_name == '':
         if '.h' in name_to_search:
-            message('{0} header file is absent at filesystem. Ignoring but check it!!\n'
+            message(context, '{0} header file is absent at filesystem. Ignoring but check it!!\n'
                     .format(name_to_search), 'warn')
             return ''
-        message('{0} file is absent at filesystem. Ignoring but check it!!\n'
+        message(context, '{0} file is absent at filesystem. Ignoring but check it!!\n'
                 .format(name_to_search), 'warn')
     else:
         search_list.remove(real_name)
@@ -264,7 +266,7 @@ def make_os_specific_shell_path(output):
     return output
 
 
-def replace_vs_vars_with_cmake_vars(output):
+def replace_vs_vars_with_cmake_vars(context, output):
     variables_to_replace = {
         '$(SolutionDir)': '${CMAKE_SOURCE_DIR}\\',
         '$(Platform)': '${CMAKE_VS_PLATFORM_NAME}',
@@ -286,22 +288,24 @@ def replace_vs_vars_with_cmake_vars(output):
     vs_variables_re = re.compile(r'(\$\(.*?\))')
     vs_variables_matches = vs_variables_re.findall(output)
     for vs_variable_match in vs_variables_matches:
-        message('Unknown variable: {0}'.format(vs_variable_match), 'warn')
+        message(context, 'Unknown variable: {0}'.format(vs_variable_match), 'warn')
 
     return output
 
 
-def cleaning_output(output):
+def cleaning_output(context, output):
     """
     Clean Output string by remove VS Project Variables
 
+    :param context: the context of converter
+    :type context: Context
     :param output: Output to clean
     :type output: str
     :return: clean output
     :rtype: str
     """
 
-    output = replace_vs_vars_with_cmake_vars(output)
+    output = replace_vs_vars_with_cmake_vars(context, output)
 
     output = set_unix_slash(output)
 
@@ -313,10 +317,12 @@ def cleaning_output(output):
     return output
 
 
-def get_actual_filename(name):
+def get_actual_filename(context, name):
     """
     Return actual filename from given name if file iis found, else return None
 
+    :param context: the context of converter
+    :type context: Context
     :param name: name of file
     :type name: str
     :return: None | str
@@ -331,16 +337,18 @@ def get_actual_filename(name):
     res = glob.glob('\\'.join(test_name))
     if not res:
         # File not found
-        message('file or path "{0}" not found.'.format(name), 'warn')
+        message(context, 'file or path "{0}" not found.'.format(name), 'warn')
         return None
 
     return res[0]
 
 
-def normalize_path(working_path, path_to_normalize):
+def normalize_path(context, working_path, path_to_normalize):
     """
     Normalize path from working path
 
+    :param context: the context of converter
+    :type context: Context
     :param working_path: current working path
     :type working_path: str
     :param path_to_normalize: path to be normalized
@@ -350,7 +358,7 @@ def normalize_path(working_path, path_to_normalize):
     """
 
     joined_path = os.path.normpath(os.path.join(working_path, path_to_normalize.strip()))
-    actual_path_name = get_actual_filename(joined_path)
+    actual_path_name = get_actual_filename(context, joined_path)
     if actual_path_name is None:
         actual_path_name = joined_path
     normal_path = set_unix_slash(os.path.relpath(actual_path_name, working_path))
@@ -359,17 +367,19 @@ def normalize_path(working_path, path_to_normalize):
     return normal_path
 
 
-def prepare_build_event_cmd_line_for_cmake(build_event):
+def prepare_build_event_cmd_line_for_cmake(context, build_event):
     cmake_build_event = make_os_specific_shell_path(build_event)
-    cmake_build_event = replace_vs_vars_with_cmake_vars(cmake_build_event)
+    cmake_build_event = replace_vs_vars_with_cmake_vars(context, cmake_build_event)
     cmake_build_event = cmake_build_event.replace('\\', '\\\\')
     return cmake_build_event
 
 
-def message(text, status):  # pragma: no cover
+def message(context, text, status):  # pragma: no cover
     """
     Displays a message while the script is running
 
+    :param context: the context of converter
+    :type context: Context
     :param text: content of the message
     :type text: str
     :param status: level of the message (change color)
@@ -380,16 +390,21 @@ def message(text, status):  # pragma: no cover
     global time0
     delta_time = current_time - time0
     dt = '{0:f} '.format(delta_time)
+
+    message_begin = dt
+    if context.project_number:
+        message_begin = message_begin + '{0}> '.format(context.project_number)
+
     if status == 'error':
-        print(dt + 'ERR  : ' + FAIL + text + ENDC)
+        print(message_begin + 'ERR  : ' + FAIL + text + ENDC)
     elif status == 'warn':
-        print(dt + 'WARN : ' + WARN + text + ENDC)
+        print(message_begin + 'WARN : ' + WARN + text + ENDC)
     elif status == 'ok':
-        print(dt + 'OK   : ' + OK + text + ENDC)
+        print(message_begin + 'OK   : ' + OK + text + ENDC)
     elif status == 'done':
-        print(dt + DONE + text + ENDC)
+        print(message_begin + DONE + text + ENDC)
     else:
-        print(dt + 'INFO : ' + text)
+        print(message_begin + 'INFO : ' + text)
 
 
 def write_comment(cmake_file, text):

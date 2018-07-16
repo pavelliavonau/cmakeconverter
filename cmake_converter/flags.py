@@ -198,15 +198,17 @@ class Flags(object):
                                                  ifort_cl_unix, ifort_ln, cmake_file)
 
     @staticmethod
-    def write_target_headers_only_artifact(cmake_file):
+    def write_target_headers_only_artifact(context, cmake_file):
         """
         Add a dummy target to given CMake file
 
+        :param context: the context of converter
+        :type context: Context
         :param cmake_file: CMakeLists.txt IO wrapper
         :type cmake_file: _io.TextIOWrapper
         """
 
-        message('CMake will show fake custom Library.', 'warn')
+        message(context, 'CMake will show fake custom Library.', 'warn')
         cmake_file.write('add_custom_target(${PROJECT_NAME} SOURCES ${HEADERS_FILES})\n\n')
 
     def write_precompiled_headers_macro(self, context, cmake_file):
@@ -234,13 +236,13 @@ class Flags(object):
         if configuration_type:
             if configuration_type == 'DynamicLibrary':
                 cmake_file.write('add_library(${PROJECT_NAME} SHARED')
-                message('CMake will build a SHARED Library.', '')
+                message(context, 'CMake will build a SHARED Library.', '')
             elif configuration_type == 'StaticLibrary':  # pragma: no cover
                 cmake_file.write('add_library(${PROJECT_NAME} STATIC')
-                message('CMake will build a STATIC Library.', '')
+                message(context, 'CMake will build a STATIC Library.', '')
             else:  # pragma: no cover
                 cmake_file.write('add_executable(${PROJECT_NAME}')
-                message('CMake will build an EXECUTABLE.', '')
+                message(context, 'CMake will build an EXECUTABLE.', '')
             if not context.has_only_headers:
                 cmake_file.write(' ${SRC_FILES}')
             if context.has_headers:

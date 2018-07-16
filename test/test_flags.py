@@ -32,8 +32,8 @@ class TestFlags(unittest2.TestCase):
     """
 
     cur_dir = os.path.dirname(os.path.realpath(__file__))
-    vs_project = get_vcxproj_data('%s/datatest/foo.vcxproj' % cur_dir)
-    cmake_lists_test = get_cmake_lists('./')
+    vs_project = get_vcxproj_data(context, '%s/datatest/foo.vcxproj' % cur_dir)
+    cmake_lists_test = get_cmake_lists(context, './')
 
     data_test = {
         'cmake': cmake_lists_test,
@@ -47,7 +47,7 @@ class TestFlags(unittest2.TestCase):
     def test_define_linux_flags_with_std(self):
         """Define Linux Flags"""
 
-        self.data_test['cmake'] = get_cmake_lists('./')
+        self.data_test['cmake'] = get_cmake_lists(context, './')
         self.data_test['std'] = 'c++17'
         under_test = CPPFlags(self.data_test)
         under_test.define_linux_flags()
@@ -59,7 +59,7 @@ class TestFlags(unittest2.TestCase):
         self.assertTrue('-std=c++17' in content_test)
         cmakelists_test.close()
 
-        self.data_test['cmake'] = get_cmake_lists('./')
+        self.data_test['cmake'] = get_cmake_lists(context, './')
         self.data_test['std'] = 'c++19'
         under_test = CPPFlags(self.data_test)
         under_test.define_linux_flags()

@@ -49,7 +49,7 @@ class VFContextInitializer(ContextInitializer):
         :type vs_project: str
         """
 
-        context.vcxproj = get_xml_data(vs_project)
+        context.vcxproj = get_xml_data(context, vs_project)
 
     def define_settings(self, context):
         """

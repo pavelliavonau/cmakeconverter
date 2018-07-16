@@ -65,7 +65,7 @@ class FortranFlags(Flags):
                     flags_message[key] = value
 
             if flags_message:
-                message('{0} for {1} is {2} '.format(attr, setting, flags_message), '')
+                message(context, '{0} for {1} is {2} '.format(attr, setting, flags_message), '')
 
     def define_flags(self, context):
         """
@@ -459,6 +459,7 @@ class FortranFlags(Flags):
                     if '/Qprof-dir' in add_opt:
                         name_value = add_opt.split(':')
                         add_opt = name_value[0] + ':' + normalize_path(
+                            context,
                             os.path.dirname(context.vcxproj_path), name_value[1]
                         )
 
@@ -481,11 +482,12 @@ class FortranFlags(Flags):
                         unix_option = unix_option.replace('Qopenmp-lib', 'openmp-lib')
                         unix_option = unix_option.replace('lib ', 'lib=')
                     else:
-                        message('Unix ifort option "{0}" may be incorrect. '
+                        message(context, 'Unix ifort option "{0}" may be incorrect. '
                                 'Check it and set it with visual studio UI if possible.'
                                 .format(unix_option), 'warn')
                     context.settings[setting][ifort_cl_win].append(add_opt)
                     context.settings[setting][ifort_cl_unix].append(unix_option)
-                message('Additional Options for {0} : {1}'.format(setting, str(ready_add_opts)), '')
+                message(context,
+                        'Additional Options for {0} : {1}'.format(setting, str(ready_add_opts)), '')
             else:
-                message('No Additional Options for {0}'.format(setting), '')
+                message(context, 'No Additional Options for {0}'.format(setting), '')

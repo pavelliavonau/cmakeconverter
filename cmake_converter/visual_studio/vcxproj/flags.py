@@ -68,17 +68,19 @@ class CPPFlags(Flags):
 
         if context.std:
             if context.std in self.available_std:
-                message('Cmake will use C++ std {0}.'.format(context.std), 'info')
+                message(context, 'Cmake will use C++ std {0}.'.format(context.std), 'info')
                 linux_flags = '-std=%s' % context.std
             else:
                 message(
+                    context,
                     'C++ std {0} version does not exist. CMake will use "c++11" instead'
                     .format(context.std),
                     'warn'
                 )
                 linux_flags = '-std=c++11'
         else:
-            message('No C++ std version specified. CMake will use "c++11" by default.', 'info')
+            message(context,
+                    'No C++ std version specified. CMake will use "c++11" by default.', 'info')
             linux_flags = '-std=c++11'
         references = context.vcxproj['tree'].xpath('//ns:ProjectReference',
                                                    namespaces=context.vcxproj['ns'])
@@ -126,7 +128,7 @@ class CPPFlags(Flags):
                         context.settings[setting][defines].append('_UNICODE')
                     if 'MultiByte' in character_set[0].text:
                         context.settings[setting][defines].append('_MBCS')
-                message('PreprocessorDefinitions for {0} are {1}'.format(
+                message(context, 'PreprocessorDefinitions for {0} are {1}'.format(
                     setting,
                     context.settings[setting][defines]
                 ), '')
@@ -188,6 +190,7 @@ class CPPFlags(Flags):
                 real_pch_cpp_path = ''
                 if founded_pch_h_path in context.sources:
                     real_pch_cpp = take_name_from_list_case_ignore(
+                        context,
                         context.sources[founded_pch_h_path], pch_source_name
                     )
                     real_pch_cpp_path = founded_pch_h_path
@@ -196,6 +199,7 @@ class CPPFlags(Flags):
                         for src in context.sources[src_path]:
                             if pch_source_name == src:
                                 real_pch_cpp = take_name_from_list_case_ignore(
+                                    context,
                                     context.sources[src_path], src
                                 )
                                 real_pch_cpp_path = src_path
@@ -232,17 +236,17 @@ class CPPFlags(Flags):
         )
 
         if flags_message:
-            message('{0} for {1} for file {2} is {3}'.format(option, setting,
-                                                             file, flags_message),
+            message(context, '{0} for {1} for file {2} is {3}'.format(option, setting,
+                                                                      file, flags_message),
                     '')
 
     @staticmethod
-    def __define_defines_for_files(defines_node, settings, file, setting):
+    def __define_defines_for_files(context, defines_node, settings, file, setting):
         if defines_node is not None:
             for define in defines_node.text.split(";"):
                 if define != '%(PreprocessorDefinitions)' and define != 'WIN32':
                     settings[defines].append(define)
-                message('PreprocessorDefinitions for file {0} for {1} are {2}'.format(
+                message(context, 'PreprocessorDefinitions for file {0} for {1} are {2}'.format(
                     file,
                     setting,
                     settings[defines]
@@ -264,6 +268,7 @@ class CPPFlags(Flags):
                         )
                     if 'PreprocessorDefinitions' == option:
                         self.__define_defines_for_files(
+                            context,
                             node,
                             context.file_spec_raw_options[file][setting],
                             file,
@@ -340,7 +345,7 @@ class CPPFlags(Flags):
 
         if flags_message:
             flag_name = xpath.split(':')[-1]
-            message('{0} for {1} is {2} '.format(flag_name, setting, flags_message), '')
+            message(context, '{0} for {1} is {2} '.format(flag_name, setting, flags_message), '')
 
         return flag_text
 
@@ -480,9 +485,9 @@ class CPPFlags(Flags):
                     context.settings[setting]['use_debug_libs'] = True
                 else:
                     context.settings[setting]['use_debug_libs'] = False
-                message('UseDebugLibrairies for {0}'.format(setting), '')
+                message(context, 'UseDebugLibrairies for {0}'.format(setting), '')
             else:
-                message('No UseDebugLibrairies for {0}'.format(setting), '')
+                message(context, 'No UseDebugLibrairies for {0}'.format(setting), '')
 
     def set_warning_level(self, context):
         """
@@ -540,10 +545,11 @@ class CPPFlags(Flags):
                         flag = '/wd{0}'.format(sw)
                         flags.append(flag)
                         context.settings[setting][cl_flags].append(flag)
-                message('DisableSpecificWarnings for {0} : {1}'.format(setting, ';'.join(flags)),
+                message(context, 'DisableSpecificWarnings for {0} : {1}'
+                        .format(setting, ';'.join(flags)),
                         '')
             else:
-                message('No Additional Options for {0}'.format(setting), '')
+                message(context, 'No Additional Options for {0}'.format(setting), '')
 
     @staticmethod
     def set_additional_options(context):
@@ -563,9 +569,10 @@ class CPPFlags(Flags):
                     if opt != '%(AdditionalOptions)':
                         context.settings[setting][cl_flags].append(opt)
                         ready_add_opts.append(opt)
-                message('Additional Options for {0} : {1}'.format(setting, ready_add_opts), '')
+                message(context, 'Additional Options for {0} : {1}'
+                        .format(setting, ready_add_opts), '')
             else:
-                message('No Additional Options for {0}'.format(setting), '')
+                message(context, 'No Additional Options for {0}'.format(setting), '')
 
     def set_basic_runtime_checks(self, context):
         """
@@ -621,11 +628,11 @@ class CPPFlags(Flags):
                     cl_flag_value = m_t
                 if 'MultiThreadedDebug' == mdd_value.text:
                     cl_flag_value = mtd
-                message('RuntimeLibrary {0} for {1} is {2}'
+                message(context, 'RuntimeLibrary {0} for {1} is {2}'
                         .format(mdd_value.text, setting, cl_flag_value), '')
             else:
                 cl_flag_value = m_d  # TODO: investigate what is default?
-                message('Default RuntimeLibrary {0} for {1} but may be error. Check!'
+                message(context, 'Default RuntimeLibrary {0} for {1} but may be error. Check!'
                         .format(m_d, setting), 'warn')
 
             if cl_flag_value:
@@ -954,7 +961,7 @@ class CPPFlags(Flags):
         working_path = os.path.dirname(context.vcxproj_path)
         cmake_file.write(
             'ADD_PRECOMPILED_HEADER("{0}" "{1}" SRC_FILES)\n\n'.format(
-                os.path.basename(pch_header), normalize_path(working_path, pch_source)
+                os.path.basename(pch_header), normalize_path(context, working_path, pch_source)
             )
         )
 

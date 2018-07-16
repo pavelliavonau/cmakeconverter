@@ -126,7 +126,7 @@ class Dependencies(object):
         for i in inc_dir.split(';'):
             if i:
                 dirs_raw.append(i)
-                i = normalize_path(working_path, i)
+                i = normalize_path(context, working_path, i)
                 i = re.sub(r'\$\((.+?)\)', r'$ENV{\1}', i)
                 dirs.append(i)
         inc_dirs = ';'.join(dirs)
@@ -136,17 +136,19 @@ class Dependencies(object):
         return inc_dirs
 
     @staticmethod
-    def get_dependency_target_name(vs_project):
+    def get_dependency_target_name(context, vs_project):
         """
         Return dependency target name
 
+        :param context: the context of converter
+        :type context: Context
         :param vs_project: path to ".vcxproj" file
         :type vs_project: str
         :return: target name
         :rtype: str
         """
 
-        vcxproj = get_vcxproj_data(vs_project)
+        vcxproj = get_vcxproj_data(context, vs_project)
         project_name = get_global_project_name_from_vcxproj_file(vcxproj)
 
         if project_name:
@@ -198,7 +200,7 @@ class Dependencies(object):
             for reference in context.target_references:
                 cmake_file.write(' ' + reference)
                 msg = 'External library found : {0}'.format(reference)
-                message(msg, '')
+                message(context, msg, '')
             cmake_file.write(')\n\n')
 
         if is_settings_has_data(context.sln_configurations_map,
@@ -216,11 +218,11 @@ class Dependencies(object):
             cmake_file.write('if(MSVC)\n')
             cmake_file.write('    target_link_libraries(${PROJECT_NAME}')
             for dep in context.add_lib_dirs:
-                cmake_file.write(' -LIBPATH:' + cleaning_output(dep))
+                cmake_file.write(' -LIBPATH:' + cleaning_output(context, dep))
             cmake_file.write(')\nelseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")\n')
             cmake_file.write('    target_link_libraries(${PROJECT_NAME}')
             for dep in context.add_lib_dirs:
-                cmake_file.write(' -L' + cleaning_output(dep))
+                cmake_file.write(' -L' + cleaning_output(context, dep))
             cmake_file.write(')\nendif()\n\n')
 
     @staticmethod

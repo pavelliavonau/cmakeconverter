@@ -47,7 +47,7 @@ class VFDependencies(Dependencies):
     def find_target_references(context):
         if context.sln_deps:
             context.target_references = context.target_references + context.sln_deps
-            message('References : {}'.format(context.target_references), '')
+            message(context, 'References : {}'.format(context.target_references), '')
 
     @staticmethod
     def find_target_additional_dependencies(context):
@@ -64,7 +64,7 @@ class VFDependencies(Dependencies):
                         if os.path.splitext(d)[1] == '.lib':
                             add_libs.append(d.replace('.lib', ''))
                 context.add_lib_deps = True
-                message('Additional Dependencies for {0} = {1}'.format(setting, add_libs),
+                message(context, 'Additional Dependencies for {0} = {1}'.format(setting, add_libs),
                         '')
                 context.settings[setting]['add_lib_deps'] = '$<SEMICOLON>'.join(add_libs)
 
@@ -90,7 +90,8 @@ class VFDependencies(Dependencies):
                     '%(AdditionalLibraryDirectories)', ''
                 )
                 if list_depends != '':
-                    message('Additional Library Directories = {0}'.format(list_depends), '')
+                    message(context,
+                            'Additional Library Directories = {0}'.format(list_depends), '')
                     add_lib_dirs = []
                     for d in list_depends.split(';'):
                         d = d.strip()
@@ -98,7 +99,7 @@ class VFDependencies(Dependencies):
                             add_lib_dirs.append(d)
                     context.add_lib_dirs = add_lib_dirs
             else:  # pragma: no cover
-                message('No additional library dependencies.', '')
+                message(context, 'No additional library dependencies.', '')
 
     @staticmethod
     def __find_custom_build_events_of_files(context):
@@ -111,13 +112,14 @@ class VFDependencies(Dependencies):
                         context.settings[setting]['file_custom_build_events'] = {}
                     custom_event_data = {
                         'command_line': prepare_build_event_cmd_line_for_cmake(
+                            context,
                             custom_build['CommandLine']
                         ),
                         'description': custom_build['Description'],
                         'outputs': custom_build['Outputs'],
                     }
                     context.settings[setting]['file_custom_build_events'][file] = custom_event_data
-                    message('Custom build for {0} file {1} is {2}'
+                    message(context, 'Custom build for {0} file {1} is {2}'
                             .format(setting, file, custom_build), '')
 
     @staticmethod
@@ -133,10 +135,13 @@ class VFDependencies(Dependencies):
                 for build_event in build_events.split('\n'):
                     build_event = build_event.strip()
                     if build_event:
-                        cmake_build_event = prepare_build_event_cmd_line_for_cmake(build_event)
+                        cmake_build_event = prepare_build_event_cmd_line_for_cmake(
+                            context,
+                            build_event
+                        )
                         context.settings[setting][value_name] \
                             .append(cmake_build_event)
-                        message('{0} event for {1}: {2}'
+                        message(context, '{0} event for {1}: {2}'
                                 .format(event_type, setting, cmake_build_event), 'info')
 
     def find_target_pre_build_events(self, context):

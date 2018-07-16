@@ -94,5 +94,5 @@ class VFProjectFiles(ProjectFiles):
                         found = True
                         break
             if not found:
-                message('include {0} in file {1} not found'
+                message(context, 'include {0} in file {1} not found'
                         .format(include_name_in_file, file_path_name), 'error')

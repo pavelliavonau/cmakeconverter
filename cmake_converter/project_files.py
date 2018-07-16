@@ -62,6 +62,7 @@ class ProjectFiles(object):
 
         file_lists_for_include_paths = {}
         for setting in context.settings:
+            message(context, setting, '')
             for include_path in context.settings[setting]['inc_dirs_list']:
                 if include_path not in file_lists_for_include_paths:
                     abs_include_path = os.path.join(vcxproj_dir, include_path)
@@ -80,7 +81,7 @@ class ProjectFiles(object):
                 if file_path not in context_files:
                     context_files[file_path] = []
                 if file_name not in context_files[file_path]:
-                    real_name = take_name_from_list_case_ignore(file_lists[file_path],
+                    real_name = take_name_from_list_case_ignore(context, file_lists[file_path],
                                                                 file_name)
                     if real_name:
                         context_files[file_path].append(real_name)
@@ -114,7 +115,7 @@ class ProjectFiles(object):
         has_headers = True if context.headers else False
         context.has_headers = has_headers
         context.has_only_headers = True if has_headers and not context.sources else False
-        message("Source files extensions found: {0}".format(self.languages), 'INFO')
+        message(context, "Source files extensions found: {0}".format(self.languages), 'INFO')
 
     def find_cmake_project_languages(self, context):
         """
@@ -157,6 +158,7 @@ class ProjectFiles(object):
             lang = ' ' + ' '.join(context.project_languages)
         if context.project_name == '':
             message(
+                context,
                 'No PROJECT NAME found or define. '
                 'Check it!!',
                 'error'
@@ -183,14 +185,15 @@ class ProjectFiles(object):
         working_path = os.path.dirname(context.vcxproj_path)
         if '' in context.headers:
             for header_file in context.headers['']:
-                cmake_file.write('    {0}\n'.format(normalize_path(working_path, header_file)))
+                cmake_file.write('    {0}\n'
+                                 .format(normalize_path(context, working_path, header_file)))
 
         for headers_dir in context.headers:
             if headers_dir == '':
                 continue
             for header_file in context.headers[headers_dir]:
                 cmake_file.write('    {0}\n'
-                                 .format(normalize_path(working_path,
+                                 .format(normalize_path(context, working_path,
                                                         os.path.join(headers_dir, header_file))))
 
         cmake_file.write(')\n')
@@ -213,24 +216,27 @@ class ProjectFiles(object):
         working_path = os.path.dirname(context.vcxproj_path)
         if '' in context.sources:
             for src_file in context.sources['']:
-                cmake_file.write('    {0}\n'.format(normalize_path(working_path, src_file)))
+                cmake_file.write('    {0}\n'
+                                 .format(normalize_path(context, working_path, src_file)))
 
         for src_dir in context.sources:
             if src_dir == '':
                 continue
             for src_file in context.sources[src_dir]:
                 cmake_file.write('    {0}\n'
-                                 .format(normalize_path(working_path,
+                                 .format(normalize_path(context, working_path,
                                                         os.path.join(src_dir, src_file))))
 
         cmake_file.write(')\n')
         cmake_file.write('source_group("Sources" FILES ${SRC_FILES})\n\n')
 
     @staticmethod
-    def add_additional_code(file_to_add, cmake_file):
+    def add_additional_code(context, file_to_add, cmake_file):
         """
         Add additional file with CMake code inside
 
+        :param context: the context of converter
+        :type context: Context
         :param cmake_file: CMakeLists.txt IO wrapper
         :type cmake_file: _io.TextIOWrapper
         :param file_to_add: the file who contains CMake code
@@ -245,10 +251,11 @@ class ProjectFiles(object):
                     cmake_file.write(line)
                 fc.close()
                 cmake_file.write('\n')
-                message('File of Code is added = ' + file_to_add, 'warn')
+                message(context, 'File of Code is added = ' + file_to_add, 'warn')
             except OSError as e:
-                message(str(e), 'error')
+                message(context, str(e), 'error')
                 message(
+                    context,
                     'Wrong data file ! Code was not added, please verify file name or path !',
                     'error'
                 )

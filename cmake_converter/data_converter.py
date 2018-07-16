@@ -80,7 +80,7 @@ class DataConverter(object):
 
         # Add additional code or not
         if context.additional_code is not None:
-            context.files.add_additional_code(context.additional_code, cmake_file)
+            context.files.add_additional_code(context, context.additional_code, cmake_file)
 
         context.files.write_header_files(context, cmake_file)
 
@@ -110,26 +110,27 @@ class DataConverter(object):
             context.dependencies.write_link_dependencies(context, cmake_file)
             context.dependencies.write_target_dependency_packages(context, cmake_file)
         else:
-            Flags.write_target_headers_only_artifact(cmake_file)
+            Flags.write_target_headers_only_artifact(context, cmake_file)
 
     def convert(self, context):
         """
         Method template for data collecting and writing
 
         """
-
-        message('Collecting data for project {0}'.format(context.vcxproj_path), '')
+        message(context, 'Conversion started: Project {0}'.format(context.project_name), 'done')
+        message(context, 'Collecting data for project {0}'.format(context.vcxproj_path), '')
         self.collect_data(context)
         if context.dry:
             return
         if os.path.exists(context.cmake + '/CMakeLists.txt'):
-            cmake_file = get_cmake_lists(context.cmake, 'a')
-            cmake_file.write('\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n')
+            cmake_file = get_cmake_lists(context, context.cmake, 'a')
+            cmake_file.write('\n' * 26)
         else:
-            cmake_file = get_cmake_lists(context.cmake)
-        message('Writing data for project {0}'.format(context.vcxproj_path), '')
+            cmake_file = get_cmake_lists(context, context.cmake)
+        message(context, 'Writing data for project {0}'.format(context.vcxproj_path), '')
         self.write_data(context, cmake_file)
         cmake_file.close()
+        message(context, 'Conversion done: Project {0}'.format(context.project_name), 'done')
 
     @staticmethod
     def add_cmake_version_required(cmake_file):

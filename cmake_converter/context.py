@@ -32,6 +32,7 @@ class Context(object):
     def __init__(self):
         self.vcxproj = {}
         self.vcxproj_path = ''
+        self.project_number = None
         self.has_headers = False
         self.has_only_headers = False
         self.solution_languages = set()
@@ -72,6 +73,7 @@ class ContextInitializer(object):
     def __init__(self, context, vs_project, cmake_lists_destination_path):
         self.init_files(context, vs_project, cmake_lists_destination_path)
         message(
+            context,
             'Initialization data for conversion of project {0}'.format(context.vcxproj_path),
             ''
         )
@@ -95,6 +97,7 @@ class ContextInitializer(object):
 
         if len(target_types) > 1:
             message(
+                context,
                 'Target has more than one output binary type. CMake does not support it!',
                 'warn'
             )
@@ -176,6 +179,7 @@ class ContextInitializer(object):
                 context_cmake = cmake_lists
         if context_cmake is None:
             message(
+                context,
                 'CMakeLists.txt path is not set. '
                 'He will be generated in current directory.',
                 'warn'

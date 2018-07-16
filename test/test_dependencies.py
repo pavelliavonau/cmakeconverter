@@ -32,8 +32,8 @@ class TestDependencies(unittest2.TestCase):
     """
 
     cur_dir = os.path.dirname(os.path.realpath(__file__))
-    vs_project = get_vcxproj_data('%s/datatest/foo.vcxproj' % cur_dir)
-    cmake_lists_test = get_cmake_lists('./')
+    vs_project = get_vcxproj_data(context, '%s/datatest/foo.vcxproj' % cur_dir)
+    cmake_lists_test = get_cmake_lists(context, './')
 
     data_test = {
         'cmake': cmake_lists_test,
@@ -58,7 +58,7 @@ class TestDependencies(unittest2.TestCase):
     def test_write_include_dir(self):
         """Write Include Dirs"""
 
-        self.data_test['cmake'] = get_cmake_lists('./')
+        self.data_test['cmake'] = get_cmake_lists(context, './')
         under_test = Dependencies(self.data_test)
 
         under_test.find_include_dir()
@@ -75,7 +75,7 @@ class TestDependencies(unittest2.TestCase):
     def test_write_dependencies(self):
         """Write Dependencies"""
 
-        self.data_test['cmake'] = get_cmake_lists('./')
+        self.data_test['cmake'] = get_cmake_lists(context, './')
         under_test = Dependencies(self.data_test)
 
         # Add dependencies from ".vcxproj"
@@ -94,7 +94,7 @@ class TestDependencies(unittest2.TestCase):
         # Add dependencies from "parameters"
         dependencies = ['external/zlib/cmake/', '../../external/g3log/cmake/']
         self.data_test['dependencies'] = dependencies
-        self.data_test['cmake'] = get_cmake_lists('./')
+        self.data_test['cmake'] = get_cmake_lists(context, './')
         under_test = Dependencies(self.data_test)
 
         under_test.write_dependencies()
@@ -115,7 +115,7 @@ class TestDependencies(unittest2.TestCase):
     def test_link_dependencies(self):
         """Link Dependencies"""
 
-        self.data_test['cmake'] = get_cmake_lists('./')
+        self.data_test['cmake'] = get_cmake_lists(context, './')
         under_test = Dependencies(self.data_test)
 
         under_test.write_link_dependencies()

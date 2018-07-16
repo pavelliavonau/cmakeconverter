@@ -143,7 +143,7 @@ class TestDataConverter(unittest2.TestCase):
         }
         under_test = DataConverter(data_test)
         under_test.init_files(self.vs_project, '.')
-        under_test.data['cmake'] = get_cmake_lists('./')
+        under_test.data['cmake'] = get_cmake_lists(context, './')
 
         under_test.create_data()
         under_test.close_cmake_file()

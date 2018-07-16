@@ -129,7 +129,7 @@ def convert_project(context, xml_project_path, cmake_lists_destination_path):
         VFContextInitializer(context, xml_project_path, cmake_lists_destination_path)
         data_converter = DataConverter()
     if data_converter is None:
-        message('Unknown project type at {0}'.format(xml_project_path), 'error')
+        message(context, 'Unknown project type at {0}'.format(xml_project_path), 'error')
         return
 
     data_converter.convert(context)
@@ -143,7 +143,7 @@ def set_dependencies_for_project(context, project_data):
 
 
 def clean_cmake_lists_of_solution(context, solution_path, projects_data):
-    message('Cleaning CMake Scripts', '')
+    message(context, 'Cleaning CMake Scripts', '')
     cmake_lists_set = set()
     for guid in projects_data:
         project_path = projects_data[guid]['path']
@@ -162,9 +162,9 @@ def clean_cmake_lists_of_solution(context, solution_path, projects_data):
 
         if os.path.exists(cmake_path_to_clean):
             os.remove(cmake_path_to_clean)
-            message('removed {}'.format(cmake_path_to_clean), '')
+            message(context, 'removed {}'.format(cmake_path_to_clean), '')
         else:
-            message('not found {}'.format(cmake_path_to_clean), 'warn')
+            message(context, 'not found {}'.format(cmake_path_to_clean), 'warn')
     print('\n')
 
 
@@ -179,8 +179,11 @@ def convert_solution(initial_context, sln_path):
     subdirectories_to_project_name = {}
     projects_data = solution_data['projects_data']
     clean_cmake_lists_of_solution(initial_context, solution_path, projects_data)
+    project_number = 0
     for guid in projects_data:
+        project_number += 1
         project_context = copy.deepcopy(initial_context)
+        project_context.project_number = project_number
         project_path = projects_data[guid]['path']
         project_path = '/'.join(project_path.split('\\'))
         project_abs = os.path.join(solution_path, project_path)
@@ -198,7 +201,7 @@ def convert_solution(initial_context, sln_path):
     if initial_context.dry:
         return
 
-    sln_cmake = get_cmake_lists(solution_path)
+    sln_cmake = get_cmake_lists(initial_context, solution_path)
     DataConverter.add_cmake_version_required(sln_cmake)
     sln_cmake.write(
         'project({0})\n\n'.format(os.path.splitext(os.path.basename(sln_path))[0])
@@ -289,4 +292,4 @@ def convert_solution(initial_context, sln_path):
     sln_cmake.write('\n')
     sln_cmake.close()
 
-    message('Conversion of solution finished', 'done')
+    message(initial_context, 'Conversion of solution finished', 'done')

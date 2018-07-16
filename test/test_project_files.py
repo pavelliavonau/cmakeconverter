@@ -32,8 +32,8 @@ class TestProjectFiles(unittest2.TestCase):
     """
 
     cur_dir = os.path.dirname(os.path.realpath(__file__))
-    vcxproj_data_test = get_vcxproj_data('%s/datatest/foo.vcxproj' % cur_dir)
-    cmake_lists_test = get_cmake_lists(cur_dir)
+    vcxproj_data_test = get_vcxproj_data(context, '%s/datatest/foo.vcxproj' % cur_dir)
+    cmake_lists_test = get_cmake_lists(context, cur_dir)
 
     data_test = {
         'cmake': cmake_lists_test,
@@ -62,7 +62,7 @@ class TestProjectFiles(unittest2.TestCase):
     def test_collects_source_files(self):
         """Collects Source Files"""
 
-        self.data_test['cmake'] = get_cmake_lists(self.cur_dir)
+        self.data_test['cmake'] = get_cmake_lists(context, self.cur_dir)
         under_test = ProjectFiles(self.data_test)
 
         self.assertFalse(under_test.sources)
@@ -77,7 +77,7 @@ class TestProjectFiles(unittest2.TestCase):
     def test_write_source_files(self):
         """Write Source Files"""
 
-        self.data_test['cmake'] = get_cmake_lists(self.cur_dir)
+        self.data_test['cmake'] = get_cmake_lists(context, self.cur_dir)
         under_test = ProjectFiles(self.data_test)
 
         under_test.collects_source_files()
@@ -95,10 +95,10 @@ class TestProjectFiles(unittest2.TestCase):
         """Add Additional CMake Code"""
 
         # When file is empty, nothing is added
-        self.data_test['cmake'] = get_cmake_lists(self.cur_dir)
+        self.data_test['cmake'] = get_cmake_lists(context, self.cur_dir)
         under_test = ProjectFiles(self.data_test)
 
-        under_test.add_additional_code('')
+        under_test.add_additional_code(context, '')
 
         under_test.cmake.close()
 
@@ -109,8 +109,8 @@ class TestProjectFiles(unittest2.TestCase):
         cmakelists_test.close()
 
         # When file exist, code is added
-        under_test.cmake = get_cmake_lists(self.cur_dir)
-        under_test.add_additional_code('%s/datatest/additional_code_test.cmake' % self.cur_dir)
+        under_test.cmake = get_cmake_lists(context, self.cur_dir)
+        under_test.add_additional_code(context, '%s/datatest/additional_code_test.cmake' % self.cur_dir)
 
         under_test.cmake.close()
 
@@ -122,8 +122,8 @@ class TestProjectFiles(unittest2.TestCase):
         cmakelists_test.close()
 
         # When file does not exist, nothing is added
-        under_test.cmake = get_cmake_lists(self.cur_dir)
-        under_test.add_additional_code('nofile/additional_code_test.cmake')
+        under_test.cmake = get_cmake_lists(context, self.cur_dir)
+        under_test.add_additional_code(context, 'nofile/additional_code_test.cmake')
 
         under_test.cmake.close()
 
@@ -137,7 +137,7 @@ class TestProjectFiles(unittest2.TestCase):
     def test_add_artefacts(self):
         """Add Artefact Target"""
 
-        self.data_test['cmake'] = get_cmake_lists(self.cur_dir)
+        self.data_test['cmake'] = get_cmake_lists(context, self.cur_dir)
         under_test = ProjectFiles(self.data_test)
 
         under_test.collects_source_files()
@@ -156,7 +156,7 @@ class TestProjectFiles(unittest2.TestCase):
     def test_add_include_cmake(self):
         """Add Include CMake File"""
 
-        self.data_test['cmake'] = get_cmake_lists(self.cur_dir)
+        self.data_test['cmake'] = get_cmake_lists(context, self.cur_dir)
         under_test = ProjectFiles(self.data_test)
 
         under_test.add_include_cmake('path/to/file.cmake')

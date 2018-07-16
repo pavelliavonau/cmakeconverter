@@ -80,7 +80,7 @@ class VCXProjectVariables(ProjectVariables):
 
             if target_name_node is not None:
                 target_name = target_name_node.text
-            context.settings[setting]['target_name'] = cleaning_output(target_name)
+            context.settings[setting]['target_name'] = cleaning_output(context, target_name)
 
         for setting in context.settings:
             conf = context.settings[setting]['conf']
@@ -90,9 +90,9 @@ class VCXProjectVariables(ProjectVariables):
 
             if not context.cmake_output:
                     if vs_outputs[conf][arch] is not None:
-                        output_path = cleaning_output(vs_outputs[conf][arch].text)
+                        output_path = cleaning_output(context, vs_outputs[conf][arch].text)
                     else:
-                        output_path = cleaning_output(output_path)
+                        output_path = cleaning_output(context, output_path)
             else:
                 if context.cmake_output[-1:] == '/' or context.cmake_output[-1:] == '\\':
                     build_type = '${CMAKE_BUILD_TYPE}'
@@ -111,13 +111,13 @@ class VCXProjectVariables(ProjectVariables):
                 output_file = output_file_node.text
                 path = os.path.dirname(output_file)
                 name, ext = os.path.splitext(os.path.basename(output_file))
-                path = cleaning_output(path)
+                path = cleaning_output(context, path)
                 output_path = path.replace('${OUT_DIR}', output_path)
-                context.settings[setting]['target_name'] = cleaning_output(name)
+                context.settings[setting]['target_name'] = cleaning_output(context, name)
 
             context.settings[setting]['out_dir'] = output_path
 
             if output_path:
-                message('Output {0} = {1}'.format(setting, output_path), '')
+                message(context, 'Output {0} = {1}'.format(setting, output_path), '')
             else:  # pragma: no cover
-                message('No Output found. Use [{0}/bin] by default !'.format(arch), 'warn')
+                message(context, 'No Output found. Use [{0}/bin] by default !'.format(arch), 'warn')

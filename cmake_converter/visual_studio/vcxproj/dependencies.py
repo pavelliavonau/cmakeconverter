@@ -49,9 +49,9 @@ class VCXDependencies(Dependencies):
                 inc_dirs = self.get_additional_include_directories(
                     incl_dir.text, setting, context
                 )
-                message('Include Directories found : {0}'.format(inc_dirs), '')
+                message(context, 'Include Directories found : {0}'.format(inc_dirs), '')
             else:  # pragma: no cover
-                message('Include Directories not found for this project.', '')
+                message(context, 'Include Directories not found for this project.', '')
 
     def find_target_references(self, context):
         """
@@ -73,10 +73,11 @@ class VCXDependencies(Dependencies):
 
                 if ref_inc not in references_found:
                     ref = self.get_dependency_target_name(
+                        context,
                         os.path.join(os.path.dirname(context.vcxproj_path), ref_inc)
                     )
                     references_found.append(ref)
-                message('References : {}'.format(context.target_references), '')
+                message(context, 'References : {}'.format(context.target_references), '')
 
         context.target_references = references_found
 
@@ -105,7 +106,8 @@ class VCXDependencies(Dependencies):
                         if d != '%(AdditionalDependencies)':
                             if os.path.splitext(d)[1] == '.lib':
                                 add_libs.append(d.replace('.lib', ''))
-                    message('Additional Dependencies for {0} = {1}'.format(setting, add_libs),
+                    message(context, 'Additional Dependencies for {0} = {1}'
+                            .format(setting, add_libs),
                             '')
                     context.add_lib_deps = True
                     context.settings[setting]['add_lib_deps'] = '$<SEMICOLON>'.join(add_libs)
@@ -127,7 +129,7 @@ class VCXDependencies(Dependencies):
                 '%(AdditionalLibraryDirectories)', ''
             )
             if list_depends != '':
-                message('Additional Library Directories = %s' % list_depends, '')
+                message(context, 'Additional Library Directories = %s' % list_depends, '')
                 add_lib_dirs = []
                 for d in list_depends.split(';'):
                     d = d.strip()
@@ -135,7 +137,7 @@ class VCXDependencies(Dependencies):
                         add_lib_dirs.append(d)
                 context.add_lib_dirs = add_lib_dirs
         else:  # pragma: no cover
-            message('No additional library dependencies.', '')
+            message(context, 'No additional library dependencies.', '')
 
     @staticmethod
     def find_target_property_sheets(context):
@@ -156,8 +158,10 @@ class VCXDependencies(Dependencies):
                     continue
                 # props_path = os.path.join(os.path.dirname(context.vcxproj_path), filename)
                 working_path = os.path.dirname(context.vcxproj_path)
-                props_set.add(normalize_path(working_path, filename).replace('.props', '.cmake'))
-                # properties_xml = get_xml_data(props_path)
+                props_set.add(
+                    normalize_path(context, working_path, filename).replace('.props', '.cmake')
+                )
+                # properties_xml = get_xml_data(context, props_path)
                 # if properties_xml:
                 #     properties_xml.close()  # TODO collect data from props
         props_list = list(props_set)
@@ -191,8 +195,8 @@ class VCXDependencies(Dependencies):
                     namespaces=context.vcxproj['ns'])
 
             filename = packages_nodes[0].get('Include')
-            packages_xml = get_xml_data(os.path.join(os.path.dirname(context.vcxproj_path),
-                                                     filename))
+            packages_xml = get_xml_data(context, os.path.join(os.path.dirname(context.vcxproj_path),
+                                        filename))
             if packages_xml:
                 extension = packages_xml['tree'].xpath('/packages/package')
                 for ref in extension:
@@ -208,7 +212,7 @@ class VCXDependencies(Dependencies):
 
                     ext_properties = []
                     if targets_file_path:
-                        targets_file = get_xml_data(targets_file_path)
+                        targets_file = get_xml_data(context, targets_file_path)
                         if targets_file is None:
                             continue
 
@@ -223,7 +227,7 @@ class VCXDependencies(Dependencies):
                                     '$(MSBuildThisFileDirectory)',
                                     os.path.dirname(targets_file_path) + '/'
                                 )
-                                xml_schema_file = get_xml_data(xml_schema_path)
+                                xml_schema_file = get_xml_data(context, xml_schema_path)
                                 if xml_schema_file:
                                     ext_property_nodes = xml_schema_file['tree'] \
                                         .xpath('//ns:EnumProperty',
@@ -239,11 +243,12 @@ class VCXDependencies(Dependencies):
                             for ext_property_node in ext_property_nodes:
                                 ext_properties.append(re.sub(r'{.*\}', '', ext_property_node.tag))
                     else:
-                        message('Path of file {0}.targets not found at vs project xml.'
+                        message(context, 'Path of file {0}.targets not found at vs project xml.'
                                 .format(id_version), 'warn')
 
                     context.packages.append([package_id, package_version, ext_properties])
-                    message('Used package {0} {1}.'.format(package_id, package_version), '')
+                    message(context, 'Used package {0} {1}.'
+                            .format(package_id, package_version), '')
 
                     for ext_property in ext_properties:
                         for setting in context.settings:
@@ -257,7 +262,7 @@ class VCXDependencies(Dependencies):
                                     context.settings[setting]['packages'][id_version] = {}
                                 context.settings[setting]['packages'][id_version][ext_property] = \
                                     ext_property_node[0].text
-                                message('{0} property of {1} {2} for {3} is {4}'
+                                message(context, '{0} property of {1} {2} for {3} is {4}'
                                         .format(ext_property,
                                                 package_id,
                                                 package_version,
@@ -276,10 +281,13 @@ class VCXDependencies(Dependencies):
                 for build_event in build_event_node.text.split('\n'):
                     build_event = build_event.strip()
                     if build_event:
-                        cmake_build_event = prepare_build_event_cmd_line_for_cmake(build_event)
+                        cmake_build_event = prepare_build_event_cmd_line_for_cmake(
+                            context,
+                            build_event
+                        )
                         context.settings[setting][value_name] \
                             .append(cmake_build_event)
-                        message('{0} event for {1}: {2}'
+                        message(context, '{0} event for {1}: {2}'
                                 .format(event_type, setting, cmake_build_event), 'info')
 
     def find_target_pre_build_events(self, context):

@@ -46,7 +46,7 @@ class VCXContextInitializer(ContextInitializer):
             '{0}/ns:ConfigurationType'.format(context.property_groups[setting]),
             namespaces=context.vcxproj['ns'])
         if len(configuration_type) == 0:
-            message('ConfigurationType not found', 'warn')
+            message(context, 'ConfigurationType not found', 'warn')
             return
 
         context.settings[setting]['target_type'] = configuration_type[0].text
@@ -62,7 +62,7 @@ class VCXContextInitializer(ContextInitializer):
         """
 
         project_name = context.project_name
-        context.vcxproj = get_vcxproj_data(vs_project)
+        context.vcxproj = get_vcxproj_data(context, vs_project)
         project_name_value = \
             get_global_project_name_from_vcxproj_file(context.vcxproj)
         if project_name_value:

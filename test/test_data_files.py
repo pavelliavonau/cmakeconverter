@@ -39,7 +39,7 @@ class TestDataFiles(unittest2.TestCase):
     def test_get_vcxproj_data(self):
         """Get VS Project Data"""
 
-        under_test = get_vcxproj_data(self.vs_project)
+        under_test = get_vcxproj_data(context, self.vs_project)
 
         self.assertTrue('ns' in under_test)
         self.assertEqual(
@@ -68,7 +68,7 @@ class TestDataFiles(unittest2.TestCase):
     def test_get_cmakelists(self):
         """Get CMakeLists.txt"""
 
-        under_test = get_cmake_lists('./')
+        under_test = get_cmake_lists(context, './')
 
         self.assertTrue(under_test)
         self.assertIsInstance(under_test, _io.TextIOWrapper)

@@ -32,8 +32,8 @@ class TestProjectVariables(unittest2.TestCase):
     """
 
     cur_dir = os.path.dirname(os.path.realpath(__file__))
-    vcxproj_data_test = get_vcxproj_data('%s/datatest/foo.vcxproj' % cur_dir)
-    cmake_lists_test = get_cmake_lists(cur_dir)
+    vcxproj_data_test = get_vcxproj_data(context, '%s/datatest/foo.vcxproj' % cur_dir)
+    cmake_lists_test = get_cmake_lists(context, cur_dir)
 
     data_test = {
         'cmake': cmake_lists_test,
@@ -59,7 +59,7 @@ class TestProjectVariables(unittest2.TestCase):
     def test_add_project_variables(self):
         """Add Project Variables"""
 
-        self.data_test['cmake'] = get_cmake_lists(self.cur_dir)
+        self.data_test['cmake'] = get_cmake_lists(context, self.cur_dir)
         under_test = VCXProjectVariables(self.data_test)
 
         under_test.add_project_variables()
@@ -77,7 +77,7 @@ class TestProjectVariables(unittest2.TestCase):
         """Add Outputs Variables"""
 
         # TODO If NO output is given
-        # self.data_test['cmake'] = get_cmake_lists(self.cur_dir)
+        # self.data_test['cmake'] = get_cmake_lists(context, self.cur_dir)
         under_test = VCXProjectVariables(self.data_test)
         #
         # under_test.add_project_variables()
@@ -95,7 +95,7 @@ class TestProjectVariables(unittest2.TestCase):
 
         # If output is given
         under_test.output = '../output_binaries'
-        under_test.cmake = get_cmake_lists(self.cur_dir)
+        under_test.cmake = get_cmake_lists(context, self.cur_dir)
         under_test.add_outputs_variables()
 
         under_test.cmake.close()
@@ -111,7 +111,7 @@ class TestProjectVariables(unittest2.TestCase):
     def test_add_cmake_project(self):
         """Add CMake Project"""
 
-        self.data_test['cmake'] = get_cmake_lists(self.cur_dir)
+        self.data_test['cmake'] = get_cmake_lists(context, self.cur_dir)
         under_test = VCXProjectVariables(self.data_test)
 
         # Case CXX languages
@@ -127,7 +127,7 @@ class TestProjectVariables(unittest2.TestCase):
         cmakelists_test.close()
 
         # Case C languages
-        under_test.cmake = get_cmake_lists(self.cur_dir)
+        under_test.cmake = get_cmake_lists(context, self.cur_dir)
         under_test.add_cmake_project(['c'])
 
         under_test.cmake.close()
@@ -142,7 +142,7 @@ class TestProjectVariables(unittest2.TestCase):
     def test_add_default_target(self):
         """Add Release as Default Target"""
 
-        self.data_test['cmake'] = get_cmake_lists(self.cur_dir)
+        self.data_test['cmake'] = get_cmake_lists(context, self.cur_dir)
         under_test = VCXProjectVariables(self.data_test)
 
         under_test.add_default_target()
@@ -159,7 +159,7 @@ class TestProjectVariables(unittest2.TestCase):
     def test_add_artefact_target_outputs(self):
         """Add Artefact Target Outputs"""
 
-        self.data_test['cmake'] = get_cmake_lists(self.cur_dir)
+        self.data_test['cmake'] = get_cmake_lists(context, self.cur_dir)
         under_test = VCXProjectVariables(self.data_test)
 
         under_test.add_cmake_output_directories()

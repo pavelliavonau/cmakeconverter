@@ -44,9 +44,9 @@ class VFProjectVariables(ProjectVariables):
 
             if not context.cmake_output:
                 if 'out_dir' in context.settings[setting]:
-                    output_path = cleaning_output(context.settings[setting]['out_dir'])
+                    output_path = cleaning_output(context, context.settings[setting]['out_dir'])
                 else:
-                    output_path = cleaning_output(output_path)
+                    output_path = cleaning_output(context, output_path)
             else:
                 if context.cmake_output[-1:] == '/' or context.cmake_output[-1:] == '\\':
                     build_type = '${CMAKE_BUILD_TYPE}'
@@ -65,13 +65,13 @@ class VFProjectVariables(ProjectVariables):
             if output_file:
                 path = os.path.dirname(output_file)
                 name, ext = os.path.splitext(os.path.basename(output_file))
-                path = cleaning_output(path)
+                path = cleaning_output(context, path)
                 output_path = path.replace('${OUT_DIR}', output_path)
-                context.settings[setting]['target_name'] = cleaning_output(name)
+                context.settings[setting]['target_name'] = cleaning_output(context, name)
 
             context.settings[setting]['out_dir'] = output_path
 
             if output_path:
-                message('Output {0} = {1}'.format(setting, output_path), '')
+                message(context, 'Output {0} = {1}'.format(setting, output_path), '')
             else:  # pragma: no cover
-                message('No Output found. Use [{0}/bin] by default !'.format(arch), 'warn')
+                message(context, 'No Output found. Use [{0}/bin] by default !'.format(arch), 'warn')
