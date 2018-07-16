@@ -44,6 +44,7 @@ class VCXDependencies(Dependencies):
                 namespaces=context.vcxproj['ns']
             )
 
+            context.settings[setting]['inc_dirs_list'] = []
             if incl_dir is not None:
                 inc_dirs = self.get_additional_include_directories(
                     incl_dir.text, setting, context
