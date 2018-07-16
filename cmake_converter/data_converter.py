@@ -47,8 +47,8 @@ class DataConverter(object):
 
         for setting in context.settings:
             context.variables.find_outputs_variables(context, setting)
+            context.dependencies.find_include_dirs(context, setting)
 
-        context.dependencies.find_include_dir(context)
         context.files.collects_source_files(context)
         context.files.find_cmake_project_languages(context)
 

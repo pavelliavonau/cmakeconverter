@@ -29,19 +29,18 @@ from cmake_converter.utils import message, prepare_build_event_cmd_line_for_cmak
 class VFDependencies(Dependencies):
 
     @staticmethod
-    def find_include_dir(context):
-        for setting in context.settings:
-            ad_inc = context.settings[setting]['VFFortranCompilerTool'].get(
-                'AdditionalIncludeDirectories'
-            )
-            if ad_inc:
-                Dependencies.get_additional_include_directories(ad_inc, setting, context)
-            if 'inc_dirs' in context.settings[setting]:
-                context.settings[setting]['inc_dirs'] += ';${CMAKE_CURRENT_SOURCE_DIR}/'
-                context.settings[setting]['inc_dirs_list'].append('./')
-            else:
-                context.settings[setting]['inc_dirs'] = '${CMAKE_CURRENT_SOURCE_DIR}/'
-                context.settings[setting]['inc_dirs_list'] = ['./']
+    def find_include_dirs(context, setting):
+        ad_inc = context.settings[setting]['VFFortranCompilerTool'].get(
+            'AdditionalIncludeDirectories'
+        )
+        if ad_inc:
+            Dependencies.get_additional_include_directories(ad_inc, setting, context)
+        if 'inc_dirs' in context.settings[setting]:
+            context.settings[setting]['inc_dirs'] += ';${CMAKE_CURRENT_SOURCE_DIR}/'
+            context.settings[setting]['inc_dirs_list'].append('./')
+        else:
+            context.settings[setting]['inc_dirs'] = '${CMAKE_CURRENT_SOURCE_DIR}/'
+            context.settings[setting]['inc_dirs_list'] = ['./']
 
     @staticmethod
     def find_target_references(context):

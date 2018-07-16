@@ -61,7 +61,7 @@ class TestDependencies(unittest2.TestCase):
         self.data_test['cmake'] = get_cmake_lists(context, './')
         under_test = Dependencies(self.data_test)
 
-        under_test.find_include_dir()
+        under_test.find_include_dirs()
         self.data_test['cmake'].close()
 
         cmakelists_test = open('CMakeLists.txt')
