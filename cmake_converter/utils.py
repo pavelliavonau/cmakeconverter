@@ -73,10 +73,10 @@ def take_name_from_list_case_ignore(context, search_list, name_to_search):
 
     if real_name == '':
         if '.h' in name_to_search:
-            message(context, '{0} header file is absent at filesystem. Ignoring but check it!!\n'
+            message(context, '{0} header file is absent at filesystem. Ignoring but check it!!'
                     .format(name_to_search), 'warn')
             return ''
-        message(context, '{0} file is absent at filesystem. Ignoring but check it!!\n'
+        message(context, '{0} file is absent at filesystem. Ignoring but check it!!'
                 .format(name_to_search), 'warn')
     else:
         search_list.remove(real_name)
