@@ -21,6 +21,8 @@
 # along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
 import os
+import time
+from multiprocessing import cpu_count
 
 from cmake_converter.utils import message
 
@@ -30,6 +32,8 @@ class Context(object):
         Converter context
     """
     def __init__(self):
+        self.time0 = time.time()
+        self.jobs = cpu_count()
         self.vcxproj = {}
         self.vcxproj_path = ''
         self.project_number = None

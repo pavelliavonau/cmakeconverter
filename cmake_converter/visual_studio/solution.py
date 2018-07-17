@@ -24,6 +24,7 @@ import re
 import os
 import copy
 import shutil
+from multiprocessing import Pool
 
 from .vcxproj.context import VCXContextInitializer
 from .vfproj.context import VFContextInitializer
@@ -31,6 +32,31 @@ from cmake_converter.data_converter import DataConverter
 from cmake_converter.context import ContextInitializer
 from cmake_converter.data_files import get_cmake_lists
 from cmake_converter.utils import set_unix_slash, message, write_comment
+
+
+def run_conversion(subdirectory_projects_data):
+    for project_data in subdirectory_projects_data:
+        project_context = project_data['project_context']
+        name = project_context.project_number
+        message(project_context, '------ Starting {} -------'.format(name), '')
+        convert_project(
+            project_context,
+            project_data['project_abs'],
+            project_data['subdirectory'],
+        )
+        message(project_context, '------ Exiting  {} -------'.format(name), '')
+
+    result = []
+    for project_data in subdirectory_projects_data:
+        project_context = project_data['project_context']
+        result.append(
+            {
+                'cmake': project_context.cmake,
+                'project_name': project_context.project_name,
+                'solution_languages': project_context.solution_languages
+            }
+        )
+    return result
 
 
 def parse_solution(sln_text):
@@ -151,7 +177,7 @@ def clean_cmake_lists_of_solution(context, solution_path, projects_data):
         project_abs = os.path.join(solution_path, project_path)
         subdirectory = os.path.dirname(project_abs)
         cmake_path_to_clean = \
-            ContextInitializer.set_cmake_lists_path(None, subdirectory) + '/CMakeLists.txt'
+            ContextInitializer.set_cmake_lists_path(context, subdirectory) + '/CMakeLists.txt'
 
         if context.dry:
             continue
@@ -179,6 +205,8 @@ def convert_solution(initial_context, sln_path):
     subdirectories_to_project_name = {}
     projects_data = solution_data['projects_data']
     clean_cmake_lists_of_solution(initial_context, solution_path, projects_data)
+
+    threads_data = {}
     project_number = 0
     for guid in projects_data:
         project_number += 1
@@ -191,12 +219,27 @@ def convert_solution(initial_context, sln_path):
         set_dependencies_for_project(project_context, projects_data[guid])
         project_context.sln_configurations_map = \
             projects_data[guid]['sln_configs_2_project_configs']
-        convert_project(project_context, project_abs, subdirectory)
-        subdirectory = os.path.relpath(project_context.cmake, solution_path)
-        subdirectories_set.add(subdirectory)
-        subdirectories_to_project_name[subdirectory] = project_context.project_name
-        initial_context.solution_languages.update(project_context.solution_languages)
-        print('\n')
+        if subdirectory not in threads_data:
+            threads_data[subdirectory] = []
+        threads_data[subdirectory].append({
+            'project_context': project_context,
+            'project_abs': project_abs,
+            'subdirectory': subdirectory}
+        )
+
+    threads_data_list = []
+    for subdirectory in threads_data:
+        threads_data_list.append(threads_data[subdirectory])
+
+    pool = Pool(initial_context.jobs)
+    results = pool.map(run_conversion, threads_data_list)
+
+    for directory_results in results:
+        for project_result in directory_results:
+            subdirectory = os.path.relpath(project_result['cmake'], solution_path)
+            subdirectories_set.add(subdirectory)
+            subdirectories_to_project_name[subdirectory] = project_result['project_name']
+            initial_context.solution_languages.update(project_result['solution_languages'])
 
     if initial_context.dry:
         return

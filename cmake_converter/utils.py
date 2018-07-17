@@ -32,16 +32,17 @@ import colorama
 import re
 import time
 
-time0 = 0
 
-if 'PYCHARM_HOSTED' in os.environ:
-    convert = False  # in PyCharm, we should disable convert
-    strip = False
-    print("Hi! You are using PyCharm")
-else:
-    convert = None
-    strip = None
-colorama.init(convert=convert, strip=strip)
+def init_colorama():
+    if 'PYCHARM_HOSTED' in os.environ:
+        convert = False  # in PyCharm, we should disable convert
+        strip = False
+        print("Hi! You are using PyCharm")
+    else:
+        convert = None
+        strip = None
+    colorama.init(convert=convert, strip=strip)
+
 
 DONE = colorama.Fore.GREEN + colorama.Style.BRIGHT
 OK = colorama.Fore.CYAN + colorama.Style.BRIGHT
@@ -387,8 +388,7 @@ def message(context, text, status):  # pragma: no cover
     """
 
     current_time = time.time()
-    global time0
-    delta_time = current_time - time0
+    delta_time = current_time - context.time0
     dt = '{0:f} '.format(delta_time)
 
     message_begin = dt
@@ -429,7 +429,3 @@ def write_comment(cmake_file, text):
     cmake_file.write('# {0}\n'.format(text))
     cmake_file.write(title_line + '\n')
 
-
-def reset_zero_time():
-    global time0
-    time0 = time.time()

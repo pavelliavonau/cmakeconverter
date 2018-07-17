@@ -31,7 +31,7 @@ import os
 
 from cmake_converter.context import Context
 from cmake_converter.visual_studio.solution import convert_solution, convert_project
-from cmake_converter.utils import message, reset_zero_time
+from cmake_converter.utils import message, init_colorama
 
 
 def main():  # pragma: no cover
@@ -40,9 +40,7 @@ def main():  # pragma: no cover
 
     """
 
-    reset_zero_time()
-
-    usage = "cmake-converter -p <vcxproj> [-c | -a | -D | -O | -i | -std | -dry]"
+    usage = "cmake-converter -p <vcxproj> [-c | -a | -D | -O | -i | -std | -dry | -silent | -j]"
     # Init parser
     parser = argparse.ArgumentParser(
         usage=usage,
@@ -92,6 +90,11 @@ def main():  # pragma: no cover
         action='store_true'
     )
     parser.add_argument(
+        '-j', '--jobs',
+        help='run converter using given number of processes.',
+        dest='jobs',
+    )
+    parser.add_argument(
         '-std', '--std',
         help='choose your C++ std version. Default : c++11',
         dest='std'
@@ -117,11 +120,15 @@ def main():  # pragma: no cover
 
     if args.dry:
         initial_context.dry = True
-        message(initial_context, 'Converter runs in dry mode', '')
+        message(initial_context, 'Converter runs in dry mode', 'done')
 
     if args.silent:
         initial_context.silent = True
         message(initial_context, 'Converter runs in silent mode', 'done')
+
+    if args.jobs:
+        initial_context.jobs = int(args.jobs)
+    message(initial_context, 'processes count = {}'. format(initial_context.jobs), 'done')
 
     if not args.solution:
         cmake_lists_path = os.path.dirname(args.project)
@@ -133,4 +140,5 @@ def main():  # pragma: no cover
 
 
 if __name__ == "__main__":  # pragma: no cover
+    init_colorama()
     main()
