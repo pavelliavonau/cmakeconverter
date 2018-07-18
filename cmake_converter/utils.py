@@ -236,17 +236,27 @@ def set_unix_slash(win_path):
     return unix_path
 
 
-def remove_relative_from_path(path):
+def check_for_relative_in_path(context, path, remove_relative):
     """
     Return path by adding CMake variable or current path prefix, to remove relative
 
+    :param context: the context of converter
+    :type context: Context
     :param path: original path
     :type path: str
+    :param remove_relative: flag
+    :type remove_relative: bool
     :return: formatted path without relative
     :rtype: str
     """
 
-    if '.' in path[:1]:
+    path_has_drive_path = path[1:2] == ':'
+    if path_has_drive_path:
+        message(context, 'Found absolute path : {}'.format(path), 'warn')
+        return path
+
+    path_starts_with_variable = path[0:1] == '$'
+    if not path_starts_with_variable and remove_relative:
         # add current directory for relative path (CMP0021)
         path = '${CMAKE_CURRENT_SOURCE_DIR}/' + path
 
@@ -310,11 +320,6 @@ def cleaning_output(context, output):
 
     output = set_unix_slash(output)
 
-    output = remove_relative_from_path(output)
-    # TODO: Next action is strange. turned off
-    # if '%s..' % var in output:
-    #     output = output.replace('%s..' % var, '..')
-
     return output
 
 
@@ -344,7 +349,7 @@ def get_actual_filename(context, name):
     return res[0]
 
 
-def normalize_path(context, working_path, path_to_normalize):
+def normalize_path(context, working_path, path_to_normalize, remove_relative=False):
     """
     Normalize path from working path
 
@@ -354,6 +359,8 @@ def normalize_path(context, working_path, path_to_normalize):
     :type working_path: str
     :param path_to_normalize: path to be normalized
     :type path_to_normalize: str
+    :param remove_relative: remove relative from path flag
+    :type remove_relative: bool
     :return: normalized path
     :rtype: str
     """
@@ -363,7 +370,7 @@ def normalize_path(context, working_path, path_to_normalize):
     if actual_path_name is None:
         actual_path_name = joined_path
     normal_path = set_unix_slash(os.path.relpath(actual_path_name, working_path))
-    normal_path = remove_relative_from_path(normal_path)
+    normal_path = check_for_relative_in_path(context, normal_path, remove_relative)
 
     return normal_path
 

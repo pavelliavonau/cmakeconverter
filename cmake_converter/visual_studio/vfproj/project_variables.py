@@ -21,7 +21,7 @@
 # along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
 from cmake_converter.project_variables import ProjectVariables
-from cmake_converter.utils import cleaning_output, message
+from cmake_converter.utils import cleaning_output, message, replace_vs_vars_with_cmake_vars
 
 import os
 
@@ -66,7 +66,10 @@ class VFProjectVariables(ProjectVariables):
             name, ext = os.path.splitext(os.path.basename(output_file))
             path = cleaning_output(context, path)
             output_path = path.replace('${OUT_DIR}', output_path)
-            context.settings[setting]['target_name'] = cleaning_output(context, name)
+            context.settings[setting]['target_name'] = replace_vs_vars_with_cmake_vars(
+                context,
+                name
+            )
 
         context.settings[setting]['out_dir'] = output_path
 

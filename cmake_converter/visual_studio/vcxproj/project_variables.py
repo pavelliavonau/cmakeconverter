@@ -23,7 +23,7 @@
 import os
 
 from cmake_converter.project_variables import ProjectVariables
-from cmake_converter.utils import cleaning_output, message
+from cmake_converter.utils import cleaning_output, message, replace_vs_vars_with_cmake_vars
 from cmake_converter.data_files import get_propertygroup
 
 
@@ -79,7 +79,10 @@ class VCXProjectVariables(ProjectVariables):
 
         if target_name_node is not None:
             target_name = target_name_node.text
-        context.settings[setting]['target_name'] = cleaning_output(context, target_name)
+        context.settings[setting]['target_name'] = replace_vs_vars_with_cmake_vars(
+            context,
+            target_name
+        )
 
         output_path = '$(SolutionDir)$(Platform)/$(Configuration)/'  # default value
 
@@ -108,7 +111,10 @@ class VCXProjectVariables(ProjectVariables):
             name, ext = os.path.splitext(os.path.basename(output_file))
             path = cleaning_output(context, path)
             output_path = path.replace('${OUT_DIR}', output_path)
-            context.settings[setting]['target_name'] = cleaning_output(context, name)
+            context.settings[setting]['target_name'] = replace_vs_vars_with_cmake_vars(
+                context,
+                name
+            )
 
         context.settings[setting]['out_dir'] = output_path
 

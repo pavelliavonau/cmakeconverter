@@ -126,7 +126,7 @@ class Dependencies(object):
         for i in inc_dir.split(';'):
             if i:
                 dirs_raw.append(i)
-                i = normalize_path(context, working_path, i)
+                i = normalize_path(context, working_path, i, True)
                 i = re.sub(r'\$\((.+?)\)', r'$ENV{\1}', i)
                 dirs.append(i)
         inc_dirs = ';'.join(dirs)

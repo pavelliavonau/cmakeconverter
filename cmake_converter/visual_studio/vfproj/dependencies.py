@@ -36,9 +36,12 @@ class VFDependencies(Dependencies):
         if ad_inc:
             Dependencies.get_additional_include_directories(ad_inc, setting, context)
         if 'inc_dirs' in context.settings[setting]:
+            message(context, 'Include Directories found : {0}'
+                    .format(context.settings[setting]['inc_dirs']), '')
             context.settings[setting]['inc_dirs'] += ';${CMAKE_CURRENT_SOURCE_DIR}/'
             context.settings[setting]['inc_dirs_list'].append('./')
         else:
+            message(context, 'Include Directories not found for this project.', '')
             context.settings[setting]['inc_dirs'] = '${CMAKE_CURRENT_SOURCE_DIR}/'
             context.settings[setting]['inc_dirs_list'] = ['./']
 
