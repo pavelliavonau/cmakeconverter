@@ -122,3 +122,25 @@ class VCXProjectVariables(ProjectVariables):
             message(context, 'Output {0} = {1}'.format(setting, output_path), '')
         else:  # pragma: no cover
             message(context, 'No Output found. Use [{0}/bin] by default !'.format(arch), 'warn')
+
+        import_library_node = context.vcxproj['tree'].find(
+            '{0}/ns:Link/ns:ImportLibrary'.format(
+                context.definition_groups[setting]),
+            namespaces=context.vcxproj['ns']
+        )
+
+        import_library_path = ''
+        import_library_name = ''
+        if import_library_node is not None:
+            import_library_file = import_library_node.text
+            path = os.path.dirname(import_library_file)
+            name, ext = os.path.splitext(os.path.basename(import_library_file))
+            import_library_path = cleaning_output(context, path)
+            import_library_name = replace_vs_vars_with_cmake_vars(context, name)
+            message(context, '{0} : Import library path = {1}'.format(setting, import_library_path),
+                    '')
+            message(context, '{0} : Import library name = {1}'.format(setting, import_library_name),
+                    '')
+
+        context.settings[setting]['import_library_path'] = import_library_path
+        context.settings[setting]['import_library_name'] = import_library_name

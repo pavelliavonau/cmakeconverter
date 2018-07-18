@@ -80,14 +80,33 @@ class ProjectVariables(object):
 
         configuration_type = context.settings[setting]['target_type']
 
+        if configuration_type == 'DynamicLibrary':
+            cmake_file.write('set(ARCHIVE_OUT_DIR ${OUT_DIR})\n')
+            write_property_of_settings(
+                cmake_file, context.settings,
+                context.sln_configurations_map,
+                'string(CONCAT ARCHIVE_OUT_DIR', ')', 'import_library_path', ''
+            )
+            cmake_file.write('set(ARCHIVE_OUT_NAME ${PROJECT_NAME})\n')
+            write_property_of_settings(
+                cmake_file, context.settings,
+                context.sln_configurations_map,
+                'string(CONCAT ARCHIVE_OUT_NAME', ')', 'import_library_name', ''
+            )
+
         if configuration_type:
             left_string = 'set_target_properties(${PROJECT_NAME} PROPERTIES '
             right_string = '_OUTPUT_DIRECTORY ${OUT_DIR})\n'
             if configuration_type == 'DynamicLibrary' or configuration_type == 'StaticLibrary':
-                cmake_file.write(
-                    left_string + 'ARCHIVE' + right_string)
                 if configuration_type == 'DynamicLibrary':
+                    cmake_file.write(
+                        left_string + 'ARCHIVE' + '_OUTPUT_NAME ${ARCHIVE_OUT_NAME})\n')
+                    cmake_file.write(
+                        left_string + 'ARCHIVE' + '_OUTPUT_DIRECTORY ${ARCHIVE_OUT_DIR})\n')
                     cmake_file.write(left_string + 'RUNTIME' + right_string)
+                else:
+                    cmake_file.write(
+                        left_string + 'ARCHIVE' + right_string)
                 # TODO: do we really need LIBRARY_OUTPUT_DIRECTORY here?
                 cmake_file.write(left_string + 'LIBRARY' + right_string)
                 cmake_file.write('\n')

@@ -77,3 +77,26 @@ class VFProjectVariables(ProjectVariables):
             message(context, 'Output {0} = {1}'.format(setting, output_path), '')
         else:  # pragma: no cover
             message(context, 'No Output found. Use [{0}/bin] by default !'.format(arch), 'warn')
+
+        import_library = ''
+        if 'VFLinkerTool' in context.settings[setting]:
+            import_library = context.settings[setting]['VFLinkerTool'].get('ImportLibrary')
+        if 'VFLibrarianTool' in context.settings[setting]:
+            import_library = context.settings[setting]['VFLibrarianTool'].get('ImportLibrary')
+
+        import_library_path = ''
+        import_library_name = ''
+        if import_library:
+            import_library_file = import_library
+            path = os.path.dirname(import_library_file)
+            name, ext = os.path.splitext(os.path.basename(import_library_file))
+            import_library_path = cleaning_output(context, path)
+            import_library_name = replace_vs_vars_with_cmake_vars(context, name)
+            message(context, '{0} : Import library path = {1}'.format(setting, import_library_path),
+                    '')
+            message(context, '{0} : Import library name = {1}'.format(setting, import_library_name),
+                    '')
+
+        context.settings[setting]['import_library_path'] = import_library_path
+        context.settings[setting]['import_library_name'] = import_library_name
+
