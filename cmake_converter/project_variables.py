@@ -66,6 +66,18 @@ class ProjectVariables(object):
         if len(context.settings) == 0:
             return
 
+        write_comment(cmake_file, 'Target name')
+        write_property_of_settings(
+            cmake_file, context.settings,
+            context.sln_configurations_map,
+            'string(CONCAT TARGET_NAME', ')', 'target_name', '',
+            '${PROJECT_NAME}'
+        )
+        cmake_file.write(
+            'set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME ${TARGET_NAME})\n'
+            'set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "")\n\n'
+        )
+
         write_comment(cmake_file, 'Output directory')
 
         write_property_of_settings(
@@ -114,14 +126,3 @@ class ProjectVariables(object):
                 cmake_file.write(
                     left_string + 'RUNTIME' + right_string + '\n')
 
-        write_comment(cmake_file, 'Target name')
-        write_property_of_settings(
-            cmake_file, context.settings,
-            context.sln_configurations_map,
-            'string(CONCAT TARGET_NAME', ')', 'target_name', '',
-            '${PROJECT_NAME}'
-        )
-        cmake_file.write(
-            'set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME ${TARGET_NAME})\n'
-            'set_target_properties(${PROJECT_NAME} PROPERTIES PREFIX "")\n\n'
-        )
