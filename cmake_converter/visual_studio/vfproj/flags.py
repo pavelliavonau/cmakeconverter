@@ -460,8 +460,7 @@ class FortranFlags(Flags):
                         name_value = add_opt.split(':')
                         add_opt = name_value[0] + ':' + normalize_path(
                             context,
-                            os.path.dirname(context.vcxproj_path), name_value[1],
-                            True
+                            os.path.dirname(context.vcxproj_path), name_value[1]
                         )
 
                     add_opt = '-' + add_opt[1:]

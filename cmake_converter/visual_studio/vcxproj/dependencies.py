@@ -158,7 +158,12 @@ class VCXDependencies(Dependencies):
                 # props_path = os.path.join(os.path.dirname(context.vcxproj_path), filename)
                 working_path = os.path.dirname(context.vcxproj_path)
                 props_set.add(
-                    normalize_path(context, working_path, filename).replace('.props', '.cmake')
+                    normalize_path(
+                        context,
+                        working_path,
+                        filename,
+                        False
+                    ).replace('.props', '.cmake')
                 )
                 # properties_xml = get_xml_data(context, props_path)
                 # if properties_xml:

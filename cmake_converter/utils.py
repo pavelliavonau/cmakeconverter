@@ -236,7 +236,7 @@ def set_unix_slash(win_path):
     return unix_path
 
 
-def check_for_relative_in_path(context, path, remove_relative):
+def check_for_relative_in_path(context, path, remove_relative=True):
     """
     Return path by adding CMake variable or current path prefix, to remove relative
 
@@ -350,7 +350,7 @@ def get_actual_filename(context, name):
     return res[0]
 
 
-def normalize_path(context, working_path, path_to_normalize, remove_relative=False):
+def normalize_path(context, working_path, path_to_normalize, remove_relative=True):
     """
     Normalize path from working path
 

@@ -21,7 +21,8 @@
 # along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
 from cmake_converter.project_variables import ProjectVariables
-from cmake_converter.utils import cleaning_output, message, replace_vs_vars_with_cmake_vars
+from cmake_converter.utils import cleaning_output, message, replace_vs_vars_with_cmake_vars,\
+    check_for_relative_in_path
 
 import os
 
@@ -43,9 +44,8 @@ class VFProjectVariables(ProjectVariables):
 
         if not context.cmake_output:
             if 'out_dir' in context.settings[setting]:
-                output_path = cleaning_output(context, context.settings[setting]['out_dir'])
-            else:
-                output_path = cleaning_output(context, output_path)
+                output_path = context.settings[setting]['out_dir']
+            output_path = cleaning_output(context, output_path)
         else:
             if context.cmake_output[-1:] == '/' or context.cmake_output[-1:] == '\\':
                 build_type = '${CMAKE_BUILD_TYPE}'
@@ -71,6 +71,7 @@ class VFProjectVariables(ProjectVariables):
                 name
             )
 
+        output_path = check_for_relative_in_path(context, output_path)
         context.settings[setting]['out_dir'] = output_path
 
         if output_path:
@@ -92,6 +93,7 @@ class VFProjectVariables(ProjectVariables):
             name, ext = os.path.splitext(os.path.basename(import_library_file))
             import_library_path = cleaning_output(context, path)
             import_library_name = replace_vs_vars_with_cmake_vars(context, name)
+            import_library_path = check_for_relative_in_path(context, import_library_path)
             message(context, '{0} : Import library path = {1}'.format(setting, import_library_path),
                     '')
             message(context, '{0} : Import library name = {1}'.format(setting, import_library_name),

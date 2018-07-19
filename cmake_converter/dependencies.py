@@ -33,7 +33,7 @@ import re
 from cmake_converter.data_files import get_vcxproj_data
 from cmake_converter.utils import get_global_project_name_from_vcxproj_file, normalize_path, message
 from cmake_converter.utils import write_property_of_settings, cleaning_output, write_comment
-from cmake_converter.utils import is_settings_has_data
+from cmake_converter.utils import is_settings_has_data, check_for_relative_in_path
 
 
 class Dependencies(object):
@@ -126,7 +126,7 @@ class Dependencies(object):
         for i in inc_dir.split(';'):
             if i:
                 dirs_raw.append(i)
-                i = normalize_path(context, working_path, i, True)
+                i = normalize_path(context, working_path, i)
                 i = re.sub(r'\$\((.+?)\)', r'$ENV{\1}', i)
                 dirs.append(i)
         inc_dirs = ';'.join(dirs)
@@ -218,11 +218,21 @@ class Dependencies(object):
             cmake_file.write('if(MSVC)\n')
             cmake_file.write('    target_link_libraries(${PROJECT_NAME}')
             for dep in context.add_lib_dirs:
-                cmake_file.write(' -LIBPATH:' + cleaning_output(context, dep))
+                cmake_file.write(
+                    ' -LIBPATH:' + check_for_relative_in_path(
+                        context,
+                        cleaning_output(context, dep)
+                    )
+                )
             cmake_file.write(')\nelseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")\n')
             cmake_file.write('    target_link_libraries(${PROJECT_NAME}')
             for dep in context.add_lib_dirs:
-                cmake_file.write(' -L' + cleaning_output(context, dep))
+                cmake_file.write(
+                    ' -L' + check_for_relative_in_path(
+                        context,
+                        cleaning_output(context, dep)
+                    )
+                )
             cmake_file.write(')\nendif()\n\n')
 
     @staticmethod

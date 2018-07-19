@@ -961,7 +961,8 @@ class CPPFlags(Flags):
         working_path = os.path.dirname(context.vcxproj_path)
         cmake_file.write(
             'ADD_PRECOMPILED_HEADER("{0}" "{1}" SRC_FILES)\n\n'.format(
-                os.path.basename(pch_header), normalize_path(context, working_path, pch_source)
+                os.path.basename(pch_header),
+                normalize_path(context, working_path, pch_source, False)
             )
         )
 

@@ -186,7 +186,7 @@ class ProjectFiles(object):
         if '' in context.headers:
             for header_file in context.headers['']:
                 cmake_file.write('    {0}\n'
-                                 .format(normalize_path(context, working_path, header_file)))
+                                 .format(normalize_path(context, working_path, header_file, False)))
 
         for headers_dir in context.headers:
             if headers_dir == '':
@@ -194,7 +194,8 @@ class ProjectFiles(object):
             for header_file in context.headers[headers_dir]:
                 cmake_file.write('    {0}\n'
                                  .format(normalize_path(context, working_path,
-                                                        os.path.join(headers_dir, header_file))))
+                                                        os.path.join(headers_dir, header_file),
+                                                        False)))
 
         cmake_file.write(')\n')
         cmake_file.write('source_group("Headers" FILES ${HEADERS_FILES})\n\n')
@@ -217,7 +218,7 @@ class ProjectFiles(object):
         if '' in context.sources:
             for src_file in context.sources['']:
                 cmake_file.write('    {0}\n'
-                                 .format(normalize_path(context, working_path, src_file)))
+                                 .format(normalize_path(context, working_path, src_file, False)))
 
         for src_dir in context.sources:
             if src_dir == '':
@@ -225,7 +226,7 @@ class ProjectFiles(object):
             for src_file in context.sources[src_dir]:
                 cmake_file.write('    {0}\n'
                                  .format(normalize_path(context, working_path,
-                                                        os.path.join(src_dir, src_file))))
+                                                        os.path.join(src_dir, src_file), False)))
 
         cmake_file.write(')\n')
         cmake_file.write('source_group("Sources" FILES ${SRC_FILES})\n\n')
