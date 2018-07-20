@@ -482,9 +482,9 @@ class FortranFlags(Flags):
                         unix_option = unix_option.replace('Qopenmp-lib', 'openmp-lib')
                         unix_option = unix_option.replace('lib ', 'lib=')
                     else:
-                        message(context, 'Unix ifort option "{0}" may be incorrect. '
+                        message(context, '{1} : Unix ifort option "{0}" may be incorrect. '
                                 'Check it and set it with visual studio UI if possible.'
-                                .format(unix_option), 'warn')
+                                .format(unix_option, setting), 'warn')
                     context.settings[setting][ifort_cl_win].append(add_opt)
                     context.settings[setting][ifort_cl_unix].append(unix_option)
                 message(context,
