@@ -44,7 +44,7 @@ class Context(object):
         self.sln_deps = []
         self.target_references = []
         self.add_lib_deps = False
-        self.add_lib_dirs = []
+        self.add_lib_dirs = []      # TODO: move to settings
         self.packages = []
 
         self.additional_code = None
@@ -63,10 +63,12 @@ class Context(object):
         self.file_spec_raw_options = {}
         self.supported_architectures = set()
         self.settings = {}
+        self.current_setting = None
         self.property_groups = {}
         self.definition_groups = {}
         self.property_sheets = []
         # helpera
+        self.parser = None
         self.variables = None
         self.files = None
         self.flags = None
@@ -83,7 +85,6 @@ class ContextInitializer(object):
             ''
         )
         self.define_settings(context)
-        self.__verify_settings(context)
         self.__remove_unused_settings(context)
 
     def define_settings(self, context):
@@ -94,19 +95,7 @@ class ContextInitializer(object):
 
         raise NotImplementedError('You need to define a define_settings method!')
 
-    @staticmethod
-    def __verify_settings(context):
-        target_types = set()
-        for setting in context.settings:
-            target_types.add(context.settings[setting]['target_type'])
-
-        if len(target_types) > 1:
-            message(
-                context,
-                'Target has more than one output binary type. CMake does not support it!',
-                'warn'
-            )
-
+    # TODO: remove next method after implementing vcxproj parser
     @staticmethod
     def __remove_unused_settings(context):
         mapped_configurations = set()
@@ -126,7 +115,8 @@ class ContextInitializer(object):
         """
         pass
 
-    def init_context_setting(self, context, configuration_data):
+    @staticmethod
+    def init_context_setting(context, configuration_data):
         """
         Define settings of converter. Need to be reimplemented.
 
@@ -144,6 +134,7 @@ class ContextInitializer(object):
             'defines': [],
             'conf': conf,
             'arch': arch,
+            'inc_dirs_list': [],
         }
 
     def init_files(self, context, vs_project, cmake_lists):

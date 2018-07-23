@@ -32,107 +32,161 @@ class FortranFlags(Flags):
         Class who check and create compilation flags for Fortran compiler
     """
 
+    def __init__(self):
+        self.flags = {}
+        self.flags_handlers = {
+            'SuppressStartupBanner': self.set_suppress_startup_banner,
+            'DebugInformationFormat': self.set_debug_information_format,
+            'Optimization': self.set_optimization,
+            'Preprocess': self.set_preprocess_source_file,
+            'SourceFileFormat': self.set_source_file_format,
+            'DebugParameter': self.set_debug_parameter,
+            'DefaultIncAndUsePath': self.set_default_inc_and_use_path,
+            'FixedFormLineLength': self.set_fixed_form_line_length,
+            'OpenMP': self.set_open_mp,
+            'DisableSpecificDiagnostics': self.set_disable_specific_diagnostics,
+            'Diagnostics': self.set_diagnostics,
+            'RealKIND': self.set_real_kind,
+            'LocalVariableStorage': self.set_local_variable_storage,
+            'InitLocalVarToNAN': self.set_init_local_var_to_nan,
+            'FloatingPointExceptionHandling': self.set_floating_point_exception_handling,
+            'ExtendSinglePrecisionConstants': self.set_extend_single_precision_constants,
+            'FloatingPointStackCheck': self.set_floating_point_stack_check,
+            'ExternalNameInterpretation': self.set_external_name_interpretation,
+            'StringLengthArgPassing': self.set_string_length_arg_passing,
+            'ExternalNameUnderscore': self.set_external_name_underscore,
+            'Traceback': self.set_traceback,
+            'RuntimeChecks': self.set_runtime_checks,
+            'ArgTempCreatedCheck': self.set_arg_temp_created_check,
+            'RuntimeLibrary': self.set_runtime_library,
+            'DisableDefaultLibSearch': self.set_disable_default_lib_search,
+            'AdditionalOptions': self.set_additional_options,
+        }
+
+    def __set_default_flags(self, context):
+        for flag_name in self.__get_result_order_of_flags():
+            self.flags[flag_name] = {}
+            self.set_flag(context, flag_name, '', None)
+
     @staticmethod
-    def set_flag(context, node, attr, flag_values):
+    def __get_result_order_of_flags():
+        flags_list = [
+            'SuppressStartupBanner',
+            'DebugInformationFormat',
+            'Optimization',
+            'Preprocess',
+            'SourceFileFormat',
+            'DebugParameter',
+            'DefaultIncAndUsePath',
+            'FixedFormLineLength',
+            'OpenMP',
+            'DisableSpecificDiagnostics',
+            'Diagnostics',
+            'RealKIND',
+            'LocalVariableStorage',
+            'InitLocalVarToNAN',
+            'FloatingPointExceptionHandling',
+            'ExtendSinglePrecisionConstants',
+            'FloatingPointStackCheck',
+            'ExternalNameInterpretation',
+            'StringLengthArgPassing',
+            'ExternalNameUnderscore',
+            'Traceback',
+            'RuntimeChecks',
+            'ArgTempCreatedCheck',
+            'RuntimeLibrary',
+            'DisableDefaultLibSearch',
+            'AdditionalOptions',
+        ]
+        return flags_list
+
+    def set_flag(self, context, flag_name, flag_value, node):
         """
         Set flag helper
 
         :param context: converter Context
         :type context: Context
-        :param node:
-        :param attr:
-        :param flag_values:
+        :param flag_name:
+        :param flag_value:
         :return:
         """
 
-        for setting in context.settings:
-            values = None
-            if default_value in flag_values:
-                values = flag_values[default_value]
+        flag_values = self.flags_handlers[flag_name](context, flag_name, flag_value)
 
-            # flag_text = ''
-            flag_text = context.settings[setting][node].get(attr)
-            if flag_text in flag_values:
-                values = flag_values[flag_text]
+        if flag_values is None:
+            return
 
-            flags_message = {}
-            if values is not None:
-                for key in values:
-                    value = values[key]
-                    if key not in context.settings[setting]:
-                        context.settings[setting][key] = []
-                    context.settings[setting][key].append(value)
-                    flags_message[key] = value
+        values = None
+        if default_value in flag_values:
+            values = flag_values[default_value]
 
-            if flags_message:
-                message(context, '{0} for {1} is {2} '.format(attr, setting, flags_message), '')
+        if flag_value in flag_values:
+            values = flag_values[flag_value]
 
-    def define_flags(self, context):
-        """
-        Parse all flags properties and write them inside "CMakeLists.txt" file
+        flags_message = {}
+        if values is not None:
+            for key in values:
+                value = values[key]
+                self.flags[flag_name][key] = [value]
+                flags_message[key] = value
 
-        """
-        for setting in context.settings:
-            context.settings[setting][ifort_cl_win] = []
-            context.settings[setting][ifort_cl_unix] = []
-            context.settings[setting][ifort_ln] = []
+        if flags_message:
+            message(
+                context,
+                '{0} is {1} '.format(flag_name, flags_message),
+                ''
+            )
 
-        self.set_suppress_startup_banner(context)
-        self.set_debug_information_format(context)
-        self.set_optimization(context)
-        self.set_preprocess_source_file(context)
-        self.set_source_file_format(context)
-        self.set_debug_parameter(context)
-        self.set_default_inc_and_use_path(context)
-        self.set_fixed_form_line_length(context)
-        self.set_open_mp(context)
-        self.set_disable_specific_diagnostics(context)
-        self.set_diagnostics(context)
-        self.set_real_kind(context)
-        self.set_local_variable_storage(context)
-        self.set_init_local_var_to_nan(context)
-        self.set_floating_point_exception_handling(context)
-        self.set_extend_single_precision_constants(context)
-        self.set_floating_point_stack_check(context)
-        self.set_external_name_interpretation(context)
-        self.set_string_length_arg_passing(context)
-        self.set_external_name_underscore(context)
-        self.set_traceback(context)
-        self.set_runtime_checks(context)
-        self.set_arg_temp_created_check(context)
-        self.set_runtime_library(context)
-        self.set_disable_default_lib_search(context)
-        self.set_additional_options(context)
+    def prepare_context_for_flags(self, context):
+        context.settings[context.current_setting][ifort_cl_win] = []
+        context.settings[context.current_setting][ifort_cl_unix] = []
+        context.settings[context.current_setting][ifort_ln] = []
+        context.settings[context.current_setting]['assume_args'] = []
+        self.__set_default_flags(context)
 
-        self.set_assume_with_params(context)
+    def apply_flags_to_context(self, context):
+        context_flags_data_keys = [
+            ifort_cl_win,
+            ifort_cl_unix,
+            ifort_ln,
+            'assume_args',
+        ]
 
-    def set_floating_point_stack_check(self, context):
+        for flag_name in self.__get_result_order_of_flags():
+            for context_flags_data_key in context_flags_data_keys:
+                if context_flags_data_key in self.flags[flag_name]:
+                    for value in self.flags[flag_name][context_flags_data_key]:
+                        context.settings[context.current_setting][context_flags_data_key].append(
+                            value
+                        )
+
+        self.__set_assume_with_params(context)
+
+    @staticmethod
+    def __set_assume_with_params(context):
+        if 'assume_args' in context.settings[context.current_setting]:
+            args = context.settings[context.current_setting]['assume_args']
+            context.settings[context.current_setting][ifort_cl_win].append('-assume:' + ','.join(args))
+            context.settings[context.current_setting][ifort_cl_unix].append('-assume ' + ','.join(args))
+
+    def set_floating_point_stack_check(self, context, flag_name, flag_value):
         flag_values = {
             'true': {ifort_cl_win: '-Qfp-stack-check',
                      ifort_cl_unix: '-fp-stack-check'},
             'false': {},
             default_value: {}
         }
-        self.set_flag(context, 'VFFortranCompilerTool', 'FloatingPointStackCheck', flag_values)
+        return flag_values
 
-    @staticmethod
-    def set_assume_with_params(context):
-        for setting in context.settings:
-            current_setting = context.settings[setting]
-            if 'assume_args' in current_setting:
-                args = current_setting['assume_args']
-                current_setting[ifort_cl_win].append('-assume:' + ','.join(args))
-                current_setting[ifort_cl_unix].append('-assume ' + ','.join(args))
-
-    def set_external_name_underscore(self, context):
+    def set_external_name_underscore(self, context, flag_name, flag_value):
         flag_values = {
             'true': {'assume_args': 'underscore'},
             'false': {'assume_args': 'nounderscore'},
             default_value: {'assume_args': 'nounderscore'}
         }
-        self.set_flag(context, 'VFFortranCompilerTool', 'ExternalNameUnderscore', flag_values)
+        return flag_values
 
-    def set_external_name_interpretation(self, context):
+    def set_external_name_interpretation(self, context, flag_name, flag_value):
         flag_values = {
             'extNameUpperCase': {ifort_cl_win: '-names:uppercase',
                                  ifort_cl_unix: '-names uppercase'},
@@ -143,9 +197,9 @@ class FortranFlags(Flags):
             default_value: {ifort_cl_win: '-names:uppercase',
                             ifort_cl_unix: '-names lowercase'}
         }
-        self.set_flag(context, 'VFFortranCompilerTool', 'ExternalNameInterpretation', flag_values)
+        return flag_values
 
-    def set_diagnostics(self, context):
+    def set_diagnostics(self, context, flag_name, flag_value):
         flag_values = {
             'diagnosticsShowAll': {ifort_cl_win: '-warn:all',
                                    ifort_cl_unix: '-warn all'},
@@ -153,9 +207,9 @@ class FortranFlags(Flags):
                                       ifort_cl_unix: '-warn none'},
             default_value: {}
         }
-        self.set_flag(context, 'VFFortranCompilerTool', 'Diagnostics', flag_values)
+        return flag_values
 
-    def set_arg_temp_created_check(self, context):
+    def set_arg_temp_created_check(self, context, flag_name, flag_value):
         """
         """
         flag_values = {
@@ -163,9 +217,9 @@ class FortranFlags(Flags):
                      ifort_cl_unix: '-check arg_temp_created'},
             default_value: {}
         }
-        self.set_flag(context, 'VFFortranCompilerTool', 'ArgTempCreatedCheck', flag_values)
+        return flag_values
 
-    def set_debug_parameter(self, context):
+    def set_debug_parameter(self, context, flag_name, flag_value):
         """
         """
         flag_values = {
@@ -175,9 +229,9 @@ class FortranFlags(Flags):
                                    ifort_cl_unix: '-debug-parameters used'},
             default_value: {}
         }
-        self.set_flag(context, 'VFFortranCompilerTool', 'DebugParameter', flag_values)
+        return flag_values
 
-    def set_fixed_form_line_length(self, context):
+    def set_fixed_form_line_length(self, context, flag_name, flag_value):
         """
         Set fixed form line length
 
@@ -189,9 +243,9 @@ class FortranFlags(Flags):
                                ifort_cl_unix: '-extend-source 132'},
             default_value: {}
         }
-        self.set_flag(context, 'VFFortranCompilerTool', 'FixedFormLineLength', flag_values)
+        return flag_values
 
-    def set_default_inc_and_use_path(self, context):
+    def set_default_inc_and_use_path(self, context, flag_name, flag_value):
         """
         Set default include and path
 
@@ -201,9 +255,9 @@ class FortranFlags(Flags):
             'defaultIncludeCurrent': {'assume_args': 'nosource_include'},
             default_value: {'assume_args': 'source_include'}
         }
-        self.set_flag(context, 'VFFortranCompilerTool', 'DefaultIncAndUsePath', flag_values)
+        return flag_values
 
-    def set_open_mp(self, context):
+    def set_open_mp(self, context, flag_name, flag_value):
         """
         Set open MP flag
 
@@ -215,24 +269,21 @@ class FortranFlags(Flags):
                                      ifort_cl_unix: '-qopenmp-stubs'},
             default_value: {}
         }
-        self.set_flag(context, 'VFFortranCompilerTool', 'OpenMP', flag_values)
+        return flag_values
 
-    @staticmethod
-    def set_disable_specific_diagnostics(context):
+    def set_disable_specific_diagnostics(self, context, flag_name, flag_value):
         """
         Set disable specific diagnostic flag
 
         """
 
-        for setting in context.settings:
-            # TODO: split list
-            opt = context.settings[setting]['VFFortranCompilerTool']\
-                .get('DisableSpecificDiagnostics')
-            if opt:
-                context.settings[setting][ifort_cl_win].append('-Qdiag-disable:{0}'.format(opt))
-                context.settings[setting][ifort_cl_unix].append('-diag-disable={0}'.format(opt))
+        # TODO: split list
+        opt = flag_value
+        if opt:
+            self.flags[flag_name][ifort_cl_win] = ['-Qdiag-disable:{0}'.format(opt)]
+            self.flags[flag_name][ifort_cl_unix] = ['-diag-disable={0}'.format(opt)]
 
-    def set_string_length_arg_passing(self, context):
+    def set_string_length_arg_passing(self, context, flag_name, flag_value):
         """
         Set string lengh arg parsing
 
@@ -241,9 +292,9 @@ class FortranFlags(Flags):
             'strLenArgsMixed': {ifort_cl_win: '-iface:mixed_str_len_arg'},
             default_value: {}
         }
-        self.set_flag(context, 'VFFortranCompilerTool', 'StringLengthArgPassing', flag_values)
+        return flag_values
 
-    def set_runtime_library(self, context):
+    def set_runtime_library(self, context, flag_name, flag_value):
         """
         Set runtime library flag
 
@@ -262,9 +313,9 @@ class FortranFlags(Flags):
             default_value: {ifort_cl_win: '-libs:static;-threads',
                             ifort_cl_unix: '-threads'}
         }
-        self.set_flag(context, 'VFFortranCompilerTool', 'RuntimeLibrary', flag_values)
+        return flag_values
 
-    def set_disable_default_lib_search(self, context):
+    def set_disable_default_lib_search(self, context, flag_name, flag_value):
         """
         Set disable default lib search
 
@@ -273,9 +324,9 @@ class FortranFlags(Flags):
             'true': {ifort_cl_win: '-libdir:noauto'},
             default_value: {}
         }
-        self.set_flag(context, 'VFFortranCompilerTool', 'DisableDefaultLibSearch', flag_values)
+        return flag_values
 
-    def set_runtime_checks(self, context):
+    def set_runtime_checks(self, context, flag_name, flag_value):
         """
         Set runtime checks flag
 
@@ -287,9 +338,9 @@ class FortranFlags(Flags):
                              ifort_cl_unix: '-nocheck'},
             default_value: {}
         }
-        self.set_flag(context, 'VFFortranCompilerTool', 'RuntimeChecks', flag_values)
+        return flag_values
 
-    def set_traceback(self, context):
+    def set_traceback(self, context, flag_name, flag_value):
         """
         Set traceback flag
 
@@ -301,9 +352,9 @@ class FortranFlags(Flags):
                       ifort_cl_unix: '-notraceback'},
             default_value: {}
         }
-        self.set_flag(context, 'VFFortranCompilerTool', 'Traceback', flag_values)
+        return flag_values
 
-    def set_extend_single_precision_constants(self, context):
+    def set_extend_single_precision_constants(self, context, flag_name, flag_value):
         """
         Set extend single precision constants flag
 
@@ -313,10 +364,9 @@ class FortranFlags(Flags):
                      ifort_cl_unix: '-fpconstant'},
             default_value: {}
         }
-        self.set_flag(context, 'VFFortranCompilerTool', 'ExtendSinglePrecisionConstants',
-                      flag_values)
+        return flag_values
 
-    def set_floating_point_exception_handling(self, context):
+    def set_floating_point_exception_handling(self, context, flag_name, flag_value):
         """
         Set floating exception handling
 
@@ -328,10 +378,9 @@ class FortranFlags(Flags):
                      ifort_cl_unix: '-fpe1'},
             default_value: {}
         }
-        self.set_flag(context, 'VFFortranCompilerTool', 'FloatingPointExceptionHandling',
-                      flag_values)
+        return flag_values
 
-    def set_init_local_var_to_nan(self, context):
+    def set_init_local_var_to_nan(self, context, flag_name, flag_value):
         """
         Set init local var to NaN flag
 
@@ -341,9 +390,9 @@ class FortranFlags(Flags):
                      ifort_cl_unix: '-ftrapuv'},
             default_value: {}
         }
-        self.set_flag(context, 'VFFortranCompilerTool', 'InitLocalVarToNAN', flag_values)
+        return flag_values
 
-    def set_preprocess_source_file(self, context):
+    def set_preprocess_source_file(self, context, flag_name, flag_value):
         """
         Set preprocess source file flag
 
@@ -353,9 +402,9 @@ class FortranFlags(Flags):
                               ifort_cl_unix: '-fpp'},
             default_value: {}
         }
-        self.set_flag(context, 'VFFortranCompilerTool', 'Preprocess', flag_values)
+        return flag_values
 
-    def set_optimization(self, context):
+    def set_optimization(self, context, flag_name, flag_value):
         """
         Set optimization flag
 
@@ -365,13 +414,14 @@ class FortranFlags(Flags):
                                  ifort_cl_unix: '-O1'},
             'optimizeFull': {ifort_cl_win: '-O3',
                              ifort_cl_unix: '-O3'},
-            'optimizeDisabled': {ifort_cl_win: '-Od'},
+            'optimizeDisabled': {ifort_cl_win: '-Od',
+                                 ifort_cl_unix: '-Od'},
             default_value: {ifort_cl_win: '-O2',
                             ifort_cl_unix: '-O2'}
         }
-        self.set_flag(context, 'VFFortranCompilerTool', 'Optimization', flag_values)
+        return flag_values
 
-    def set_debug_information_format(self, context):
+    def set_debug_information_format(self, context, flag_name, flag_value):
         """
         Set debug inforamtion format flag
 
@@ -383,9 +433,9 @@ class FortranFlags(Flags):
                                   ifort_cl_unix: '-debug minimal'},
             default_value: {}
         }
-        self.set_flag(context, 'VFFortranCompilerTool', 'DebugInformationFormat', flag_values)
+        return flag_values
 
-    def set_suppress_startup_banner(self, context):
+    def set_suppress_startup_banner(self, context, flag_name, flag_value):
         """
         Set supress banner flag
 
@@ -394,9 +444,9 @@ class FortranFlags(Flags):
             'true': {ifort_cl_win: '-nologo'},
             default_value: {}
         }
-        self.set_flag(context, 'VFFortranCompilerTool', 'SuppressStartupBanner', flag_values)
+        return flag_values
 
-    def set_source_file_format(self, context):
+    def set_source_file_format(self, context, flag_name, flag_value):
         """
         Set source file format flag
 
@@ -408,9 +458,9 @@ class FortranFlags(Flags):
                                 ifort_cl_unix: '-fixed'},
             default_value: {}
         }
-        self.set_flag(context, 'VFFortranCompilerTool', 'SourceFileFormat', flag_values)
+        return flag_values
 
-    def set_local_variable_storage(self, context):
+    def set_local_variable_storage(self, context, flag_name, flag_value):
         """
         Set local variable storage flag
 
@@ -420,9 +470,9 @@ class FortranFlags(Flags):
                                       ifort_cl_unix: '-auto'},
             default_value: {}
         }
-        self.set_flag(context, 'VFFortranCompilerTool', 'LocalVariableStorage', flag_values)
+        return flag_values
 
-    def set_real_kind(self, context):
+    def set_real_kind(self, context, flag_name, flag_value):
         """
         Set real kind flag
 
@@ -434,7 +484,7 @@ class FortranFlags(Flags):
                            ifort_cl_unix: '-real-size 128'},
             default_value: {}
         }
-        self.set_flag(context, 'VFFortranCompilerTool', 'RealKIND', flag_values)
+        return flag_values
 
     @staticmethod
     def __get_no_prefix(unix_option):
@@ -443,51 +493,52 @@ class FortranFlags(Flags):
             no = '-no'
         return no
 
-    @staticmethod
-    def set_additional_options(context):
+    def set_additional_options(self, context, flag_name, flag_value):
         """
         Set Additional options
 
         """
-        for setting in context.settings:
-            add_opts = context.settings[setting]['VFFortranCompilerTool'].get('AdditionalOptions')
-            if add_opts:
-                add_opts = set_unix_slash(add_opts).split()
-                ready_add_opts = []
-                for add_opt in add_opts:
-                    add_opt = add_opt.strip()
-                    if '/Qprof-dir' in add_opt:
-                        name_value = add_opt.split(':')
-                        add_opt = name_value[0] + ':' + normalize_path(
-                            context,
-                            os.path.dirname(context.vcxproj_path), name_value[1]
-                        )
+        # for setting in context.settings:
+        add_opts = flag_value
+        if add_opts:
+            add_opts = set_unix_slash(add_opts).split()
+            ready_add_opts = []
+            for add_opt in add_opts:
+                add_opt = add_opt.strip()
+                if '/Qprof-dir' in add_opt:
+                    name_value = add_opt.split(':')
+                    add_opt = name_value[0] + ':' + normalize_path(
+                        context,
+                        os.path.dirname(context.vcxproj_path), name_value[1]
+                    )
 
-                    add_opt = '-' + add_opt[1:]
-                    ready_add_opts.append(add_opt)
-                    unix_option = add_opt.replace(':', ' ')
-                    if 'gen-interfaces' in unix_option:
-                        pass
-                    elif 'Qprec-div' in unix_option:
-                        unix_option = FortranFlags.__get_no_prefix(unix_option) + '-prec-div'
-                    elif '-static' == unix_option:
-                        pass
-                    elif 'Qprof-dir' in unix_option:
-                        unix_option = unix_option.replace('Qprof-dir', 'prof-dir')
-                    elif 'Qprof-use' in unix_option:
-                        unix_option = unix_option.replace('Qprof-use', 'prof-use')
-                    elif 'Qprec-sqrt' in unix_option:
-                        unix_option = FortranFlags.__get_no_prefix(unix_option) + '-prec-sqrt'
-                    elif 'Qopenmp-lib' in unix_option:
-                        unix_option = unix_option.replace('Qopenmp-lib', 'openmp-lib')
-                        unix_option = unix_option.replace('lib ', 'lib=')
-                    else:
-                        message(context, '{1} : Unix ifort option "{0}" may be incorrect. '
-                                'Check it and set it with visual studio UI if possible.'
-                                .format(unix_option, setting), 'warn')
-                    context.settings[setting][ifort_cl_win].append(add_opt)
-                    context.settings[setting][ifort_cl_unix].append(unix_option)
-                message(context,
-                        'Additional Options for {0} : {1}'.format(setting, str(ready_add_opts)), '')
-            else:
-                message(context, 'No Additional Options for {0}'.format(setting), '')
+                add_opt = '-' + add_opt[1:]
+                ready_add_opts.append(add_opt)
+                unix_option = add_opt.replace(':', ' ')
+                if 'gen-interfaces' in unix_option:
+                    pass
+                elif 'Qprec-div' in unix_option:
+                    unix_option = FortranFlags.__get_no_prefix(unix_option) + '-prec-div'
+                elif '-static' == unix_option:
+                    pass
+                elif 'Qprof-dir' in unix_option:
+                    unix_option = unix_option.replace('Qprof-dir', 'prof-dir')
+                elif 'Qprof-use' in unix_option:
+                    unix_option = unix_option.replace('Qprof-use', 'prof-use')
+                elif 'Qprec-sqrt' in unix_option:
+                    unix_option = FortranFlags.__get_no_prefix(unix_option) + '-prec-sqrt'
+                elif 'Qopenmp-lib' in unix_option:
+                    unix_option = unix_option.replace('Qopenmp-lib', 'openmp-lib')
+                    unix_option = unix_option.replace('lib ', 'lib=')
+                else:
+                    message(context, 'Unix ifort option "{0}" may be incorrect. '
+                            'Check it and set it with visual studio UI if possible.'
+                            .format(unix_option), 'warn')
+                if ifort_cl_win not in self.flags[flag_name]:
+                    self.flags[flag_name][ifort_cl_win] = []
+                self.flags[flag_name][ifort_cl_win].append(add_opt)
+                if ifort_cl_unix not in self.flags[flag_name]:
+                    self.flags[flag_name][ifort_cl_unix] = []
+                self.flags[flag_name][ifort_cl_unix].append(unix_option)
+            message(context,
+                    'Additional Options : {0}'.format(str(ready_add_opts)), '')

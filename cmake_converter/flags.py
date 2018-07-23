@@ -217,6 +217,9 @@ class Flags(object):
     def write_use_pch_macro(self, context, cmake_file):
         pass
 
+    def define_flags(self, context):
+        pass
+
     @staticmethod
     def write_target_artifact(context, cmake_file):
         """

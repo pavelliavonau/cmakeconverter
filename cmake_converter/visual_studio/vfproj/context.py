@@ -28,6 +28,7 @@ from .flags import FortranFlags
 from .project_files import VFProjectFiles
 from .project_variables import VFProjectVariables
 from .utils import Utils
+from .parser import VFParser
 
 
 class VFContextInitializer(ContextInitializer):
@@ -38,6 +39,7 @@ class VFContextInitializer(ContextInitializer):
         context.flags = FortranFlags()
         context.dependencies = VFDependencies()
         context.utils = Utils()
+        context.parser = VFParser(context)
 
     def init_context(self, context, vs_project):
         """
@@ -56,37 +58,4 @@ class VFContextInitializer(ContextInitializer):
         Define the settings of vfproj
 
         """
-
-        tree = context.vcxproj['tree']
-        configuration_nodes = tree.xpath('/VisualStudioProject/Configurations/Configuration')
-        if configuration_nodes:
-            for configuration_node in configuration_nodes:
-                configuration_data = str(configuration_node.get('Name'))
-                self.init_context_setting(context, configuration_data)
-
-                out_dir_node = configuration_node.get('OutputDirectory')
-                if out_dir_node:
-                    context.settings[configuration_data]['out_dir'] = out_dir_node
-
-                config_type_node = configuration_node.get('ConfigurationType')
-                if config_type_node:
-                    config_type_node = config_type_node.replace('type', '')
-                    context.settings[configuration_data]['target_type'] = config_type_node
-                else:
-                    context.settings[configuration_data]['target_type'] = 'Application'
-
-                target_name_node = configuration_node.get('TargetName')
-                if target_name_node:
-                    context.settings[configuration_data]['target_name'] = target_name_node
-                else:
-                    context.settings[configuration_data]['target_name'] = \
-                        context.project_name
-
-                tools = configuration_node.xpath('Tool')
-                for tool in tools:
-                    tool_name = str(tool.get('Name'))
-                    context.settings[configuration_data][tool_name] = tool.attrib
-                    if 'VFFortranCompilerTool' in tool_name:
-                        if 'PreprocessorDefinitions' in tool.attrib:
-                            context.settings[configuration_data]['defines'] = \
-                                tool.attrib['PreprocessorDefinitions'].split(';')
+        pass

@@ -30,78 +30,60 @@ class VFDependencies(Dependencies):
 
     @staticmethod
     def find_include_dirs(context, setting):
-        ad_inc = context.settings[setting]['VFFortranCompilerTool'].get(
-            'AdditionalIncludeDirectories'
-        )
-        if ad_inc:
-            Dependencies.get_additional_include_directories(ad_inc, setting, context)
-        if 'inc_dirs' in context.settings[setting]:
-            message(context, 'Include Directories found : {0}'
-                    .format(context.settings[setting]['inc_dirs']), '')
-            context.settings[setting]['inc_dirs'] += ';${CMAKE_CURRENT_SOURCE_DIR}/'
-            context.settings[setting]['inc_dirs_list'].append('./')
-        else:
-            message(context, 'Include Directories not found for this project.', '')
-            context.settings[setting]['inc_dirs'] = '${CMAKE_CURRENT_SOURCE_DIR}/'
-            context.settings[setting]['inc_dirs_list'] = ['./']
+        pass
 
     @staticmethod
-    def find_target_references(context):
+    def add_current_dir_to_includes(context):
+        if 'inc_dirs' in context.settings[context.current_setting]:
+            message(context, 'Include Directories found : {0}'
+                    .format(context.settings[context.current_setting]['inc_dirs']), '')
+            context.settings[context.current_setting]['inc_dirs'] += ';${CMAKE_CURRENT_SOURCE_DIR}/'
+            context.settings[context.current_setting]['inc_dirs_list'].append('./')
+        else:
+            message(context, 'Include Directories not found for this project.', '')
+            context.settings[context.current_setting]['inc_dirs'] = '${CMAKE_CURRENT_SOURCE_DIR}/'
+            context.settings[context.current_setting]['inc_dirs_list'] = ['./']
+
+    @staticmethod
+    def set_target_references(context):
         if context.sln_deps:
             context.target_references = context.target_references + context.sln_deps
             message(context, 'References : {}'.format(context.target_references), '')
 
     @staticmethod
-    def find_target_additional_dependencies(context):
-        for setting in context.settings:
-            ad_libs = None
-            if 'VFLibrarianTool' in context.settings[setting]:
-                ad_libs = context.settings[setting]['VFLibrarianTool'].get('AdditionalDependencies')
-            if 'VFLinkerTool' in context.settings[setting]:
-                ad_libs = context.settings[setting]['VFLinkerTool'].get('AdditionalDependencies')
-            if ad_libs:
-                add_libs = []
-                for d in ad_libs.split(';'):
-                    if d != '%(AdditionalDependencies)':
-                        if os.path.splitext(d)[1] == '.lib':
-                            add_libs.append(d.replace('.lib', ''))
-                context.add_lib_deps = True
-                message(context, 'Additional Dependencies for {0} = {1}'.format(setting, add_libs),
-                        '')
-                context.settings[setting]['add_lib_deps'] = '$<SEMICOLON>'.join(add_libs)
+    def set_target_additional_dependencies(context, flag_name, ad_libs, node):
+        if ad_libs:
+            add_libs = []
+            for d in ad_libs.split(';'):
+                if d != '%(AdditionalDependencies)':
+                    if os.path.splitext(d)[1] == '.lib':
+                        add_libs.append(d.replace('.lib', ''))
+            context.add_lib_deps = True
+            message(context, 'Additional Dependencies = {0}'.format(add_libs), '')
+            context.settings[context.current_setting]['add_lib_deps'] =\
+                '$<SEMICOLON>'.join(add_libs)
 
     @staticmethod
-    def find_target_additional_library_directories(context):
+    def set_target_additional_library_directories(context, flag_name,
+                                                  additional_library_directories, node):
         """
         Find and set additional library directories in context
 
         """
 
-        for setting in context.settings:
-            context.add_lib_dirs = []
-            additional_library_directories = None
-            if 'VFLibrarianTool' in context.settings[setting]:
-                additional_library_directories = context.settings[setting]['VFLibrarianTool'] \
-                    .get('AdditionalLibraryDirectories')
-            if 'VFLinkerTool' in context.settings[setting]:
-                additional_library_directories = context.settings[setting]['VFLinkerTool'] \
-                    .get('AdditionalLibraryDirectories')
-
-            if additional_library_directories:
-                list_depends = additional_library_directories.replace(
-                    '%(AdditionalLibraryDirectories)', ''
-                )
-                if list_depends != '':
-                    message(context,
-                            'Additional Library Directories = {0}'.format(list_depends), '')
-                    add_lib_dirs = []
-                    for d in list_depends.split(';'):
-                        d = d.strip()
-                        if d != '':
-                            add_lib_dirs.append(d)
-                    context.add_lib_dirs = add_lib_dirs
-            else:  # pragma: no cover
-                message(context, 'No additional library dependencies.', '')
+        if additional_library_directories:
+            list_depends = additional_library_directories.replace(
+                '%(AdditionalLibraryDirectories)', ''
+            )
+            if list_depends != '':
+                message(context,
+                        'Additional Library Directories = {0}'.format(list_depends), '')
+                add_lib_dirs = []
+                for d in list_depends.split(';'):
+                    d = d.strip()
+                    if d != '':
+                        add_lib_dirs.append(d)
+                context.add_lib_dirs = add_lib_dirs
 
     @staticmethod
     def __find_custom_build_events_of_files(context):
@@ -125,49 +107,54 @@ class VFDependencies(Dependencies):
                             .format(setting, file, custom_build), '')
 
     @staticmethod
-    def __find_target_build_events(context, tree_xpath, value_name, event_type):
-        for setting in context.settings:
-            if tree_xpath in context.settings[setting]:
-                build_events_data = context.settings[setting][tree_xpath]
-                build_events = ''
-                if ('CommandLine' in build_events_data
-                        and 'ExcludedFromBuild' not in build_events_data):
-                    build_events = build_events_data['CommandLine']
-                context.settings[setting][value_name] = []
-                for build_event in build_events.split('\n'):
-                    build_event = build_event.strip()
-                    if build_event:
-                        cmake_build_event = prepare_build_event_cmd_line_for_cmake(
-                            context,
-                            build_event
-                        )
-                        context.settings[setting][value_name] \
-                            .append(cmake_build_event)
-                        message(context, '{0} event for {1}: {2}'
-                                .format(event_type, setting, cmake_build_event), 'info')
+    def __set_target_build_events(context, value_name, event_type, command_value):
+        context.settings[context.current_setting][value_name] = []
+        for build_event in command_value.split('\n'):
+            build_event = build_event.strip()
+            if build_event:
+                cmake_build_event = prepare_build_event_cmd_line_for_cmake(
+                    context,
+                    build_event
+                )
+                context.settings[context.current_setting][value_name] \
+                    .append(cmake_build_event)
+                message(context, '{0} event for {1}: {2}'
+                        .format(event_type, context.current_setting, cmake_build_event), 'info')
 
-    def find_target_pre_build_events(self, context):
-        self.__find_target_build_events(
+    @staticmethod
+    def __is_excluded_from_build(node):
+        if 'ExcludedFromBuild' in node.attrib:
+            return 'true' == node.attrib['ExcludedFromBuild']
+        return False
+
+    def set_target_pre_build_events(self, context, name, command_value, node):
+        if self.__is_excluded_from_build(node):
+            return
+        self.__set_target_build_events(
             context,
-            'VFPreBuildEventTool',
             'pre_build_events',
-            'Pre build'
+            'Pre build',
+            command_value
         )
 
-    def find_target_pre_link_events(self, context):
-        self.__find_target_build_events(
+    def set_target_pre_link_events(self, context, name, command_value, node):
+        if self.__is_excluded_from_build(node):
+            return
+        self.__set_target_build_events(
             context,
-            'VFPreLinkEventTool',
             'pre_link_events',
-            'Pre link'
+            'Pre link',
+            command_value
         )
 
-    def find_target_post_build_events(self, context):
-        self.__find_target_build_events(
+    def set_target_post_build_events(self, context, name, command_value, node):
+        if self.__is_excluded_from_build(node):
+            return
+        self.__set_target_build_events(
             context,
-            'VFPostBuildEventTool',
             'post_build_events',
-            'Post build'
+            'Post build',
+            command_value
         )
 
     # TODO: implement

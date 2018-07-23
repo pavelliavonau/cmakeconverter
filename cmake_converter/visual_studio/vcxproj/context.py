@@ -29,6 +29,7 @@ from .flags import CPPFlags
 from .project_files import VCXProjectFiles
 from .project_variables import VCXProjectVariables
 from .utils import Utils
+from .parser import VCXParser
 
 
 class VCXContextInitializer(ContextInitializer):
@@ -39,6 +40,7 @@ class VCXContextInitializer(ContextInitializer):
         context.flags = CPPFlags()
         context.dependencies = VCXDependencies()
         context.utils = Utils()
+        context.parser = VCXParser()
 
     @staticmethod
     def __set_target_type(setting, context):

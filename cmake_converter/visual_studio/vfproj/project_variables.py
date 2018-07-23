@@ -32,59 +32,52 @@ class VFProjectVariables(ProjectVariables):
          Class who defines all the CMake variables to be used by the Fortran project
     """
 
-    @staticmethod
-    def find_outputs_variables(context, setting):
-        """
-             Add Outputs Variables
-        """
+    def __init__(self):
+        self.output_path = ''
 
-        arch = context.settings[setting]['arch']
+    def apply_default_values(self, context):
+        self.output_path = '$(SolutionDir)$(Platform)/$(Configuration)/'  # default value
+        self.output_path = cleaning_output(context, self.output_path)
+        context.settings[context.current_setting]['out_dir'] = self.output_path
 
-        output_path = '$(SolutionDir)$(Platform)/$(Configuration)/'  # default value
-
+    def set_output_dir(self, context, output_dir, node):
         if not context.cmake_output:
-            if 'out_dir' in context.settings[setting]:
-                output_path = context.settings[setting]['out_dir']
-            output_path = cleaning_output(context, output_path)
+            self.output_path = cleaning_output(context, output_dir)
         else:
             if context.cmake_output[-1:] == '/' or context.cmake_output[-1:] == '\\':
                 build_type = '${CMAKE_BUILD_TYPE}'
             else:
                 build_type = '/${CMAKE_BUILD_TYPE}'
-            output_path = context.cmake_output + build_type
+            self.output_path = context.cmake_output + build_type
 
-        output_path = output_path.strip().replace('\n', '')
+        self.output_path = self.output_path.strip().replace('\n', '')
+        self.output_path = check_for_relative_in_path(context, self.output_path)
+        context.settings[context.current_setting]['out_dir'] = self.output_path
+        message(context, 'Output Dir = {0}'.format(self.output_path), '')
 
-        output_file = ''
-        if 'VFLinkerTool' in context.settings[setting]:
-            output_file = context.settings[setting]['VFLinkerTool'].get('OutputFile')
-        if 'VFLibrarianTool' in context.settings[setting]:
-            output_file = context.settings[setting]['VFLibrarianTool'].get('OutputFile')
-
+    def set_output_file(self, context, flag_name, output_file, node):
         if output_file:
             path = os.path.dirname(output_file)
             name, ext = os.path.splitext(os.path.basename(output_file))
             path = cleaning_output(context, path)
-            output_path = path.replace('${OUT_DIR}', output_path)
-            context.settings[setting]['target_name'] = replace_vs_vars_with_cmake_vars(
-                context,
-                name
-            )
+            self.output_path = path.replace('${OUT_DIR}', self.output_path)
+            context.settings[context.current_setting]['target_name'] =\
+                replace_vs_vars_with_cmake_vars(
+                    context,
+                    name
+                )
 
-        output_path = check_for_relative_in_path(context, output_path)
-        context.settings[setting]['out_dir'] = output_path
+        self.output_path = check_for_relative_in_path(context, self.output_path)
+        context.settings[context.current_setting]['out_dir'] = self.output_path
 
-        if output_path:
-            message(context, 'Output {0} = {1}'.format(setting, output_path), '')
-        else:  # pragma: no cover
-            message(context, 'No Output found. Use [{0}/bin] by default !'.format(arch), 'warn')
+        message(
+            context,
+            'Output File : dir={0} name{1}'.format(
+                self.output_path, context.settings[context.current_setting]['target_name']),
+            '')
 
-        import_library = ''
-        if 'VFLinkerTool' in context.settings[setting]:
-            import_library = context.settings[setting]['VFLinkerTool'].get('ImportLibrary')
-        if 'VFLibrarianTool' in context.settings[setting]:
-            import_library = context.settings[setting]['VFLibrarianTool'].get('ImportLibrary')
-
+    @staticmethod
+    def set_import_library(context, flag_name, import_library, node):
         import_library_path = ''
         import_library_name = ''
         if import_library:
@@ -94,11 +87,9 @@ class VFProjectVariables(ProjectVariables):
             import_library_path = cleaning_output(context, path)
             import_library_name = replace_vs_vars_with_cmake_vars(context, name)
             import_library_path = check_for_relative_in_path(context, import_library_path)
-            message(context, '{0} : Import library path = {1}'.format(setting, import_library_path),
-                    '')
-            message(context, '{0} : Import library name = {1}'.format(setting, import_library_name),
-                    '')
+            message(context, 'Import library path = {0}'.format(import_library_path), '')
+            message(context, 'Import library name = {0}'.format(import_library_name), '')
 
-        context.settings[setting]['import_library_path'] = import_library_path
-        context.settings[setting]['import_library_name'] = import_library_name
+        context.settings[context.current_setting]['import_library_path'] = import_library_path
+        context.settings[context.current_setting]['import_library_name'] = import_library_name
 

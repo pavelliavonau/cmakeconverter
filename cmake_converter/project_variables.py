@@ -53,6 +53,10 @@ class ProjectVariables(object):
         )
 
     @staticmethod
+    def find_outputs_variables(context, setting):
+        pass
+
+    @staticmethod
     def write_target_outputs(context, cmake_file):
         """
         Add outputs for each artefacts CMake target

@@ -62,7 +62,6 @@ class ProjectFiles(object):
 
         file_lists_for_include_paths = {}
         for setting in context.settings:
-            message(context, setting, '')
             for include_path in context.settings[setting]['inc_dirs_list']:
                 if include_path not in file_lists_for_include_paths:
                     abs_include_path = os.path.join(vcxproj_dir, include_path)

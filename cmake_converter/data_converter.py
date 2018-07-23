@@ -45,6 +45,8 @@ class DataConverter(object):
 
         """
 
+        context.parser.parse(context)
+
         for setting in context.settings:
             context.variables.find_outputs_variables(context, setting)
             context.dependencies.find_include_dirs(context, setting)
@@ -63,6 +65,19 @@ class DataConverter(object):
             context.dependencies.find_target_post_build_events(context)
             context.dependencies.find_custom_build_step(context)
             context.dependencies.find_target_dependency_packages(context)
+
+    @staticmethod
+    def verify_data(context):
+        target_types = set()
+        for setting in context.settings:
+            target_types.add(context.settings[setting]['target_type'])
+
+        if len(target_types) > 1:
+            message(
+                context,
+                'Target has more than one output binary type. CMake does not support it!',
+                'warn'
+            )
 
     def write_data(self, context, cmake_file):
         """
@@ -122,6 +137,7 @@ class DataConverter(object):
         message(context, 'Conversion started: Project {0}'.format(context.project_name), 'done')
         message(context, 'Collecting data for project {0}'.format(context.vcxproj_path), '')
         self.collect_data(context)
+        self.verify_data(context)
         if context.dry:
             return
         if os.path.exists(context.cmake + '/CMakeLists.txt'):

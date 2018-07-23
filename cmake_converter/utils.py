@@ -403,6 +403,9 @@ def message(context, text, status):  # pragma: no cover
     if context.project_number:
         message_begin = message_begin + '{0}> '.format(context.project_number)
 
+    if context.current_setting:
+        text = '{0} : {1}'.format(context.current_setting, text)
+
     if status == 'error':
         print(message_begin + 'ERR  : ' + FAIL + text + ENDC)
     elif status == 'warn':
