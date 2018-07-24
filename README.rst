@@ -52,7 +52,7 @@ Run & Convert
 
 After install library, just run the script as below. Your ``*.sln`` file is of course required::
 
-    cmake-converter -s <path/to/file.sln>
+    cmake-converter -p <path/to/file.sln>
 
 Documentation
 -------------
