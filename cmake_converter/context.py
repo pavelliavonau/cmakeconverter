@@ -56,6 +56,7 @@ class Context(object):
         self.is_converting_solution = False
 
         self.sln_configurations_map = None
+        self.configurations_to_parse = set()
         self.cmake = ''
         self.project_name = ''
         self.sources = {}
@@ -98,12 +99,11 @@ class ContextInitializer(object):
     # TODO: remove next method after implementing vcxproj parser
     @staticmethod
     def __remove_unused_settings(context):
-        mapped_configurations = set()
         for sln_config in context.sln_configurations_map:
-            mapped_configurations.add(context.sln_configurations_map[sln_config])
+            context.configurations_to_parse.add(context.sln_configurations_map[sln_config])
         settings_to_remove = []
         for setting in context.settings:
-            if setting not in mapped_configurations:
+            if setting not in context.configurations_to_parse:
                 settings_to_remove.append(setting)
         for setting in settings_to_remove:
             context.settings.pop(setting, None)

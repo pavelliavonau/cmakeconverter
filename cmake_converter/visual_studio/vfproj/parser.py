@@ -37,7 +37,7 @@ class VFParser(Parser):
             'Filter': self.__parse_filter,
         }
         self.attributes_handlers = {
-            'Configuration_Name': self.__parse_configuration_name,
+            'Configuration_Name': self.do_nothing_stub,
             'Configuration_TargetName': self.__parse_target_name,
             'Configuration_OutputDirectory': context.variables.set_output_dir,
             'Configuration_IntermediateDirectory': self.__parse_configuration_intermediate_dir,
@@ -122,6 +122,14 @@ class VFParser(Parser):
 
     def __parse_configuration(self, context, configuration_node):
 
+        if 'Name' in configuration_node.attrib:
+            setting = configuration_node.attrib['Name']
+            if setting not in context.configurations_to_parse:
+                return
+            context.current_setting = setting
+            ContextInitializer.init_context_setting(context, setting)
+            context.variables.apply_default_values(context)
+
         self.__parse_attributes(context, configuration_node)
 
         if 'target_type' not in context.settings[context.current_setting]:
@@ -135,13 +143,6 @@ class VFParser(Parser):
         context.flags.apply_flags_to_context(context)
         context.dependencies.add_current_dir_to_includes(context)
         context.current_setting = None
-
-    @staticmethod
-    def __parse_configuration_name(context, name_value, node):
-        setting = name_value
-        context.current_setting = setting
-        ContextInitializer.init_context_setting(context, setting)
-        context.variables.apply_default_values(context)
 
     @staticmethod
     def __parse_target_name(context, target_name_value, node):
