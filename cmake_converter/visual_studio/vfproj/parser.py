@@ -28,8 +28,9 @@ from cmake_converter.parser import Parser
 class VFParser(Parser):
 
     def __init__(self, context):
+        Parser.__init__(self)
         self.node_handlers = {
-            'Platforms': self.__parse_platforms,
+            'Platforms': self.do_nothing_node_stub,
             'Configurations': self.__parse_configurations,
             'Configuration': self.__parse_configuration,
             'Tool': self.__parse_tool,
@@ -37,11 +38,11 @@ class VFParser(Parser):
             'Filter': self.__parse_filter,
         }
         self.attributes_handlers = {
-            'Configuration_Name': self.do_nothing_stub,
+            'Configuration_Name': self.do_nothing_attr_stub,
             'Configuration_TargetName': self.__parse_target_name,
             'Configuration_OutputDirectory': context.variables.set_output_dir,
             'Configuration_IntermediateDirectory': self.__parse_configuration_intermediate_dir,
-            'Configuration_DeleteExtensionsOnClean': self.do_nothing_stub,
+            'Configuration_DeleteExtensionsOnClean': self.do_nothing_attr_stub,
             'Configuration_ConfigurationType': self.__parse_configuration_type,
             'VFFortranCompilerTool_PreprocessorDefinitions': self.__parse_preprocessor_definitions,
             'VFFortranCompilerTool_AdditionalIncludeDirectories':
@@ -92,32 +93,14 @@ class VFParser(Parser):
                 context.dependencies.set_target_post_build_events,
         }
 
-    def __parse_nodes(self, context, root):
-        for node in root:
-            if node.tag in self.node_handlers:
-                self.node_handlers[node.tag](context, node)
-            else:
-                message(context, 'No handler for {} node.'.format(node.tag), 'warn')
-
-    def __parse_attributes(self, context, root):
-        for attr in root.attrib:
-            key = '{}_{}'.format(root.tag, attr)
-            if key in self.attributes_handlers:
-                self.attributes_handlers[key](context, root.get(attr), root)
-            else:
-                message(context, 'No handler for {} attribute.'.format(attr), 'warn')
-
     def parse(self, context):
         tree = context.vcxproj['tree']
         root = tree.getroot()
-        self.__parse_nodes(context, root)
+        self._parse_nodes(context, root)
         context.dependencies.set_target_references(context)
 
-    def __parse_platforms(self, context, node):
-        pass
-
     def __parse_configurations(self, context, configurations_node):
-        self.__parse_nodes(context, configurations_node)
+        self._parse_nodes(context, configurations_node)
         self.remove_unused_settings(context)
 
     def __parse_configuration(self, context, configuration_node):
@@ -130,7 +113,7 @@ class VFParser(Parser):
             ContextInitializer.init_context_setting(context, setting)
             context.variables.apply_default_values(context)
 
-        self.__parse_attributes(context, configuration_node)
+        self._parse_attributes(context, configuration_node)
 
         if 'target_type' not in context.settings[context.current_setting]:
             context.settings[context.current_setting]['target_type'] = 'Application'
@@ -139,7 +122,7 @@ class VFParser(Parser):
             context.settings[context.current_setting]['target_name'] = context.project_name
 
         context.flags.prepare_context_for_flags(context)
-        self.__parse_nodes(context, configuration_node)
+        self._parse_nodes(context, configuration_node)
         context.flags.apply_flags_to_context(context)
         context.dependencies.add_current_dir_to_includes(context)
         context.current_setting = None
@@ -194,9 +177,9 @@ class VFParser(Parser):
 
     def __parse_files(self, context, files_node):
         pass
-        # self.__parse_nodes(context, files_node)
+        # self._parse_nodes(context, files_node)
 
     def __parse_filter(self, context, filter_node):
         pass
-        # self.__parse_nodes(context, filter_node)
+        # self._parse_nodes(context, filter_node)
 

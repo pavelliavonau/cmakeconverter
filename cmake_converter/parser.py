@@ -20,18 +20,50 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
+import re
+
 from cmake_converter.utils import message
 
 
 class Parser(object):
+
+    def __init__(self):
+        self.node_handlers = {
+        }
+        self.attributes_handlers = {
+        }
 
     @staticmethod
     def parse(context):
         message(context, 'Parser is not implemented yet!', 'error')
 
     @staticmethod
-    def do_nothing_stub(context, param, node):
+    def do_nothing_node_stub(context, node):
         pass
+
+    @staticmethod
+    def do_nothing_attr_stub(context, param, node):
+        pass
+
+    def _parse_nodes(self, context, root):
+        for node in root:
+            if type(node.tag) is not str:
+                continue
+            node_tag = re.sub(r'{.*\}', '', node.tag)  # strip namespace
+
+            if node_tag in self.node_handlers:
+                self.node_handlers[node_tag](context, node)
+            else:
+                message(context, 'No handler for <{}> node.'.format(node_tag), 'warn')
+
+    def _parse_attributes(self, context, node):
+        for attr in node.attrib:
+            node_tag = re.sub(r'{.*\}', '', node.tag)  # strip namespace
+            key = '{}_{}'.format(node_tag, attr)
+            if key in self.attributes_handlers:
+                self.attributes_handlers[key](context, node.get(attr), node)
+            else:
+                message(context, 'No handler for {} attribute.'.format(attr), 'warn')
 
     @staticmethod
     def remove_unused_settings(context):

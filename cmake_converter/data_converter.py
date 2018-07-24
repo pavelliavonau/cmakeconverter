@@ -48,7 +48,6 @@ class DataConverter(object):
         context.parser.parse(context)
 
         for setting in context.settings:
-            context.variables.find_outputs_variables(context, setting)
             context.dependencies.find_include_dirs(context, setting)
 
         context.files.collects_source_files(context)

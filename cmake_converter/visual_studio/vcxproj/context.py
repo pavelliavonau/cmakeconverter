@@ -40,18 +40,7 @@ class VCXContextInitializer(ContextInitializer):
         context.flags = CPPFlags()
         context.dependencies = VCXDependencies()
         context.utils = Utils()
-        context.parser = VCXParser()
-
-    @staticmethod
-    def __set_target_type(setting, context):
-        configuration_type = context.vcxproj['tree'].xpath(
-            '{0}/ns:ConfigurationType'.format(context.property_groups[setting]),
-            namespaces=context.vcxproj['ns'])
-        if len(configuration_type) == 0:
-            message(context, 'ConfigurationType not found', 'warn')
-            return
-
-        context.settings[setting]['target_type'] = configuration_type[0].text
+        context.parser = VCXParser(context)
 
     def init_context(self, context, vs_project):
         """
@@ -76,20 +65,4 @@ class VCXContextInitializer(ContextInitializer):
         Define the settings of vcxproj
 
         """
-
-        tree = context.vcxproj['tree']
-        ns = context.vcxproj['ns']
-        configuration_nodes = tree.xpath('//ns:ProjectConfiguration', namespaces=ns)
-        if configuration_nodes:
-            for configuration_node in configuration_nodes:
-                configuration_data = str(configuration_node.get('Include'))
-                if configuration_data not in context.sln_configurations_map:
-                    continue
-                self.init_context_setting(context, configuration_data)
-                context.property_groups[configuration_data] = get_propertygroup(
-                    configuration_data, ' and @Label="Configuration"'
-                )
-                context.definition_groups[configuration_data] = get_definitiongroup(
-                    configuration_data
-                )
-                self.__set_target_type(configuration_data, context)
+        pass
