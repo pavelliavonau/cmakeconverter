@@ -30,27 +30,16 @@ from cmake_converter.utils import normalize_path, message, prepare_build_event_c
 
 class VCXDependencies(Dependencies):
 
-    def find_include_dirs(self, context, setting):
+    def set_include_dirs(self, context, incl_dir):
         """
         Write on "CMakeLists.txt" include directories required for compilation.
 
         """
 
-        incl_dir = context.vcxproj['tree'].find(
-            '{0}/ns:ClCompile/ns:AdditionalIncludeDirectories'.format(
-                context.definition_groups[setting]
-            ),
-            namespaces=context.vcxproj['ns']
+        inc_dirs = self.get_additional_include_directories(
+            incl_dir.text, context.current_setting, context
         )
-
-        context.settings[setting]['inc_dirs_list'] = []
-        if incl_dir is not None:
-            inc_dirs = self.get_additional_include_directories(
-                incl_dir.text, setting, context
-            )
-            message(context, 'Include Directories found : {0}'.format(inc_dirs), '')
-        else:  # pragma: no cover
-            message(context, 'Include Directories not found for this project.', '')
+        message(context, 'Include Directories found : {0}'.format(inc_dirs), '')
 
     def find_target_references(self, context):
         """

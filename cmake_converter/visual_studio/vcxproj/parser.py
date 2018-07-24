@@ -39,11 +39,19 @@ class VCXParser(Parser):
             'PlatformToolset': self.do_nothing_node_stub,
             'PropertyGroup': self.__parse_property_group,
             'ItemDefinitionGroup': self.__parse_item_definition_group,
+            'ClCompile': self.__parse_cl_compile,
+            'AdditionalIncludeDirectories': context.dependencies.set_include_dirs,
             'Link': self.__parse_link_node,
             'OutputFile': context.variables.set_output_file,
             'ImportLibrary': context.variables.set_import_library,
             'OutDir': self.__parse_out_dir_node,
             'TargetName': self.__parse_target_name_node,
+        }
+        self.attributes_handlers = {
+            'ItemDefinitionGroup_Condition': self.__parse_condition,
+            'PropertyGroup_Condition': self.__parse_condition,
+            'TargetName_Condition': self.__parse_condition,
+            'OutDir_Condition': self.__parse_condition,
         }
 
     def parse(self, context):
@@ -73,62 +81,46 @@ class VCXParser(Parser):
             )
 
     def __parse_property_group(self, context, node):
-        setting = self.__get_setting_from_node(node)
-
-        if setting is None:
+        self._parse_attributes(context, node)
+        if context.current_setting is not None:
             self._parse_nodes(context, node)
-
-        if setting not in context.settings:
-            return
-
-        context.current_setting = setting
-        self._parse_nodes(context, node)
-        context.current_setting = None
 
     @staticmethod
     def __parse_configuration_type(context, node):
         context.settings[context.current_setting]['target_type'] = node.text
 
     def __parse_item_definition_group(self, context, node):
-        setting = self.__get_setting_from_node(node)
-
-        if setting is None:
+        self._parse_attributes(context, node)
+        if context.current_setting is not None:
             self._parse_nodes(context, node)
 
-        if setting not in context.settings:
-            return
-
-        context.current_setting = setting
+    def __parse_cl_compile(self, context, node):
+        self._parse_attributes(context, node)
+        if 'Include' in node.attrib:
+            return  # TODO: handle settings of files
         self._parse_nodes(context, node)
-        context.current_setting = None
 
     def __parse_target_name_node(self, context, node):
-        setting = context.current_setting
-        if setting is None:
-            setting = self.__get_setting_from_node(node)
-
-        if setting is not None:
-            context.settings[setting]['target_name'] = replace_vs_vars_with_cmake_vars(
-                context,
-                node.text
-            )
+        self._parse_attributes(context, node)
+        if context.current_setting is not None:
+            context.settings[context.current_setting]['target_name'] =\
+                replace_vs_vars_with_cmake_vars(
+                    context,
+                    node.text
+                )
 
     def __parse_out_dir_node(self, context, node):
-        setting = context.current_setting
-        if setting is None:
-            setting = self.__get_setting_from_node(node)
-
-        if setting is not None:
-            context.current_setting = setting
+        self._parse_attributes(context, node)
+        if context.current_setting is not None:
             context.variables.set_output_dir(context, node)
-            context.current_setting = None
 
     def __parse_link_node(self, context, node):
         self._parse_nodes(context, node)
 
     @staticmethod
-    def __get_setting_from_node(node):
-        if 'Condition' in node.attrib:
-            condition = re.search(r".*=='(.*)'", node.attrib['Condition']).group(1)
-            return condition
-        return None
+    def __parse_condition(context, condition_value, node):
+        setting = re.search(r".*=='(.*)'", condition_value).group(1)
+        if setting in context.settings:
+            context.current_setting = setting
+        else:
+            context.current_setting = None

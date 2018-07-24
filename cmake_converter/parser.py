@@ -63,7 +63,11 @@ class Parser(object):
             if key in self.attributes_handlers:
                 self.attributes_handlers[key](context, node.get(attr), node)
             else:
-                message(context, 'No handler for {} attribute.'.format(attr), 'warn')
+                message(
+                    context,
+                    'No handler for "{}" attribute of <{}> node.'.format(attr, node_tag),
+                    'warn'
+                )
 
     @staticmethod
     def remove_unused_settings(context):

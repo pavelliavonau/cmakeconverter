@@ -47,9 +47,6 @@ class DataConverter(object):
 
         context.parser.parse(context)
 
-        for setting in context.settings:
-            context.dependencies.find_include_dirs(context, setting)
-
         context.files.collects_source_files(context)
         context.files.find_cmake_project_languages(context)
 

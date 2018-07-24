@@ -29,10 +29,6 @@ from cmake_converter.utils import message, prepare_build_event_cmd_line_for_cmak
 class VFDependencies(Dependencies):
 
     @staticmethod
-    def find_include_dirs(context, setting):
-        pass
-
-    @staticmethod
     def add_current_dir_to_includes(context):
         if 'inc_dirs' in context.settings[context.current_setting]:
             message(context, 'Include Directories found : {0}'
