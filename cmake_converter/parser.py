@@ -25,6 +25,10 @@ import re
 from cmake_converter.utils import message
 
 
+class StopParseException(Exception):
+    pass
+
+
 class Parser(object):
 
     def __init__(self):
@@ -32,6 +36,7 @@ class Parser(object):
         }
         self.attributes_handlers = {
         }
+        self.reset_setting_after_nodes = set()
 
     @staticmethod
     def parse(context):
@@ -45,16 +50,28 @@ class Parser(object):
     def do_nothing_attr_stub(context, param, node):
         pass
 
-    def _parse_nodes(self, context, root):
-        for node in root:
-            if type(node.tag) is not str:
-                continue
-            node_tag = re.sub(r'{.*\}', '', node.tag)  # strip namespace
+    def reset_current_setting_after_parsing_node(self, node):
+        self.reset_setting_after_nodes.add(node)
 
-            if node_tag in self.node_handlers:
-                self.node_handlers[node_tag](context, node)
+    def _parse_nodes(self, context, parent):
+        for child_node in parent:
+            if type(child_node.tag) is not str:
+                continue
+            child_node_tag = re.sub(r'{.*\}', '', child_node.tag)  # strip namespace
+
+            try:
+                self._parse_attributes(context, child_node)
+            except StopParseException:
+                continue
+
+            if child_node_tag in self.node_handlers:
+                self.node_handlers[child_node_tag](context, child_node)
             else:
-                message(context, 'No handler for <{}> node.'.format(node_tag), 'warn')
+                message(context, 'No handler for <{}> node.'.format(child_node_tag), 'warn')
+
+            if child_node in self.reset_setting_after_nodes:
+                context.current_setting = None
+                self.reset_setting_after_nodes.remove(child_node)
 
     def _parse_attributes(self, context, node):
         for attr in node.attrib:

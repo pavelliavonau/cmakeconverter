@@ -22,7 +22,7 @@
 
 import re
 
-from cmake_converter.parser import Parser
+from cmake_converter.parser import Parser, StopParseException
 from cmake_converter.context import ContextInitializer
 from cmake_converter.data_files import get_propertygroup, get_definitiongroup
 from cmake_converter.utils import replace_vs_vars_with_cmake_vars
@@ -41,10 +41,10 @@ class VCXParser(Parser):
             'ItemDefinitionGroup': self.__parse_item_definition_group,
             'ClCompile': self.__parse_cl_compile,
             'AdditionalIncludeDirectories': context.dependencies.set_include_dirs,
-            'Link': self.__parse_link_node,
+            'Link': self._parse_nodes,
             'OutputFile': context.variables.set_output_file,
             'ImportLibrary': context.variables.set_import_library,
-            'OutDir': self.__parse_out_dir_node,
+            'OutDir': context.variables.set_output_dir,
             'TargetName': self.__parse_target_name_node,
         }
         self.attributes_handlers = {
@@ -81,46 +81,32 @@ class VCXParser(Parser):
             )
 
     def __parse_property_group(self, context, node):
-        self._parse_attributes(context, node)
-        if context.current_setting is not None:
-            self._parse_nodes(context, node)
+        self._parse_nodes(context, node)
 
     @staticmethod
     def __parse_configuration_type(context, node):
         context.settings[context.current_setting]['target_type'] = node.text
 
     def __parse_item_definition_group(self, context, node):
-        self._parse_attributes(context, node)
-        if context.current_setting is not None:
-            self._parse_nodes(context, node)
+        self._parse_nodes(context, node)
 
     def __parse_cl_compile(self, context, node):
-        self._parse_attributes(context, node)
         if 'Include' in node.attrib:
             return  # TODO: handle settings of files
         self._parse_nodes(context, node)
 
-    def __parse_target_name_node(self, context, node):
-        self._parse_attributes(context, node)
-        if context.current_setting is not None:
-            context.settings[context.current_setting]['target_name'] =\
-                replace_vs_vars_with_cmake_vars(
-                    context,
-                    node.text
-                )
-
-    def __parse_out_dir_node(self, context, node):
-        self._parse_attributes(context, node)
-        if context.current_setting is not None:
-            context.variables.set_output_dir(context, node)
-
-    def __parse_link_node(self, context, node):
-        self._parse_nodes(context, node)
-
     @staticmethod
-    def __parse_condition(context, condition_value, node):
+    def __parse_target_name_node(context, node):
+        context.settings[context.current_setting]['target_name'] = replace_vs_vars_with_cmake_vars(
+            context,
+            node.text
+        )
+
+    def __parse_condition(self, context, condition_value, node):
         setting = re.search(r".*=='(.*)'", condition_value).group(1)
         if setting in context.settings:
             context.current_setting = setting
+            self.reset_current_setting_after_parsing_node(node)
         else:
             context.current_setting = None
+            raise StopParseException()

@@ -22,7 +22,7 @@
 
 from cmake_converter.utils import message
 from cmake_converter.context import ContextInitializer
-from cmake_converter.parser import Parser
+from cmake_converter.parser import Parser, StopParseException
 
 
 class VFParser(Parser):
@@ -38,7 +38,7 @@ class VFParser(Parser):
             'Filter': self.__parse_filter,
         }
         self.attributes_handlers = {
-            'Configuration_Name': self.do_nothing_attr_stub,
+            'Configuration_Name': self.__parse_configuration_name,
             'Configuration_TargetName': self.__parse_target_name,
             'Configuration_OutputDirectory': context.variables.set_output_dir,
             'Configuration_IntermediateDirectory': self.__parse_configuration_intermediate_dir,
@@ -105,16 +105,6 @@ class VFParser(Parser):
 
     def __parse_configuration(self, context, configuration_node):
 
-        if 'Name' in configuration_node.attrib:
-            setting = configuration_node.attrib['Name']
-            if setting not in context.configurations_to_parse:
-                return
-            context.current_setting = setting
-            ContextInitializer.init_context_setting(context, setting)
-            context.variables.apply_default_values(context)
-
-        self._parse_attributes(context, configuration_node)
-
         if 'target_type' not in context.settings[context.current_setting]:
             context.settings[context.current_setting]['target_type'] = 'Application'
 
@@ -125,7 +115,16 @@ class VFParser(Parser):
         self._parse_nodes(context, configuration_node)
         context.flags.apply_flags_to_context(context)
         context.dependencies.add_current_dir_to_includes(context)
-        context.current_setting = None
+
+    def __parse_configuration_name(self, context, configuration_name, node):
+        setting = configuration_name
+        if setting not in context.configurations_to_parse:
+            context.current_setting = None
+            raise StopParseException()
+        context.current_setting = setting
+        ContextInitializer.init_context_setting(context, setting)
+        context.variables.apply_default_values(context)
+        self.reset_current_setting_after_parsing_node(node)
 
     @staticmethod
     def __parse_target_name(context, target_name_value, node):
