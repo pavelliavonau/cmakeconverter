@@ -47,7 +47,7 @@ class Parser(object):
         pass
 
     @staticmethod
-    def do_nothing_attr_stub(context, param, node):
+    def do_nothing_attr_stub(context, attr_name, param, node):
         pass
 
     def reset_current_setting_after_parsing_node(self, node):
@@ -82,7 +82,7 @@ class Parser(object):
             node_tag = re.sub(r'{.*\}', '', node.tag)  # strip namespace
             key = '{}_{}'.format(node_tag, attr)
             if key in self.attributes_handlers:
-                self.attributes_handlers[key](context, node.get(attr), node)
+                self.attributes_handlers[key](context, attr, node.get(attr), node)
             else:
                 message(
                     context,

@@ -40,7 +40,7 @@ class VFProjectVariables(ProjectVariables):
         self.output_path = cleaning_output(context, self.output_path)
         context.settings[context.current_setting]['out_dir'] = self.output_path
 
-    def set_output_dir(self, context, output_dir, node):
+    def set_output_dir(self, context, attr_name, output_dir, node):
         if not context.cmake_output:
             self.output_path = cleaning_output(context, output_dir)
         else:

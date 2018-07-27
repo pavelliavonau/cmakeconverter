@@ -33,7 +33,7 @@ class VFParser(Parser):
             'Platforms': self.do_nothing_node_stub,
             'Configurations': self.__parse_configurations,
             'Configuration': self.__parse_configuration,
-            'Tool': self.__parse_tool,
+            'Tool': self._parse_nodes,
             'Files': self.__parse_files,
             'Filter': self.__parse_filter,
         }
@@ -44,6 +44,7 @@ class VFParser(Parser):
             'Configuration_IntermediateDirectory': self.__parse_configuration_intermediate_dir,
             'Configuration_DeleteExtensionsOnClean': self.do_nothing_attr_stub,
             'Configuration_ConfigurationType': self.__parse_configuration_type,
+            'Tool_Name': self.__parse_tool_name,
             'VFFortranCompilerTool_PreprocessorDefinitions': self.__parse_preprocessor_definitions,
             'VFFortranCompilerTool_AdditionalIncludeDirectories':
                 self.__parse_additional_include_directories,
@@ -116,7 +117,7 @@ class VFParser(Parser):
         context.flags.apply_flags_to_context(context)
         context.dependencies.add_current_dir_to_includes(context)
 
-    def __parse_configuration_name(self, context, configuration_name, node):
+    def __parse_configuration_name(self, context, attr_name, configuration_name, node):
         setting = configuration_name
         if setting not in context.configurations_to_parse:
             context.current_setting = None
@@ -127,34 +128,21 @@ class VFParser(Parser):
         self.reset_current_setting_after_parsing_node(node)
 
     @staticmethod
-    def __parse_target_name(context, target_name_value, node):
+    def __parse_target_name(context, attr_name, target_name_value, node):
         context.settings[context.current_setting]['target_name'] = target_name_value
 
     @staticmethod
-    def __parse_configuration_intermediate_dir(context, intermediate_dir_value, node):
+    def __parse_configuration_intermediate_dir(context, attr_name, intermediate_dir_value, node):
         pass
 
     @staticmethod
-    def __parse_configuration_type(context, configuration_type_value, node):
+    def __parse_configuration_type(context, attr_name, configuration_type_value, node):
         configuration_type_value = configuration_type_value.replace('type', '')
         context.settings[context.current_setting]['target_type'] = configuration_type_value
 
-    def __parse_tool(self, context, tool_node):
-        tool_name = ''
-        for attr in tool_node.attrib:
-            if 'Name' == attr:
-                tool_name = str(tool_node.get('Name'))
-                continue
-
-            key = '{}_{}'.format(tool_name, attr)
-            if key in self.attributes_handlers:
-                self.attributes_handlers[key](context, attr, tool_node.get(attr), tool_node)
-            else:
-                message(
-                    context,
-                    'No handler for {} attribute of {}.'.format(attr, tool_name),
-                    'warn'
-                )
+    @staticmethod
+    def __parse_tool_name(context, attr_name, tool_name_value, tool_node):
+        tool_node.tag = tool_name_value
 
     @staticmethod
     def __parse_preprocessor_definitions(context, flag_name, preprocessor_definitions_value, node):

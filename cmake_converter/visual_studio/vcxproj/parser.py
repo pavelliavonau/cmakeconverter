@@ -100,7 +100,8 @@ class VCXParser(Parser):
         self._parse_nodes(context, node)
 
     @staticmethod
-    def __parse_project_configuration_include(context, setting, project_configuration_node):
+    def __parse_project_configuration_include(context, attr_name, setting,
+                                              project_configuration_node):
         if setting not in context.configurations_to_parse:
             return
         ContextInitializer.init_context_setting(context, setting)
@@ -157,7 +158,7 @@ class VCXParser(Parser):
             node.text
         )
 
-    def __parse_condition(self, context, condition_value, node):
+    def __parse_condition(self, context, attr_name, condition_value, node):
         setting = re.search(r".*=='(.*)'", condition_value).group(1)
         if setting in context.settings:
             context.current_setting = setting
