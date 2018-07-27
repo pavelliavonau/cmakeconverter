@@ -20,7 +20,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
-from cmake_converter.utils import message
 from cmake_converter.context import ContextInitializer
 from cmake_converter.parser import Parser, StopParseException
 
@@ -88,6 +87,10 @@ class VFParser(Parser):
                 context.dependencies.set_target_additional_library_directories,
             'VFResourceCompilerTool_PreprocessorDefinitions':
                 self.__parse_preprocessor_definitions,
+            'VFResourceCompilerTool_Culture':
+                self.do_nothing_attr_stub,
+            'VFResourceCompilerTool_ResourceOutputFileName':
+                self.do_nothing_attr_stub,  # TODO?
             'VFPreBuildEventTool_CommandLine':
                 context.dependencies.set_target_pre_build_events,
             'VFPreLinkEventTool_CommandLine':
@@ -144,6 +147,8 @@ class VFParser(Parser):
 
     @staticmethod
     def __parse_tool_name(context, attr_name, tool_name_value, tool_node):
+        if tool_name_value in ['VFMidlTool', 'VFManifestTool']:
+            raise StopParseException()
         tool_node.tag = tool_name_value
 
     @staticmethod
