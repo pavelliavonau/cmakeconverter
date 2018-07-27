@@ -231,8 +231,15 @@ def convert_solution(initial_context, sln_path):
     for subdirectory in threads_data:
         threads_data_list.append(threads_data[subdirectory])
 
-    pool = Pool(initial_context.jobs)
-    results = pool.map(run_conversion, threads_data_list)
+    results = []
+    if initial_context.jobs > 1:
+        pool = Pool(initial_context.jobs)
+        results = pool.map(run_conversion, threads_data_list)
+    else:   # do in main thread
+        i = 0
+        for threads_data in threads_data_list:
+            results.append(run_conversion(threads_data))
+            i += 1
 
     for directory_results in results:
         for project_result in directory_results:
