@@ -86,6 +86,8 @@ class VFParser(Parser):
                 context.dependencies.set_target_additional_library_directories,
             'VFLibrarianTool_AdditionalLibraryDirectories':
                 context.dependencies.set_target_additional_library_directories,
+            'VFResourceCompilerTool_PreprocessorDefinitions':
+                self.__parse_preprocessor_definitions,
             'VFPreBuildEventTool_CommandLine':
                 context.dependencies.set_target_pre_build_events,
             'VFPreLinkEventTool_CommandLine':
@@ -146,8 +148,8 @@ class VFParser(Parser):
 
     @staticmethod
     def __parse_preprocessor_definitions(context, flag_name, preprocessor_definitions_value, node):
-        context.settings[context.current_setting]['defines'] = \
-            preprocessor_definitions_value.split(';')
+        for define in preprocessor_definitions_value.split(';'):
+            context.settings[context.current_setting]['defines'].append(define)
 
     @staticmethod
     def __parse_additional_include_directories(
