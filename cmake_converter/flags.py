@@ -221,6 +221,10 @@ class Flags(object):
         pass
 
     @staticmethod
+    def define_pch_cpp_file(context):
+        pass
+
+    @staticmethod
     def write_target_artifact(context, cmake_file):
         """
         Add Library or Executable target

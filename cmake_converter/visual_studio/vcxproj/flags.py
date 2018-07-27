@@ -20,12 +20,18 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
+import re
 import os
-from os import path
 
 from cmake_converter.flags import *
 from cmake_converter.utils import take_name_from_list_case_ignore, normalize_path
 from cmake_converter.utils import set_unix_slash
+
+
+class NodeStub:
+    def __init__(self, flag_name):
+        self.text = ''
+        self.tag = flag_name
 
 
 class CPPFlags(Flags):
@@ -35,26 +41,96 @@ class CPPFlags(Flags):
 
     available_std = ['c++11', 'c++14', 'c++17']
 
+    def __init__(self):
+        self.flags = {}
+        self.unicode_defines = {}
+        self.flags_handlers = {
+            # from property_groups
+            #   compilation
+            'UseDebugLibraries': self.set_use_debug_libraries,
+            'WholeProgramOptimization': self.set_whole_program_optimization,
+            #   linking 
+            'GenerateDebugInformation': self.set_generate_debug_information,
+            'LinkIncremental': self.set_link_incremental,    
+            # from definition_groups
+            #   compilation
+            'Optimization': self.set_optimization,
+            'InlineFunctionExpansion': self.set_inline_function_expansion,
+            'IntrinsicFunctions': self.set_intrinsic_functions,
+            'StringPooling': self.set_string_pooling,
+            'BasicRuntimeChecks': self.set_basic_runtime_checks,
+            'RuntimeLibrary': self.set_runtime_library,
+            'FunctionLevelLinking': self.set_function_level_linking,
+            'WarningLevel': self.set_warning_level,
+            'TreatWarningAsError': self.set_warning_as_errors,
+            'DebugInformationFormat': self.set_debug_information_format,
+            'CompileAs': self.set_compile_as,
+            'FloatingPointModel': self.set_floating_point_model,
+            'RuntimeTypeInfo': self.set_runtime_type_info,
+            'DisableSpecificWarnings': self.set_disable_specific_warnings,
+            'CompileAdditionalOptions': self.set_compile_additional_options,
+            'LinkAdditionalOptions': self.set_link_additional_options,
+            'ExceptionHandling': self.set_exception_handling,
+            'BufferSecurityCheck': self.set_buffer_security_check,
+            'DiagnosticsFormat': self.set_diagnostics_format,
+            'DisableLanguageExtensions': self.set_disable_language_extensions,
+            'TreatWChar_tAsBuiltInType': self.set_treatwchar_t_as_built_in_type,
+            'ForceConformanceInForLoopScope': self.set_force_conformance_in_for_loop_scope,
+            'RemoveUnreferencedCodeData': self.set_remove_unreferenced_code_data,
+            'OpenMPSupport': self.set_openmp_support,
+            'PrecompiledHeader': self.do_precompiled_headers,
+        }
+
+    def __set_default_flags(self, context):
+        if context.current_setting not in self.flags:
+            self.flags[context.current_setting] = {}
+        for flag_name in self.__get_result_order_of_flags():
+            self.flags[context.current_setting][flag_name] = {}
+            stub = NodeStub(flag_name)
+            self.set_flag(context, stub)
+
+    @staticmethod
+    def __get_result_order_of_flags():
+        flags_list = [
+            'UseDebugLibraries',
+            'WholeProgramOptimization',
+            'GenerateDebugInformation',
+            'LinkIncremental',
+            'Optimization',
+            'InlineFunctionExpansion',
+            'IntrinsicFunctions',
+            'StringPooling',
+            'BasicRuntimeChecks',
+            'RuntimeLibrary',
+            'FunctionLevelLinking',
+            'WarningLevel',
+            'TreatWarningAsError',
+            'DebugInformationFormat',
+            'CompileAs',
+            'FloatingPointModel',
+            'RuntimeTypeInfo',
+            'DisableSpecificWarnings',
+            'CompileAdditionalOptions',
+            'LinkAdditionalOptions',
+            'ExceptionHandling',
+            'BufferSecurityCheck',
+            'DiagnosticsFormat',
+            'DisableLanguageExtensions',
+            'TreatWChar_tAsBuiltInType',
+            'ForceConformanceInForLoopScope',
+            'RemoveUnreferencedCodeData',
+            'OpenMPSupport',
+            'PrecompiledHeader',
+        ]
+        return flags_list
+    
     def define_flags(self, context):
         """
         Parse all flags properties and write them inside "CMakeLists.txt" file
 
         """
-        self.do_precompiled_headers(context)
-        for file in context.file_spec_raw_options:
-            for setting in context.file_spec_raw_options[file]:
-                context.file_spec_raw_options[file][setting][cl_flags] = []
-                context.file_spec_raw_options[file][setting][ln_flags] = []
 
-        for setting in context.settings:
-            context.settings[setting][cl_flags] = []
-            context.settings[setting][ln_flags] = []
-
-        self.define_windows_flags(context)
         self.__define_windows_flags_for_files(context)
-        self.define_defines(context)
-        # self.define_linux_flags()
-        # TODO: redo with generator expression for each setting(configuration)
 
     def define_linux_flags(self, context, cmake_file):
         """
@@ -101,37 +177,26 @@ class CPPFlags(Flags):
         cmake_file.write('   endif()\n')
         cmake_file.write('endif(NOT MSVC)\n\n')
 
-    @staticmethod
-    def define_defines(context):
+    def set_defines(self, context, defines_node):
         """
         Defines preprocessor definitions in current settings
 
         """
+        for define in defines_node.text.split(";"):
+            if define != '%(PreprocessorDefinitions)' and define != 'WIN32':
+                context.settings[context.current_setting][defines].append(define)
+        if context.current_setting in self.unicode_defines:
+            for define in self.unicode_defines[context.current_setting]:
+                context.settings[context.current_setting][defines].append(define)
+        message(context, 'PreprocessorDefinitions : {}'.format(
+            context.settings[context.current_setting][defines]
+        ), '')
 
-        for setting in context.settings:
-            define = context.vcxproj['tree'].find(
-                '{0}/ns:ClCompile/ns:PreprocessorDefinitions'.format(
-                    context.definition_groups[setting]),
-                namespaces=context.vcxproj['ns']
-            )
-            if define is not None:
-                for preproc in define.text.split(";"):
-                    if preproc != '%(PreprocessorDefinitions)' and preproc != 'WIN32':
-                        context.settings[setting][defines].append(preproc)
-                # Unicode
-                character_set = context.vcxproj['tree'].xpath(
-                    '{0}/ns:CharacterSet'.format(context.property_groups[setting]),
-                    namespaces=context.vcxproj['ns'])
-                if character_set:
-                    if 'Unicode' in character_set[0].text:
-                        context.settings[setting][defines].append('UNICODE')
-                        context.settings[setting][defines].append('_UNICODE')
-                    if 'MultiByte' in character_set[0].text:
-                        context.settings[setting][defines].append('_MBCS')
-                message(context, 'PreprocessorDefinitions for {0} are {1}'.format(
-                    setting,
-                    context.settings[setting][defines]
-                ), '')
+    def set_character_set(self, context, character_set_node):
+        if 'Unicode' in character_set_node.text:
+            self.unicode_defines[context.current_setting] = ['UNICODE', '_UNICODE']
+        if 'MultiByte' in character_set_node.text:
+            self.unicode_defines[context.current_setting] = ['_MBCS']
 
     @staticmethod
     def __get_precompiled_header_node_values():
@@ -143,7 +208,7 @@ class CPPFlags(Flags):
         }
         return precompiled_header_values
 
-    def do_precompiled_headers(self, context):
+    def do_precompiled_headers(self, context, flag_name, node):
         """
         Add precompiled headers to settings
 
@@ -151,26 +216,29 @@ class CPPFlags(Flags):
         :type context: Context
         """
 
+        if node.text == '':
+            return {}   # default pass
+
+        setting = context.current_setting
+        precompiled_header_file_values = {default_value: {'PrecompiledHeaderFile': 'stdafx.h'}}
+        flag_value = self.set_flag_old(
+            context,
+            setting,
+            '{0}/ns:ClCompile/ns:PrecompiledHeaderFile'.format(context.definition_groups[setting]),
+            precompiled_header_file_values
+        )
+
+        if flag_value:
+            context.settings[setting]['PrecompiledHeaderFile'] = [flag_value]
+
+        return self.__get_precompiled_header_node_values()
+
+    @staticmethod
+    def define_pch_cpp_file(context):
         pch_header_path = ''
         pch_source_path = ''
-
         for setting in context.settings:
-            precompiled_header_values = self.__get_precompiled_header_node_values()
-            self.set_flag(context, setting,
-                          '{0}/ns:ClCompile/ns:PrecompiledHeader'
-                          .format(context.definition_groups[setting]),
-                          precompiled_header_values)
-
-            precompiled_header_file_values = {default_value: {'PrecompiledHeaderFile': 'stdafx.h'}}
-            flag_value = self.set_flag(context, setting,
-                                       '{0}/ns:ClCompile/ns:PrecompiledHeaderFile'
-                                       .format(context.definition_groups[setting]),
-                                       precompiled_header_file_values
-                                       )
-            if flag_value:
-                context.settings[setting]['PrecompiledHeaderFile'] = [flag_value]
-
-            if context.settings[setting]['PrecompiledHeader'][0] == 'Use' and pch_header_path == '':
+            if 'Use' in context.settings[setting]['PrecompiledHeader'] and pch_header_path == '':
                 pch_header_name = context.settings[setting]['PrecompiledHeaderFile'][0]
                 found = False
                 founded_pch_h_path = ''
@@ -184,6 +252,9 @@ class CPPFlags(Flags):
                             break
                     if found:
                         break
+                if founded_pch_h_path:
+                    founded_pch_h_path += '/'
+                pch_header_path = founded_pch_h_path + pch_header_name
 
                 pch_source_name = pch_header_name.replace('.h', '.cpp')
                 real_pch_cpp = ''
@@ -203,12 +274,10 @@ class CPPFlags(Flags):
                                     context.sources[src_path], src
                                 )
                                 real_pch_cpp_path = src_path
-                if founded_pch_h_path:
-                    founded_pch_h_path += '/'
-                pch_header_path = founded_pch_h_path + pch_header_name
                 if real_pch_cpp_path:
                     real_pch_cpp_path += '/'
                 pch_source_path = real_pch_cpp_path + real_pch_cpp
+
             context.settings[setting]['PrecompiledHeaderFile'] = pch_header_path
             context.settings[setting]['PrecompiledSourceFile'] = pch_source_path
 
@@ -275,47 +344,7 @@ class CPPFlags(Flags):
                             setting
                         )
 
-    def define_windows_flags(self, context):
-        """
-        Define the Flags for Win32 platforms
-
-        """
-
-        # from property_groups
-        #   compilation
-        self.set_use_debug_libraries(context)
-        self.set_whole_program_optimization(context)
-        #   linking
-        self.set_generate_debug_information(context)
-        self.set_link_incremental(context)
-
-        # from definition_groups
-        #   compilation
-        self.set_optimization(context)
-        self.set_inline_function_expansion(context)
-        self.set_intrinsic_functions(context)
-        self.set_string_pooling(context)
-        self.set_basic_runtime_checks(context)
-        self.set_runtime_library(context)
-        self.set_function_level_linking(context)
-        self.set_warning_level(context)
-        self.set_warning_as_errors(context)
-        self.set_debug_information_format(context)
-        self.set_compile_as(context)
-        self.set_floating_point_model(context)
-        self.set_runtime_type_info(context)
-        self.set_disable_specific_warnings(context)
-        self.set_additional_options(context)
-        self.set_exception_handling(context)
-        self.set_buffer_security_check(context)
-        self.set_diagnostics_format(context)
-        self.set_disable_language_extensions(context)
-        self.set_treatwchar_t_as_built_in_type(context)
-        self.set_force_conformance_in_for_loop_scope(context)
-        self.set_remove_unreferenced_code_data(context)
-        self.set_openmp_support(context)
-
-    def set_flag(self, context, setting, xpath, flag_values):
+    def set_flag_old(self, context, setting, xpath, flag_values):
         """
         Return flag helper
         :param context: converter Context
@@ -349,6 +378,81 @@ class CPPFlags(Flags):
 
         return flag_text
 
+    def set_flag(self, context, node):
+        """
+        Set flag helper
+
+        :param context: converter Context
+        :type context: Context
+        :param node:
+        :return:
+        """
+
+        flag_name = re.sub(r'{.*\}', '', node.tag)  # strip namespace
+        flag_value = node.text
+
+        flag_values = self.flags_handlers[flag_name](context, flag_name, node)
+
+        if flag_values is None:
+            return
+
+        values = None
+        if default_value in flag_values:
+            values = flag_values[default_value]
+
+        if flag_value in flag_values:
+            values = flag_values[flag_value]
+
+        flags_message = {}
+        if values is not None:
+            self.flags[context.current_setting][flag_name] = {}  # reset default values
+            for key in values:
+                value = values[key]
+                self.flags[context.current_setting][flag_name][key] = [value]
+                flags_message[key] = value
+
+        if flags_message:
+            message(
+                context,
+                '{0} is {1} '.format(flag_name, flags_message),
+                ''
+            )
+
+    def prepare_context_for_flags(self, context):
+        context.settings[context.current_setting][cl_flags] = []
+        context.settings[context.current_setting][ln_flags] = []
+        context.settings[context.current_setting]['PrecompiledHeader'] = []
+        self.__set_default_flags(context)
+
+    def apply_flags_to_context(self, context):
+        context_flags_data_keys = [
+            cl_flags,
+            ln_flags,
+            'PrecompiledHeader',
+        ]
+
+        for setting in context.settings:
+            self.apply_generate_debug_information(context, setting)
+            self.apply_link_incremental(context, setting)
+            self.apply_use_debug_libs(context, setting)
+            for flag_name in self.__get_result_order_of_flags():
+                for context_flags_data_key in context_flags_data_keys:
+                    if context_flags_data_key in self.flags[setting][flag_name]:
+                        for value in self.flags[setting][flag_name][context_flags_data_key]:
+                            context.settings[setting][context_flags_data_key].append(
+                                value
+                            )
+
+    def apply_generate_debug_information(self, context, setting):
+        conf_type = context.settings[setting]['target_type']
+        if conf_type and 'StaticLibrary' in conf_type:
+            self.flags[setting]['GenerateDebugInformation'][ln_flags] = ''
+
+    def apply_link_incremental(self, context, setting):
+        conf_type = context.settings[setting]['target_type']
+        if conf_type and 'StaticLibrary' in conf_type:
+            self.flags[setting]['LinkIncremental'][ln_flags] = ''
+
     @staticmethod
     def __get_default_flag_values(flag_values):
         node_values = {}
@@ -377,7 +481,8 @@ class CPPFlags(Flags):
                 flags_message[key] = value
         return flags_message
 
-    def set_whole_program_optimization(self, context):
+    @staticmethod
+    def set_whole_program_optimization(context, flag_name, node):
         """
         Set Whole Program Optimization flag: /GL and /LTCG
 
@@ -385,12 +490,10 @@ class CPPFlags(Flags):
 
         flag_values = {'true': {ln_flags: '/LTCG', cl_flags: '/GL'}}
 
-        for setting in context.settings:
-            self.set_flag(context, setting,
-                          '{0}/ns:WholeProgramOptimization'
-                          .format(context.property_groups[setting]), flag_values)
+        return flag_values
 
-    def set_link_incremental(self, context):
+    @staticmethod
+    def set_link_incremental(context, flag_name, node):
         """
         Set LinkIncremental flag: /INCREMENTAL
 
@@ -402,25 +505,10 @@ class CPPFlags(Flags):
             default_value: {}
         }
 
-        for setting in context.settings:
-            conf_type = context.settings[setting]['target_type']
-            if conf_type and 'StaticLibrary' in conf_type:
-                continue
-            value = self.set_flag(context, setting, '{0}/ns:LinkIncremental'
-                                  .format(context.property_groups[setting]
-                                          .replace(' and @Label="Configuration"', '')
-                                          ), flag_values
-                                  )
-            if not value:
-                value = self.set_flag(context, setting,
-                                      '//ns:LinkIncremental[@Condition="\''
-                                      '$(Configuration)|$(Platform)\'==\'{0}\'"]'
-                                      .format(setting), flag_values
-                                      )
-            if not value:
-                context.settings[setting][ln_flags].append('/INCREMENTAL')  # default
+        return flag_values
 
-    def set_force_conformance_in_for_loop_scope(self, context):
+    @staticmethod
+    def set_force_conformance_in_for_loop_scope(context, flag_name, node):
         """
         Set flag: ForceConformanceInForLoopScope
 
@@ -432,13 +520,10 @@ class CPPFlags(Flags):
             default_value: {cl_flags: '/Zc:forScope'}
         }
 
-        for setting in context.settings:
-            self.set_flag(context, setting,
-                          '{0}/ns:ClCompile/ns:ForceConformanceInForLoopScope'
-                          .format(context.definition_groups[setting]), flag_values
-                          )
+        return flag_values
 
-    def set_remove_unreferenced_code_data(self, context):
+    @staticmethod
+    def set_remove_unreferenced_code_data(context, flag_name, node):
         """
         Set flag: RemoveUnreferencedCodeData
 
@@ -450,46 +535,40 @@ class CPPFlags(Flags):
             default_value: {cl_flags: '/Zc:inline'}
         }
 
-        for setting in context.settings:
-            self.set_flag(context, setting,
-                          '{0}/ns:ClCompile/ns:RemoveUnreferencedCodeData'
-                          .format(context.definition_groups[setting]), flag_values
-                          )
+        return flag_values
 
-    def set_openmp_support(self, context):
+    @staticmethod
+    def set_openmp_support(context, flag_name, node):
         flag_values = {
             'true': {cl_flags: '/openmp'},
             'false': {cl_flags: ''},
             default_value: {}
         }
 
-        for setting in context.settings:
-            self.set_flag(context, setting,
-                          '{0}/ns:ClCompile/ns:OpenMPSupport'
-                          .format(context.definition_groups[setting]), flag_values
-                          )
+        return flag_values
 
     @staticmethod
-    def set_use_debug_libraries(context):
+    def set_use_debug_libraries(context, flag_name, md):
         """
         Set Use Debug Libraries flag: /MD
 
         """
-        for setting in context.settings:
-            md = context.vcxproj['tree'].xpath(
-                '{0}/ns:UseDebugLibraries'.format(context.property_groups[setting]),
-                namespaces=context.vcxproj['ns']
-            )
-            if md:
-                if 'true' in md[0].text:
-                    context.settings[setting]['use_debug_libs'] = True
-                else:
-                    context.settings[setting]['use_debug_libs'] = False
-                message(context, 'UseDebugLibrairies for {0}'.format(setting), '')
-            else:
-                message(context, 'No UseDebugLibrairies for {0}'.format(setting), '')
+        if not md.text:
+            return
 
-    def set_warning_level(self, context):
+        setting = context.current_setting
+        if 'true' in md.text:
+            context.settings[setting]['use_debug_libs'] = True
+        else:
+            context.settings[setting]['use_debug_libs'] = False
+        message(
+            context,
+            'UseDebugLibrairies : {}'.format(context.settings[setting]['use_debug_libs']),
+            ''
+        )
+
+    @staticmethod
+    def set_warning_level(context, flag_name, node):
         """
         Set Warning level for Windows: /W
 
@@ -502,13 +581,10 @@ class CPPFlags(Flags):
             default_value: {}
         }
 
-        for setting in context.settings:
-            self.set_flag(context, setting,
-                          '{0}/ns:ClCompile/ns:WarningLevel'
-                          .format(context.definition_groups[setting]), flag_values
-                          )
+        return flag_values
 
-    def set_warning_as_errors(self, context):
+    @staticmethod
+    def set_warning_as_errors(context, flag_name, node):
         """
         Set TreatWarningAsError: /WX
 
@@ -519,62 +595,53 @@ class CPPFlags(Flags):
             default_value: {}
         }
 
-        for setting in context.settings:
-            self.set_flag(context, setting,
-                          '{0}/ns:ClCompile/ns:TreatWarningAsError'
-                          .format(context.definition_groups[setting]),
-                          flag_values
-                          )
+        return flag_values
 
-    @staticmethod
-    def set_disable_specific_warnings(context):
+    def set_disable_specific_warnings(self, context, flag_name, specific_warnings_node):
         """
         Set DisableSpecificWarnings: /wd*
 
         """
-        for setting in context.settings:
-            specific_warnings_node = context.vcxproj['tree'].xpath(
-                '{0}/ns:ClCompile/ns:DisableSpecificWarnings'.format(
-                    context.definition_groups[setting]), namespaces=context.vcxproj['ns']
-            )
-            if specific_warnings_node:
-                flags = []
-                for sw in specific_warnings_node[0].text.strip().split(";"):
-                    sw = sw.strip()
-                    if sw != '%(DisableSpecificWarnings)':
-                        flag = '/wd{0}'.format(sw)
-                        flags.append(flag)
-                        context.settings[setting][cl_flags].append(flag)
-                message(context, 'DisableSpecificWarnings for {0} : {1}'
-                        .format(setting, ';'.join(flags)),
-                        '')
-            else:
-                message(context, 'No Additional Options for {0}'.format(setting), '')
+        if not specific_warnings_node.text:
+            return
 
-    @staticmethod
-    def set_additional_options(context):
+        flags = []
+        for sw in specific_warnings_node.text.strip().split(";"):
+            sw = sw.strip()
+            if sw != '%(DisableSpecificWarnings)':
+                flag = '/wd{0}'.format(sw)
+                flags.append(flag)
+        self.flags[context.current_setting][flag_name][cl_flags] = flags
+        message(context, 'DisableSpecificWarnings : {}'.format(';'.join(flags)), '')
+
+    def set_compile_additional_options(self, context, flag_name, add_opts_node):
         """
         Set Additional options
 
         """
-        for setting in context.settings:
-            add_opts_node = context.vcxproj['tree'].xpath(
-                '{0}/ns:ClCompile/ns:AdditionalOptions'.format(
-                    context.definition_groups[setting]), namespaces=context.vcxproj['ns']
-            )
-            if add_opts_node:
-                add_opts = set_unix_slash(add_opts_node[0].text).split()
-                ready_add_opts = []
-                for opt in add_opts:
-                    if opt != '%(AdditionalOptions)':
-                        context.settings[setting][cl_flags].append(opt)
-                        ready_add_opts.append(opt)
-                message(context, 'Additional Options for {0} : {1}'
-                        .format(setting, ready_add_opts), '')
-            else:
-                message(context, 'No Additional Options for {0}'.format(setting), '')
+        add_opts = set_unix_slash(add_opts_node.text).split()
+        ready_add_opts = []
+        for opt in add_opts:
+            if opt != '%(AdditionalOptions)':
+                ready_add_opts.append(opt)
+        self.flags[context.current_setting][flag_name][cl_flags] = ready_add_opts
+        message(context, 'Compile Additional Options : {}'.format(ready_add_opts), '')
 
-    def set_basic_runtime_checks(self, context):
+    def set_link_additional_options(self, context, flag_name, add_opts_node):
+        """
+        Set Additional options
+
+        """
+        add_opts = set_unix_slash(add_opts_node.text).split()
+        ready_add_opts = []
+        for opt in add_opts:
+            if opt != '%(AdditionalOptions)':
+                ready_add_opts.append(opt)
+        self.flags[context.current_setting][flag_name][ln_flags] = ready_add_opts
+        message(context, 'Link Additional Options : {}'.format(ready_add_opts), '')
+
+    @staticmethod
+    def set_basic_runtime_checks(context, flag_name, node):
         """
         Set Basic Runtime Checks flag: /RTC*
 
@@ -586,59 +653,60 @@ class CPPFlags(Flags):
             default_value: {}
         }
 
-        for setting in context.settings:
-            self.set_flag(context, setting,
-                          '{0}/ns:ClCompile/ns:BasicRuntimeChecks'
-                          .format(context.definition_groups[setting]), flag_values
-                          )
+        return flag_values
 
-    @staticmethod
-    def set_runtime_library(context):
+    def set_runtime_library(self, context, flag_name, runtime_library_node):
         """
         Set RuntimeLibrary flag: /MDd
 
         """
 
-        # RuntimeLibrary
-        for setting in context.settings:
-            mdd_value = context.vcxproj['tree'].find(
-                '{0}/ns:ClCompile/ns:RuntimeLibrary'.format(context.definition_groups[setting]),
-                namespaces=context.vcxproj['ns']
-            )
-            mdd = '/MDd'
-            m_d = '/MD'
-            mtd = '/MTd'
-            m_t = '/MT'
+        mdd = '/MDd'
+        m_d = '/MD'
+        mtd = '/MTd'
+        m_t = '/MT'
 
-            if 'use_debug_libs' in context.settings[setting]:
-                if context.settings[setting]['use_debug_libs']:
-                    m_d = '/MDd'
-                    m_t = '/MTd'
-                else:
-                    mdd = '/MD'
-                    mtd = '/MT'
+        cl_flag_value = ''
+        mdd_value = runtime_library_node.text
+        if mdd_value:
+            if 'MultiThreadedDebugDLL' == mdd_value:
+                cl_flag_value = mdd
+            if 'MultiThreadedDLL' == mdd_value:
+                cl_flag_value = m_d
+            if 'MultiThreaded' == mdd_value:
+                cl_flag_value = m_t
+            if 'MultiThreadedDebug' == mdd_value:
+                cl_flag_value = mtd
+            message(context, 'RuntimeLibrary {0} is {1}'
+                    .format(mdd_value, cl_flag_value), '')
+        else:
+            cl_flag_value = m_d  # TODO: investigate what is default?
+            message(context, 'Default RuntimeLibrary {0} but may be error. Check!'
+                    .format(m_d), 'warn')
 
-            cl_flag_value = ''
-            if mdd_value is not None:
-                if 'MultiThreadedDebugDLL' == mdd_value.text:
-                    cl_flag_value = mdd
-                if 'MultiThreadedDLL' == mdd_value.text:
-                    cl_flag_value = m_d
-                if 'MultiThreaded' == mdd_value.text:
-                    cl_flag_value = m_t
-                if 'MultiThreadedDebug' == mdd_value.text:
-                    cl_flag_value = mtd
-                message(context, 'RuntimeLibrary {0} for {1} is {2}'
-                        .format(mdd_value.text, setting, cl_flag_value), '')
+        if cl_flag_value:
+            self.flags[context.current_setting][flag_name][cl_flags] = [cl_flag_value]
+
+        self.apply_use_debug_libs(context, context.current_setting)
+
+    def apply_use_debug_libs(self, context, setting):
+        if 'use_debug_libs' in context.settings[setting]:
+            rl_flag = self.flags[setting]['RuntimeLibrary'][cl_flags][0]
+            applied_flag = rl_flag
+            if context.settings[setting]['use_debug_libs']:
+                if rl_flag == '/MD':
+                    applied_flag = '/MDd'
+                if rl_flag == '/MT':
+                    applied_flag = '/MTd'
             else:
-                cl_flag_value = m_d  # TODO: investigate what is default?
-                message(context, 'Default RuntimeLibrary {0} for {1} but may be error. Check!'
-                        .format(m_d, setting), 'warn')
+                if rl_flag == '/MDd':
+                    applied_flag = '/MD'
+                if rl_flag == '/MTd':
+                    applied_flag = '/MT'
+            self.flags[setting]['RuntimeLibrary'][cl_flags] = [applied_flag]
 
-            if cl_flag_value:
-                context.settings[setting][cl_flags].append(cl_flag_value)
-
-    def set_string_pooling(self, context):
+    @staticmethod
+    def set_string_pooling(context, flag_name, node):
         """
         Set StringPooling flag: /GF
 
@@ -649,13 +717,10 @@ class CPPFlags(Flags):
             default_value: {}
         }
 
-        for setting in context.settings:
-            self.set_flag(context, setting,
-                          '{0}/ns:ClCompile/ns:StringPooling'
-                          .format(context.definition_groups[setting]), flag_values
-                          )
+        return flag_values
 
-    def set_optimization(self, context):
+    @staticmethod
+    def set_optimization(context, flag_name, node):
         """
         Set Optimization flag: /Od
 
@@ -668,13 +733,10 @@ class CPPFlags(Flags):
             default_value: {}
         }
 
-        for setting in context.settings:
-            self.set_flag(context, setting,
-                          '{0}/ns:ClCompile/ns:Optimization'
-                          .format(context.definition_groups[setting]), flag_values
-                          )
+        return flag_values
 
-    def set_inline_function_expansion(self, context):
+    @staticmethod
+    def set_inline_function_expansion(context, flag_name, node):
         """
         Set Inline Function Expansion flag: /Ob
 
@@ -686,13 +748,10 @@ class CPPFlags(Flags):
             default_value: {}
         }
 
-        for setting in context.settings:
-            self.set_flag(context, setting,
-                          '{0}/ns:ClCompile/ns:InlineFunctionExpansion'
-                          .format(context.definition_groups[setting]), flag_values
-                          )
+        return flag_values
 
-    def set_intrinsic_functions(self, context):
+    @staticmethod
+    def set_intrinsic_functions(context, flag_name, node):
         """
         Set Intrinsic Functions flag: /Oi
 
@@ -703,13 +762,10 @@ class CPPFlags(Flags):
             default_value: {}
         }
 
-        for setting in context.settings:
-            self.set_flag(context, setting,
-                          '{0}/ns:ClCompile/ns:IntrinsicFunctions'
-                          .format(context.definition_groups[setting]), flag_values
-                          )
+        return flag_values
 
-    def set_runtime_type_info(self, context):
+    @staticmethod
+    def set_runtime_type_info(context, flag_name, node):
         """
         Set RuntimeTypeInfo flag: /GR
 
@@ -720,13 +776,10 @@ class CPPFlags(Flags):
             default_value: {}
         }
 
-        for setting in context.settings:
-            self.set_flag(context, setting,
-                          '{0}/ns:ClCompile/ns:RuntimeTypeInfo'
-                          .format(context.definition_groups[setting]), flag_values
-                          )
+        return flag_values
 
-    def set_function_level_linking(self, context):
+    @staticmethod
+    def set_function_level_linking(context, flag_name, node):
         """
         Set FunctionLevelLinking flag: /Gy
 
@@ -737,15 +790,12 @@ class CPPFlags(Flags):
             default_value: {}
         }
 
-        for setting in context.settings:
-            self.set_flag(context, setting,
-                          '{0}/ns:ClCompile/ns:FunctionLevelLinking'
-                          .format(context.definition_groups[setting]), flag_values
-                          )
+        return flag_values
 
-    def set_debug_information_format(self, context):
+    @staticmethod
+    def set_debug_information_format(context, flag_name, node):
         """
-        Set GenerateDebugInformation flag: /Zi
+        Set DebugInformationFormat flag: /Zi
 
         """
         flag_values = {
@@ -754,13 +804,10 @@ class CPPFlags(Flags):
             default_value: {}
         }
 
-        for setting in context.settings:
-            self.set_flag(context, setting,
-                          '{0}/ns:ClCompile/ns:DebugInformationFormat'
-                          .format(context.definition_groups[setting]), flag_values
-                          )
+        return flag_values
 
-    def set_compile_as(self, context):
+    @staticmethod
+    def set_compile_as(context, flag_name, node):
         """
         Set Compile As flag: /TP, TC
 
@@ -771,13 +818,10 @@ class CPPFlags(Flags):
             default_value: {}
         }
 
-        for setting in context.settings:
-            self.set_flag(context, setting,
-                          '{0}/ns:ClCompile/ns:CompileAs'
-                          .format(context.definition_groups[setting]), flag_values
-                          )
+        return flag_values
 
-    def set_generate_debug_information(self, context):
+    @staticmethod
+    def set_generate_debug_information(context, flag_name, node):
         """
         Set GenerateDebugInformation flag: /DEBUG
 
@@ -790,17 +834,10 @@ class CPPFlags(Flags):
             default_value: {ln_flags: '/DEBUG:FULL'}
         }
 
-        for setting in context.settings:
-            conf_type = context.settings[setting]['target_type']
-            if conf_type and 'StaticLibrary' in conf_type:
-                continue
+        return flag_values
 
-            self.set_flag(context, setting,
-                          '{0}/ns:Link/ns:GenerateDebugInformation'
-                          .format(context.definition_groups[setting]), flag_values
-                          )
-
-    def set_floating_point_model(self, context):
+    @staticmethod
+    def set_floating_point_model(context, flag_name, node):
         """
         Set FloatingPointModel flag: /fp
 
@@ -812,12 +849,10 @@ class CPPFlags(Flags):
             default_value: {cl_flags: '/fp:precise'}
         }
 
-        for setting in context.settings:
-            self.set_flag(context, setting, '{0}/ns:ClCompile/ns:FloatingPointModel'
-                          .format(context.definition_groups[setting]), flag_values
-                          )
+        return flag_values
 
-    def set_exception_handling(self, context):
+    @staticmethod
+    def set_exception_handling(context, flag_name, node):
         """
         Set ExceptionHandling flag: /EHsc
 
@@ -829,29 +864,24 @@ class CPPFlags(Flags):
             default_value: {cl_flags: '/EHsc'}
         }
 
-        for setting in context.settings:
-            self.set_flag(context, setting, '{0}/ns:ClCompile/ns:ExceptionHandling'
-                          .format(context.definition_groups[setting]), flag_values
-                          )
+        return flag_values
 
-    def set_buffer_security_check(self, context):
+    @staticmethod
+    def set_buffer_security_check(context, flag_name, node):
         """
         Set BufferSecurityCheck flag: /GS
 
         """
         flag_values = {
-            'false': {},
+            'false': {cl_flags: '/GS-'},
             'true': {cl_flags: '/GS'},
-            default_value: {cl_flags: '/GS'}
+            default_value: {}
         }
 
-        for setting in context.settings:
-            self.set_flag(context, setting,
-                          '{0}/ns:ClCompile/ns:BufferSecurityCheck'
-                          .format(context.definition_groups[setting]), flag_values
-                          )
+        return flag_values
 
-    def set_diagnostics_format(self, context):
+    @staticmethod
+    def set_diagnostics_format(context, flag_name, node):
         """
         Set DiagnosticsFormat flag : /GS
 
@@ -863,13 +893,10 @@ class CPPFlags(Flags):
             default_value: {cl_flags: '/diagnostics:classic'}
         }
 
-        for setting in context.settings:
-            self.set_flag(context, setting,
-                          '{0}/ns:ClCompile/ns:DiagnosticsFormat'
-                          .format(context.definition_groups[setting]), flag_values
-                          )
+        return flag_values
 
-    def set_disable_language_extensions(self, context):
+    @staticmethod
+    def set_disable_language_extensions(context, flag_name, node):
         """
                 Set DisableLanguageExtensions /Za
 
@@ -880,15 +907,10 @@ class CPPFlags(Flags):
             default_value: {}
         }
 
-        for setting in context.settings:
-            self.set_flag(context,
-                          setting,
-                          '{0}/ns:ClCompile/ns:DisableLanguageExtensions'.format(
-                              context.definition_groups[setting]),
-                          flag_values
-                          )
+        return flag_values
 
-    def set_treatwchar_t_as_built_in_type(self, context):
+    @staticmethod
+    def set_treatwchar_t_as_built_in_type(context, flag_name, node):
         """
         Set TreatWChar_tAsBuiltInType /Zc:wchar_t
 
@@ -899,13 +921,7 @@ class CPPFlags(Flags):
             default_value: {cl_flags: '/Zc:wchar_t'}
         }
 
-        for setting in context.settings:
-            self.set_flag(context,
-                          setting,
-                          '{0}/ns:ClCompile/ns:TreatWChar_tAsBuiltInType'.format(
-                              context.definition_groups[setting]),
-                          flag_values
-                          )
+        return flag_values
 
     @staticmethod
     def setting_has_pch(context, setting):

@@ -111,6 +111,8 @@ class ProjectFiles(object):
                 file_lists
             )
 
+        context.flags.define_pch_cpp_file(context)
+
         has_headers = True if context.headers else False
         context.has_headers = has_headers
         context.has_only_headers = True if has_headers and not context.sources else False

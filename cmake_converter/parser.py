@@ -53,11 +53,15 @@ class Parser(object):
     def reset_current_setting_after_parsing_node(self, node):
         self.reset_setting_after_nodes.add(node)
 
+    @staticmethod
+    def strip_namespace(tag):
+        return re.sub(r'{.*\}', '', tag)
+
     def _parse_nodes(self, context, parent):
         for child_node in parent:
             if type(child_node.tag) is not str:
                 continue
-            child_node_tag = re.sub(r'{.*\}', '', child_node.tag)  # strip namespace
+            child_node_tag = Parser.strip_namespace(child_node.tag)
 
             try:
                 self._parse_attributes(context, child_node)
