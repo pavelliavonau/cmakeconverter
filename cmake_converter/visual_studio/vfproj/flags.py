@@ -38,6 +38,9 @@ class FortranFlags(Flags):
             'SuppressStartupBanner': self.set_suppress_startup_banner,
             'DebugInformationFormat': self.set_debug_information_format,
             'Optimization': self.set_optimization,
+            'InterproceduralOptimizations': self.__set_interprocedural_optimizations,
+            'EnableEnhancedInstructionSet': self.__set_enable_enhanced_instruction_set,
+            'EnableRecursion': self.__set_enable_recursion,
             'Preprocess': self.set_preprocess_source_file,
             'SourceFileFormat': self.set_source_file_format,
             'DebugParameter': self.set_debug_parameter,
@@ -59,12 +62,14 @@ class FortranFlags(Flags):
             'InitLocalVarToNAN': self.set_init_local_var_to_nan,
             'FloatingPointExceptionHandling': self.set_floating_point_exception_handling,
             'ExtendSinglePrecisionConstants': self.set_extend_single_precision_constants,
+            'FloatingPointSpeculation': self.__set_floating_point_speculation,
             'FloatingPointStackCheck': self.set_floating_point_stack_check,
             'ExternalNameInterpretation': self.set_external_name_interpretation,
             'StringLengthArgPassing': self.set_string_length_arg_passing,
             'ExternalNameUnderscore': self.set_external_name_underscore,
             'Traceback': self.set_traceback,
             'RuntimeChecks': self.set_runtime_checks,
+            'NullPointerCheck': self.__set_null_pointer_check,
             'BoundsCheck': self.set_bounds_check,
             'UninitializedVariablesCheck': self.set_uninitialized_variables_check,
             'DescriptorDataTypeCheck': self.set_descriptor_data_type_check,
@@ -87,6 +92,9 @@ class FortranFlags(Flags):
             'SuppressStartupBanner',
             'DebugInformationFormat',
             'Optimization',
+            'InterproceduralOptimizations',
+            'EnableEnhancedInstructionSet',
+            'EnableRecursion',
             'Preprocess',
             'SourceFileFormat',
             'DebugParameter',
@@ -108,12 +116,14 @@ class FortranFlags(Flags):
             'InitLocalVarToNAN',
             'FloatingPointExceptionHandling',
             'ExtendSinglePrecisionConstants',
+            'FloatingPointSpeculation',
             'FloatingPointStackCheck',
             'ExternalNameInterpretation',
             'StringLengthArgPassing',
             'ExternalNameUnderscore',
             'Traceback',
             'RuntimeChecks',
+            'NullPointerCheck',
             'BoundsCheck',
             'UninitializedVariablesCheck',
             'DescriptorDataTypeCheck',
@@ -332,6 +342,18 @@ class FortranFlags(Flags):
         del context, flag_name, flag_value
         flag_values = {
             'true': {'warn_args': 'nousage'},
+            default_value: {}
+        }
+        return flag_values
+
+    @staticmethod
+    def __set_null_pointer_check(context, flag_name, flag_value):
+        """
+        """
+        del context, flag_name, flag_value
+        flag_values = {
+            'true': {ifort_cl_win: '-check:pointer',
+                     ifort_cl_unix: '-check pointer'},
             default_value: {}
         }
         return flag_values
@@ -575,6 +597,24 @@ class FortranFlags(Flags):
         return flag_values
 
     @staticmethod
+    def __set_floating_point_speculation(context, flag_name, flag_value):
+        """
+        Set extend single precision constants flag
+
+        """
+        del context, flag_name, flag_value
+        flag_values = {
+            'fpSpeculationSafe': {ifort_cl_win: '-Qfp-speculation:safe',
+                                  ifort_cl_unix: '-fp-speculation=safe'},
+            'fpSpeculationStrict': {ifort_cl_win: '-Qfp-speculation:strict',
+                                    ifort_cl_unix: '-fp-speculation=strict'},
+            'fpSpeculationOff': {ifort_cl_win: '-Qfp-speculation:off',
+                                 ifort_cl_unix: '-fp-speculation=off'},
+            default_value: {}
+        }
+        return flag_values
+
+    @staticmethod
     def set_floating_point_exception_handling(context, flag_name, flag_value):
         """
         Set floating exception handling
@@ -634,6 +674,50 @@ class FortranFlags(Flags):
                                  ifort_cl_unix: '-Od'},
             default_value: {ifort_cl_win: '-O2',
                             ifort_cl_unix: '-O2'}
+        }
+        return flag_values
+
+    @staticmethod
+    def __set_interprocedural_optimizations(context, flag_name, flag_value):
+        """
+        Set InterproceduralOptimizations
+
+        """
+        del context, flag_name, flag_value
+        flag_values = {
+            'ipoMultiFile': {ifort_cl_win: '-Qipo',
+                             ifort_cl_unix: '-ipo'},
+            'ipoSingleFile': {ifort_cl_win: '-Qip',
+                              ifort_cl_unix: '-ip'},
+            default_value: {}
+        }
+        return flag_values
+
+    @staticmethod
+    def __set_enable_enhanced_instruction_set(context, flag_name, flag_value):
+        """
+        Set EnableEnhancedInstructionSet
+
+        """
+        del context, flag_name, flag_value
+        flag_values = {
+            'codeArchSSE2': {ifort_cl_win: '-arch:SSE2',
+                             ifort_cl_unix: '-arch SSE2'},
+            'codeArchSSE3': {ifort_cl_win: '-arch:SSE3',
+                             ifort_cl_unix: '-arch SSE3'},
+            'codeArchAVX': {ifort_cl_win: '-arch:AVX',
+                            ifort_cl_unix: '-arch AVX'},
+            default_value: {}
+        }
+        return flag_values
+
+    @staticmethod
+    def __set_enable_recursion(context, flag_name, flag_value):
+        del context, flag_name, flag_value
+        flag_values = {
+            'true': {ifort_cl_win: '-recursive',
+                     ifort_cl_unix: '-recursive'},
+            default_value: {}
         }
         return flag_values
 
@@ -754,7 +838,7 @@ class FortranFlags(Flags):
                 elif 'Qprec-sqrt' in unix_option:
                     unix_option = FortranFlags.__get_no_prefix(unix_option) + '-prec-sqrt'
                 elif 'Qopenmp-lib' in unix_option:
-                    unix_option = unix_option.replace('Qopenmp-lib', 'openmp-lib')
+                    unix_option = unix_option.replace('Qopenmp-lib', 'qopenmp-lib')
                     unix_option = unix_option.replace('lib ', 'lib=')
                 else:
                     message(context, 'Unix ifort option "{0}" may be incorrect. '

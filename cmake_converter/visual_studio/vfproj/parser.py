@@ -50,6 +50,9 @@ class VFParser(Parser):
             'VFFortranCompilerTool_SuppressStartupBanner': context.flags.set_flag,
             'VFFortranCompilerTool_DebugInformationFormat': context.flags.set_flag,
             'VFFortranCompilerTool_Optimization': context.flags.set_flag,
+            'VFFortranCompilerTool_InterproceduralOptimizations': context.flags.set_flag,
+            'VFFortranCompilerTool_EnableEnhancedInstructionSet': context.flags.set_flag,
+            'VFFortranCompilerTool_EnableRecursion': context.flags.set_flag,
             'VFFortranCompilerTool_Preprocess': context.flags.set_flag,
             'VFFortranCompilerTool_SourceFileFormat': context.flags.set_flag,
             'VFFortranCompilerTool_DebugParameter': context.flags.set_flag,
@@ -71,12 +74,14 @@ class VFParser(Parser):
             'VFFortranCompilerTool_InitLocalVarToNAN': context.flags.set_flag,
             'VFFortranCompilerTool_FloatingPointExceptionHandling': context.flags.set_flag,
             'VFFortranCompilerTool_ExtendSinglePrecisionConstants': context.flags.set_flag,
+            'VFFortranCompilerTool_FloatingPointSpeculation': context.flags.set_flag,
             'VFFortranCompilerTool_FloatingPointStackCheck': context.flags.set_flag,
             'VFFortranCompilerTool_ExternalNameInterpretation': context.flags.set_flag,
             'VFFortranCompilerTool_StringLengthArgPassing': context.flags.set_flag,
             'VFFortranCompilerTool_ExternalNameUnderscore': context.flags.set_flag,
             'VFFortranCompilerTool_Traceback': context.flags.set_flag,
             'VFFortranCompilerTool_RuntimeChecks': self.__parse_runtime_checks,
+            'VFFortranCompilerTool_NullPointerCheck': self.__parse_concrete_runtime_checks,
             'VFFortranCompilerTool_BoundsCheck': self.__parse_concrete_runtime_checks,
             'VFFortranCompilerTool_UninitializedVariablesCheck':
                 self.__parse_concrete_runtime_checks,
@@ -116,8 +121,6 @@ class VFParser(Parser):
             'VFPostBuildEventTool_CommandLine':
                 context.dependencies.set_target_post_build_events,
         }
-        self.common_diagnostics_value = None
-        self.common_runtime_checks_value = None
 
     def parse(self, context):
         tree = context.vcxproj['tree']
@@ -148,6 +151,8 @@ class VFParser(Parser):
             context.current_setting = None
             raise StopParseException()
         context.current_setting = setting
+        self.common_diagnostics_value = None
+        self.common_runtime_checks_value = None
         ContextInitializer.init_context_setting(context, setting)
         context.variables.apply_default_values(context)
         self.reset_current_setting_after_parsing_node(node)
