@@ -169,6 +169,7 @@ class FortranFlags(Flags):
         context.settings[context.current_setting][ifort_cl_unix] = []
         context.settings[context.current_setting][ifort_ln] = []
         context.settings[context.current_setting]['assume_args'] = []
+        context.settings[context.current_setting]['warn_args'] = []
         self.__set_default_flags(context)
 
     def apply_flags_to_context(self, context):
@@ -177,6 +178,7 @@ class FortranFlags(Flags):
             ifort_cl_unix,
             ifort_ln,
             'assume_args',
+            'warn_args',
         ]
 
         for flag_name in self.__get_result_order_of_flags():
@@ -188,17 +190,31 @@ class FortranFlags(Flags):
                         )
 
         self.__set_assume_with_params(context)
+        self.__set_spec_warn_options(context)
 
     @staticmethod
     def __set_assume_with_params(context):
         if 'assume_args' in context.settings[context.current_setting]:
             args = context.settings[context.current_setting]['assume_args']
-            context.settings[context.current_setting][ifort_cl_win].append(
-                '-assume:' + ','.join(args)
-            )
-            context.settings[context.current_setting][ifort_cl_unix].append(
-                '-assume ' + ','.join(args)
-            )
+            if args:
+                context.settings[context.current_setting][ifort_cl_win].append(
+                    '-assume:' + ','.join(args)
+                )
+                context.settings[context.current_setting][ifort_cl_unix].append(
+                    '-assume ' + ','.join(args)
+                )
+
+    @staticmethod
+    def __set_spec_warn_options(context):
+        if 'warn_args' in context.settings[context.current_setting]:
+            args = context.settings[context.current_setting]['warn_args']
+            if args:
+                context.settings[context.current_setting][ifort_cl_win].append(
+                    '-warn:' + ','.join(args)
+                )
+                context.settings[context.current_setting][ifort_cl_unix].append(
+                    '-warn ' + ','.join(args)
+                )
 
     @staticmethod
     def set_floating_point_stack_check(context, flag_name, flag_value):
@@ -252,8 +268,7 @@ class FortranFlags(Flags):
     def set_warn_declarations(context, flag_name, flag_value):
         del context, flag_name, flag_value
         flag_values = {
-            'true': {ifort_cl_win: '-warn:declaration',
-                     ifort_cl_unix: '-warn declaration'},
+            'true': {'warn_args': 'declaration'},
             default_value: {}
         }
         return flag_values
@@ -262,8 +277,7 @@ class FortranFlags(Flags):
     def set_warn_unused_variables(context, flag_name, flag_value):
         del context, flag_name, flag_value
         flag_values = {
-            'true': {ifort_cl_win: '-warn:unused',
-                     ifort_cl_unix: '-warn unused'},
+            'true': {'warn_args': 'unused'},
             default_value: {}
         }
         return flag_values
@@ -272,8 +286,7 @@ class FortranFlags(Flags):
     def set_warn_ignore_loc(context, flag_name, flag_value):
         del context, flag_name, flag_value
         flag_values = {
-            'true': {ifort_cl_win: '-warn:ignore_loc',
-                     ifort_cl_unix: '-warn ignore_loc'},
+            'true': {'warn_args': 'ignore_loc'},
             default_value: {}
         }
         return flag_values
@@ -282,8 +295,7 @@ class FortranFlags(Flags):
     def set_warn_truncate_source(context, flag_name, flag_value):
         del context, flag_name, flag_value
         flag_values = {
-            'true': {ifort_cl_win: '-warn:truncated_source',
-                     ifort_cl_unix: '-warn truncated_source'},
+            'true': {'warn_args': 'truncated_source'},
             default_value: {}
         }
         return flag_values
@@ -292,8 +304,7 @@ class FortranFlags(Flags):
     def set_warn_interfaces(context, flag_name, flag_value):
         del context, flag_name, flag_value
         flag_values = {
-            'true': {ifort_cl_win: '-warn:interfaces',
-                     ifort_cl_unix: '-warn interfaces'},
+            'true': {'warn_args': 'interfaces'},
             default_value: {}
         }
         return flag_values
@@ -302,8 +313,7 @@ class FortranFlags(Flags):
     def set_warn_unaligned_data(context, flag_name, flag_value):
         del context, flag_name, flag_value
         flag_values = {
-            'false': {ifort_cl_win: '-warn:noalignments',
-                      ifort_cl_unix: '-warn noalignments'},
+            'false': {'warn_args': 'noalignments'},
             default_value: {}
         }
         return flag_values
@@ -312,8 +322,7 @@ class FortranFlags(Flags):
     def set_warn_uncalled(context, flag_name, flag_value):
         del context, flag_name, flag_value
         flag_values = {
-            'true': {ifort_cl_win: '-warn:uncalled',
-                     ifort_cl_unix: '-warn uncalled'},
+            'true': {'warn_args': 'uncalled'},
             default_value: {}
         }
         return flag_values
@@ -322,8 +331,7 @@ class FortranFlags(Flags):
     def set_suppress_usage_messages(context, flag_name, flag_value):
         del context, flag_name, flag_value
         flag_values = {
-            'true': {ifort_cl_win: '-warn:nousage',
-                     ifort_cl_unix: '-warn nousage'},
+            'true': {'warn_args': 'nousage'},
             default_value: {}
         }
         return flag_values
