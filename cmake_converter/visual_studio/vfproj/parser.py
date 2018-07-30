@@ -76,8 +76,14 @@ class VFParser(Parser):
             'VFFortranCompilerTool_StringLengthArgPassing': context.flags.set_flag,
             'VFFortranCompilerTool_ExternalNameUnderscore': context.flags.set_flag,
             'VFFortranCompilerTool_Traceback': context.flags.set_flag,
-            'VFFortranCompilerTool_RuntimeChecks': context.flags.set_flag,
-            'VFFortranCompilerTool_ArgTempCreatedCheck': context.flags.set_flag,
+            'VFFortranCompilerTool_RuntimeChecks': self.__parse_runtime_checks,
+            'VFFortranCompilerTool_BoundsCheck': self.__parse_concrete_runtime_checks,
+            'VFFortranCompilerTool_UninitializedVariablesCheck':
+                self.__parse_concrete_runtime_checks,
+            'VFFortranCompilerTool_DescriptorDataTypeCheck': self.__parse_concrete_runtime_checks,
+            'VFFortranCompilerTool_DescriptorDataSizeCheck': self.__parse_concrete_runtime_checks,
+            'VFFortranCompilerTool_ArgTempCreatedCheck': self.__parse_concrete_runtime_checks,
+            'VFFortranCompilerTool_StackFrameCheck': self.__parse_concrete_runtime_checks,
             'VFFortranCompilerTool_RuntimeLibrary': context.flags.set_flag,
             'VFFortranCompilerTool_DisableDefaultLibSearch': context.flags.set_flag,
             'VFFortranCompilerTool_AdditionalOptions': context.flags.set_flag,
@@ -107,6 +113,7 @@ class VFParser(Parser):
                 context.dependencies.set_target_post_build_events,
         }
         self.common_diagnostics_value = None
+        self.common_runtime_checks_value = None
 
     def parse(self, context):
         tree = context.vcxproj['tree']
@@ -184,6 +191,14 @@ class VFParser(Parser):
 
     def __parse_concrete_diagnostics(self, context, attr_name, attr_value, node):
         if self.common_diagnostics_value is None:
+            context.flags.set_flag(context, attr_name, attr_value, node)
+
+    def __parse_runtime_checks(self, context, attr_name, attr_value, node):
+        context.flags.set_flag(context, attr_name, attr_value, node)
+        self.common_runtime_checks_value = attr_value
+
+    def __parse_concrete_runtime_checks(self, context, attr_name, attr_value, node):
+        if self.common_runtime_checks_value is None:
             context.flags.set_flag(context, attr_name, attr_value, node)
 
     def __parse_files(self, context, files_node):

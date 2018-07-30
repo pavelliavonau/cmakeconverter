@@ -65,7 +65,12 @@ class FortranFlags(Flags):
             'ExternalNameUnderscore': self.set_external_name_underscore,
             'Traceback': self.set_traceback,
             'RuntimeChecks': self.set_runtime_checks,
+            'BoundsCheck': self.set_bounds_check,
+            'UninitializedVariablesCheck': self.set_uninitialized_variables_check,
+            'DescriptorDataTypeCheck': self.set_descriptor_data_type_check,
+            'DescriptorDataSizeCheck': self.set_descriptor_data_size_check,
             'ArgTempCreatedCheck': self.set_arg_temp_created_check,
+            'StackFrameCheck': self.set_stack_frame_check,
             'RuntimeLibrary': self.set_runtime_library,
             'DisableDefaultLibSearch': self.set_disable_default_lib_search,
             'AdditionalOptions': self.set_additional_options,
@@ -109,7 +114,12 @@ class FortranFlags(Flags):
             'ExternalNameUnderscore',
             'Traceback',
             'RuntimeChecks',
+            'BoundsCheck',
+            'UninitializedVariablesCheck',
+            'DescriptorDataTypeCheck',
+            'DescriptorDataSizeCheck',
             'ArgTempCreatedCheck',
+            'StackFrameCheck',
             'RuntimeLibrary',
             'DisableDefaultLibSearch',
             'AdditionalOptions',
@@ -319,6 +329,54 @@ class FortranFlags(Flags):
         return flag_values
 
     @staticmethod
+    def set_bounds_check(context, flag_name, flag_value):
+        """
+        """
+        del context, flag_name, flag_value
+        flag_values = {
+            'true': {ifort_cl_win: '-check:bounds',
+                     ifort_cl_unix: '-check bounds'},
+            default_value: {}
+        }
+        return flag_values
+
+    @staticmethod
+    def set_uninitialized_variables_check(context, flag_name, flag_value):
+        """
+        """
+        del context, flag_name, flag_value
+        flag_values = {
+            'true': {ifort_cl_win: '-check:uninit',
+                     ifort_cl_unix: '-check uninit'},
+            default_value: {}
+        }
+        return flag_values
+
+    @staticmethod
+    def set_descriptor_data_type_check(context, flag_name, flag_value):
+        """
+        """
+        del context, flag_name, flag_value
+        flag_values = {
+            'true': {ifort_cl_win: '-check:format',
+                     ifort_cl_unix: '-check format'},
+            default_value: {}
+        }
+        return flag_values
+
+    @staticmethod
+    def set_descriptor_data_size_check(context, flag_name, flag_value):
+        """
+        """
+        del context, flag_name, flag_value
+        flag_values = {
+            'true': {ifort_cl_win: '-check:output_conversion',
+                     ifort_cl_unix: '-check output_conversion'},
+            default_value: {}
+        }
+        return flag_values
+
+    @staticmethod
     def set_arg_temp_created_check(context, flag_name, flag_value):
         """
         """
@@ -326,6 +384,18 @@ class FortranFlags(Flags):
         flag_values = {
             'true': {ifort_cl_win: '-check:arg_temp_created',
                      ifort_cl_unix: '-check arg_temp_created'},
+            default_value: {}
+        }
+        return flag_values
+
+    @staticmethod
+    def set_stack_frame_check(context, flag_name, flag_value):
+        """
+        """
+        del context, flag_name, flag_value
+        flag_values = {
+            'true': {ifort_cl_win: '-check:stack',
+                     ifort_cl_unix: '-check stack'},
             default_value: {}
         }
         return flag_values
