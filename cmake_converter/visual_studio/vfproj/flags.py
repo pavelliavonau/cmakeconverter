@@ -46,6 +46,14 @@ class FortranFlags(Flags):
             'OpenMP': self.set_open_mp,
             'DisableSpecificDiagnostics': self.set_disable_specific_diagnostics,
             'Diagnostics': self.set_diagnostics,
+            'WarnDeclarations': self.set_warn_declarations,
+            'WarnUnusedVariables': self.set_warn_unused_variables,
+            'WarnIgnoreLOC': self.set_warn_ignore_loc,
+            'WarnTruncateSource': self.set_warn_truncate_source,
+            'WarnInterfaces': self.set_warn_interfaces,
+            'WarnUnalignedData': self.set_warn_unaligned_data,
+            'WarnUncalled': self.set_warn_uncalled,
+            'SuppressUsageMessages': self.set_suppress_usage_messages,
             'RealKIND': self.set_real_kind,
             'LocalVariableStorage': self.set_local_variable_storage,
             'InitLocalVarToNAN': self.set_init_local_var_to_nan,
@@ -82,6 +90,14 @@ class FortranFlags(Flags):
             'OpenMP',
             'DisableSpecificDiagnostics',
             'Diagnostics',
+            'WarnDeclarations',
+            'WarnUnusedVariables',
+            'WarnIgnoreLOC',
+            'WarnTruncateSource',
+            'WarnInterfaces',
+            'WarnUnalignedData',
+            'WarnUncalled',
+            'SuppressUsageMessages',
             'RealKIND',
             'LocalVariableStorage',
             'InitLocalVarToNAN',
@@ -205,6 +221,78 @@ class FortranFlags(Flags):
                                    ifort_cl_unix: '-warn all'},
             'diagnosticsDisableAll': {ifort_cl_win: '-warn:none',
                                       ifort_cl_unix: '-warn none'},
+            default_value: {}
+        }
+        return flag_values
+
+    @staticmethod
+    def set_warn_declarations(context, flag_name, flag_value):
+        flag_values = {
+            'true': {ifort_cl_win: '-warn:declaration',
+                     ifort_cl_unix: '-warn declaration'},
+            default_value: {}
+        }
+        return flag_values
+
+    @staticmethod
+    def set_warn_unused_variables(context, flag_name, flag_value):
+        flag_values = {
+            'true': {ifort_cl_win: '-warn:unused',
+                     ifort_cl_unix: '-warn unused'},
+            default_value: {}
+        }
+        return flag_values
+
+    @staticmethod
+    def set_warn_ignore_loc(context, flag_name, flag_value):
+        flag_values = {
+            'true': {ifort_cl_win: '-warn:ignore_loc',
+                     ifort_cl_unix: '-warn ignore_loc'},
+            default_value: {}
+        }
+        return flag_values
+
+    @staticmethod
+    def set_warn_truncate_source(context, flag_name, flag_value):
+        flag_values = {
+            'true': {ifort_cl_win: '-warn:truncated_source',
+                     ifort_cl_unix: '-warn truncated_source'},
+            default_value: {}
+        }
+        return flag_values
+
+    @staticmethod
+    def set_warn_interfaces(context, flag_name, flag_value):
+        flag_values = {
+            'true': {ifort_cl_win: '-warn:interfaces',
+                     ifort_cl_unix: '-warn interfaces'},
+            default_value: {}
+        }
+        return flag_values
+
+    @staticmethod
+    def set_warn_unaligned_data(context, flag_name, flag_value):
+        flag_values = {
+            'false': {ifort_cl_win: '-warn:noalignments',
+                      ifort_cl_unix: '-warn noalignments'},
+            default_value: {}
+        }
+        return flag_values
+
+    @staticmethod
+    def set_warn_uncalled(context, flag_name, flag_value):
+        flag_values = {
+            'true': {ifort_cl_win: '-warn:uncalled',
+                     ifort_cl_unix: '-warn uncalled'},
+            default_value: {}
+        }
+        return flag_values
+
+    @staticmethod
+    def set_suppress_usage_messages(context, flag_name, flag_value):
+        flag_values = {
+            'true': {ifort_cl_win: '-warn:nousage',
+                     ifort_cl_unix: '-warn nousage'},
             default_value: {}
         }
         return flag_values

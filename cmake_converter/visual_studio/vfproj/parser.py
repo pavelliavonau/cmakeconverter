@@ -57,7 +57,15 @@ class VFParser(Parser):
             'VFFortranCompilerTool_FixedFormLineLength': context.flags.set_flag,
             'VFFortranCompilerTool_OpenMP': context.flags.set_flag,
             'VFFortranCompilerTool_DisableSpecificDiagnostics': context.flags.set_flag,
-            'VFFortranCompilerTool_Diagnostics': context.flags.set_flag,
+            'VFFortranCompilerTool_Diagnostics': self.__parse_diagnostics,
+            'VFFortranCompilerTool_WarnDeclarations': self.__parse_concrete_diagnostics,
+            'VFFortranCompilerTool_WarnUnusedVariables': self.__parse_concrete_diagnostics,
+            'VFFortranCompilerTool_WarnIgnoreLOC': self.__parse_concrete_diagnostics,
+            'VFFortranCompilerTool_WarnTruncateSource': self.__parse_concrete_diagnostics,
+            'VFFortranCompilerTool_WarnInterfaces': self.__parse_concrete_diagnostics,
+            'VFFortranCompilerTool_WarnUnalignedData': self.__parse_concrete_diagnostics,
+            'VFFortranCompilerTool_WarnUncalled': self.__parse_concrete_diagnostics,
+            'VFFortranCompilerTool_SuppressUsageMessages': self.__parse_concrete_diagnostics,
             'VFFortranCompilerTool_RealKIND': context.flags.set_flag,
             'VFFortranCompilerTool_LocalVariableStorage': context.flags.set_flag,
             'VFFortranCompilerTool_InitLocalVarToNAN': context.flags.set_flag,
@@ -98,6 +106,7 @@ class VFParser(Parser):
             'VFPostBuildEventTool_CommandLine':
                 context.dependencies.set_target_post_build_events,
         }
+        self.common_diagnostics_value = None
 
     def parse(self, context):
         tree = context.vcxproj['tree']
@@ -168,6 +177,14 @@ class VFParser(Parser):
             context.current_setting,
             context
         )
+
+    def __parse_diagnostics(self, context, attr_name, attr_value, node):
+        context.flags.set_flag(context, attr_name, attr_value, node)
+        self.common_diagnostics_value = attr_value
+
+    def __parse_concrete_diagnostics(self, context, attr_name, attr_value, node):
+        if self.common_diagnostics_value is None:
+            context.flags.set_flag(context, attr_name, attr_value, node)
 
     def __parse_files(self, context, files_node):
         pass
