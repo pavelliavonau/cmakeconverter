@@ -83,11 +83,7 @@ class VCXParser(Parser):
             'ProjectConfiguration_Include': self.__parse_project_configuration_include,
             'ClCompile_Include': self.do_nothing_attr_stub,  # TODO?
             'ClInclude_Include': self.do_nothing_attr_stub,  # TODO?
-            'ItemDefinitionGroup_Condition': self.__parse_condition,
-            'PropertyGroup_Condition': self.__parse_condition,
-            'TargetName_Condition': self.__parse_condition,
-            'OutDir_Condition': self.__parse_condition,
-            'LinkIncremental_Condition': self.__parse_condition,
+            'Condition': self.__parse_condition,
         }
 
     def parse(self, context):
@@ -159,7 +155,10 @@ class VCXParser(Parser):
         )
 
     def __parse_condition(self, context, attr_name, condition_value, node):
-        setting = re.search(r".*=='(.*)'", condition_value).group(1)
+        setting = None
+        found = re.search(r".*=='(.*)'", condition_value)
+        if found:
+            setting = found.group(1)
         if setting in context.settings:
             context.current_setting = setting
             self.reset_current_setting_after_parsing_node(node)

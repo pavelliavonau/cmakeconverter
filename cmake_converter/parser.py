@@ -80,9 +80,11 @@ class Parser(object):
     def _parse_attributes(self, context, node):
         for attr in node.attrib:
             node_tag = re.sub(r'{.*\}', '', node.tag)  # strip namespace
-            key = '{}_{}'.format(node_tag, attr)
-            if key in self.attributes_handlers:
-                self.attributes_handlers[key](context, attr, node.get(attr), node)
+            node_key = '{}_{}'.format(node_tag, attr)
+            if node_key in self.attributes_handlers:    # node specified handler
+                self.attributes_handlers[node_key](context, attr, node.get(attr), node)
+            elif attr in self.attributes_handlers:      # common attribute handler
+                self.attributes_handlers[attr](context, attr, node.get(attr), node)
             else:
                 message(
                     context,
