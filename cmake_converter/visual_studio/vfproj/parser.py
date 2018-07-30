@@ -87,6 +87,10 @@ class VFParser(Parser):
             'VFFortranCompilerTool_RuntimeLibrary': context.flags.set_flag,
             'VFFortranCompilerTool_DisableDefaultLibSearch': context.flags.set_flag,
             'VFFortranCompilerTool_AdditionalOptions': context.flags.set_flag,
+            'VFFortranCompilerTool_ModulePath': self.do_nothing_attr_stub,  # TODO?
+            'VFFortranCompilerTool_ObjectFile': self.do_nothing_attr_stub,  # TODO?
+            'VFFortranCompilerTool_AssemblerListingLocation': self.do_nothing_attr_stub,  # TODO?
+            'VFFortranCompilerTool_PdbFile': self.do_nothing_attr_stub,  # TODO?
             'VFLinkerTool_OutputFile': context.variables.set_output_file,
             'VFLibrarianTool_OutputFile': context.variables.set_output_file,
             'VFLinkerTool_ImportLibrary': context.variables.set_import_library,
