@@ -124,9 +124,10 @@ class FortranFlags(Flags):
         :type context: Context
         :param flag_name:
         :param flag_value:
+        :param node:
         :return:
         """
-
+        del node
         flag_values = self.flags_handlers[flag_name](context, flag_name, flag_value)
 
         if flag_values is None:
@@ -182,10 +183,16 @@ class FortranFlags(Flags):
     def __set_assume_with_params(context):
         if 'assume_args' in context.settings[context.current_setting]:
             args = context.settings[context.current_setting]['assume_args']
-            context.settings[context.current_setting][ifort_cl_win].append('-assume:' + ','.join(args))
-            context.settings[context.current_setting][ifort_cl_unix].append('-assume ' + ','.join(args))
+            context.settings[context.current_setting][ifort_cl_win].append(
+                '-assume:' + ','.join(args)
+            )
+            context.settings[context.current_setting][ifort_cl_unix].append(
+                '-assume ' + ','.join(args)
+            )
 
-    def set_floating_point_stack_check(self, context, flag_name, flag_value):
+    @staticmethod
+    def set_floating_point_stack_check(context, flag_name, flag_value):
+        del context, flag_name, flag_value
         flag_values = {
             'true': {ifort_cl_win: '-Qfp-stack-check',
                      ifort_cl_unix: '-fp-stack-check'},
@@ -194,7 +201,9 @@ class FortranFlags(Flags):
         }
         return flag_values
 
-    def set_external_name_underscore(self, context, flag_name, flag_value):
+    @staticmethod
+    def set_external_name_underscore(context, flag_name, flag_value):
+        del context, flag_name, flag_value
         flag_values = {
             'true': {'assume_args': 'underscore'},
             'false': {'assume_args': 'nounderscore'},
@@ -202,7 +211,9 @@ class FortranFlags(Flags):
         }
         return flag_values
 
-    def set_external_name_interpretation(self, context, flag_name, flag_value):
+    @staticmethod
+    def set_external_name_interpretation(context, flag_name, flag_value):
+        del context, flag_name, flag_value
         flag_values = {
             'extNameUpperCase': {ifort_cl_win: '-names:uppercase',
                                  ifort_cl_unix: '-names uppercase'},
@@ -215,7 +226,9 @@ class FortranFlags(Flags):
         }
         return flag_values
 
-    def set_diagnostics(self, context, flag_name, flag_value):
+    @staticmethod
+    def set_diagnostics(context, flag_name, flag_value):
+        del context, flag_name, flag_value
         flag_values = {
             'diagnosticsShowAll': {ifort_cl_win: '-warn:all',
                                    ifort_cl_unix: '-warn all'},
@@ -227,6 +240,7 @@ class FortranFlags(Flags):
 
     @staticmethod
     def set_warn_declarations(context, flag_name, flag_value):
+        del context, flag_name, flag_value
         flag_values = {
             'true': {ifort_cl_win: '-warn:declaration',
                      ifort_cl_unix: '-warn declaration'},
@@ -236,6 +250,7 @@ class FortranFlags(Flags):
 
     @staticmethod
     def set_warn_unused_variables(context, flag_name, flag_value):
+        del context, flag_name, flag_value
         flag_values = {
             'true': {ifort_cl_win: '-warn:unused',
                      ifort_cl_unix: '-warn unused'},
@@ -245,6 +260,7 @@ class FortranFlags(Flags):
 
     @staticmethod
     def set_warn_ignore_loc(context, flag_name, flag_value):
+        del context, flag_name, flag_value
         flag_values = {
             'true': {ifort_cl_win: '-warn:ignore_loc',
                      ifort_cl_unix: '-warn ignore_loc'},
@@ -254,6 +270,7 @@ class FortranFlags(Flags):
 
     @staticmethod
     def set_warn_truncate_source(context, flag_name, flag_value):
+        del context, flag_name, flag_value
         flag_values = {
             'true': {ifort_cl_win: '-warn:truncated_source',
                      ifort_cl_unix: '-warn truncated_source'},
@@ -263,6 +280,7 @@ class FortranFlags(Flags):
 
     @staticmethod
     def set_warn_interfaces(context, flag_name, flag_value):
+        del context, flag_name, flag_value
         flag_values = {
             'true': {ifort_cl_win: '-warn:interfaces',
                      ifort_cl_unix: '-warn interfaces'},
@@ -272,6 +290,7 @@ class FortranFlags(Flags):
 
     @staticmethod
     def set_warn_unaligned_data(context, flag_name, flag_value):
+        del context, flag_name, flag_value
         flag_values = {
             'false': {ifort_cl_win: '-warn:noalignments',
                       ifort_cl_unix: '-warn noalignments'},
@@ -281,6 +300,7 @@ class FortranFlags(Flags):
 
     @staticmethod
     def set_warn_uncalled(context, flag_name, flag_value):
+        del context, flag_name, flag_value
         flag_values = {
             'true': {ifort_cl_win: '-warn:uncalled',
                      ifort_cl_unix: '-warn uncalled'},
@@ -290,6 +310,7 @@ class FortranFlags(Flags):
 
     @staticmethod
     def set_suppress_usage_messages(context, flag_name, flag_value):
+        del context, flag_name, flag_value
         flag_values = {
             'true': {ifort_cl_win: '-warn:nousage',
                      ifort_cl_unix: '-warn nousage'},
@@ -297,9 +318,11 @@ class FortranFlags(Flags):
         }
         return flag_values
 
-    def set_arg_temp_created_check(self, context, flag_name, flag_value):
+    @staticmethod
+    def set_arg_temp_created_check(context, flag_name, flag_value):
         """
         """
+        del context, flag_name, flag_value
         flag_values = {
             'true': {ifort_cl_win: '-check:arg_temp_created',
                      ifort_cl_unix: '-check arg_temp_created'},
@@ -307,9 +330,11 @@ class FortranFlags(Flags):
         }
         return flag_values
 
-    def set_debug_parameter(self, context, flag_name, flag_value):
+    @staticmethod
+    def set_debug_parameter(context, flag_name, flag_value):
         """
         """
+        del context, flag_name, flag_value
         flag_values = {
             'debugParameterAll': {ifort_cl_win: '-debug-parameters:all',
                                   ifort_cl_unix: '-debug-parameters all'},
@@ -319,11 +344,13 @@ class FortranFlags(Flags):
         }
         return flag_values
 
-    def set_fixed_form_line_length(self, context, flag_name, flag_value):
+    @staticmethod
+    def set_fixed_form_line_length(context, flag_name, flag_value):
         """
         Set fixed form line length
 
         """
+        del context, flag_name, flag_value
         flag_values = {
             'fixedLength80': {ifort_cl_win: '-extend-source:80',
                               ifort_cl_unix: '-extend-source 80'},
@@ -333,23 +360,26 @@ class FortranFlags(Flags):
         }
         return flag_values
 
-    def set_default_inc_and_use_path(self, context, flag_name, flag_value):
+    @staticmethod
+    def set_default_inc_and_use_path(context, flag_name, flag_value):
         """
         Set default include and path
 
         """
-
+        del context, flag_name, flag_value
         flag_values = {
             'defaultIncludeCurrent': {'assume_args': 'nosource_include'},
             default_value: {'assume_args': 'source_include'}
         }
         return flag_values
 
-    def set_open_mp(self, context, flag_name, flag_value):
+    @staticmethod
+    def set_open_mp(context, flag_name, flag_value):
         """
         Set open MP flag
 
         """
+        del context, flag_name, flag_value
         flag_values = {
             'OpenMPParallelCode': {ifort_cl_win: '-Qopenmp',
                                    ifort_cl_unix: '-qopenmp'},
@@ -364,29 +394,33 @@ class FortranFlags(Flags):
         Set disable specific diagnostic flag
 
         """
-
+        del context
         # TODO: split list
         opt = flag_value
         if opt:
             self.flags[flag_name][ifort_cl_win] = ['-Qdiag-disable:{0}'.format(opt)]
             self.flags[flag_name][ifort_cl_unix] = ['-diag-disable={0}'.format(opt)]
 
-    def set_string_length_arg_passing(self, context, flag_name, flag_value):
+    @staticmethod
+    def set_string_length_arg_passing(context, flag_name, flag_value):
         """
         Set string lengh arg parsing
 
         """
+        del context, flag_name, flag_value
         flag_values = {
             'strLenArgsMixed': {ifort_cl_win: '-iface:mixed_str_len_arg'},
             default_value: {}
         }
         return flag_values
 
-    def set_runtime_library(self, context, flag_name, flag_value):
+    @staticmethod
+    def set_runtime_library(context, flag_name, flag_value):
         """
         Set runtime library flag
 
         """
+        del context, flag_name, flag_value
         flag_values = {
             'rtMultiThreadedDLL': {ifort_cl_win: '-libs:dll;-threads',
                                    ifort_cl_unix: '-threads'},
@@ -403,22 +437,26 @@ class FortranFlags(Flags):
         }
         return flag_values
 
-    def set_disable_default_lib_search(self, context, flag_name, flag_value):
+    @staticmethod
+    def set_disable_default_lib_search(context, flag_name, flag_value):
         """
         Set disable default lib search
 
         """
+        del context, flag_name, flag_value
         flag_values = {
             'true': {ifort_cl_win: '-libdir:noauto'},
             default_value: {}
         }
         return flag_values
 
-    def set_runtime_checks(self, context, flag_name, flag_value):
+    @staticmethod
+    def set_runtime_checks(context, flag_name, flag_value):
         """
         Set runtime checks flag
 
         """
+        del context, flag_name, flag_value
         flag_values = {
             'rtChecksAll': {ifort_cl_win: '-check:all',
                             ifort_cl_unix: '-check all'},
@@ -428,11 +466,13 @@ class FortranFlags(Flags):
         }
         return flag_values
 
-    def set_traceback(self, context, flag_name, flag_value):
+    @staticmethod
+    def set_traceback(context, flag_name, flag_value):
         """
         Set traceback flag
 
         """
+        del context, flag_name, flag_value
         flag_values = {
             'true': {ifort_cl_win: '-traceback',
                      ifort_cl_unix: '-traceback'},
@@ -442,11 +482,13 @@ class FortranFlags(Flags):
         }
         return flag_values
 
-    def set_extend_single_precision_constants(self, context, flag_name, flag_value):
+    @staticmethod
+    def set_extend_single_precision_constants(context, flag_name, flag_value):
         """
         Set extend single precision constants flag
 
         """
+        del context, flag_name, flag_value
         flag_values = {
             'true': {ifort_cl_win: '-fpconstant',
                      ifort_cl_unix: '-fpconstant'},
@@ -454,11 +496,13 @@ class FortranFlags(Flags):
         }
         return flag_values
 
-    def set_floating_point_exception_handling(self, context, flag_name, flag_value):
+    @staticmethod
+    def set_floating_point_exception_handling(context, flag_name, flag_value):
         """
         Set floating exception handling
 
         """
+        del context, flag_name, flag_value
         flag_values = {
             'fpe0': {ifort_cl_win: '-fpe0',
                      ifort_cl_unix: '-fpe0'},
@@ -468,11 +512,13 @@ class FortranFlags(Flags):
         }
         return flag_values
 
-    def set_init_local_var_to_nan(self, context, flag_name, flag_value):
+    @staticmethod
+    def set_init_local_var_to_nan(context, flag_name, flag_value):
         """
         Set init local var to NaN flag
 
         """
+        del context, flag_name, flag_value
         flag_values = {
             'true': {ifort_cl_win: '-Qtrapuv',
                      ifort_cl_unix: '-ftrapuv'},
@@ -480,11 +526,13 @@ class FortranFlags(Flags):
         }
         return flag_values
 
-    def set_preprocess_source_file(self, context, flag_name, flag_value):
+    @staticmethod
+    def set_preprocess_source_file(context, flag_name, flag_value):
         """
         Set preprocess source file flag
 
         """
+        del context, flag_name, flag_value
         flag_values = {
             'preprocessYes': {ifort_cl_win: '-fpp',
                               ifort_cl_unix: '-fpp'},
@@ -492,11 +540,13 @@ class FortranFlags(Flags):
         }
         return flag_values
 
-    def set_optimization(self, context, flag_name, flag_value):
+    @staticmethod
+    def set_optimization(context, flag_name, flag_value):
         """
         Set optimization flag
 
         """
+        del context, flag_name, flag_value
         flag_values = {
             'optimizeMinSpace': {ifort_cl_win: '-O1',
                                  ifort_cl_unix: '-O1'},
@@ -509,11 +559,13 @@ class FortranFlags(Flags):
         }
         return flag_values
 
-    def set_debug_information_format(self, context, flag_name, flag_value):
+    @staticmethod
+    def set_debug_information_format(context, flag_name, flag_value):
         """
         Set debug inforamtion format flag
 
         """
+        del context, flag_name, flag_value
         flag_values = {
             'debugEnabled': {ifort_cl_win: '-debug:full',
                              ifort_cl_unix: '-debug full'},
@@ -523,22 +575,26 @@ class FortranFlags(Flags):
         }
         return flag_values
 
-    def set_suppress_startup_banner(self, context, flag_name, flag_value):
+    @staticmethod
+    def set_suppress_startup_banner(context, flag_name, flag_value):
         """
         Set supress banner flag
 
         """
+        del context, flag_name, flag_value
         flag_values = {
             'true': {ifort_cl_win: '-nologo'},
             default_value: {}
         }
         return flag_values
 
-    def set_source_file_format(self, context, flag_name, flag_value):
+    @staticmethod
+    def set_source_file_format(context, flag_name, flag_value):
         """
         Set source file format flag
 
         """
+        del context, flag_name, flag_value
         flag_values = {
             'fileFormatFree': {ifort_cl_win: '-free',
                                ifort_cl_unix: '-free'},
@@ -548,11 +604,13 @@ class FortranFlags(Flags):
         }
         return flag_values
 
-    def set_local_variable_storage(self, context, flag_name, flag_value):
+    @staticmethod
+    def set_local_variable_storage(context, flag_name, flag_value):
         """
         Set local variable storage flag
 
         """
+        del context, flag_name, flag_value
         flag_values = {
             'localStorageAutomatic': {ifort_cl_win: '-Qauto',
                                       ifort_cl_unix: '-auto'},
@@ -560,11 +618,13 @@ class FortranFlags(Flags):
         }
         return flag_values
 
-    def set_real_kind(self, context, flag_name, flag_value):
+    @staticmethod
+    def set_real_kind(context, flag_name, flag_value):
         """
         Set real kind flag
 
         """
+        del context, flag_name, flag_value
         flag_values = {
             'realKIND8': {ifort_cl_win: '-real-size:64',
                           ifort_cl_unix: '-real-size 64'},

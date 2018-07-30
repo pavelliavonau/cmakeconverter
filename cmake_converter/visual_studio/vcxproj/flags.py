@@ -165,7 +165,7 @@ class CPPFlags(Flags):
                 reference = str(ref.get('Include'))
                 if '\\' in reference:
                     reference = set_unix_slash(reference)
-                lib = os.path.splitext(path.basename(reference))[0]
+                lib = os.path.splitext(os.path.basename(reference))[0]
 
                 if (lib == 'lemon' or lib == 'zlib') and '-fPIC' not in linux_flags:
                     linux_flags += ' -fPIC'
@@ -214,8 +214,10 @@ class CPPFlags(Flags):
 
         :param context: converter Context
         :type context: Context
+        :param flag_name:
+        :param node:
         """
-
+        del flag_name
         if node.text == '':
             return {}   # default pass
 
@@ -487,7 +489,7 @@ class CPPFlags(Flags):
         Set Whole Program Optimization flag: /GL and /LTCG
 
         """
-
+        del context, flag_name, node
         flag_values = {'true': {ln_flags: '/LTCG', cl_flags: '/GL'}}
 
         return flag_values
@@ -498,7 +500,7 @@ class CPPFlags(Flags):
         Set LinkIncremental flag: /INCREMENTAL
 
         """
-
+        del context, flag_name, node
         flag_values = {
             'true': {ln_flags: '/INCREMENTAL'},
             'false': {ln_flags: '/INCREMENTAL:NO'},
@@ -513,7 +515,7 @@ class CPPFlags(Flags):
         Set flag: ForceConformanceInForLoopScope
 
         """
-
+        del context, flag_name, node
         flag_values = {
             'true': {cl_flags: '/Zc:forScope'},
             'false': {cl_flags: '/Zc:forScope-'},
@@ -528,7 +530,7 @@ class CPPFlags(Flags):
         Set flag: RemoveUnreferencedCodeData
 
         """
-
+        del context, flag_name, node
         flag_values = {
             'true': {cl_flags: '/Zc:inline'},
             'false': {cl_flags: ''},
@@ -539,6 +541,7 @@ class CPPFlags(Flags):
 
     @staticmethod
     def set_openmp_support(context, flag_name, node):
+        del context, flag_name, node
         flag_values = {
             'true': {cl_flags: '/openmp'},
             'false': {cl_flags: ''},
@@ -553,6 +556,7 @@ class CPPFlags(Flags):
         Set Use Debug Libraries flag: /MD
 
         """
+        del flag_name
         if not md.text:
             return
 
@@ -573,6 +577,7 @@ class CPPFlags(Flags):
         Set Warning level for Windows: /W
 
         """
+        del context, flag_name, node
         flag_values = {
             'Level1': {cl_flags: '/W1'},
             'Level2': {cl_flags: '/W2'},
@@ -589,6 +594,7 @@ class CPPFlags(Flags):
         Set TreatWarningAsError: /WX
 
         """
+        del context, flag_name, node
         flag_values = {
             'true': {cl_flags: '/WX'},
             'false': {},
@@ -646,6 +652,7 @@ class CPPFlags(Flags):
         Set Basic Runtime Checks flag: /RTC*
 
         """
+        del context, flag_name, node
         flag_values = {
             'StackFrameRuntimeCheck': {cl_flags: '/RTCs'},
             'UninitializedLocalUsageCheck': {cl_flags: '/RTCu'},
@@ -711,6 +718,7 @@ class CPPFlags(Flags):
         Set StringPooling flag: /GF
 
         """
+        del context, flag_name, node
         flag_values = {
             'true': {cl_flags: '/GF'},
             'false': {cl_flags: '/GF-'},
@@ -725,6 +733,7 @@ class CPPFlags(Flags):
         Set Optimization flag: /Od
 
         """
+        del context, flag_name, node
         flag_values = {
             'Disabled': {cl_flags: '/Od'},
             'MinSpace': {cl_flags: '/O1'},
@@ -741,6 +750,7 @@ class CPPFlags(Flags):
         Set Inline Function Expansion flag: /Ob
 
         """
+        del context, flag_name, node
         flag_values = {
             'Disabled': {cl_flags: '/Ob0'},
             'OnlyExplicitInline': {cl_flags: '/Ob1'},
@@ -756,6 +766,7 @@ class CPPFlags(Flags):
         Set Intrinsic Functions flag: /Oi
 
         """
+        del context, flag_name, node
         flag_values = {
             'true': {cl_flags: '/Oi'},
             'false': {},
@@ -770,6 +781,7 @@ class CPPFlags(Flags):
         Set RuntimeTypeInfo flag: /GR
 
         """
+        del context, flag_name, node
         flag_values = {
             'true': {cl_flags: '/GR'},
             'false': {},
@@ -784,6 +796,7 @@ class CPPFlags(Flags):
         Set FunctionLevelLinking flag: /Gy
 
         """
+        del context, flag_name, node
         flag_values = {
             'true': {cl_flags: '/Gy'},
             'false': {},
@@ -798,6 +811,7 @@ class CPPFlags(Flags):
         Set DebugInformationFormat flag: /Zi
 
         """
+        del context, flag_name, node
         flag_values = {
             'ProgramDatabase': {cl_flags: '/Zi'},
             'EditAndContinue': {cl_flags: '/ZI'},
@@ -812,6 +826,7 @@ class CPPFlags(Flags):
         Set Compile As flag: /TP, TC
 
         """
+        del context, flag_name, node
         flag_values = {
             'CompileAsCpp': {cl_flags: '/TP'},
             'CompileAsC': {cl_flags: '/TC'},
@@ -826,6 +841,7 @@ class CPPFlags(Flags):
         Set GenerateDebugInformation flag: /DEBUG
 
         """
+        del context, flag_name, node
         flag_values = {
             'DebugFull': {ln_flags: '/DEBUG:FULL'},
             'DebugFastLink': {ln_flags: '/DEBUG:FASTLINK'},
@@ -842,6 +858,7 @@ class CPPFlags(Flags):
         Set FloatingPointModel flag: /fp
 
         """
+        del context, flag_name, node
         flag_values = {
             'Precise': {cl_flags: '/fp:precise'},
             'Strict': {cl_flags: '/fp:strict'},
@@ -857,6 +874,7 @@ class CPPFlags(Flags):
         Set ExceptionHandling flag: /EHsc
 
         """
+        del context, flag_name, node
         flag_values = {
             'false': {},
             'true': {cl_flags: '/EHsc'},
@@ -872,6 +890,7 @@ class CPPFlags(Flags):
         Set BufferSecurityCheck flag: /GS
 
         """
+        del context, flag_name, node
         flag_values = {
             'false': {cl_flags: '/GS-'},
             'true': {cl_flags: '/GS'},
@@ -886,6 +905,7 @@ class CPPFlags(Flags):
         Set DiagnosticsFormat flag : /GS
 
         """
+        del context, flag_name, node
         flag_values = {
             'Classic': {cl_flags: '/diagnostics:classic'},
             'Column': {cl_flags: '/diagnostics:column'},
@@ -898,9 +918,10 @@ class CPPFlags(Flags):
     @staticmethod
     def set_disable_language_extensions(context, flag_name, node):
         """
-                Set DisableLanguageExtensions /Za
+        Set DisableLanguageExtensions /Za
 
         """
+        del context, flag_name, node
         flag_values = {
             'false': {},
             'true': {cl_flags: '/Za'},
@@ -915,6 +936,7 @@ class CPPFlags(Flags):
         Set TreatWChar_tAsBuiltInType /Zc:wchar_t
 
         """
+        del context, flag_name, node
         flag_values = {
             'false': {cl_flags: '/Zc:wchar_t-'},
             'true': {cl_flags: '/Zc:wchar_t'},
