@@ -47,7 +47,6 @@ class DataConverter(object):
 
         context.parser.parse(context)
 
-        context.files.collects_source_files(context)
         context.files.find_cmake_project_languages(context)
 
         if not context.has_only_headers:

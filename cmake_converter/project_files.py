@@ -39,9 +39,8 @@ class ProjectFiles(object):
 
     def __init__(self):
         self.languages = []
-
-    def get_source_files_descriptors(self, context):
-        return []
+        self.file_lists = {}
+        self.file_lists_for_include_paths = {}
 
     def parse_file_node_options(self, context, file_node, node_text):
         pass
@@ -49,70 +48,49 @@ class ProjectFiles(object):
     def include_directive_case_check(self, context, file_name, file_lists_for_include_paths):
         pass
 
-    def __get_info_from_file_nodes(self, context, descriptor, file_lists):
+    def add_file_from_node(self, context, files_dest_dict, file_node,
+                           file_node_attr):
+        if file_node.get(file_node_attr) is not None:
+            node_text = str(file_node.get(file_node_attr))
+            node_text = '/'.join(node_text.split('\\'))
+            if not node_text.rpartition('.')[-1] in self.languages:
+                self.languages.append(node_text.rpartition('.')[-1])
+            file_path, file_name = os.path.split(node_text)
+            if file_path not in self.file_lists:
+                vcxproj_dir = os.path.dirname(context.vcxproj_path)
+                self.file_lists[file_path] = os.listdir(os.path.join(vcxproj_dir, file_path))
+            if file_path not in files_dest_dict:
+                files_dest_dict[file_path] = []
+            if file_name not in files_dest_dict[file_path]:
+                real_name = take_name_from_list_case_ignore(context, self.file_lists[file_path],
+                                                            file_name)
+                if real_name:
+                    files_dest_dict[file_path].append(real_name)
+                    files_dest_dict[file_path].sort(key=str.lower)
+                    if file_path:
+                        file_path = file_path + '/'
+                    file_path_name = file_path + real_name
+                    self.parse_file_node_options(context, file_node, file_path_name)
+                    self.include_directive_case_check(context,
+                                                      file_path_name,
+                                                      self.file_lists_for_include_paths)
+
+    def init_file_lists_for_include_paths(self, context):
         """
-
+        For include directive case ad path checking. Works only with vfproj.
+        :param context:
+        :return:
         """
-
-        context_files = descriptor[0]
-        files_nodes = descriptor[1]
-        file_node_attr = descriptor[2]
-
         vcxproj_dir = os.path.dirname(context.vcxproj_path)
-
-        file_lists_for_include_paths = {}
         for setting in context.settings:
             for include_path in context.settings[setting]['inc_dirs_list']:
-                if include_path not in file_lists_for_include_paths:
+                if include_path not in self.file_lists_for_include_paths:
                     abs_include_path = os.path.join(vcxproj_dir, include_path)
                     if os.path.exists(abs_include_path):
-                        file_lists_for_include_paths[include_path] = os.listdir(abs_include_path)
+                        self.file_lists_for_include_paths[include_path]\
+                            = os.listdir(abs_include_path)
 
-        for file_node in files_nodes:
-            if file_node.get(file_node_attr) is not None:
-                node_text = str(file_node.get(file_node_attr))
-                node_text = '/'.join(node_text.split('\\'))
-                if not node_text.rpartition('.')[-1] in self.languages:
-                    self.languages.append(node_text.rpartition('.')[-1])
-                file_path, file_name = os.path.split(node_text)
-                if file_path not in file_lists:
-                    file_lists[file_path] = os.listdir(os.path.join(vcxproj_dir, file_path))
-                if file_path not in context_files:
-                    context_files[file_path] = []
-                if file_name not in context_files[file_path]:
-                    real_name = take_name_from_list_case_ignore(context, file_lists[file_path],
-                                                                file_name)
-                    if real_name:
-                        context_files[file_path].append(real_name)
-                        if file_path:
-                            file_path = file_path + '/'
-                        file_path_name = file_path + real_name
-                        self.parse_file_node_options(context, file_node, file_path_name)
-                        self.include_directive_case_check(context,
-                                                          file_path_name,
-                                                          file_lists_for_include_paths)
-        for file_path in context_files:
-            context_files[file_path].sort(key=str.lower)
-
-    def collects_source_files(self, context):
-        """
-        Write the project variables in CMakeLists.txt file
-
-        """
-
-        file_lists = {}
-
-        descriptors = self.get_source_files_descriptors(context)
-
-        for descriptor in descriptors:
-            self.__get_info_from_file_nodes(
-                context,
-                descriptor,
-                file_lists
-            )
-
-        context.flags.define_pch_cpp_file(context)
-
+    def apply_files_to_context(self, context):
         has_headers = True if context.headers else False
         context.has_headers = has_headers
         context.has_only_headers = True if has_headers and not context.sources else False

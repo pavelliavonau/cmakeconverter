@@ -29,18 +29,6 @@ from cmake_converter.utils import message
 
 class VFProjectFiles(ProjectFiles):
 
-    def get_source_files_descriptors(self, context):
-        source_files_nodes = context.vcxproj['tree'].xpath('//File')
-        file_node_attr = 'RelativePath'
-        descriptors = [
-            [
-                context.sources,
-                source_files_nodes,
-                file_node_attr
-            ]
-        ]
-        return descriptors
-
     def parse_file_node_options(self, context, file_node, node_text):
         for file_configuration_node in file_node:
             setting_name = file_configuration_node.get('Name')

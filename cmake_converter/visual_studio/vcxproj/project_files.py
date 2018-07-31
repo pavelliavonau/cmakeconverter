@@ -27,26 +27,6 @@ from cmake_converter.project_files import ProjectFiles
 
 class VCXProjectFiles(ProjectFiles):
 
-    def get_source_files_descriptors(self, context):
-        source_files_nodes = context.vcxproj['tree'].xpath(
-            '//ns:ItemGroup/ns:ClCompile', namespaces=context.vcxproj['ns'])
-        header_files_nodes = context.vcxproj['tree'].xpath(
-            '//ns:ItemGroup/ns:ClInclude', namespaces=context.vcxproj['ns'])
-        file_node_attr = 'Include'
-        descriptors = [
-            [
-                context.sources,
-                source_files_nodes,
-                file_node_attr
-            ],
-            [
-                context.headers,
-                header_files_nodes,
-                file_node_attr
-            ]
-        ]
-        return descriptors
-
     def parse_file_node_options(self, context, file_node, node_text):
         for file_configuration_node in file_node:
             for setting in context.settings:

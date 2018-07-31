@@ -34,6 +34,7 @@ class VFParser(Parser):
             'Configuration': self.__parse_configuration,
             'Tool': self._parse_nodes,
             'Files': self.__parse_files,
+            'File': self._parse_nodes,
             'Filter': self.__parse_filter,
             'Globals': self.do_nothing_node_stub,
         }
@@ -128,12 +129,14 @@ class VFParser(Parser):
             'VFPostBuildEventTool_ExcludedFromBuild': self.do_nothing_attr_stub,
             'VFPostBuildEventTool_CommandLine':
                 context.dependencies.set_target_post_build_events,
+            'File_RelativePath': self.__parse_file_relative_path,
         }
 
     def parse(self, context):
         tree = context.vcxproj['tree']
         root = tree.getroot()
         self._parse_nodes(context, root)
+        context.files.apply_files_to_context(context)
         context.dependencies.set_target_references(context)
 
     def __parse_configurations(self, context, configurations_node):
@@ -218,11 +221,14 @@ class VFParser(Parser):
         if self.common_runtime_checks_value is None:
             context.flags.set_flag(context, attr_name, attr_value, node)
 
-    def __parse_files(self, context, files_node):
-        pass
-        # self._parse_nodes(context, files_node)
+    def __parse_files(self, context, filter_node):
+        context.files.init_file_lists_for_include_paths(context)
+        self._parse_nodes(context, filter_node)
+
+    @staticmethod
+    def __parse_file_relative_path(context, attr_name, attr_value, file_node):
+        context.files.add_file_from_node(context, context.sources, file_node, 'RelativePath')
 
     def __parse_filter(self, context, filter_node):
-        pass
-        # self._parse_nodes(context, filter_node)
+        self._parse_nodes(context, filter_node)
 

@@ -91,6 +91,8 @@ class VCXParser(Parser):
         root = tree.getroot()
         self._parse_nodes(context, root)
         context.flags.apply_flags_to_context(context)
+        context.files.apply_files_to_context(context)
+        context.flags.define_pch_cpp_file(context)
 
     def __parse_item_group(self, context, node):
         self._parse_nodes(context, node)
@@ -128,11 +130,17 @@ class VCXParser(Parser):
 
     def __parse_cl_include(self, context, node):
         if 'Include' in node.attrib:
+            context.files.add_file_from_node(
+                context,
+                context.headers, node, 'Include')
             return  # TODO: handle settings of files
         self._parse_nodes(context, node)
 
     def __parse_cl_compile(self, context, node):
         if 'Include' in node.attrib:
+            context.files.add_file_from_node(
+                context,
+                context.sources, node, 'Include')
             return  # TODO: handle settings of files
         self._parse_nodes(context, node)
 
