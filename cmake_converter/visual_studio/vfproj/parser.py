@@ -35,6 +35,7 @@ class VFParser(Parser):
             'Tool': self._parse_nodes,
             'Files': self.__parse_files,
             'Filter': self.__parse_filter,
+            'Globals': self.do_nothing_node_stub,
         }
         self.attributes_handlers = {
             'Configuration_Name': self.__parse_configuration_name,
@@ -53,6 +54,7 @@ class VFParser(Parser):
             'VFFortranCompilerTool_InterproceduralOptimizations': context.flags.set_flag,
             'VFFortranCompilerTool_EnableEnhancedInstructionSet': context.flags.set_flag,
             'VFFortranCompilerTool_EnableRecursion': context.flags.set_flag,
+            'VFFortranCompilerTool_ReentrantCode': context.flags.set_flag,
             'VFFortranCompilerTool_Preprocess': context.flags.set_flag,
             'VFFortranCompilerTool_SourceFileFormat': context.flags.set_flag,
             'VFFortranCompilerTool_DebugParameter': context.flags.set_flag,
@@ -74,6 +76,7 @@ class VFParser(Parser):
             'VFFortranCompilerTool_InitLocalVarToNAN': context.flags.set_flag,
             'VFFortranCompilerTool_FloatingPointExceptionHandling': context.flags.set_flag,
             'VFFortranCompilerTool_ExtendSinglePrecisionConstants': context.flags.set_flag,
+            'VFFortranCompilerTool_FloatingPointModel': context.flags.set_flag,
             'VFFortranCompilerTool_FloatingPointSpeculation': context.flags.set_flag,
             'VFFortranCompilerTool_FloatingPointStackCheck': context.flags.set_flag,
             'VFFortranCompilerTool_ExternalNameInterpretation': context.flags.set_flag,
@@ -96,6 +99,8 @@ class VFParser(Parser):
             'VFFortranCompilerTool_ObjectFile': self.do_nothing_attr_stub,  # TODO?
             'VFFortranCompilerTool_AssemblerListingLocation': self.do_nothing_attr_stub,  # TODO?
             'VFFortranCompilerTool_PdbFile': self.do_nothing_attr_stub,  # TODO?
+            'VFFortranCompilerTool_ParallelizerDiagLevel': self.do_nothing_attr_stub,  # obsolete?
+            'VFFortranCompilerTool_VectorizerDiagLevel': self.do_nothing_attr_stub,  # obsolete?
             'VFLinkerTool_OutputFile': context.variables.set_output_file,
             'VFLibrarianTool_OutputFile': context.variables.set_output_file,
             'VFLinkerTool_ImportLibrary': context.variables.set_import_library,
@@ -114,10 +119,13 @@ class VFParser(Parser):
                 self.do_nothing_attr_stub,
             'VFResourceCompilerTool_ResourceOutputFileName':
                 self.do_nothing_attr_stub,  # TODO?
+            'VFPreBuildEventTool_ExcludedFromBuild': self.do_nothing_attr_stub,
             'VFPreBuildEventTool_CommandLine':
                 context.dependencies.set_target_pre_build_events,
+            'VFPreLinkEventTool_ExcludedFromBuild': self.do_nothing_attr_stub,
             'VFPreLinkEventTool_CommandLine':
                 context.dependencies.set_target_pre_link_events,
+            'VFPostBuildEventTool_ExcludedFromBuild': self.do_nothing_attr_stub,
             'VFPostBuildEventTool_CommandLine':
                 context.dependencies.set_target_post_build_events,
         }

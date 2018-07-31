@@ -41,6 +41,7 @@ class FortranFlags(Flags):
             'InterproceduralOptimizations': self.__set_interprocedural_optimizations,
             'EnableEnhancedInstructionSet': self.__set_enable_enhanced_instruction_set,
             'EnableRecursion': self.__set_enable_recursion,
+            'ReentrantCode': self.__set_reentrant_code,
             'Preprocess': self.set_preprocess_source_file,
             'SourceFileFormat': self.set_source_file_format,
             'DebugParameter': self.set_debug_parameter,
@@ -62,6 +63,7 @@ class FortranFlags(Flags):
             'InitLocalVarToNAN': self.set_init_local_var_to_nan,
             'FloatingPointExceptionHandling': self.set_floating_point_exception_handling,
             'ExtendSinglePrecisionConstants': self.set_extend_single_precision_constants,
+            'FloatingPointModel': self.__set_floating_point_model,
             'FloatingPointSpeculation': self.__set_floating_point_speculation,
             'FloatingPointStackCheck': self.set_floating_point_stack_check,
             'ExternalNameInterpretation': self.set_external_name_interpretation,
@@ -95,6 +97,7 @@ class FortranFlags(Flags):
             'InterproceduralOptimizations',
             'EnableEnhancedInstructionSet',
             'EnableRecursion',
+            'ReentrantCode',
             'Preprocess',
             'SourceFileFormat',
             'DebugParameter',
@@ -116,6 +119,7 @@ class FortranFlags(Flags):
             'InitLocalVarToNAN',
             'FloatingPointExceptionHandling',
             'ExtendSinglePrecisionConstants',
+            'FloatingPointModel',
             'FloatingPointSpeculation',
             'FloatingPointStackCheck',
             'ExternalNameInterpretation',
@@ -597,6 +601,26 @@ class FortranFlags(Flags):
         return flag_values
 
     @staticmethod
+    def __set_floating_point_model(context, flag_name, flag_value):
+        """
+        Set extend single precision constants flag
+
+        """
+        del context, flag_name, flag_value
+        flag_values = {
+            'fast2': {ifort_cl_win: '-fp:fast=2',
+                      ifort_cl_unix: '-fp-model fast=2'},
+            'strict': {ifort_cl_win: '-fp:strict',
+                       ifort_cl_unix: '-fp-model strict'},
+            'source': {ifort_cl_win: '-fp:source',
+                       ifort_cl_unix: '-fp-model source'},
+            'precise': {ifort_cl_win: '-fp:precise',
+                        ifort_cl_unix: '-fp-model precise'},
+            default_value: {}
+        }
+        return flag_values
+
+    @staticmethod
     def __set_floating_point_speculation(context, flag_name, flag_value):
         """
         Set extend single precision constants flag
@@ -722,9 +746,23 @@ class FortranFlags(Flags):
         return flag_values
 
     @staticmethod
+    def __set_reentrant_code(context, flag_name, flag_value):
+        del context, flag_name, flag_value
+        flag_values = {
+            'reentrancyNone': {ifort_cl_win: '-reentrancy:none',
+                               ifort_cl_unix: '-reentrancy none'},
+            'reentrancyAsync': {ifort_cl_win: '-reentrancy:async',
+                                ifort_cl_unix: '-reentrancy async'},
+            'reentrancyThreaded': {ifort_cl_win: '-reentrancy:threaded',
+                                   ifort_cl_unix: '-reentrancy threaded'},
+            default_value: {}
+        }
+        return flag_values
+
+    @staticmethod
     def set_debug_information_format(context, flag_name, flag_value):
         """
-        Set debug inforamtion format flag
+        Set debug information format flag
 
         """
         del context, flag_name, flag_value
