@@ -49,7 +49,7 @@ class ProjectFiles(object):
         pass
 
     def add_file_from_node(self, context, files_dest_dict, file_node,
-                           file_node_attr):
+                           file_node_attr, source_group):
         if file_node.get(file_node_attr) is not None:
             node_text = str(file_node.get(file_node_attr))
             node_text = '/'.join(node_text.split('\\'))
@@ -66,10 +66,13 @@ class ProjectFiles(object):
                                                             file_name)
                 if real_name:
                     files_dest_dict[file_path].append(real_name)
-                    files_dest_dict[file_path].sort(key=str.lower)
                     if file_path:
                         file_path = file_path + '/'
                     file_path_name = file_path + real_name
+                    if source_group not in context.source_groups:
+                        context.source_groups[source_group] = []
+                    context.source_groups[source_group].append(file_path_name)
+                    context.source_groups[source_group].sort(key=str.lower)
                     self.parse_file_node_options(context, file_node, file_path_name)
                     self.include_directive_case_check(context,
                                                       file_path_name,
@@ -145,70 +148,36 @@ class ProjectFiles(object):
         cmake_file.write('project({0}{1})\n\n'.format(context.project_name, lang))
 
     @staticmethod
-    def write_header_files(context, cmake_file):
-        """
-        Write header files variables to file() cmake function
+    def get_source_group_var(source_group_name):
+        if not source_group_name:
+            return 'no_group_source_files'
+        else:
+            return source_group_name.replace(' ', '_')
 
-        :param context: Converter context
-        :type context: Context
-        :param cmake_file: CMakeLists.txt IO wrapper
-        :type cmake_file: _io.TextIOWrapper
-        """
-
-        if len(context.headers) == 0:
-            return
-
-        write_comment(cmake_file, 'Header files')
-        cmake_file.write('set(HEADERS_FILES\n')
-
+    def write_source_groups(self, context, cmake_file):
+        write_comment(cmake_file, 'Source groups')
         working_path = os.path.dirname(context.vcxproj_path)
-        if '' in context.headers:
-            for header_file in context.headers['']:
-                cmake_file.write('    {0}\n'
-                                 .format(normalize_path(context, working_path, header_file, False)))
 
-        for headers_dir in context.headers:
-            if headers_dir == '':
-                continue
-            for header_file in context.headers[headers_dir]:
+        for source_group in sorted(context.source_groups):
+            source_group_var = self.get_source_group_var(source_group)
+            cmake_file.write('set({}\n'.format(source_group_var))
+            for src_file in context.source_groups[source_group]:
                 cmake_file.write('    {0}\n'
                                  .format(normalize_path(context, working_path,
-                                                        os.path.join(headers_dir, header_file),
+                                                        src_file,
                                                         False)))
 
-        cmake_file.write(')\n')
-        cmake_file.write('source_group("Headers" FILES ${HEADERS_FILES})\n\n')
+            cmake_file.write(')\n')
+            cmake_file.write(
+                'source_group("{}" FILES ${{{}}})\n\n'.format(source_group, source_group_var)
+            )
 
-    @staticmethod
-    def write_source_files(context, cmake_file):
-        """
-        Write source files variables to file() cmake function
-
-        :param context: Converter context
-        :type context: Context
-        :param cmake_file: CMakeLists.txt IO wrapper
-        :type cmake_file: _io.TextIOWrapper
-        """
-
-        write_comment(cmake_file, 'Source files')
-        cmake_file.write('set(SRC_FILES\n')
-
-        working_path = os.path.dirname(context.vcxproj_path)
-        if '' in context.sources:
-            for src_file in context.sources['']:
-                cmake_file.write('    {0}\n'
-                                 .format(normalize_path(context, working_path, src_file, False)))
-
-        for src_dir in context.sources:
-            if src_dir == '':
-                continue
-            for src_file in context.sources[src_dir]:
-                cmake_file.write('    {0}\n'
-                                 .format(normalize_path(context, working_path,
-                                                        os.path.join(src_dir, src_file), False)))
-
-        cmake_file.write(')\n')
-        cmake_file.write('source_group("Sources" FILES ${SRC_FILES})\n\n')
+        cmake_file.write('set(ALL_FILES ')
+        for source_group in context.source_groups:
+            cmake_file.write(
+                ' ${{{}}}'.format(context.files.get_source_group_var(source_group))
+            )
+        cmake_file.write(')\n\n')
 
     @staticmethod
     def add_additional_code(context, file_to_add, cmake_file):

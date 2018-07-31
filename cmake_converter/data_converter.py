@@ -94,11 +94,10 @@ class DataConverter(object):
         if context.additional_code is not None:
             context.files.add_additional_code(context, context.additional_code, cmake_file)
 
-        context.files.write_header_files(context, cmake_file)
+        context.files.write_source_groups(context, cmake_file)
 
         if not context.has_only_headers:
             context.flags.write_precompiled_headers_macro(context, cmake_file)
-            context.files.write_source_files(context, cmake_file)
             context.flags.write_use_pch_macro(context, cmake_file)
             write_comment(cmake_file, 'Target')
             context.flags.write_target_artifact(context, cmake_file)

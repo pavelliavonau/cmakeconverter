@@ -132,7 +132,7 @@ class VCXParser(Parser):
         if 'Include' in node.attrib:
             context.files.add_file_from_node(
                 context,
-                context.headers, node, 'Include')
+                context.headers, node, 'Include', 'Headers')
             return  # TODO: handle settings of files
         self._parse_nodes(context, node)
 
@@ -140,7 +140,7 @@ class VCXParser(Parser):
         if 'Include' in node.attrib:
             context.files.add_file_from_node(
                 context,
-                context.sources, node, 'Include')
+                context.sources, node, 'Include', 'Sources')
             return  # TODO: handle settings of files
         self._parse_nodes(context, node)
 

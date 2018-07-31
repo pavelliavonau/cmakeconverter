@@ -130,6 +130,7 @@ class VFParser(Parser):
             'VFPostBuildEventTool_CommandLine':
                 context.dependencies.set_target_post_build_events,
             'File_RelativePath': self.__parse_file_relative_path,
+            'Filter_Name': self.do_nothing_attr_stub,
         }
 
     def parse(self, context):
@@ -227,8 +228,15 @@ class VFParser(Parser):
 
     @staticmethod
     def __parse_file_relative_path(context, attr_name, attr_value, file_node):
-        context.files.add_file_from_node(context, context.sources, file_node, 'RelativePath')
+        source_group = ''
+        parent = file_node.getparent()
+        if Parser.strip_namespace(parent.tag) == 'Filter':
+            source_group = parent.attrib['Name']
+        context.files.add_file_from_node(context, context.sources, file_node, 'RelativePath',
+                                         source_group)
 
     def __parse_filter(self, context, filter_node):
         self._parse_nodes(context, filter_node)
 
+    def __parse_filter_name(self, context, attr_name, attr_value, file_node):
+        self.source_group = attr_value

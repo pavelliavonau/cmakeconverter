@@ -61,6 +61,7 @@ class Context(object):
         self.project_name = ''
         self.sources = {}
         self.headers = {}
+        self.source_groups = {}
         self.file_spec_raw_options = {}
         self.supported_architectures = set()
         self.settings = {}

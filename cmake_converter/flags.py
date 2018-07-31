@@ -40,6 +40,7 @@ default_value = 'default_value'
 
 pch_macro_text = """MACRO(ADD_PRECOMPILED_HEADER PrecompiledHeader PrecompiledSource SourcesVar)
     if(MSVC)
+        list(REMOVE_ITEM ${SourcesVar} ${PrecompiledSource})
         set(PrecompiledBinary "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.pch")
         SET_SOURCE_FILES_PROPERTIES(${PrecompiledSource}
                                     PROPERTIES COMPILE_FLAGS "/Yc\\"${PrecompiledHeader}\\" """ +\
@@ -246,8 +247,4 @@ class Flags(object):
             else:  # pragma: no cover
                 cmake_file.write('add_executable(${PROJECT_NAME}')
                 message(context, 'CMake will build an EXECUTABLE.', '')
-            if not context.has_only_headers:
-                cmake_file.write(' ${SRC_FILES}')
-            if context.has_headers:
-                cmake_file.write(' ${HEADERS_FILES}')
-            cmake_file.write(')\n\n')
+            cmake_file.write(' ${ALL_FILES})\n\n')
