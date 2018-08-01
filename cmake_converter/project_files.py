@@ -152,7 +152,8 @@ class ProjectFiles(object):
         if not source_group_name:
             return 'no_group_source_files'
         else:
-            return source_group_name.replace(' ', '_')
+            source_group_name = source_group_name.replace(' ', '_')
+            return source_group_name.replace('\\\\', '__')
 
     def write_source_groups(self, context, cmake_file):
         write_comment(cmake_file, 'Source groups')

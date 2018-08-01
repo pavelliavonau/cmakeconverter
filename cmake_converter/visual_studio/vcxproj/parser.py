@@ -26,6 +26,7 @@ from cmake_converter.parser import Parser, StopParseException
 from cmake_converter.context import ContextInitializer
 from cmake_converter.data_files import get_propertygroup, get_definitiongroup
 from cmake_converter.utils import replace_vs_vars_with_cmake_vars
+from cmake_converter.data_files import get_xml_data
 
 
 class VCXParser(Parser):
@@ -85,8 +86,10 @@ class VCXParser(Parser):
             'ClInclude_Include': self.do_nothing_attr_stub,  # TODO?
             'Condition': self.__parse_condition,
         }
+        self.filters = None
 
     def parse(self, context):
+        self.filters = get_xml_data(context, context.vcxproj_path + '.filters')
         tree = context.vcxproj['tree']
         root = tree.getroot()
         self._parse_nodes(context, root)
@@ -128,19 +131,41 @@ class VCXParser(Parser):
     def __parse_property_group(self, context, node):
         self._parse_nodes(context, node)
 
+    def __get_source_group_from_filters(self, node, filter_node_name):
+        if self.filters:
+            file_path = node.attrib['Include']
+            filter_node = self.filters['tree'].xpath(
+                '//ns:{}[@Include="{}"]/*'.format(filter_node_name, file_path),
+                namespaces=self.filters['ns']
+            )
+            if filter_node:
+                return filter_node[0].text.replace('\\', '\\\\')
+            else:
+                return ''
+
     def __parse_cl_include(self, context, node):
         if 'Include' in node.attrib:
+            source_group = 'Headers'
+
+            if self.filters:
+                source_group = self.__get_source_group_from_filters(node, 'ClInclude')
+
             context.files.add_file_from_node(
                 context,
-                context.headers, node, 'Include', 'Headers')
+                context.headers, node, 'Include', source_group)
             return  # TODO: handle settings of files
         self._parse_nodes(context, node)
 
     def __parse_cl_compile(self, context, node):
         if 'Include' in node.attrib:
+            source_group = 'Sources'
+
+            if self.filters:
+                source_group = self.__get_source_group_from_filters(node, 'ClCompile')
+
             context.files.add_file_from_node(
                 context,
-                context.sources, node, 'Include', 'Sources')
+                context.sources, node, 'Include', source_group)
             return  # TODO: handle settings of files
         self._parse_nodes(context, node)
 
