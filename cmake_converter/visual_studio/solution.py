@@ -71,17 +71,25 @@ def parse_solution(sln_text):
 
     solution_data = {}
     projects_data = {}
+    solution_folders = {}
     p = re.compile(
-        r'(Project.*\s=\s\"(.*)\",\s\"(.*\.(.*proj))\",.*({.*\})(?:.|\n)*?EndProject(?!Section))'
+        r'(Project.*\s=\s\"(.*)\",\s\"(.*)\",.*({.*\})(?:.|\n)*?EndProject(?!Section))'
     )
 
     parsed_data = p.findall(sln_text)
     for project_data_match in parsed_data:
+        path = project_data_match[2]
+        guid = project_data_match[3]
+
+        file_name, ext = os.path.splitext(os.path.basename(path))
+
+        if 'proj' not in ext:
+            solution_folders[guid] = path
+            continue
+
         project = dict()
         project['name'] = project_data_match[1]
-        project['path'] = project_data_match[2]
-        project['type'] = project_data_match[3]
-        guid = project_data_match[4]
+        project['path'] = path
         if 'ProjectDependencies' in project_data_match[0]:
             project['sln_deps'] = []
             dependencies_section = re.compile(
@@ -119,6 +127,19 @@ def parse_solution(sln_text):
                 p['sln_configs_2_project_configs'] = {}
             p['sln_configs_2_project_configs'][configuration[1]] = configuration[2]
 
+    nested_projects_re = re.compile(
+        r'GlobalSection\(NestedProjects\) = preSolution((?:.|\n)*?)EndGlobalSection'
+    )
+    solution_folders_map = {}
+    nested_projects_matches = nested_projects_re.findall(sln_text)
+    solution_dir_link_re = re.compile(r'(\{.+\}) = (\{.+\})')
+    for nested_projects_match in nested_projects_matches:
+        solution_dir_links = solution_dir_link_re.findall(nested_projects_match)
+        for solution_dir_link in solution_dir_links:
+            solution_folders_map[solution_dir_link[0]] = solution_dir_link[1]
+
+    set_solution_dirs_to_projects(projects_data, solution_folders_map, solution_folders)
+
     # replace GUIDs with Project names in dependencies
     for project_guid in projects_data:
         project_data = projects_data[project_guid]
@@ -132,6 +153,22 @@ def parse_solution(sln_text):
     solution_data['projects_data'] = projects_data
 
     return solution_data
+
+
+def set_solution_dirs_to_projects(projects_data, solution_folders_map, solution_folders):
+    for project_guid in projects_data:
+        project_solution_dir = ''
+
+        if project_guid in solution_folders_map:
+            guid = project_guid
+            while guid in solution_folders_map:
+                if project_solution_dir:
+                    project_solution_dir = '/' + project_solution_dir
+                project_solution_dir = solution_folders[solution_folders_map[guid]]\
+                    + project_solution_dir
+                guid = solution_folders_map[guid]
+
+        projects_data[project_guid]['project_solution_dir'] = project_solution_dir
 
 
 def convert_project(context, xml_project_path, cmake_lists_destination_path):
@@ -219,6 +256,7 @@ def convert_solution(initial_context, sln_path):
         set_dependencies_for_project(project_context, projects_data[guid])
         project_context.sln_configurations_map = \
             projects_data[guid]['sln_configs_2_project_configs']
+        project_context.solution_folder = projects_data[guid]['project_solution_dir']
         if subdirectory not in threads_data:
             threads_data[subdirectory] = []
         threads_data[subdirectory].append({
@@ -327,6 +365,9 @@ def convert_solution(initial_context, sln_path):
 
     write_comment(sln_cmake, 'Additional Global Settings(add specific info there)')
     sln_cmake.write('include(CMake/GlobalSettingsInclude.cmake OPTIONAL)\n\n')
+
+    write_comment(sln_cmake, 'Use solution folders feature')
+    sln_cmake.write('set_property(GLOBAL PROPERTY USE_FOLDERS ON)\n\n')
 
     write_comment(sln_cmake, 'Sub-projects')
 

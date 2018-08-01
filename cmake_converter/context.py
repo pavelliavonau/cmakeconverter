@@ -56,6 +56,7 @@ class Context(object):
         self.is_converting_solution = False
 
         self.sln_configurations_map = None
+        self.solution_folder = ''
         self.configurations_to_parse = set()
         self.cmake = ''
         self.project_name = ''

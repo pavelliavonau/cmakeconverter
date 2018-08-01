@@ -247,4 +247,14 @@ class Flags(object):
             else:  # pragma: no cover
                 cmake_file.write('add_executable(${PROJECT_NAME}')
                 message(context, 'CMake will build an EXECUTABLE.', '')
-            cmake_file.write(' ${ALL_FILES})\n\n')
+            cmake_file.write(' ${ALL_FILES})\n')
+
+        if context.solution_folder:
+            cmake_file.write(
+                'set_target_properties(${{PROJECT_NAME}} PROPERTIES FOLDER "{}")\n'.format(
+                    context.solution_folder
+                )
+            )
+
+        cmake_file.write('\n')
+
