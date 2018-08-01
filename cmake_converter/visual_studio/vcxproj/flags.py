@@ -1005,10 +1005,12 @@ class CPPFlags(Flags):
         )
 
     def write_use_pch_macro(self, context, cmake_file):
-        setting = ''
-        for s in context.settings:
-            setting = s
+        need_pch_macro = False
+        for setting in context.settings:
+            if self.setting_has_pch(context, setting):
+                need_pch_macro = True
+                break
 
-        cmake_file.write('# Warning: pch and target are the same for every configuration\n')
-        if self.setting_has_pch(context, setting):
+        if need_pch_macro:
+            cmake_file.write('# Warning: pch and target are the same for every configuration\n')
             self.write_precompiled_headers(context, setting, cmake_file)
