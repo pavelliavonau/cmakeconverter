@@ -890,3 +890,11 @@ class FortranFlags(Flags):
                 self.flags[flag_name][ifort_cl_unix].append(unix_option)
             message(context,
                     'Additional Options : {0}'.format(str(ready_add_opts)), '')
+
+    @staticmethod
+    def write_target_artifact(context, cmake_file):
+        Flags.write_target_artifact(context, cmake_file)
+        cmake_file.write('set_target_properties(${PROJECT_NAME} '
+                         'PROPERTIES '
+                         'Fortran_MODULE_DIRECTORY '
+                         '"${${PROJECT_NAME}_BINARY_DIR}/${PROJECT_NAME}.dir")\n\n')
