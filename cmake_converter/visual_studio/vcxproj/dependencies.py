@@ -74,31 +74,23 @@ class VCXDependencies(Dependencies):
                 '$<SEMICOLON>'.join(add_libs)
 
     @staticmethod
-    def find_target_additional_library_directories(context):
+    def set_target_additional_library_directories(context, additional_library_directories):
         """
         Find and set additional library directories in context
 
         """
 
-        additional_library_directories = context.vcxproj['tree'].xpath(
-            '//ns:AdditionalLibraryDirectories', namespaces=context.vcxproj['ns']
+        list_depends = additional_library_directories.text.replace(
+            '%(AdditionalLibraryDirectories)', ''
         )
-
-        context.add_lib_dirs = []
-        if additional_library_directories:
-            list_depends = additional_library_directories[0].text.replace(
-                '%(AdditionalLibraryDirectories)', ''
-            )
-            if list_depends != '':
-                message(context, 'Additional Library Directories = %s' % list_depends, '')
-                add_lib_dirs = []
-                for d in list_depends.split(';'):
-                    d = d.strip()
-                    if d != '':
-                        add_lib_dirs.append(d)
-                context.add_lib_dirs = add_lib_dirs
-        else:  # pragma: no cover
-            message(context, 'No additional library dependencies.', '')
+        if list_depends != '':
+            message(context, 'Additional Library Directories = {}'.format(list_depends), '')
+            add_lib_dirs = []
+            for d in list_depends.split(';'):
+                d = d.strip()
+                if d != '':
+                    add_lib_dirs.append(d)
+            context.add_lib_dirs = add_lib_dirs
 
     @staticmethod
     def find_target_property_sheets(context):

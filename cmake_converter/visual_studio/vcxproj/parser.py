@@ -45,6 +45,8 @@ class VCXParser(Parser):
             'ClCompile': self.__parse_cl_compile,
             'AdditionalIncludeDirectories': context.dependencies.set_include_dirs,
             'AdditionalDependencies': context.dependencies.set_target_additional_dependencies,
+            'AdditionalLibraryDirectories':
+                context.dependencies.set_target_additional_library_directories,
             'PreprocessorDefinitions': context.flags.set_defines,
             'PrecompiledHeader': context.flags.set_flag,
             'Link': self._parse_nodes,

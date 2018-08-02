@@ -42,10 +42,6 @@ class Dependencies(object):
     """
 
     @staticmethod
-    def find_target_additional_library_directories(context):
-        pass
-
-    @staticmethod
     def find_target_property_sheets(context):
         pass
 
