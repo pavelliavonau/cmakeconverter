@@ -90,6 +90,11 @@ def main():  # pragma: no cover
         action='store_true'
     )
     parser.add_argument(
+        '-w', '--warning-level',
+        help='run converter with given verbocity of warnings([1..4]default=3).',
+        dest='warn',
+    )
+    parser.add_argument(
         '-j', '--jobs',
         help='run converter using given number of processes.',
         dest='jobs',
@@ -129,6 +134,10 @@ def main():  # pragma: no cover
     if args.jobs:
         initial_context.jobs = int(args.jobs)
     message(initial_context, 'processes count = {}'. format(initial_context.jobs), 'done')
+
+    if args.warn:
+        initial_context.warn_level = int(args.warn)
+    message(initial_context, 'warnings level = {}'. format(initial_context.warn_level), 'done')
 
     if not args.solution:
         cmake_lists_path = os.path.dirname(args.project)

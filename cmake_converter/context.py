@@ -53,6 +53,7 @@ class Context(object):
         self.std = None
         self.dry = False
         self.silent = False
+        self.warn_level = 3
         self.is_converting_solution = False
 
         self.sln_configurations_map = None

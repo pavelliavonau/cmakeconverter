@@ -404,8 +404,12 @@ def message(context, text, status):  # pragma: no cover
 
     if status == 'error':
         print(message_begin + 'ERR  : ' + FAIL + text + ENDC)
-    elif status == 'warn':
-        print(message_begin + 'WARN : ' + WARN + text + ENDC)
+    elif 'warn' in status:
+        if status == 'warn':
+            status += '1'
+        message_warning_level = int(status[-1])
+        if message_warning_level <= context.warn_level:
+            print(message_begin + 'WARN : ' + WARN + text + ENDC)
     elif status == 'ok':
         print(message_begin + 'OK   : ' + OK + text + ENDC)
     elif status == 'done':
