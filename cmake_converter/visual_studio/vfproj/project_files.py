@@ -46,7 +46,8 @@ class VFProjectFiles(ProjectFiles):
             r'include \'(.*)\'', re.IGNORECASE
         )
         working_path = os.path.dirname(context.vcxproj_path)
-        file = open(os.path.join(working_path, file_path_name), 'r')
+        file_abs_path = os.path.join(working_path, file_path_name)
+        file = open(file_abs_path, 'r')
         file_text = file.read()
         file.close()
         includes = includes_re.findall(file_text)
@@ -57,6 +58,12 @@ class VFProjectFiles(ProjectFiles):
                 continue
             checked_includes.add(include_name_in_file)
             include_file_path, include_file_name = os.path.split(include_name_in_file)
+
+            abs_source_path = os.path.dirname(file_abs_path)
+            if os.path.exists(abs_source_path):
+                file_lists_for_include_paths[abs_source_path] \
+                    = os.listdir(abs_source_path)
+
             found = False
             for include_path in file_lists_for_include_paths:
                 files = file_lists_for_include_paths[include_path]
@@ -84,3 +91,4 @@ class VFProjectFiles(ProjectFiles):
             if not found:
                 message(context, 'include {0} in file {1} not found'
                         .format(include_name_in_file, file_path_name), 'error')
+            file_lists_for_include_paths.pop(abs_source_path)
