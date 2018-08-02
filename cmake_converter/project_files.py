@@ -65,15 +65,22 @@ class ProjectFiles(object):
                 real_name = take_name_from_list_case_ignore(context, self.file_lists[file_path],
                                                             file_name)
                 if real_name:
-                    files_dest_dict[file_path].append(real_name)
-                    if file_path:
-                        file_path = file_path + '/'
-                    file_path_name = file_path + real_name
-                    if source_group not in context.source_groups:
-                        context.source_groups[source_group] = []
-                    context.source_groups[source_group].append(file_path_name)
-                    context.source_groups[source_group].sort(key=str.lower)
-                    self.parse_file_node_options(context, file_node, file_path_name)
+                    name_to_add = real_name
+                else:
+                    name_to_add = file_name
+                    message(context, 'Adding absent {} file into project files'
+                            .format(file_name), 'warn')
+
+                files_dest_dict[file_path].append(name_to_add)
+                if file_path:
+                    file_path = file_path + '/'
+                file_path_name = file_path + name_to_add
+                if source_group not in context.source_groups:
+                    context.source_groups[source_group] = []
+                context.source_groups[source_group].append(file_path_name)
+                context.source_groups[source_group].sort(key=str.lower)
+                self.parse_file_node_options(context, file_node, file_path_name)
+                if real_name:
                     self.include_directive_case_check(context,
                                                       file_path_name,
                                                       self.file_lists_for_include_paths)
