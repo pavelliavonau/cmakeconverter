@@ -56,35 +56,22 @@ class VCXDependencies(Dependencies):
         message(context, 'Added reference : {}'.format(ref), '')
 
     @staticmethod
-    def find_target_additional_dependencies(context):
+    def set_target_additional_dependencies(context, dependencies):
         """
         Find and set additional dependencies of current project in context
 
         """
-
-        for setting in context.settings:
-            dependencies = context.vcxproj['tree'].xpath(
-                '{0}/ns:Link/ns:AdditionalDependencies'.format(
-                        context.definition_groups[setting]),
-                namespaces=context.vcxproj['ns'])
-            if not dependencies:
-                dependencies = context.vcxproj['tree'].xpath(
-                    '{0}/ns:Lib/ns:AdditionalDependencies'.format(
-                        context.definition_groups[setting]),
-                    namespaces=context.vcxproj['ns'])
-            if dependencies:
-                list_depends = dependencies[0].text.replace('%(AdditionalDependencies)', '')
-                if list_depends != '':
-                    add_libs = []
-                    for d in list_depends.split(';'):
-                        if d != '%(AdditionalDependencies)':
-                            if os.path.splitext(d)[1] == '.lib':
-                                add_libs.append(d.replace('.lib', ''))
-                    message(context, 'Additional Dependencies for {0} = {1}'
-                            .format(setting, add_libs),
-                            '')
-                    context.add_lib_deps = True
-                    context.settings[setting]['add_lib_deps'] = '$<SEMICOLON>'.join(add_libs)
+        list_depends = dependencies.text.replace('%(AdditionalDependencies)', '')
+        if list_depends != '':
+            add_libs = []
+            for d in list_depends.split(';'):
+                if d != '%(AdditionalDependencies)':
+                    if os.path.splitext(d)[1] == '.lib':
+                        add_libs.append(d.replace('.lib', ''))
+            message(context, 'Additional Dependencies : {}'.format(add_libs), '')
+            context.add_lib_deps = True
+            context.settings[context.current_setting]['add_lib_deps'] =\
+                '$<SEMICOLON>'.join(add_libs)
 
     @staticmethod
     def find_target_additional_library_directories(context):
