@@ -41,33 +41,19 @@ class VCXDependencies(Dependencies):
         )
         message(context, 'Include Directories found : {0}'.format(inc_dirs), '')
 
-    def find_target_references(self, context):
+    def add_target_reference(self, context, attr_name, attr_value, node):
         """
         Find and set references of project to current context
 
         """
 
-        references_found = []
-        references = context.vcxproj['tree'].xpath('//ns:ProjectReference',
-                                                   namespaces=context.vcxproj['ns'])
-        if references:
-            for ref in references:
-                if ref is None:
-                    continue
+        ref = self.get_dependency_target_name(
+            context,
+            os.path.join(os.path.dirname(context.vcxproj_path), attr_value)
+        )
 
-                ref_inc = ref.get('Include')
-                if ref_inc is None:
-                    continue
-
-                if ref_inc not in references_found:
-                    ref = self.get_dependency_target_name(
-                        context,
-                        os.path.join(os.path.dirname(context.vcxproj_path), ref_inc)
-                    )
-                    references_found.append(ref)
-                message(context, 'References : {}'.format(context.target_references), '')
-
-        context.target_references = references_found
+        context.target_references.append(ref)
+        message(context, 'Added reference : {}'.format(ref), '')
 
     @staticmethod
     def find_target_additional_dependencies(context):

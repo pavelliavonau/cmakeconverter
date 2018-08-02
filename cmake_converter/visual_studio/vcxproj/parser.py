@@ -85,6 +85,7 @@ class VCXParser(Parser):
             'ClCompile_Include': self.do_nothing_attr_stub,  # TODO?
             'ClInclude_Include': self.do_nothing_attr_stub,  # TODO?
             'Condition': self.__parse_condition,
+            'ProjectReference_Include': context.dependencies.add_target_reference,
         }
         self.filters = None
 

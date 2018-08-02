@@ -42,10 +42,6 @@ class Dependencies(object):
     """
 
     @staticmethod
-    def find_target_references(context):
-        pass
-
-    @staticmethod
     def find_target_additional_dependencies(context):
         pass
 
