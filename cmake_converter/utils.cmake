@@ -165,3 +165,22 @@ function(add_custom_command_if)
         message(FATAL_ERROR "Wrong syntax. A TARGET or OUTPUT must be specified.")
     endif()
 endfunction()
+
+################################################################################
+# Add link directory
+#     target_link_directories(<target> [item1 [item2 [...]]])
+################################################################################
+function(target_link_directories TARGET)
+    if(${CMAKE_GENERATOR} MATCHES "Visual Studio")
+        set(QUOTE "")
+    else()
+        set(QUOTE "\"")
+    endif()
+
+    unset(LINK_DIRS)
+    foreach(LINK_DIR ${ARGN})
+        list(APPEND LINK_DIRS "${CMAKE_LIBRARY_PATH_FLAG}${QUOTE}${LINK_DIR}${QUOTE}")
+    endforeach()
+
+    target_link_libraries(${TARGET} ${LINK_DIRS})
+endfunction()
