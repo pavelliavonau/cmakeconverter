@@ -51,6 +51,7 @@ class VCXParser(Parser):
             'PrecompiledHeader': context.flags.set_flag,
             'Link': self._parse_nodes,
             'Lib': self._parse_nodes,
+            'ImportGroup': self._parse_nodes,
             'OutputFile': context.variables.set_output_file,
             'ImportLibrary': context.variables.set_import_library,
             'OutDir': context.variables.set_output_dir,
@@ -85,6 +86,7 @@ class VCXParser(Parser):
         }
         self.attributes_handlers = {
             'ItemGroup_Label': self.do_nothing_attr_stub,
+            'Import_Project': context.dependencies.add_target_property_sheet,
             'ProjectConfiguration_Include': self.__parse_project_configuration_include,
             'ClCompile_Include': self.do_nothing_attr_stub,  # TODO?
             'ClInclude_Include': self.do_nothing_attr_stub,  # TODO?

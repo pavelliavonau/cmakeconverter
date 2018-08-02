@@ -93,38 +93,37 @@ class VCXDependencies(Dependencies):
             context.add_lib_dirs = add_lib_dirs
 
     @staticmethod
-    def find_target_property_sheets(context):
+    def add_target_property_sheet(context, attr_name, filename, node):
         """
         Find and set in current context property sheets
 
         """
 
-        property_nodes = context.vcxproj['tree'].xpath(
-            '//ns:ImportGroup[@Label="PropertySheets"]/ns:Import', namespaces=context.vcxproj['ns']
+        parent = node.getparent()
+        if 'Label' not in parent.attrib:
+            return
+        if 'PropertySheets' not in parent.attrib['Label']:
+            return
+        props_set = set(context.property_sheets)
+        label = node.get('Label')
+        if label:
+            return
+        if 'Microsoft.CPP.UpgradeFromVC60' in filename:
+            return
+        # props_path = os.path.join(os.path.dirname(context.vcxproj_path), filename)
+        working_path = os.path.dirname(context.vcxproj_path)
+        props_set.add(
+            normalize_path(
+                context,
+                working_path,
+                filename,
+                False
+            ).replace('.props', '.cmake')
         )
-        props_set = set()
-        for node in property_nodes:
-            label = node.get('Label')
-            if not label:
-                filename = node.get('Project')
-                if 'Microsoft.CPP.UpgradeFromVC60' in filename:
-                    continue
-                # props_path = os.path.join(os.path.dirname(context.vcxproj_path), filename)
-                working_path = os.path.dirname(context.vcxproj_path)
-                props_set.add(
-                    normalize_path(
-                        context,
-                        working_path,
-                        filename,
-                        False
-                    ).replace('.props', '.cmake')
-                )
-                # properties_xml = get_xml_data(context, props_path)
-                # if properties_xml:
-                #     properties_xml.close()  # TODO collect data from props
-        props_list = list(props_set)
-        props_list.sort()
-        context.property_sheets = props_list
+        # properties_xml = get_xml_data(context, props_path)
+        # if properties_xml:
+        #     properties_xml.close()  # TODO collect data from props
+        context.property_sheets = sorted(props_set)
 
     @staticmethod
     def find_target_dependency_packages(context):
