@@ -7,6 +7,12 @@ dist/
 # IDE
 *.swp
 .idea/
+*.user
+*.suo
+*.db
+*.opendb
+*.db-shm
+*.db-wal
 
 # Tests/Coverage
 .coverage
