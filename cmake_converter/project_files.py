@@ -58,7 +58,9 @@ class ProjectFiles(object):
             file_path, file_name = os.path.split(node_text)
             if file_path not in self.file_lists:
                 vcxproj_dir = os.path.dirname(context.vcxproj_path)
-                self.file_lists[file_path] = os.listdir(os.path.join(vcxproj_dir, file_path))
+                self.file_lists[file_path] = []
+                if os.path.exists(os.path.join(vcxproj_dir, file_path)):
+                    self.file_lists[file_path] = os.listdir(os.path.join(vcxproj_dir, file_path))
             if file_path not in files_dest_dict:
                 files_dest_dict[file_path] = []
             if file_name not in files_dest_dict[file_path]:
