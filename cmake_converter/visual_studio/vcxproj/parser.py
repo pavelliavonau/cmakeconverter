@@ -43,6 +43,7 @@ class VCXParser(Parser):
             'ItemDefinitionGroup': self.__parse_item_definition_group,
             'ClInclude': self.__parse_cl_include,
             'ClCompile': self.__parse_cl_compile,
+            'None': self.__parse_none,
             'AdditionalIncludeDirectories': context.dependencies.set_include_dirs,
             'AdditionalDependencies': context.dependencies.set_target_additional_dependencies,
             'AdditionalLibraryDirectories':
@@ -102,7 +103,8 @@ class VCXParser(Parser):
         self._parse_nodes(context, root)
         context.flags.apply_flags_to_context(context)
         context.files.apply_files_to_context(context)
-        context.flags.define_pch_cpp_file(context)
+        if not context.has_only_headers:
+            context.flags.define_pch_cpp_file(context)
 
     def __parse_item_group(self, context, node):
         self._parse_nodes(context, node)
@@ -174,6 +176,25 @@ class VCXParser(Parser):
                 context,
                 context.sources, node, 'Include', source_group)
             return  # TODO: handle settings of files
+        self._parse_nodes(context, node)
+
+    def __parse_none(self, context, node):
+        if 'Include' in node.attrib:
+            source_group = ''
+
+            if self.filters:
+                source_group = self.__get_source_group_from_filters(node, 'None')
+
+            context.files.add_file_from_node(
+                context,
+                context.other_project_files,
+                node,
+                'Include',
+                source_group
+            )
+            if 'packages.config' in node.attrib['Include']:
+                context.packages_config_path = node.attrib['Include']
+            return
         self._parse_nodes(context, node)
 
     @staticmethod

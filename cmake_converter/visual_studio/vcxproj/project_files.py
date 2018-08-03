@@ -31,6 +31,8 @@ class VCXProjectFiles(ProjectFiles):
         for file_configuration_node in file_node:
             for setting in context.settings:
                 setting_condition = file_configuration_node.get('Condition')
+                if setting_condition is None:
+                    continue
                 if setting not in setting_condition:
                     continue
                 if node_text not in context.file_spec_raw_options:

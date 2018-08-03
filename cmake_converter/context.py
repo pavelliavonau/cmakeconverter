@@ -45,6 +45,7 @@ class Context(object):
         self.target_references = []
         self.add_lib_deps = False
         self.add_lib_dirs = []      # TODO: move to settings
+        self.packages_config_path = ''
         self.packages = []
 
         self.additional_code = None
@@ -63,6 +64,7 @@ class Context(object):
         self.project_name = ''
         self.sources = {}
         self.headers = {}
+        self.other_project_files = {}
         self.source_groups = {}
         self.file_spec_raw_options = {}
         self.supported_architectures = set()

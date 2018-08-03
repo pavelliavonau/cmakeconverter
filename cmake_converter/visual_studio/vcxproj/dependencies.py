@@ -134,10 +134,7 @@ class VCXDependencies(Dependencies):
 
         context.packages = []
 
-        packages_nodes = context.vcxproj['tree'].xpath(
-            '//ns:ItemGroup/ns:None[@Include="packages.config"]', namespaces=context.vcxproj['ns']
-        )
-        if packages_nodes:
+        if context.packages_config_path:
             # TODO with '|' in xpath and unify label name(remove hardcode)
             ext_targets = context.vcxproj['tree'].xpath(
                 '//ns:ImportGroup[@Label="ExtensionTargets"]/ns:Import'
@@ -151,9 +148,8 @@ class VCXDependencies(Dependencies):
                     '//ns:ImportGroup[@Label="ExtensionSettings"]/ns:Import',
                     namespaces=context.vcxproj['ns'])
 
-            filename = packages_nodes[0].get('Include')
             packages_xml = get_xml_data(context, os.path.join(os.path.dirname(context.vcxproj_path),
-                                        filename))
+                                                              context.packages_config_path))
             if packages_xml:
                 extension = packages_xml['tree'].xpath('/packages/package')
                 for ref in extension:
