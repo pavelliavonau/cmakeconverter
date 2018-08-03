@@ -42,10 +42,6 @@ class Dependencies(object):
     """
 
     @staticmethod
-    def find_target_dependency_packages(context):
-        pass
-
-    @staticmethod
     def find_target_pre_build_events(context):
         pass
 

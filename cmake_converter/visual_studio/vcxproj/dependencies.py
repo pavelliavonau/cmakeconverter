@@ -126,101 +126,114 @@ class VCXDependencies(Dependencies):
         context.property_sheets = sorted(props_set)
 
     @staticmethod
-    def find_target_dependency_packages(context):
-        """
-        Find and set other dependencies of project to current context. Like nuget for example.
+    def __get_info_from_packages_config(context):
+        packages_xml = get_xml_data(context, os.path.join(os.path.dirname(context.vcxproj_path),
+                                                          context.packages_config_path))
+        if not packages_xml:
+            return None
+        extension = packages_xml['tree'].xpath('/packages/package')
+        packages_xml_data = {}
+        for ref in extension:
+            package_id = ref.get('id')
+            package_version = ref.get('version')
+            id_version = '{0}.{1}'.format(package_id, package_version)
+            packages_xml_data[id_version] = [package_id, package_version]
+        return packages_xml_data
 
-        """
+    @staticmethod
+    def set_target_dependency_packages(context, attr_name, attr_value, ext_targets):
+        for import_project_node in ext_targets:
+            targets_file_path = import_project_node.get('Project')
+            if targets_file_path is None:
+                continue
 
-        context.packages = []
+            context.import_projects.append(targets_file_path)
 
-        if context.packages_config_path:
-            # TODO with '|' in xpath and unify label name(remove hardcode)
-            ext_targets = context.vcxproj['tree'].xpath(
-                '//ns:ImportGroup[@Label="ExtensionTargets"]/ns:Import'
-                , namespaces=context.vcxproj['ns'])
-            if not ext_targets:
-                ext_targets = context.vcxproj['tree'].xpath(
-                    '//ns:ImportGroup[@Label="Shared"]/ns:Import',
-                    namespaces=context.vcxproj['ns'])
-            if not ext_targets:
-                ext_targets = context.vcxproj['tree'].xpath(
-                    '//ns:ImportGroup[@Label="ExtensionSettings"]/ns:Import',
-                    namespaces=context.vcxproj['ns'])
+    def apply_target_dependency_packages(self, context):
+        if not context.packages_config_path:
+            return
 
-            packages_xml = get_xml_data(context, os.path.join(os.path.dirname(context.vcxproj_path),
-                                                              context.packages_config_path))
-            if packages_xml:
-                extension = packages_xml['tree'].xpath('/packages/package')
-                for ref in extension:
-                    package_id = ref.get('id')
-                    package_version = ref.get('version')
-                    id_version = '{0}.{1}'.format(package_id, package_version)
-                    targets_file_path = ''
-                    for import_project_node in ext_targets:
-                        project_path = import_project_node.get('Project')
-                        if id_version in project_path:
-                            targets_file_path = project_path
-                            break
+        packages_xml_data = self.__get_info_from_packages_config(context)
+        if packages_xml_data is None:
+            return
 
-                    ext_properties = []
-                    if targets_file_path:
-                        targets_file = get_xml_data(context, targets_file_path)
-                        if targets_file is None:
-                            continue
+        for targets_file_path in context.import_projects:
+            package_id = ''
+            package_version = ''
+            id_version = ''
+            for id_version_i in packages_xml_data:
+                if id_version_i in targets_file_path:
+                    id_version = id_version_i
+                    package_id = packages_xml_data[id_version_i][0]
+                    package_version = packages_xml_data[id_version_i][1]
+                    break
 
-                        property_page_schema_nodes = targets_file['tree']\
-                            .xpath('//ns:ItemGroup/ns:PropertyPageSchema',
-                                   namespaces=targets_file['ns'])
+            if len(context.import_projects) and not id_version:
+                message(
+                    context,
+                    'can not find package version in {} by {} path'.format(
+                        context.packages_config_path,
+                        targets_file_path,
+                    ),
+                    'warn'
+                )
+                return
 
-                        if property_page_schema_nodes:
-                            for property_page_schema_node in property_page_schema_nodes:
-                                xml_schema_path = property_page_schema_node.get('Include')
-                                xml_schema_path = xml_schema_path.replace(
-                                    '$(MSBuildThisFileDirectory)',
-                                    os.path.dirname(targets_file_path) + '/'
-                                )
-                                xml_schema_file = get_xml_data(context, xml_schema_path)
-                                if xml_schema_file:
-                                    ext_property_nodes = xml_schema_file['tree'] \
-                                        .xpath('//ns:EnumProperty',
-                                               namespaces=xml_schema_file['ns'])
-                                    for ext_property_node in ext_property_nodes:
-                                        ext_properties.append(ext_property_node.get('Name'))
-                        # TODO: remove next if due specific hack
-                        if not ext_properties:
-                            ext_property_nodes = targets_file['tree']\
-                                .xpath('//ns:PropertyGroup'
-                                       '[@Label="Default initializers for properties"]/*',
-                                       namespaces=targets_file['ns'])
+            ext_properties = []
+            if targets_file_path:
+                targets_file = get_xml_data(context, targets_file_path)
+                if targets_file is None:
+                    return
+
+                property_page_schema_nodes = targets_file['tree']\
+                    .xpath('//ns:ItemGroup/ns:PropertyPageSchema',
+                           namespaces=targets_file['ns'])
+
+                if property_page_schema_nodes:
+                    for property_page_schema_node in property_page_schema_nodes:
+                        xml_schema_path = property_page_schema_node.get('Include')
+                        xml_schema_path = xml_schema_path.replace(
+                            '$(MSBuildThisFileDirectory)',
+                            os.path.dirname(targets_file_path) + '/'
+                        )
+                        xml_schema_file = get_xml_data(context, xml_schema_path)
+                        if xml_schema_file:
+                            ext_property_nodes = xml_schema_file['tree'] \
+                                .xpath('//ns:EnumProperty',
+                                       namespaces=xml_schema_file['ns'])
                             for ext_property_node in ext_property_nodes:
-                                ext_properties.append(re.sub(r'{.*\}', '', ext_property_node.tag))
-                    else:
-                        message(context, 'Path of file {0}.targets not found at vs project xml.'
-                                .format(id_version), 'warn')
+                                ext_properties.append(ext_property_node.get('Name'))
+                # TODO: remove next if due specific hack
+                if not ext_properties:
+                    ext_property_nodes = targets_file['tree']\
+                        .xpath('//ns:PropertyGroup'
+                               '[@Label="Default initializers for properties"]/*',
+                               namespaces=targets_file['ns'])
+                    for ext_property_node in ext_property_nodes:
+                        ext_properties.append(re.sub(r'{.*\}', '', ext_property_node.tag))
 
-                    context.packages.append([package_id, package_version, ext_properties])
-                    message(context, 'Used package {0} {1}.'
-                            .format(package_id, package_version), '')
+                context.packages.append([package_id, package_version, ext_properties])
+                message(context, 'Used package {0} {1}.'
+                        .format(package_id, package_version), '')
 
-                    for ext_property in ext_properties:
-                        for setting in context.settings:
-                            if 'packages' not in context.settings[setting]:
-                                context.settings[setting]['packages'] = {}
-                            ext_property_node = context.vcxproj['tree'].xpath(
-                                '{0}/ns:{1}'.format(get_propertygroup(setting), ext_property),
-                                namespaces=context.vcxproj['ns'])
-                            if ext_property_node:
-                                if id_version not in context.settings[setting]['packages']:
-                                    context.settings[setting]['packages'][id_version] = {}
-                                context.settings[setting]['packages'][id_version][ext_property] = \
-                                    ext_property_node[0].text
-                                message(context, '{0} property of {1} {2} for {3} is {4}'
-                                        .format(ext_property,
-                                                package_id,
-                                                package_version,
-                                                setting,
-                                                ext_property_node[0].text), '')
+                for ext_property in ext_properties:
+                    for setting in context.settings:
+                        if 'packages' not in context.settings[setting]:
+                            context.settings[setting]['packages'] = {}
+                        ext_property_node = context.vcxproj['tree'].xpath(
+                            '{0}/ns:{1}'.format(get_propertygroup(setting), ext_property),
+                            namespaces=context.vcxproj['ns'])
+                        if ext_property_node:
+                            if id_version not in context.settings[setting]['packages']:
+                                context.settings[setting]['packages'][id_version] = {}
+                            context.settings[setting]['packages'][id_version][ext_property] = \
+                                ext_property_node[0].text
+                            message(context, '{0} property of {1} {2} for {3} is {4}'
+                                    .format(ext_property,
+                                            package_id,
+                                            package_version,
+                                            setting,
+                                            ext_property_node[0].text), '')
 
     @staticmethod
     def __find_target_build_events(context, tree_xpath, value_name, event_type):

@@ -55,7 +55,6 @@ class DataConverter(object):
             context.dependencies.find_target_pre_link_events(context)
             context.dependencies.find_target_post_build_events(context)
             context.dependencies.find_custom_build_step(context)
-            context.dependencies.find_target_dependency_packages(context)
 
     @staticmethod
     def verify_data(context):

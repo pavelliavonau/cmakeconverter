@@ -88,6 +88,7 @@ class VCXParser(Parser):
         self.attributes_handlers = {
             'ItemGroup_Label': self.do_nothing_attr_stub,
             'Import_Project': context.dependencies.add_target_property_sheet,
+            'ImportGroup_Label': self.__parse_import_group_label,
             'ProjectConfiguration_Include': self.__parse_project_configuration_include,
             'ClCompile_Include': self.do_nothing_attr_stub,  # TODO?
             'ClInclude_Include': self.do_nothing_attr_stub,  # TODO?
@@ -103,11 +104,22 @@ class VCXParser(Parser):
         self._parse_nodes(context, root)
         context.flags.apply_flags_to_context(context)
         context.files.apply_files_to_context(context)
+        context.dependencies.apply_target_dependency_packages(context)
         if not context.has_only_headers:
             context.flags.define_pch_cpp_file(context)
 
     def __parse_item_group(self, context, node):
         self._parse_nodes(context, node)
+
+    @staticmethod
+    def __parse_import_group_label(context, attr_name, attr_value, node):
+        if attr_value in ['ExtensionTargets', 'Shared', 'ExtensionSettings']:
+            context.dependencies.set_target_dependency_packages(
+                context,
+                attr_name,
+                attr_value,
+                node
+            )
 
     @staticmethod
     def __parse_project_configuration_include(context, attr_name, setting,

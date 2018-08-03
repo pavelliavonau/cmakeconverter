@@ -46,6 +46,7 @@ class Context(object):
         self.add_lib_deps = False
         self.add_lib_dirs = []      # TODO: move to settings
         self.packages_config_path = ''
+        self.import_projects = []
         self.packages = []
 
         self.additional_code = None
