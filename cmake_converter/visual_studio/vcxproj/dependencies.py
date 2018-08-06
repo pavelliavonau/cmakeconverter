@@ -236,53 +236,49 @@ class VCXDependencies(Dependencies):
                                             ext_property_node[0].text), '')
 
     @staticmethod
-    def __find_target_build_events(context, tree_xpath, value_name, event_type):
-        for setting in context.settings:
-            build_events = context.vcxproj['tree'].xpath(
-                tree_xpath.format(context.definition_groups[setting]),
-                namespaces=context.vcxproj['ns']
-            )
-            context.settings[setting][value_name] = []
-            for build_event_node in build_events:
-                for build_event in build_event_node.text.split('\n'):
-                    build_event = build_event.strip()
-                    if build_event:
-                        cmake_build_event = prepare_build_event_cmd_line_for_cmake(
-                            context,
-                            build_event
-                        )
-                        context.settings[setting][value_name] \
-                            .append(cmake_build_event)
-                        message(context, '{0} event for {1}: {2}'
-                                .format(event_type, setting, cmake_build_event), 'info')
+    def __set_target_build_events(context, build_event_node, value_name, event_type):
+        for command in build_event_node:
+            if 'Command' not in command.tag:
+                continue
+            for build_event in command.text.split('\n'):
+                build_event = build_event.strip()
+                if build_event:
+                    cmake_build_event = prepare_build_event_cmd_line_for_cmake(
+                        context,
+                        build_event
+                    )
+                    context.settings[context.current_setting][value_name] \
+                        .append(cmake_build_event)
+                    message(context, '{} event : {}'
+                            .format(event_type, cmake_build_event), 'info')
 
-    def find_target_pre_build_events(self, context):
-        self.__find_target_build_events(
+    def set_target_pre_build_events(self, context, node):
+        self.__set_target_build_events(
             context,
-            '{0}/ns:PreBuildEvent/ns:Command',
+            node,
             'pre_build_events',
             'Pre build'
         )
 
-    def find_target_pre_link_events(self, context):
-        self.__find_target_build_events(
+    def set_target_pre_link_events(self, context, node):
+        self.__set_target_build_events(
             context,
-            '{0}/ns:PreLinkEvent/ns:Command',
+            node,
             'pre_link_events',
             'Pre link'
         )
 
-    def find_target_post_build_events(self, context):
-        self.__find_target_build_events(
+    def set_target_post_build_events(self, context, node):
+        self.__set_target_build_events(
             context,
-            '{0}/ns:PostBuildEvent/ns:Command',
+            node,
             'post_build_events',
             'Post build'
         )
 
     # TODO: implement
-    # def find_custom_build_step(self, context):
-    #     self.__find_target_build_events(
+    # def set_custom_build_step(self, context, node):
+    #     self.__set_target_build_events(
     #         context,
     #         '{0}/ns:CustomBuildStep/ns:Command',
     #         'custom_build_step',

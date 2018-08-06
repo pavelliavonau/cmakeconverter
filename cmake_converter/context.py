@@ -141,6 +141,9 @@ class ContextInitializer(object):
             'conf': conf,
             'arch': arch,
             'inc_dirs_list': [],
+            'pre_build_events': [],
+            'pre_link_events': [],
+            'post_build_events': [],
         }
 
     def init_files(self, context, vs_project, cmake_lists):

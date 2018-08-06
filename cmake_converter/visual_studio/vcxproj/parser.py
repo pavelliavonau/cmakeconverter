@@ -44,6 +44,9 @@ class VCXParser(Parser):
             'ClInclude': self.__parse_cl_include,
             'ClCompile': self.__parse_cl_compile,
             'None': self.__parse_none,
+            'PreBuildEvent': context.dependencies.set_target_pre_build_events,
+            'PreLinkEvent': context.dependencies.set_target_pre_link_events,
+            'PostBuildEvent': context.dependencies.set_target_post_build_events,
             'AdditionalIncludeDirectories': context.dependencies.set_include_dirs,
             'AdditionalDependencies': context.dependencies.set_target_additional_dependencies,
             'AdditionalLibraryDirectories':

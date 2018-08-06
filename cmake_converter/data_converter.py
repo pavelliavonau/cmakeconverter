@@ -51,9 +51,6 @@ class DataConverter(object):
 
         if not context.has_only_headers:
             context.flags.define_flags(context)
-            context.dependencies.find_target_pre_build_events(context)
-            context.dependencies.find_target_pre_link_events(context)
-            context.dependencies.find_target_post_build_events(context)
             context.dependencies.find_custom_build_step(context)
 
     @staticmethod

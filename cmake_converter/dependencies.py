@@ -43,18 +43,6 @@ class Dependencies(object):
     """
 
     @staticmethod
-    def find_target_pre_build_events(context):
-        pass
-
-    @staticmethod
-    def find_target_pre_link_events(context):
-        pass
-
-    @staticmethod
-    def find_target_post_build_events(context):
-        pass
-
-    @staticmethod
     def find_custom_build_step(context):
         pass
 
