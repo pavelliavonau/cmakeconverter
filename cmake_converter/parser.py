@@ -91,15 +91,3 @@ class Parser(object):
                     'No handler for "{}" attribute of <{}> node.'.format(attr, node_tag),
                     'warn4'
                 )
-
-    @staticmethod
-    def remove_unused_settings(context):
-        mapped_configurations = set()
-        for sln_config in context.sln_configurations_map:
-            mapped_configurations.add(context.sln_configurations_map[sln_config])
-        settings_to_remove = []
-        for setting in context.settings:
-            if setting not in mapped_configurations:
-                settings_to_remove.append(setting)
-        for setting in settings_to_remove:
-            context.settings.pop(setting, None)

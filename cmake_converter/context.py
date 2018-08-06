@@ -92,7 +92,8 @@ class ContextInitializer(object):
             ''
         )
         self.define_settings(context)
-        self.__remove_unused_settings(context)
+        for sln_config in context.sln_configurations_map:
+            context.configurations_to_parse.add(context.sln_configurations_map[sln_config])
 
     def define_settings(self, context):
         """
@@ -101,18 +102,6 @@ class ContextInitializer(object):
         """
 
         raise NotImplementedError('You need to define a define_settings method!')
-
-    # TODO: remove next method after implementing vcxproj parser
-    @staticmethod
-    def __remove_unused_settings(context):
-        for sln_config in context.sln_configurations_map:
-            context.configurations_to_parse.add(context.sln_configurations_map[sln_config])
-        settings_to_remove = []
-        for setting in context.settings:
-            if setting not in context.configurations_to_parse:
-                settings_to_remove.append(setting)
-        for setting in settings_to_remove:
-            context.settings.pop(setting, None)
 
     def init_context(self, context, vs_project):
         """

@@ -142,7 +142,6 @@ class VFParser(Parser):
 
     def __parse_configurations(self, context, configurations_node):
         self._parse_nodes(context, configurations_node)
-        self.remove_unused_settings(context)
 
     def __parse_configuration(self, context, configuration_node):
 
