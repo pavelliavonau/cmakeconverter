@@ -273,7 +273,7 @@ def make_os_specific_shell_path(output):
     return output
 
 
-def replace_vs_vars_with_cmake_vars(context, output):
+def replace_vs_var_with_cmake_var(context, var):
     variables_to_replace = {
         '$(SolutionDir)': '${CMAKE_SOURCE_DIR}\\',
         '$(Platform)': '${CMAKE_VS_PLATFORM_NAME}',
@@ -288,15 +288,24 @@ def replace_vs_vars_with_cmake_vars(context, output):
         '$(TargetFileName)': '$<TARGET_FILE_NAME:${TARGET_NAME}>',
         '$(TargetPath)': '$<TARGET_FILE:${PROJECT_NAME}>',
     }
+    if var in variables_to_replace:
+        return variables_to_replace[var]
+    else:
+        var_name = var[2:-1]
+        cmake_env_var = '$ENV{{{}}}'.format(var_name)
+        if var_name not in os.environ:
+            message(context, 'Unknown variable: {}, trying {}'.format(var, cmake_env_var), 'warn')
+        return cmake_env_var
 
-    for var in variables_to_replace:
-        if var in output:
-            output = output.replace(var, variables_to_replace[var])
 
-    vs_variables_re = re.compile(r'(\$\(.*?\))')
-    vs_variables_matches = vs_variables_re.findall(output)
-    for vs_variable_match in vs_variables_matches:
-        message(context, 'Unknown variable: {0}'.format(vs_variable_match), 'warn')
+def replace_vs_vars_with_cmake_vars(context, output):
+
+    var_ex = re.compile(r'(\$\(.*?\))')
+
+    vars_list = var_ex.findall(output)
+    for var in vars_list:
+        replace_with = replace_vs_var_with_cmake_var(context, var)
+        output = output.replace(var, replace_with)
 
     return output
 
