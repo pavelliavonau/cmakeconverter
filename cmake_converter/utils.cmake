@@ -6,6 +6,7 @@
 cmake_policy(PUSH)
 cmake_policy(SET CMP0054 NEW)
 macro(PREPARE_COMMANDS)
+    unset(TOKEN_ROLE)
     unset(COMMANDS)
     foreach(TOKEN ${ARG_COMMANDS})
         if("${TOKEN}" STREQUAL "COMMAND")
@@ -34,7 +35,7 @@ cmake_policy(POP)
 ################################################################################
 # Transform all the tokens to absolute paths
 ################################################################################
-macro(PREPARE_OUTPUT)
+macro(prepare_output)
     unset(OUTPUT)
     foreach(TOKEN ${ARG_OUTPUT})
         if(IS_ABSOLUTE ${TOKEN})
@@ -81,8 +82,8 @@ function(add_custom_command_if_parse_arguments)
         set(DUMMY "true")
     endif()
 
-    PREPARE_COMMANDS()
-    PREPARE_OUTPUT()
+    prepare_commands()
+    prepare_output()
 
     set(DEPENDS "${ARG_DEPENDS}")
     set(COMMENT "${ARG_COMMENT}")
@@ -168,8 +169,10 @@ endfunction()
 
 ################################################################################
 # Add link directory
-#     target_link_directories(<target> [item1 [item2 [...]]])
+#     target_link_directories(<target> [[CONDITION condition] [item1 [item2 [...]]]]...)
 ################################################################################
+cmake_policy(PUSH)
+cmake_policy(SET CMP0054 NEW)
 function(target_link_directories TARGET)
     if(${CMAKE_GENERATOR} MATCHES "Visual Studio")
         set(QUOTE "")
@@ -178,9 +181,24 @@ function(target_link_directories TARGET)
     endif()
 
     unset(LINK_DIRS)
-    foreach(LINK_DIR ${ARGN})
-        list(APPEND LINK_DIRS "${CMAKE_LIBRARY_PATH_FLAG}${QUOTE}${LINK_DIR}${QUOTE}")
+    unset(ARG_ROLE)
+    set(CONDITION "1")
+    foreach(ARG ${ARGN})
+        if("${ARG}" STREQUAL "CONDITION")
+            set(ARG_ROLE "CONDITION_KEYWORD")
+        elseif("${ARG_ROLE}" STREQUAL "CONDITION_KEYWORD")
+            set(ARG_ROLE "CONDITION")
+        else()
+            set(ARG_ROLE "PATH")
+        endif()
+
+        if("${ARG_ROLE}" STREQUAL "CONDITION")
+            set(CONDITION "${ARG}")
+        elseif("${ARG_ROLE}" STREQUAL "PATH")
+            list(APPEND LINK_DIRS "$<${CONDITION}:${CMAKE_LIBRARY_PATH_FLAG}${QUOTE}${ARG}${QUOTE}>")
+        endif()
     endforeach()
 
     target_link_libraries(${TARGET} ${LINK_DIRS})
 endfunction()
+cmake_policy(POP)
