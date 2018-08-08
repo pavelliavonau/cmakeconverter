@@ -32,10 +32,6 @@ class StopParseException(Exception):
 class Parser(object):
 
     def __init__(self):
-        self.node_handlers = {
-        }
-        self.attributes_handlers = {
-        }
         self.reset_setting_after_nodes = set()
 
     @staticmethod
@@ -49,6 +45,12 @@ class Parser(object):
     @staticmethod
     def do_nothing_attr_stub(context, attr_name, param, node):
         pass
+
+    def get_node_handlers_dict(self, context):
+        raise NotImplementedError('You need to define a get_node_handlers_dict method!')
+
+    def get_attribute_handlers_dict(self, context):
+        raise NotImplementedError('You need to define a get_attribute_handlers_dict method!')
 
     def reset_current_setting_after_parsing_node(self, node):
         self.reset_setting_after_nodes.add(node)
@@ -68,8 +70,9 @@ class Parser(object):
             except StopParseException:
                 continue
 
-            if child_node_tag in self.node_handlers:
-                self.node_handlers[child_node_tag](context, child_node)
+            node_handlers = self.get_node_handlers_dict(context)
+            if child_node_tag in node_handlers:
+                node_handlers[child_node_tag](context, child_node)
             else:
                 message(context, 'No handler for <{}> node.'.format(child_node_tag), 'warn4')
 
@@ -79,12 +82,13 @@ class Parser(object):
 
     def _parse_attributes(self, context, node):
         for attr in node.attrib:
-            node_tag = re.sub(r'{.*\}', '', node.tag)  # strip namespace
+            node_tag = Parser.strip_namespace(node.tag)
             node_key = '{}_{}'.format(node_tag, attr)
-            if node_key in self.attributes_handlers:    # node specified handler
-                self.attributes_handlers[node_key](context, attr, node.get(attr), node)
-            elif attr in self.attributes_handlers:      # common attribute handler
-                self.attributes_handlers[attr](context, attr, node.get(attr), node)
+            attributes_handlers = self.get_attribute_handlers_dict(context)
+            if node_key in attributes_handlers:    # node specified handler
+                attributes_handlers[node_key](context, attr, node.get(attr), node)
+            elif attr in attributes_handlers:      # common attribute handler
+                attributes_handlers[attr](context, attr, node.get(attr), node)
             else:
                 message(
                     context,

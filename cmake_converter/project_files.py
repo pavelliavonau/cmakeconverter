@@ -27,6 +27,7 @@
 """
 
 import os
+import copy
 
 from cmake_converter.utils import take_name_from_list_case_ignore, normalize_path
 from cmake_converter.utils import message, write_comment
@@ -42,11 +43,35 @@ class ProjectFiles(object):
         self.file_lists = {}
         self.file_lists_for_include_paths = {}
 
-    def parse_file_node_options(self, context, file_node, node_text):
-        pass
-
     def include_directive_case_check(self, context, file_name, file_lists_for_include_paths):
         pass
+
+    @staticmethod
+    def __create_file_context(context):
+        file_context = copy.copy(context)
+        file_context.settings = {}
+        file_context.flags = copy.copy(context.flags)
+        file_context.flags.__init__()
+        for setting in context.settings:
+            file_context.current_setting = setting
+            # TODO: redo settings initialization
+            file_context.settings[setting] = {
+                'conf': context.settings[setting]['conf'],
+                'arch': context.settings[setting]['arch'],
+                'defines': [],
+                'cl_flags': [],
+                'PrecompiledHeader': [],
+                'ifort_cl_win': [],
+                'ifort_cl_unix': [],
+                'ifort_ln': [],
+                'assume_args': [],
+                'warn_args': [],
+            }
+            file_context.flags.flags[setting] = {}
+            # file_context.flags.prepare_context_for_flags(file_context) # TODO
+        context.current_setting = None
+        file_context.file_contexts = None
+        return file_context
 
     def add_file_from_node(self, context, files_dest_dict, file_node,
                            file_node_attr, source_group):
@@ -77,15 +102,20 @@ class ProjectFiles(object):
                 if file_path:
                     file_path = file_path + '/'
                 file_path_name = file_path + name_to_add
+                working_path = os.path.dirname(context.vcxproj_path)
+                file_path_name = normalize_path(context, working_path,
+                                                file_path_name,
+                                                False)
                 if source_group not in context.source_groups:
                     context.source_groups[source_group] = []
                 context.source_groups[source_group].append(file_path_name)
                 context.source_groups[source_group].sort(key=str.lower)
-                self.parse_file_node_options(context, file_node, file_path_name)
                 if real_name:
                     self.include_directive_case_check(context,
                                                       file_path_name,
                                                       self.file_lists_for_include_paths)
+                context.file_contexts[file_path_name] = self.__create_file_context(context)
+                return context.file_contexts[file_path_name]
 
     def init_file_lists_for_include_paths(self, context):
         """
@@ -166,16 +196,12 @@ class ProjectFiles(object):
 
     def write_source_groups(self, context, cmake_file):
         write_comment(cmake_file, 'Source groups')
-        working_path = os.path.dirname(context.vcxproj_path)
 
         for source_group in sorted(context.source_groups):
             source_group_var = self.get_source_group_var(source_group)
             cmake_file.write('set({}\n'.format(source_group_var))
             for src_file in context.source_groups[source_group]:
-                cmake_file.write('    {0}\n'
-                                 .format(normalize_path(context, working_path,
-                                                        src_file,
-                                                        False)))
+                cmake_file.write('    {0}\n'.format(src_file))
 
             cmake_file.write(')\n')
             cmake_file.write(

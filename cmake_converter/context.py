@@ -67,7 +67,7 @@ class Context(object):
         self.headers = {}
         self.other_project_files = {}
         self.source_groups = {}
-        self.file_spec_raw_options = {}
+        self.file_contexts = {}
         self.supported_architectures = set()
         self.settings = {}
         self.current_setting = None
@@ -133,6 +133,12 @@ class ContextInitializer(object):
             'pre_build_events': [],
             'pre_link_events': [],
             'post_build_events': [],
+            # TODO: remove next trash from here
+            'ifort_cl_win': [],
+            'ifort_cl_unix': [],
+            'ifort_ln': [],
+            'assume_args': [],
+            'warn_args': [],
         }
 
     def init_files(self, context, vs_project, cmake_lists):

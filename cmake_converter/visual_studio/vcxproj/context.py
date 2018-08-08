@@ -40,7 +40,7 @@ class VCXContextInitializer(ContextInitializer):
         context.flags = CPPFlags()
         context.dependencies = VCXDependencies()
         context.utils = Utils()
-        context.parser = VCXParser(context)
+        context.parser = VCXParser()
 
     def init_context(self, context, vs_project):
         """

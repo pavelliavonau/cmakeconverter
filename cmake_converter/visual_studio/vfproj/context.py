@@ -39,7 +39,7 @@ class VFContextInitializer(ContextInitializer):
         context.flags = FortranFlags()
         context.dependencies = VFDependencies()
         context.utils = Utils()
-        context.parser = VFParser(context)
+        context.parser = VFParser()
 
     def init_context(self, context, vs_project):
         """

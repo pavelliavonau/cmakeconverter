@@ -123,14 +123,6 @@ class CPPFlags(Flags):
             'PrecompiledHeader',
         ]
         return flags_list
-    
-    def define_flags(self, context):
-        """
-        Parse all flags properties and write them inside "CMakeLists.txt" file
-
-        """
-
-        self.__define_windows_flags_for_files(context)
 
     def define_linux_flags(self, context, cmake_file):
         """
@@ -202,9 +194,11 @@ class CPPFlags(Flags):
     def __get_precompiled_header_node_values():
         precompiled_header_values = {
             'Use': {'PrecompiledHeader': 'Use'},
-            'NotUsing': {'PrecompiledHeader': 'NotUsing'},
+            'NotUsing': {'PrecompiledHeader': 'NotUsing',
+                         cl_flags: '/Y-'},
             'Create': {'PrecompiledHeader': 'Create'},
-            default_value: {'PrecompiledHeader': 'NotUsing'}
+            default_value: {'PrecompiledHeader': 'NotUsing',
+                            cl_flags: '/Y-'}
         }
         return precompiled_header_values
 
@@ -282,69 +276,6 @@ class CPPFlags(Flags):
 
             context.settings[setting]['PrecompiledHeaderFile'] = pch_header_path
             context.settings[setting]['PrecompiledSourceFile'] = pch_source_path
-
-    def __set_precompiled_headers_for_files(self, context, setting, file, pch_node, option):
-        precompiled_header_values = {
-            'Use': {},  # ignore for files
-            'NotUsing': {cl_flags: '/Y-'},
-            'Create': {},  # ignore for files
-            default_value: {cl_flags: '/Y-'}
-        }
-        result_node_values = self.__get_default_flag_values(
-            precompiled_header_values
-        )
-
-        flag_text, result_node_values = self.__add_flag_values_according_node_text(
-            precompiled_header_values,
-            [pch_node],
-            result_node_values
-        )
-
-        flags_message = self.__add_flag_values_to_context(
-            context.file_spec_raw_options[file],
-            setting,
-            result_node_values
-        )
-
-        if flags_message:
-            message(context, '{0} for {1} for file {2} is {3}'.format(option, setting,
-                                                                      file, flags_message),
-                    '')
-
-    @staticmethod
-    def __define_defines_for_files(context, defines_node, settings, file, setting):
-        if defines_node is not None:
-            for define in defines_node.text.split(";"):
-                if define != '%(PreprocessorDefinitions)' and define != 'WIN32':
-                    settings[defines].append(define)
-                message(context, 'PreprocessorDefinitions for file {0} for {1} are {2}'.format(
-                    file,
-                    setting,
-                    settings[defines]
-                ),
-                    '')
-
-    def __define_windows_flags_for_files(self, context):
-        for file in context.file_spec_raw_options:
-            for setting in context.file_spec_raw_options[file]:
-                for option in context.file_spec_raw_options[file][setting]:
-                    node = context.file_spec_raw_options[file][setting][option]
-                    if 'PrecompiledHeader' == option:
-                        self.__set_precompiled_headers_for_files(
-                            context,
-                            setting,
-                            file,
-                            node,
-                            option
-                        )
-                    if 'PreprocessorDefinitions' == option:
-                        self.__define_defines_for_files(
-                            context,
-                            node,
-                            context.file_spec_raw_options[file][setting],
-                            file,
-                            setting
-                        )
 
     def set_flag_old(self, context, setting, xpath, flag_values):
         """
@@ -444,6 +375,16 @@ class CPPFlags(Flags):
                             context.settings[setting][context_flags_data_key].append(
                                 value
                             )
+                    for file in context.file_contexts:
+                        file_context = context.file_contexts[file]
+                        file_flags = context.file_contexts[file].flags.flags[setting]
+                        if flag_name not in file_flags:
+                            continue
+                        if context_flags_data_key in file_flags[flag_name]:
+                            for value in file_flags[flag_name][context_flags_data_key]:
+                                file_context.settings[setting][context_flags_data_key].append(
+                                    value
+                                )
 
     def apply_generate_debug_information(self, context, setting):
         conf_type = context.settings[setting]['target_type']
@@ -617,6 +558,9 @@ class CPPFlags(Flags):
             if sw != '%(DisableSpecificWarnings)':
                 flag = '/wd{0}'.format(sw)
                 flags.append(flag)
+        # TODO: is next check really necessary?
+        if 'DisableSpecificWarnings' not in self.flags[context.current_setting]:
+            self.flags[context.current_setting]['DisableSpecificWarnings'] = {}
         self.flags[context.current_setting][flag_name][cl_flags] = flags
         message(context, 'DisableSpecificWarnings : {}'.format(';'.join(flags)), '')
 
@@ -630,6 +574,9 @@ class CPPFlags(Flags):
         for opt in add_opts:
             if opt != '%(AdditionalOptions)':
                 ready_add_opts.append(opt)
+        # TODO: is next check really necessary?
+        if 'CompileAdditionalOptions' not in self.flags[context.current_setting]:
+            self.flags[context.current_setting]['CompileAdditionalOptions'] = {}
         self.flags[context.current_setting][flag_name][cl_flags] = ready_add_opts
         message(context, 'Compile Additional Options : {}'.format(ready_add_opts), '')
 
@@ -643,6 +590,9 @@ class CPPFlags(Flags):
         for opt in add_opts:
             if opt != '%(AdditionalOptions)':
                 ready_add_opts.append(opt)
+        # TODO: is next check really necessary?
+        if 'LinkAdditionalOptions' not in self.flags[context.current_setting]:
+            self.flags[context.current_setting]['LinkAdditionalOptions'] = {}
         self.flags[context.current_setting][flag_name][ln_flags] = ready_add_opts
         message(context, 'Link Additional Options : {}'.format(ready_add_opts), '')
 
@@ -692,6 +642,9 @@ class CPPFlags(Flags):
                     .format(m_d), 'warn')
 
         if cl_flag_value:
+            # TODO: is next check really necessary?
+            if 'RuntimeLibrary' not in self.flags[context.current_setting]:
+                self.flags[context.current_setting]['RuntimeLibrary'] = {}
             self.flags[context.current_setting][flag_name][cl_flags] = [cl_flag_value]
 
         self.apply_use_debug_libs(context, context.current_setting)

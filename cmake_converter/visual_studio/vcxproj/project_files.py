@@ -26,24 +26,4 @@ from cmake_converter.project_files import ProjectFiles
 
 
 class VCXProjectFiles(ProjectFiles):
-
-    def parse_file_node_options(self, context, file_node, node_text):
-        for file_configuration_node in file_node:
-            for setting in context.settings:
-                setting_condition = file_configuration_node.get('Condition')
-                if setting_condition is None:
-                    continue
-                if setting not in setting_condition:
-                    continue
-                if node_text not in context.file_spec_raw_options:
-                    context.file_spec_raw_options[node_text] = {}
-                if setting not in context.file_spec_raw_options[node_text]:
-                    context.file_spec_raw_options[node_text][setting] = {
-                        'conf': context.settings[setting]['conf'],
-                        'arch': context.settings[setting]['arch'],
-                        'defines': [],
-                        'cl_flags': [],
-                    }
-                tool_name = re.sub(r'{.*\}', '', file_configuration_node.tag)
-                context.file_spec_raw_options[node_text][setting][tool_name] = \
-                    file_configuration_node
+    pass

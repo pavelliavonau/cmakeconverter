@@ -82,25 +82,20 @@ class VFDependencies(Dependencies):
                 context.add_lib_dirs = add_lib_dirs
 
     @staticmethod
-    def __find_custom_build_events_of_files(context):
-        for file in context.file_spec_raw_options:
-            file_settings = context.file_spec_raw_options[file]
-            for setting in file_settings:
-                if 'VFCustomBuildTool' in file_settings[setting]:
-                    custom_build = file_settings[setting]['VFCustomBuildTool']
-                    if 'file_custom_build_events' not in context.settings[setting]:
-                        context.settings[setting]['file_custom_build_events'] = {}
-                    custom_event_data = {
-                        'command_line': prepare_build_event_cmd_line_for_cmake(
-                            context,
-                            custom_build['CommandLine']
-                        ),
-                        'description': custom_build['Description'],
-                        'outputs': custom_build['Outputs'],
-                    }
-                    context.settings[setting]['file_custom_build_events'][file] = custom_event_data
-                    message(context, 'Custom build for {0} file {1} is {2}'
-                            .format(setting, file, custom_build), '')
+    def __set_custom_build_events_of_files(context, name, command_value, node):
+        file_settings = context.settings
+        for setting in file_settings:
+            if 'file_custom_build_events' not in context.settings[setting]:
+                context.settings[setting]['file_custom_build_events'] = {}
+            custom_event_data = {
+                'command_line': prepare_build_event_cmd_line_for_cmake(
+                    context,
+                    node.attrib['CommandLine']
+                ),
+                'description': node.attrib['Description'],
+                'outputs': node.attrib['Outputs'],
+            }
+            context.settings[setting]['file_custom_build_events'] = custom_event_data
 
     @staticmethod
     def __set_target_build_events(context, value_name, event_type, command_value):
@@ -154,8 +149,10 @@ class VFDependencies(Dependencies):
         )
 
     # TODO: implement
-    def find_custom_build_step(self, context):
-        self.__find_custom_build_events_of_files(context)
+    def set_custom_build_step(self, context, name, command_value, node):
+        if self.__is_excluded_from_build(node):
+            return
+        self.__set_custom_build_events_of_files(context, name, command_value, node)
     #     self.__find_target_build_events(
     #         context,
     #         'VFCustomBuildTool',

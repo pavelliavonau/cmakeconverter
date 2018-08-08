@@ -26,20 +26,27 @@ from cmake_converter.parser import Parser, StopParseException
 
 class VFParser(Parser):
 
-    def __init__(self, context):
+    def __init__(self):
         Parser.__init__(self)
-        self.node_handlers = {
+
+    def get_node_handlers_dict(self, context):
+        node_handlers = {
             'Platforms': self.do_nothing_node_stub,
             'Configurations': self.__parse_configurations,
             'Configuration': self.__parse_configuration,
+            'FileConfiguration': self.__parse_file_configuration,
             'Tool': self._parse_nodes,
             'Files': self.__parse_files,
-            'File': self._parse_nodes,
+            'File': self.do_nothing_node_stub,
             'Filter': self.__parse_filter,
             'Globals': self.do_nothing_node_stub,
         }
-        self.attributes_handlers = {
+        return node_handlers
+
+    def get_attribute_handlers_dict(self, context):
+        attributes_handlers = {
             'Configuration_Name': self.__parse_configuration_name,
+            'FileConfiguration_Name': self.__parse_configuration_name,
             'Configuration_TargetName': self.__parse_target_name,
             'Configuration_OutputDirectory': context.variables.set_output_dir,
             'Configuration_IntermediateDirectory': self.__parse_configuration_intermediate_dir,
@@ -129,9 +136,16 @@ class VFParser(Parser):
             'VFPostBuildEventTool_ExcludedFromBuild': self.do_nothing_attr_stub,
             'VFPostBuildEventTool_CommandLine':
                 context.dependencies.set_target_post_build_events,
+            'VFCustomBuildTool_ExcludedFromBuild': self.do_nothing_attr_stub,
+            'VFCustomBuildTool_CommandLine':
+                context.dependencies.set_custom_build_step,
+            'VFCustomBuildTool_Description': self.do_nothing_attr_stub,
+            'VFCustomBuildTool_Outputs': self.do_nothing_attr_stub,
             'File_RelativePath': self.__parse_file_relative_path,
             'Filter_Name': self.do_nothing_attr_stub,
+            'Filter_Filter': self.do_nothing_attr_stub,  # TODO?
         }
+        return attributes_handlers
 
     def parse(self, context):
         tree = context.vcxproj['tree']
@@ -155,6 +169,19 @@ class VFParser(Parser):
         self._parse_nodes(context, configuration_node)
         context.flags.apply_flags_to_context(context)
         context.dependencies.add_current_dir_to_includes(context)
+
+    def __parse_file_configuration(self, context, file_configuration_node):
+        # TODO: can we use __parse_configuration instead?
+        # if 'target_type' not in context.settings[context.current_setting]:
+        #     context.settings[context.current_setting]['target_type'] = 'Application'
+        #
+        # if 'target_name' not in context.settings[context.current_setting]:
+        #     context.settings[context.current_setting]['target_name'] = context.project_name
+
+        # context.flags.prepare_context_for_flags(context)
+        self._parse_nodes(context, file_configuration_node)
+        context.flags.apply_flags_to_context(context)
+        # context.dependencies.add_current_dir_to_includes(context)
 
     def __parse_configuration_name(self, context, attr_name, configuration_name, node):
         setting = configuration_name
@@ -225,14 +252,20 @@ class VFParser(Parser):
         context.files.init_file_lists_for_include_paths(context)
         self._parse_nodes(context, filter_node)
 
-    @staticmethod
-    def __parse_file_relative_path(context, attr_name, attr_value, file_node):
+    def __parse_file_relative_path(self, context, attr_name, attr_value, file_node):
         source_group = ''
         parent = file_node.getparent()
         if Parser.strip_namespace(parent.tag) == 'Filter':
             source_group = parent.attrib['Name']
-        context.files.add_file_from_node(context, context.sources, file_node, 'RelativePath',
-                                         source_group)
+        file_context = context.files.add_file_from_node(
+            context,
+            context.sources,
+            file_node,
+            'RelativePath',
+            source_group
+        )
+        self._parse_nodes(file_context, file_node)
+        return
 
     def __parse_filter(self, context, filter_node):
         self._parse_nodes(context, filter_node)

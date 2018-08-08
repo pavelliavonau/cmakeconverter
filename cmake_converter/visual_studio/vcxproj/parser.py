@@ -31,9 +31,12 @@ from cmake_converter.data_files import get_xml_data
 
 class VCXParser(Parser):
 
-    def __init__(self, context):
+    def __init__(self):
         Parser.__init__(self)
-        self.node_handlers = {
+        self.filters = None
+
+    def get_node_handlers_dict(self, context):
+        node_handlers = {
             'ItemGroup': self.__parse_item_group,
             'ProjectConfiguration': self.do_nothing_node_stub,
             'ConfigurationType': self.__parse_configuration_type,
@@ -88,7 +91,10 @@ class VCXParser(Parser):
             'RemoveUnreferencedCodeData': context.flags.set_flag,
             'OpenMPSupport': context.flags.set_flag,
         }
-        self.attributes_handlers = {
+        return node_handlers
+
+    def get_attribute_handlers_dict(self, context):
+        attributes_handlers = {
             'ItemGroup_Label': self.do_nothing_attr_stub,
             'Import_Project': context.dependencies.add_target_property_sheet,
             'ImportGroup_Label': self.__parse_import_group_label,
@@ -98,7 +104,7 @@ class VCXParser(Parser):
             'Condition': self.__parse_condition,
             'ProjectReference_Include': context.dependencies.add_target_reference,
         }
-        self.filters = None
+        return attributes_handlers
 
     def parse(self, context):
         self.filters = get_xml_data(context, context.vcxproj_path + '.filters')
@@ -187,9 +193,10 @@ class VCXParser(Parser):
             if self.filters:
                 source_group = self.__get_source_group_from_filters(node, 'ClCompile')
 
-            context.files.add_file_from_node(
+            file_context = context.files.add_file_from_node(
                 context,
                 context.sources, node, 'Include', source_group)
+            self._parse_nodes(file_context, node)
             return  # TODO: handle settings of files
         self._parse_nodes(context, node)
 

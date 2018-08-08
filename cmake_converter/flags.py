@@ -76,10 +76,10 @@ class Flags(object):
             cmake_file, context.settings, context.sln_configurations_map,
             'target_compile_definitions(${PROJECT_NAME} PRIVATE', ')', defines
         )
-        for file in context.file_spec_raw_options:
+        for file in context.file_contexts:
             write_property_of_settings(
                 cmake_file,
-                context.file_spec_raw_options[file],
+                context.file_contexts[file].settings,
                 context.sln_configurations_map,
                 'set_source_files_properties({0} PROPERTIES'.format(file),
                 ')',
@@ -101,10 +101,10 @@ class Flags(object):
             cmake_file, context.settings, context.sln_configurations_map,
             'target_compile_options(${PROJECT_NAME} PRIVATE', ')', compiler_flags_key, indent='    '
         )
-        for file in context.file_spec_raw_options:
+        for file in context.file_contexts:
             file_cl_var = file + "_cl_var"
             text = write_property_of_settings(
-                cmake_file, context.file_spec_raw_options[file],
+                cmake_file, context.file_contexts[file].settings,
                 context.sln_configurations_map,
                 'string(CONCAT "{0}"'.format(file_cl_var),
                 ')', compiler_flags_key, indent='    '
@@ -216,9 +216,6 @@ class Flags(object):
         pass
 
     def write_use_pch_macro(self, context, cmake_file):
-        pass
-
-    def define_flags(self, context):
         pass
 
     @staticmethod

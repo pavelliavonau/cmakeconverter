@@ -29,18 +29,6 @@ from cmake_converter.utils import message
 
 class VFProjectFiles(ProjectFiles):
 
-    def parse_file_node_options(self, context, file_node, node_text):
-        for file_configuration_node in file_node:
-            setting_name = file_configuration_node.get('Name')
-            if setting_name not in context.settings:
-                continue
-            if node_text not in context.file_spec_raw_options:
-                context.file_spec_raw_options[node_text] = {}
-            context.file_spec_raw_options[node_text][setting_name] = {}
-            for tool_node in file_configuration_node:
-                tool_name = tool_node.get('Name')
-                context.file_spec_raw_options[node_text][setting_name][tool_name] = tool_node.attrib
-
     def include_directive_case_check(self, context, file_path_name, file_lists_for_include_paths):
         includes_re = re.compile(
             r'include \'(.*)\'', re.IGNORECASE

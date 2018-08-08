@@ -166,6 +166,7 @@ class FortranFlags(Flags):
 
         flags_message = {}
         if values is not None:
+            self.flags[flag_name] = {}  # reset default values
             for key in values:
                 value = values[key]
                 self.flags[flag_name][key] = [value]
@@ -197,6 +198,8 @@ class FortranFlags(Flags):
 
         for flag_name in self.__get_result_order_of_flags():
             for context_flags_data_key in context_flags_data_keys:
+                if flag_name not in self.flags:
+                    continue
                 if context_flags_data_key in self.flags[flag_name]:
                     for value in self.flags[flag_name][context_flags_data_key]:
                         context.settings[context.current_setting][context_flags_data_key].append(

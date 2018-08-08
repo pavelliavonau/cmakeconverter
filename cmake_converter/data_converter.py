@@ -49,10 +49,6 @@ class DataConverter(object):
 
         context.files.find_cmake_project_languages(context)
 
-        if not context.has_only_headers:
-            context.flags.define_flags(context)
-            context.dependencies.find_custom_build_step(context)
-
     @staticmethod
     def verify_data(context):
         target_types = set()
