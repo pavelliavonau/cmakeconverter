@@ -899,8 +899,8 @@ class FortranFlags(Flags):
                          'Fortran_MODULE_DIRECTORY '
                          '"${${PROJECT_NAME}_BINARY_DIR}/${PROJECT_NAME}.dir")\n\n')
         fortran_linker_fix = '# CMake ifort linker fix\n' \
-                             'if(WIN32 AND ${CMAKE_Fortran_COMPILER_ID} STREQUAL "Intel"' \
-                             ' AND ${CMAKE_Fortran_CREATE_STATIC_LIBRARY} MATCHES "^lib.*")\n' \
+                             'if(WIN32 AND "${CMAKE_Fortran_COMPILER_ID}" STREQUAL "Intel"' \
+                             ' AND "${CMAKE_Fortran_CREATE_STATIC_LIBRARY}" MATCHES "^lib.*")\n' \
                              '    set(CMAKE_Fortran_CREATE_STATIC_LIBRARY ' \
                              '"xi${CMAKE_Fortran_CREATE_STATIC_LIBRARY}")\n' \
                              'endif()\n\n'
