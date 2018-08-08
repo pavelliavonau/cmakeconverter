@@ -460,7 +460,7 @@ class CPPFlags(Flags):
         flag_values = {
             'true': {cl_flags: '/Zc:forScope'},
             'false': {cl_flags: '/Zc:forScope-'},
-            default_value: {cl_flags: '/Zc:forScope'}
+            default_value: {}
         }
 
         return flag_values
@@ -474,8 +474,8 @@ class CPPFlags(Flags):
         del context, flag_name, node
         flag_values = {
             'true': {cl_flags: '/Zc:inline'},
-            'false': {cl_flags: ''},
-            default_value: {cl_flags: '/Zc:inline'}
+            'false': {cl_flags: '/Zc:inline-'},
+            default_value: {}
         }
 
         return flag_values
@@ -520,6 +520,7 @@ class CPPFlags(Flags):
         """
         del context, flag_name, node
         flag_values = {
+            'TurnOffAllWarnings': {cl_flags: '/w'},
             'Level1': {cl_flags: '/W1'},
             'Level2': {cl_flags: '/W2'},
             'Level3': {cl_flags: '/W3'},
@@ -538,7 +539,7 @@ class CPPFlags(Flags):
         del context, flag_name, node
         flag_values = {
             'true': {cl_flags: '/WX'},
-            'false': {},
+            'false': {cl_flags: '/WX:NO'},
             default_value: {}
         }
 
@@ -722,7 +723,7 @@ class CPPFlags(Flags):
         del context, flag_name, node
         flag_values = {
             'true': {cl_flags: '/Oi'},
-            'false': {},
+            'false': {cl_flags: '/Oi-'},
             default_value: {}
         }
 
@@ -737,7 +738,7 @@ class CPPFlags(Flags):
         del context, flag_name, node
         flag_values = {
             'true': {cl_flags: '/GR'},
-            'false': {},
+            'false': {cl_flags: '/GR-'},
             default_value: {}
         }
 
@@ -752,7 +753,7 @@ class CPPFlags(Flags):
         del context, flag_name, node
         flag_values = {
             'true': {cl_flags: '/Gy'},
-            'false': {},
+            'false': {cl_flags: '/Gy-'},
             default_value: {}
         }
 
@@ -816,7 +817,7 @@ class CPPFlags(Flags):
             'Precise': {cl_flags: '/fp:precise'},
             'Strict': {cl_flags: '/fp:strict'},
             'Fast': {cl_flags: '/fp:fast'},
-            default_value: {cl_flags: '/fp:precise'}
+            default_value: {}
         }
 
         return flag_values
@@ -832,7 +833,7 @@ class CPPFlags(Flags):
             'false': {},
             'true': {cl_flags: '/EHsc'},
             'Async': {cl_flags: '/EHa'},
-            default_value: {cl_flags: '/EHsc'}
+            default_value: {cl_flags: '/EHsc'}  # TODO: investigate default
         }
 
         return flag_values
@@ -855,7 +856,7 @@ class CPPFlags(Flags):
     @staticmethod
     def set_diagnostics_format(context, flag_name, node):
         """
-        Set DiagnosticsFormat flag : /GS
+        Set DiagnosticsFormat flag : /diagnostics
 
         """
         del context, flag_name, node
@@ -863,7 +864,7 @@ class CPPFlags(Flags):
             'Classic': {cl_flags: '/diagnostics:classic'},
             'Column': {cl_flags: '/diagnostics:column'},
             'Caret': {cl_flags: '/diagnostics:caret'},
-            default_value: {cl_flags: '/diagnostics:classic'}
+            default_value: {}
         }
 
         return flag_values
@@ -893,7 +894,7 @@ class CPPFlags(Flags):
         flag_values = {
             'false': {cl_flags: '/Zc:wchar_t-'},
             'true': {cl_flags: '/Zc:wchar_t'},
-            default_value: {cl_flags: '/Zc:wchar_t'}
+            default_value: {}
         }
 
         return flag_values
