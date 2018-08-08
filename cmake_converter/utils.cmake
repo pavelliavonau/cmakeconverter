@@ -5,7 +5,7 @@
 ################################################################################
 cmake_policy(PUSH)
 cmake_policy(SET CMP0054 NEW)
-macro(PREPARE_COMMANDS)
+macro(prepare_commands)
     unset(TOKEN_ROLE)
     unset(COMMANDS)
     foreach(TOKEN ${ARG_COMMANDS})

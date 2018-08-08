@@ -184,25 +184,15 @@ class Dependencies(object):
             )
 
         if context.add_lib_dirs:
-            cmake_file.write('if(MSVC)\n')
-            cmake_file.write('    target_link_libraries(${PROJECT_NAME}')
+            cmake_file.write('target_link_directories(${PROJECT_NAME}')
             for dep in context.add_lib_dirs:
                 cmake_file.write(
-                    ' -LIBPATH:' + check_for_relative_in_path(
+                    ' "{}"'.format(check_for_relative_in_path(
                         context,
                         cleaning_output(context, dep)
-                    )
+                    ))
                 )
-            cmake_file.write(')\nelseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")\n')
-            cmake_file.write('    target_link_libraries(${PROJECT_NAME}')
-            for dep in context.add_lib_dirs:
-                cmake_file.write(
-                    ' -L' + check_for_relative_in_path(
-                        context,
-                        cleaning_output(context, dep)
-                    )
-                )
-            cmake_file.write(')\nendif()\n\n')
+            cmake_file.write(')\n\n')
 
     @staticmethod
     def write_target_property_sheets(context, cmake_file):
