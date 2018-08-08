@@ -102,11 +102,11 @@ class Flags(object):
             'target_compile_options(${PROJECT_NAME} PRIVATE', ')', compiler_flags_key, indent='    '
         )
         for file in context.file_contexts:
-            file_cl_var = file + "_cl_var"
+            file_cl_var = 'FILE_CL_OPTIONS'
             text = write_property_of_settings(
                 cmake_file, context.file_contexts[file].settings,
                 context.sln_configurations_map,
-                'string(CONCAT "{0}"'.format(file_cl_var),
+                'string(CONCAT {0}'.format(file_cl_var),
                 ')', compiler_flags_key, indent='    '
             )
             if text:
