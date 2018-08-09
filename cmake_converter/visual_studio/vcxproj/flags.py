@@ -539,7 +539,7 @@ class CPPFlags(Flags):
         del context, flag_name, node
         flag_values = {
             'true': {cl_flags: '/WX'},
-            'false': {cl_flags: '/WX:NO'},
+            'false': {cl_flags: '/WX-'},
             default_value: {}
         }
 
