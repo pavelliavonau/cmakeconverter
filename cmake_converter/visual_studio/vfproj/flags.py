@@ -264,8 +264,7 @@ class FortranFlags(Flags):
                                  ifort_cl_unix: '-names lowercase'},
             'extNameAsIs': {ifort_cl_win: '-names:as_is',
                             ifort_cl_unix: '-names as_is'},
-            default_value: {ifort_cl_win: '-names:uppercase',
-                            ifort_cl_unix: '-names lowercase'}
+            default_value: {}
         }
         return flag_values
 
@@ -476,7 +475,7 @@ class FortranFlags(Flags):
         del context, flag_name, flag_value
         flag_values = {
             'defaultIncludeCurrent': {'assume_args': 'nosource_include'},
-            default_value: {'assume_args': 'source_include'}
+            default_value: {}
         }
         return flag_values
 
@@ -539,8 +538,7 @@ class FortranFlags(Flags):
                                         ifort_cl_unix: '-threads'},
             'rtQuickWinDebug': {ifort_cl_win: '-libs:qwin;-dbglibs'},
             'rtStandardGraphicsDebug': {ifort_cl_win: '-libs:qwins;-dbglibs'},
-            default_value: {ifort_cl_win: '-libs:static;-threads',
-                            ifort_cl_unix: '-threads'}
+            default_value: {}
         }
         return flag_values
 
@@ -699,8 +697,7 @@ class FortranFlags(Flags):
                              ifort_cl_unix: '-O3'},
             'optimizeDisabled': {ifort_cl_win: '-Od',
                                  ifort_cl_unix: '-Od'},
-            default_value: {ifort_cl_win: '-O2',
-                            ifort_cl_unix: '-O2'}
+            default_value: {}
         }
         return flag_values
 
