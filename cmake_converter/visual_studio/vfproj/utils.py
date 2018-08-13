@@ -38,4 +38,5 @@ class VFUtils(Utils):
         context.settings[context.current_setting]['ifort_ln'] = []
         context.settings[context.current_setting]['assume_args'] = []
         context.settings[context.current_setting]['warn_args'] = []
+        context.settings[context.current_setting]['check_args'] = []
 

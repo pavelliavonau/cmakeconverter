@@ -190,6 +190,7 @@ class FortranFlags(Flags):
             ifort_ln,
             'assume_args',
             'warn_args',
+            'check_args'
         ]
 
         for flag_name in self.__get_result_order_of_flags():
@@ -203,6 +204,7 @@ class FortranFlags(Flags):
                         )
 
         self.__set_assume_with_params(context)
+        self.__set_spec_check_options(context)
         self.__set_spec_warn_options(context)
 
     @staticmethod
@@ -215,6 +217,18 @@ class FortranFlags(Flags):
                 )
                 context.settings[context.current_setting][ifort_cl_unix].append(
                     '-assume ' + ','.join(args)
+                )
+
+    @staticmethod
+    def __set_spec_check_options(context):
+        if 'check_args' in context.settings[context.current_setting]:
+            args = context.settings[context.current_setting]['check_args']
+            if args:
+                context.settings[context.current_setting][ifort_cl_win].append(
+                    '-check:' + ','.join(args)
+                )
+                context.settings[context.current_setting][ifort_cl_unix].append(
+                    '-check ' + ','.join(args)
                 )
 
     @staticmethod
@@ -357,8 +371,7 @@ class FortranFlags(Flags):
         """
         del context, flag_name, flag_value
         flag_values = {
-            'true': {ifort_cl_win: '-check:pointer',
-                     ifort_cl_unix: '-check pointer'},
+            'true': {'check_args': 'pointer'},
             default_value: {}
         }
         return flag_values
@@ -369,8 +382,7 @@ class FortranFlags(Flags):
         """
         del context, flag_name, flag_value
         flag_values = {
-            'true': {ifort_cl_win: '-check:bounds',
-                     ifort_cl_unix: '-check bounds'},
+            'true': {'check_args': 'bounds'},
             default_value: {}
         }
         return flag_values
@@ -381,8 +393,7 @@ class FortranFlags(Flags):
         """
         del context, flag_name, flag_value
         flag_values = {
-            'true': {ifort_cl_win: '-check:uninit',
-                     ifort_cl_unix: '-check uninit'},
+            'true': {'check_args': 'uninit'},
             default_value: {}
         }
         return flag_values
@@ -393,8 +404,7 @@ class FortranFlags(Flags):
         """
         del context, flag_name, flag_value
         flag_values = {
-            'true': {ifort_cl_win: '-check:format',
-                     ifort_cl_unix: '-check format'},
+            'true': {'check_args': 'format'},
             default_value: {}
         }
         return flag_values
@@ -405,8 +415,7 @@ class FortranFlags(Flags):
         """
         del context, flag_name, flag_value
         flag_values = {
-            'true': {ifort_cl_win: '-check:output_conversion',
-                     ifort_cl_unix: '-check output_conversion'},
+            'true': {'check_args': 'output_conversion'},
             default_value: {}
         }
         return flag_values
@@ -417,8 +426,7 @@ class FortranFlags(Flags):
         """
         del context, flag_name, flag_value
         flag_values = {
-            'true': {ifort_cl_win: '-check:arg_temp_created',
-                     ifort_cl_unix: '-check arg_temp_created'},
+            'true': {'check_args': 'arg_temp_created'},
             default_value: {}
         }
         return flag_values
@@ -429,8 +437,7 @@ class FortranFlags(Flags):
         """
         del context, flag_name, flag_value
         flag_values = {
-            'true': {ifort_cl_win: '-check:stack',
-                     ifort_cl_unix: '-check stack'},
+            'true': {'check_args': 'stack'},
             default_value: {}
         }
         return flag_values
