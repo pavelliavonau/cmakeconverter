@@ -91,7 +91,14 @@ class Flags(object):
         cmake_file.write('\n')
 
     @staticmethod
-    def write_compiler_and_linker_flags(context, os_check_str, compiler_check_str,
+    def __write_flags_of_files(cmake_file, indent, config_condition_expr, property_value, width):
+        property_value_str = ' '.join(property_value)
+        config_width = width + 3  # for '"$<'
+        cmake_file.write('{0}    {1:>{width}}:{2}>"\n'
+                         .format(indent, '"$<' + config_condition_expr, property_value_str,
+                                 width=config_width))
+
+    def write_compiler_and_linker_flags(self, context, os_check_str, compiler_check_str,
                                         compiler_flags_key, linker_flags_key, cmake_file):
         and_os_str = ''
         if os_check_str:
@@ -107,7 +114,7 @@ class Flags(object):
                 cmake_file, context.file_contexts[file].settings,
                 context.sln_configurations_map,
                 'string(CONCAT {0}'.format(file_cl_var),
-                ')', compiler_flags_key, indent='    '
+                ')', compiler_flags_key, '    ', None, self.__write_flags_of_files
             )
             if text:
                 cmake_file.write(
