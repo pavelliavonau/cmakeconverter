@@ -91,17 +91,8 @@ class ContextInitializer(object):
             'Initialization data for conversion of project {0}'.format(context.vcxproj_path),
             ''
         )
-        self.define_settings(context)
         for sln_config in context.sln_configurations_map:
             context.configurations_to_parse.add(context.sln_configurations_map[sln_config])
-
-    def define_settings(self, context):
-        """
-        Define settings of converter. Need to be defined.
-
-        """
-
-        raise NotImplementedError('You need to define a define_settings method!')
 
     def init_context(self, context, vs_project):
         """

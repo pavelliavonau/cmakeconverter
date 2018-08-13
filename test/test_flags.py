@@ -79,7 +79,6 @@ class TestFlags(unittest2.TestCase):
         self.assertFalse(under_test.property_groups)
         self.assertFalse(under_test.definition_groups)
 
-        under_test.define_settings()
         under_test.define_group_properties()
 
         self.assertTrue(under_test.property_groups)

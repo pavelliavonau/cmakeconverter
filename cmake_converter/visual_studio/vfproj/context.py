@@ -52,10 +52,3 @@ class VFContextInitializer(ContextInitializer):
         """
 
         context.vcxproj = get_xml_data(context, vs_project)
-
-    def define_settings(self, context):
-        """
-        Define the settings of vfproj
-
-        """
-        pass

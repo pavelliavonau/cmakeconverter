@@ -59,10 +59,3 @@ class VCXContextInitializer(ContextInitializer):
         if project_name_value:
             project_name = project_name_value
         context.project_name = project_name
-
-    def define_settings(self, context):
-        """
-        Define the settings of vcxproj
-
-        """
-        pass
