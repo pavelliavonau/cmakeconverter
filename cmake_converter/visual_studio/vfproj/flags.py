@@ -203,44 +203,20 @@ class FortranFlags(Flags):
                             value
                         )
 
-        self.__set_assume_with_params(context)
-        self.__set_spec_check_options(context)
-        self.__set_spec_warn_options(context)
+        self.__set_spec_options(context, 'assume_args', 'assume')
+        self.__set_spec_options(context, 'check_args', 'check')
+        self.__set_spec_options(context, 'warn_args', 'warn')
 
     @staticmethod
-    def __set_assume_with_params(context):
-        if 'assume_args' in context.settings[context.current_setting]:
-            args = context.settings[context.current_setting]['assume_args']
+    def __set_spec_options(context, context_key, compiler_key):
+        if context_key in context.settings[context.current_setting]:
+            args = context.settings[context.current_setting][context_key]
             if args:
                 context.settings[context.current_setting][ifort_cl_win].append(
-                    '-assume:' + ','.join(args)
+                    '-{}:{}'.format(compiler_key, ','.join(args))
                 )
                 context.settings[context.current_setting][ifort_cl_unix].append(
-                    '-assume ' + ','.join(args)
-                )
-
-    @staticmethod
-    def __set_spec_check_options(context):
-        if 'check_args' in context.settings[context.current_setting]:
-            args = context.settings[context.current_setting]['check_args']
-            if args:
-                context.settings[context.current_setting][ifort_cl_win].append(
-                    '-check:' + ','.join(args)
-                )
-                context.settings[context.current_setting][ifort_cl_unix].append(
-                    '-check ' + ','.join(args)
-                )
-
-    @staticmethod
-    def __set_spec_warn_options(context):
-        if 'warn_args' in context.settings[context.current_setting]:
-            args = context.settings[context.current_setting]['warn_args']
-            if args:
-                context.settings[context.current_setting][ifort_cl_win].append(
-                    '-warn:' + ','.join(args)
-                )
-                context.settings[context.current_setting][ifort_cl_unix].append(
-                    '-warn ' + ','.join(args)
+                    '-{} {}'.format(compiler_key, ','.join(args))
                 )
 
     @staticmethod
