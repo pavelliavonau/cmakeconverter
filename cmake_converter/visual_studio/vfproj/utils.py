@@ -20,6 +20,22 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
+from cmake_converter.utils import Utils
 
-class Utils(object):
-    pass
+
+class VFUtils(Utils):
+    def init_context_current_setting(self, context):
+        """
+        Define settings of converter.
+
+        :param context: converter context
+        :type context: Context
+        """
+
+        super(VFUtils, self).init_context_current_setting(context)
+        context.settings[context.current_setting]['ifort_cl_win'] = []
+        context.settings[context.current_setting]['ifort_cl_unix'] = []
+        context.settings[context.current_setting]['ifort_ln'] = []
+        context.settings[context.current_setting]['assume_args'] = []
+        context.settings[context.current_setting]['warn_args'] = []
+

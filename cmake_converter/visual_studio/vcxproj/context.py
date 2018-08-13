@@ -28,7 +28,7 @@ from .dependencies import VCXDependencies
 from .flags import CPPFlags
 from .project_files import VCXProjectFiles
 from .project_variables import VCXProjectVariables
-from .utils import Utils
+from .utils import VCXUtils
 from .parser import VCXParser
 
 
@@ -39,7 +39,7 @@ class VCXContextInitializer(ContextInitializer):
         context.files = VCXProjectFiles()
         context.flags = CPPFlags()
         context.dependencies = VCXDependencies()
-        context.utils = Utils()
+        context.utils = VCXUtils()
         context.parser = VCXParser()
 
     def init_context(self, context, vs_project):

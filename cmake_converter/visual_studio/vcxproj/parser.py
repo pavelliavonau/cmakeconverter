@@ -23,7 +23,6 @@
 import re
 
 from cmake_converter.parser import Parser, StopParseException
-from cmake_converter.context import ContextInitializer
 from cmake_converter.data_files import get_propertygroup, get_definitiongroup
 from cmake_converter.utils import replace_vs_vars_with_cmake_vars
 from cmake_converter.data_files import get_xml_data
@@ -135,8 +134,9 @@ class VCXParser(Parser):
                                               project_configuration_node):
         if setting not in context.configurations_to_parse:
             return
-        ContextInitializer.init_context_setting(context, setting)
-        context.settings[setting]['PrecompiledHeader'] = ''
+
+        context.current_setting = setting
+        context.utils.init_context_current_setting(context)
 
         # TODO: remove next
         context.property_groups[setting] = get_propertygroup(
@@ -146,9 +146,7 @@ class VCXParser(Parser):
             setting
         )
 
-        context.current_setting = setting
         context.variables.apply_default_values(context)
-        context.flags.prepare_context_for_flags(context)
         context.current_setting = None
 
     @staticmethod
@@ -180,10 +178,11 @@ class VCXParser(Parser):
             if self.filters:
                 source_group = self.__get_source_group_from_filters(node, 'ClInclude')
 
-            context.files.add_file_from_node(
+            file_context = context.files.add_file_from_node(
                 context,
                 context.headers, node, 'Include', source_group)
-            return  # TODO: handle settings of files
+            self._parse_nodes(file_context, node)
+            return
         self._parse_nodes(context, node)
 
     def __parse_cl_compile(self, context, node):
@@ -197,7 +196,7 @@ class VCXParser(Parser):
                 context,
                 context.sources, node, 'Include', source_group)
             self._parse_nodes(file_context, node)
-            return  # TODO: handle settings of files
+            return
         self._parse_nodes(context, node)
 
     def __parse_none(self, context, node):
@@ -207,13 +206,14 @@ class VCXParser(Parser):
             if self.filters:
                 source_group = self.__get_source_group_from_filters(node, 'None')
 
-            context.files.add_file_from_node(
+            file_context = context.files.add_file_from_node(
                 context,
                 context.other_project_files,
                 node,
                 'Include',
                 source_group
             )
+            self._parse_nodes(file_context, node)
             if 'packages.config' in node.attrib['Include']:
                 context.packages_config_path = node.attrib['Include']
             return
@@ -244,6 +244,7 @@ class VCXParser(Parser):
             setting = found.group(1)
         if setting in context.settings:
             context.current_setting = setting
+            context.flags.prepare_context_for_flags(context)
             self.reset_current_setting_after_parsing_node(node)
         else:
             context.current_setting = None

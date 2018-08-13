@@ -27,7 +27,7 @@ from .dependencies import VFDependencies
 from .flags import FortranFlags
 from .project_files import VFProjectFiles
 from .project_variables import VFProjectVariables
-from .utils import Utils
+from .utils import VFUtils
 from .parser import VFParser
 
 
@@ -38,7 +38,7 @@ class VFContextInitializer(ContextInitializer):
         context.files = VFProjectFiles()
         context.flags = FortranFlags()
         context.dependencies = VFDependencies()
-        context.utils = Utils()
+        context.utils = VFUtils()
         context.parser = VFParser()
 
     def init_context(self, context, vs_project):

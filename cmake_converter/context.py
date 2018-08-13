@@ -110,37 +110,6 @@ class ContextInitializer(object):
         """
         pass
 
-    @staticmethod
-    def init_context_setting(context, configuration_data):
-        """
-        Define settings of converter. Need to be reimplemented.
-
-        :param context: converter context
-        :type context: Context
-        :param configuration_data: data of configuration (Debug|Win32, Release|x64,...)
-        :type configuration_data: str
-        """
-
-        conf_arch = configuration_data.split('|')
-        conf = conf_arch[0]
-        arch = conf_arch[1]
-        context.supported_architectures.add(arch)
-        context.settings[configuration_data] = {
-            'defines': [],
-            'conf': conf,
-            'arch': arch,
-            'inc_dirs_list': [],
-            'pre_build_events': [],
-            'pre_link_events': [],
-            'post_build_events': [],
-            # TODO: remove next trash from here
-            'ifort_cl_win': [],
-            'ifort_cl_unix': [],
-            'ifort_ln': [],
-            'assume_args': [],
-            'warn_args': [],
-        }
-
     def init_files(self, context, vs_project, cmake_lists):
         """
         Initialize opening of CMakeLists.txt and VS Project files

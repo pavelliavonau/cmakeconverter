@@ -52,25 +52,11 @@ class ProjectFiles(object):
         file_context.settings = {}
         file_context.flags = copy.copy(context.flags)
         file_context.flags.__init__()
-        for setting in context.settings:
-            file_context.current_setting = setting
-            # TODO: redo settings initialization
-            file_context.settings[setting] = {
-                'conf': context.settings[setting]['conf'],
-                'arch': context.settings[setting]['arch'],
-                'defines': [],
-                'cl_flags': [],
-                'PrecompiledHeader': [],
-                'ifort_cl_win': [],
-                'ifort_cl_unix': [],
-                'ifort_ln': [],
-                'assume_args': [],
-                'warn_args': [],
-            }
-            file_context.flags.flags[setting] = {}
-            # file_context.flags.prepare_context_for_flags(file_context) # TODO
-        context.current_setting = None
         file_context.file_contexts = None
+        for setting in context.settings:       # copy settings
+            file_context.current_setting = setting
+            file_context.utils.init_context_current_setting(file_context)
+        context.current_setting = None
         return file_context
 
     def add_file_from_node(self, context, files_dest_dict, file_node,

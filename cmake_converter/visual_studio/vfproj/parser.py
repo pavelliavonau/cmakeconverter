@@ -34,7 +34,7 @@ class VFParser(Parser):
             'Platforms': self.do_nothing_node_stub,
             'Configurations': self.__parse_configurations,
             'Configuration': self.__parse_configuration,
-            'FileConfiguration': self.__parse_file_configuration,
+            'FileConfiguration': self.__parse_configuration,
             'Tool': self._parse_nodes,
             'Files': self.__parse_files,
             'File': self.do_nothing_node_stub,
@@ -170,19 +170,6 @@ class VFParser(Parser):
         context.flags.apply_flags_to_context(context)
         context.dependencies.add_current_dir_to_includes(context)
 
-    def __parse_file_configuration(self, context, file_configuration_node):
-        # TODO: can we use __parse_configuration instead?
-        # if 'target_type' not in context.settings[context.current_setting]:
-        #     context.settings[context.current_setting]['target_type'] = 'Application'
-        #
-        # if 'target_name' not in context.settings[context.current_setting]:
-        #     context.settings[context.current_setting]['target_name'] = context.project_name
-
-        # context.flags.prepare_context_for_flags(context)
-        self._parse_nodes(context, file_configuration_node)
-        context.flags.apply_flags_to_context(context)
-        # context.dependencies.add_current_dir_to_includes(context)
-
     def __parse_configuration_name(self, context, attr_name, configuration_name, node):
         setting = configuration_name
         if setting not in context.configurations_to_parse:
@@ -191,7 +178,7 @@ class VFParser(Parser):
         context.current_setting = setting
         self.common_diagnostics_value = None
         self.common_runtime_checks_value = None
-        ContextInitializer.init_context_setting(context, setting)
+        context.utils.init_context_current_setting(context)
         context.variables.apply_default_values(context)
         self.reset_current_setting_after_parsing_node(node)
 

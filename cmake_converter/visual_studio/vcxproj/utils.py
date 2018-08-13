@@ -20,6 +20,21 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
+from cmake_converter.utils import Utils
 
-class Utils(object):
-    pass
+
+class VCXUtils(Utils):
+    def init_context_current_setting(self, context):
+        """
+        Define settings of converter.
+
+        :param context: converter context
+        :type context: Context
+        """
+
+        super(VCXUtils, self).init_context_current_setting(context)
+        context.settings[context.current_setting]['cl_flags'] = []
+        context.settings[context.current_setting]['ln_flags'] = []
+        context.settings[context.current_setting]['PrecompiledHeader'] = []
+
+

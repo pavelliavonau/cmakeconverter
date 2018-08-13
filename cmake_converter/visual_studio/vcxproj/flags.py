@@ -352,10 +352,9 @@ class CPPFlags(Flags):
             )
 
     def prepare_context_for_flags(self, context):
-        context.settings[context.current_setting][cl_flags] = []
-        context.settings[context.current_setting][ln_flags] = []
-        context.settings[context.current_setting]['PrecompiledHeader'] = []
-        self.__set_default_flags(context)
+        if context.current_setting not in context.flags.flags:
+            context.flags.flags[context.current_setting] = {}
+            self.__set_default_flags(context)
 
     def apply_flags_to_context(self, context):
         context_flags_data_keys = [
@@ -377,6 +376,8 @@ class CPPFlags(Flags):
                             )
                     for file in context.file_contexts:
                         file_context = context.file_contexts[file]
+                        if setting not in context.file_contexts[file].flags.flags:
+                            continue
                         file_flags = context.file_contexts[file].flags.flags[setting]
                         if flag_name not in file_flags:
                             continue
@@ -559,9 +560,6 @@ class CPPFlags(Flags):
             if sw != '%(DisableSpecificWarnings)':
                 flag = '/wd{0}'.format(sw)
                 flags.append(flag)
-        # TODO: is next check really necessary?
-        if 'DisableSpecificWarnings' not in self.flags[context.current_setting]:
-            self.flags[context.current_setting]['DisableSpecificWarnings'] = {}
         self.flags[context.current_setting][flag_name][cl_flags] = flags
         message(context, 'DisableSpecificWarnings : {}'.format(';'.join(flags)), '')
 
@@ -575,9 +573,6 @@ class CPPFlags(Flags):
         for opt in add_opts:
             if opt != '%(AdditionalOptions)':
                 ready_add_opts.append(opt)
-        # TODO: is next check really necessary?
-        if 'CompileAdditionalOptions' not in self.flags[context.current_setting]:
-            self.flags[context.current_setting]['CompileAdditionalOptions'] = {}
         self.flags[context.current_setting][flag_name][cl_flags] = ready_add_opts
         message(context, 'Compile Additional Options : {}'.format(ready_add_opts), '')
 
@@ -591,9 +586,6 @@ class CPPFlags(Flags):
         for opt in add_opts:
             if opt != '%(AdditionalOptions)':
                 ready_add_opts.append(opt)
-        # TODO: is next check really necessary?
-        if 'LinkAdditionalOptions' not in self.flags[context.current_setting]:
-            self.flags[context.current_setting]['LinkAdditionalOptions'] = {}
         self.flags[context.current_setting][flag_name][ln_flags] = ready_add_opts
         message(context, 'Link Additional Options : {}'.format(ready_add_opts), '')
 
@@ -638,21 +630,20 @@ class CPPFlags(Flags):
             message(context, 'RuntimeLibrary {0} is {1}'
                     .format(mdd_value, cl_flag_value), '')
         else:
-            cl_flag_value = m_d  # TODO: investigate what is default?
-            message(context, 'Default RuntimeLibrary {0} but may be error. Check!'
-                    .format(m_d), 'warn')
+            if context.file_contexts is not None:  # if not file context
+                cl_flag_value = m_d  # TODO: investigate what is default?
+                message(context, 'Default RuntimeLibrary {0} but may be error. Check!'
+                        .format(m_d), 'warn')
 
         if cl_flag_value:
-            # TODO: is next check really necessary?
-            if 'RuntimeLibrary' not in self.flags[context.current_setting]:
-                self.flags[context.current_setting]['RuntimeLibrary'] = {}
             self.flags[context.current_setting][flag_name][cl_flags] = [cl_flag_value]
-
-        self.apply_use_debug_libs(context, context.current_setting)
+            self.apply_use_debug_libs(context, context.current_setting)
 
     def apply_use_debug_libs(self, context, setting):
         if 'use_debug_libs' in context.settings[setting]:
-            rl_flag = self.flags[setting]['RuntimeLibrary'][cl_flags][0]
+            rl_flag = ''
+            if cl_flags in self.flags[setting]['RuntimeLibrary']:
+                rl_flag = self.flags[setting]['RuntimeLibrary'][cl_flags][0]
             applied_flag = rl_flag
             if context.settings[setting]['use_debug_libs']:
                 if rl_flag == '/MD':
@@ -828,6 +819,9 @@ class CPPFlags(Flags):
         Set ExceptionHandling flag: /EHsc
 
         """
+        if context.file_contexts is None and node.text == '':  # if file context ignore default
+            return {}
+
         del context, flag_name, node
         flag_values = {
             'false': {},

@@ -180,11 +180,7 @@ class FortranFlags(Flags):
             )
 
     def prepare_context_for_flags(self, context):
-        context.settings[context.current_setting][ifort_cl_win] = []
-        context.settings[context.current_setting][ifort_cl_unix] = []
-        context.settings[context.current_setting][ifort_ln] = []
-        context.settings[context.current_setting]['assume_args'] = []
-        context.settings[context.current_setting]['warn_args'] = []
+        context.flags.flags[context.current_setting] = {}
         self.__set_default_flags(context)
 
     def apply_flags_to_context(self, context):
@@ -246,7 +242,10 @@ class FortranFlags(Flags):
 
     @staticmethod
     def set_external_name_underscore(context, flag_name, flag_value):
-        del context, flag_name, flag_value
+        if context.file_contexts is None and flag_value == '':
+            return {}
+
+        del flag_name
         flag_values = {
             'true': {'assume_args': 'underscore'},
             'false': {'assume_args': 'nounderscore'},

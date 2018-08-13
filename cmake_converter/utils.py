@@ -51,6 +51,31 @@ FAIL = colorama.Fore.RED + colorama.Style.BRIGHT
 ENDC = colorama.Fore.RESET + colorama.Style.RESET_ALL
 
 
+class Utils(object):
+
+    def init_context_current_setting(self, context):
+        """
+        Define settings of converter.
+
+        :param context: converter context
+        :type context: Context
+        """
+
+        conf_arch = context.current_setting.split('|')
+        conf = conf_arch[0]
+        arch = conf_arch[1]
+        context.supported_architectures.add(arch)
+        context.settings[context.current_setting] = {
+            'defines': [],
+            'conf': conf,
+            'arch': arch,
+            'inc_dirs_list': [],
+            'pre_build_events': [],
+            'pre_link_events': [],
+            'post_build_events': [],
+        }
+
+
 def take_name_from_list_case_ignore(context, search_list, name_to_search):
     """
     Return real name of name to search
