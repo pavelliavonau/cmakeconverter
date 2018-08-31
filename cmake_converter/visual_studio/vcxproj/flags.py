@@ -557,7 +557,7 @@ class CPPFlags(Flags):
         flags = []
         for sw in specific_warnings_node.text.strip().split(";"):
             sw = sw.strip()
-            if sw != '%(DisableSpecificWarnings)':
+            if sw != '%(DisableSpecificWarnings)' and sw != '':
                 flag = '/wd{0}'.format(sw)
                 flags.append(flag)
         self.flags[context.current_setting][flag_name][cl_flags] = flags
