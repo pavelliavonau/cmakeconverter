@@ -1,0 +1,1 @@
+static const char* g3lob_var = "hello";

@@ -1,0 +1,1 @@
+static const char* zlib_var = "hello";

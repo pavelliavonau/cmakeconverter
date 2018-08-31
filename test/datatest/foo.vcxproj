@@ -22,7 +22,7 @@
     <ProjectGuid>{5A8227C8-F9A2-438D-9233-424CAB500B0F}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>core</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.15063.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -190,7 +190,7 @@
     </BuildLog>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\..\core\src\core.cpp">
+    <!--<ClCompile Include="..\..\..\core\src\core.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Use</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Use</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
@@ -239,23 +239,22 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Use</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="..\..\..\core\src\threads.cpp" />
+    <ClCompile Include="..\..\..\core\src\threads.cpp" />-->
+    <ClCompile Include="foosrc\test.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\core\src\core.h" />
+    <!--<ClInclude Include="..\..\..\core\src\core.h" />
     <ClInclude Include="..\..\..\core\src\locales.h" />
     <ClInclude Include="..\..\..\core\src\memory.h" />
     <ClInclude Include="..\..\..\core\src\resources.h" />
     <ClInclude Include="..\..\..\core\src\stdafx.h" />
     <ClInclude Include="..\..\..\core\src\string.h" />
-    <ClInclude Include="..\..\..\core\src\system.h" />
-  </ItemGroup>
-  <ItemGroup>
+    <ClInclude Include="..\..\..\core\src\system.h" />-->
     <ProjectReference Include="external\g3log.vcxproj">
-      <Project>{10f534b8-aa62-47d9-b1ae-e285dca9a26d}</Project>
+      <Project>{57c865c2-c5cc-48d0-8af6-fcc941c7dadf}</Project>
     </ProjectReference>
     <ProjectReference Include="external\zlib.vcxproj">
-      <Project>{e5289321-3d01-473d-86b9-745cd2bef1db}</Project>
+      <Project>{a11c6b72-3902-43d3-abd5-650012fb4029}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

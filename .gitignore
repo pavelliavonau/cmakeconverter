@@ -13,6 +13,17 @@ dist/
 *.opendb
 *.db-shm
 *.db-wal
+*.log
+*.tlog
+
+# Build
+build/
+*.obj
+*.lib
+*.idb
+*.pdb
+*.u2d
+BuildLog.htm
 
 # Tests/Coverage
 .coverage
@@ -25,3 +36,4 @@ _build
 # Misc
 #*.cmake
 CMakeLists.txt
+Utils.cmake
