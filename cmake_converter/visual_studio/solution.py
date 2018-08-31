@@ -205,6 +205,23 @@ def set_dependencies_for_project(context, project_data):
     context.sln_deps = project_data['sln_deps']
 
 
+def clean_cmake_lists_file(context, subdirectory, cmake_lists_set):
+    cmake_path_to_clean = \
+        ContextInitializer.set_cmake_lists_path(context, subdirectory) + '/CMakeLists.txt'
+    if context.dry:
+        return
+
+    if cmake_path_to_clean in cmake_lists_set:
+        return
+    cmake_lists_set.add(cmake_path_to_clean)
+
+    if os.path.exists(cmake_path_to_clean):
+        os.remove(cmake_path_to_clean)
+        message(context, 'removed {}'.format(cmake_path_to_clean), '')
+    else:
+        message(context, 'not found {}'.format(cmake_path_to_clean), 'warn')
+
+
 def clean_cmake_lists_of_solution(context, solution_path, projects_data):
     message(context, 'Cleaning CMake Scripts', '')
     cmake_lists_set = set()
@@ -213,21 +230,9 @@ def clean_cmake_lists_of_solution(context, solution_path, projects_data):
         project_path = '/'.join(project_path.split('\\'))
         project_abs = os.path.join(solution_path, project_path)
         subdirectory = os.path.dirname(project_abs)
-        cmake_path_to_clean = \
-            ContextInitializer.set_cmake_lists_path(context, subdirectory) + '/CMakeLists.txt'
+        clean_cmake_lists_file(context, subdirectory, cmake_lists_set)
 
-        if context.dry:
-            continue
-
-        if cmake_path_to_clean in cmake_lists_set:
-            continue
-        cmake_lists_set.add(cmake_path_to_clean)
-
-        if os.path.exists(cmake_path_to_clean):
-            os.remove(cmake_path_to_clean)
-            message(context, 'removed {}'.format(cmake_path_to_clean), '')
-        else:
-            message(context, 'not found {}'.format(cmake_path_to_clean), 'warn')
+    clean_cmake_lists_file(context, solution_path, cmake_lists_set)
     print('\n')
 
 
@@ -282,12 +287,19 @@ def convert_solution(initial_context, sln_path):
     for directory_results in results:
         for project_result in directory_results:
             subdirectory = os.path.relpath(project_result['cmake'], solution_path)
-            subdirectories_set.add(subdirectory)
+            if subdirectory != '.':
+                subdirectories_set.add(subdirectory)
             subdirectories_to_project_name[subdirectory] = project_result['project_name']
             initial_context.solution_languages.update(project_result['solution_languages'])
 
     if initial_context.dry:
         return
+
+    sln_cmake = get_cmake_lists(initial_context, solution_path, 'r')
+    sln_cmake_projects_text = ''
+    if sln_cmake is not None:
+        sln_cmake_projects_text = sln_cmake.read()
+        sln_cmake.close()
 
     sln_cmake = get_cmake_lists(initial_context, solution_path)
     DataConverter.add_cmake_version_required(sln_cmake)
@@ -381,6 +393,11 @@ def convert_solution(initial_context, sln_path):
         sln_cmake.write('add_subdirectory({0}{1})\n'.format(
             set_unix_slash(subdirectory), binary_dir))
     sln_cmake.write('\n')
+
+    if sln_cmake_projects_text != '':
+        sln_cmake.write('\n' * 26)
+        sln_cmake.write(sln_cmake_projects_text)
+
     sln_cmake.close()
 
     message(initial_context, 'Conversion of solution finished', 'done')
