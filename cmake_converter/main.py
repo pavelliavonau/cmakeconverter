@@ -30,7 +30,8 @@ import argparse
 import os
 
 from cmake_converter.context import Context
-from cmake_converter.visual_studio.solution import convert_solution, convert_project
+from cmake_converter.visual_studio.solution import convert_solution, convert_project,\
+    clean_cmake_lists_file, copy_cmake_utils
 from cmake_converter.utils import message, init_colorama
 
 
@@ -143,7 +144,10 @@ def main():  # pragma: no cover
         cmake_lists_path = os.path.dirname(args.project)
         if args.cmake:
             cmake_lists_path = args.cmake
-        convert_project(initial_context, args.project, cmake_lists_path)
+        clean_cmake_lists_file(initial_context, cmake_lists_path, set())
+        project_abs_path = os.path.abspath(args.project)
+        convert_project(initial_context, project_abs_path, cmake_lists_path)
+        copy_cmake_utils(os.path.dirname(project_abs_path))
     else:
         convert_solution(initial_context, os.path.abspath(args.solution))
 

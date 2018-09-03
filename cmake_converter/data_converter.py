@@ -28,7 +28,7 @@
 
 from cmake_converter.data_files import get_cmake_lists
 from cmake_converter.flags import Flags
-from cmake_converter.utils import write_comment, message
+from cmake_converter.utils import write_comment, message, write_arch_types, write_use_package_stub
 from cmake_converter.context import Context
 import os
 
@@ -74,6 +74,9 @@ class DataConverter(object):
 
         if not context.is_converting_solution:
             self.add_cmake_version_required(cmake_file)
+            cmake_file.write('include(CMake/Utils.cmake)\n\n')
+            write_arch_types(cmake_file)
+            write_use_package_stub(cmake_file)
 
         context.files.write_cmake_project(context, cmake_file)
         # context.variables.add_default_target() # TODO: add conversion option to cmd line

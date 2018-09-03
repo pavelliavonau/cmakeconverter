@@ -132,8 +132,11 @@ class VCXParser(Parser):
     @staticmethod
     def __parse_project_configuration_include(context, attr_name, setting,
                                               project_configuration_node):
-        if setting not in context.configurations_to_parse:
-            return
+        if context.is_converting_solution:
+            if setting not in context.configurations_to_parse:
+                return
+        else:
+            context.sln_configurations_map[setting] = setting
 
         context.current_setting = setting
         context.utils.init_context_current_setting(context)

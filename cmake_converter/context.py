@@ -58,7 +58,7 @@ class Context(object):
         self.warn_level = 3
         self.is_converting_solution = False
 
-        self.sln_configurations_map = None
+        self.sln_configurations_map = dict()
         self.solution_folder = ''
         self.configurations_to_parse = set()
         self.cmake = ''
@@ -91,8 +91,9 @@ class ContextInitializer(object):
             'Initialization data for conversion of project {0}'.format(context.vcxproj_path),
             ''
         )
-        for sln_config in context.sln_configurations_map:
-            context.configurations_to_parse.add(context.sln_configurations_map[sln_config])
+        if context.is_converting_solution:
+            for sln_config in context.sln_configurations_map:
+                context.configurations_to_parse.add(context.sln_configurations_map[sln_config])
 
     def init_context(self, context, vs_project):
         """

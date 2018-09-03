@@ -31,7 +31,8 @@ from .vfproj.context import VFContextInitializer
 from cmake_converter.data_converter import DataConverter
 from cmake_converter.context import ContextInitializer
 from cmake_converter.data_files import get_cmake_lists
-from cmake_converter.utils import set_unix_slash, message, write_comment
+from cmake_converter.utils import set_unix_slash, message, write_comment, write_use_package_stub,\
+    write_arch_types
 
 
 def run_conversion(subdirectory_projects_data):
@@ -239,6 +240,14 @@ def clean_cmake_lists_of_solution(context, solution_path, projects_data):
     print('\n')
 
 
+def copy_cmake_utils(cmake_lists_path):
+    utils_path = os.path.join(cmake_lists_path, 'CMake')
+    if not os.path.exists(utils_path):
+        os.makedirs(utils_path)
+    utils_src_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../utils.cmake')
+    shutil.copyfile(utils_src_path, utils_path + '/Utils.cmake')
+
+
 def convert_solution(initial_context, sln_path):
     initial_context.is_converting_solution = True
     sln = open(sln_path, encoding='utf8')
@@ -309,14 +318,8 @@ def convert_solution(initial_context, sln_path):
     sln_cmake.write(
         'project({0})\n\n'.format(os.path.splitext(os.path.basename(sln_path))[0])
     )
-    write_comment(
-        sln_cmake,
-        'Set target arch type if empty. Visual studio solution generator provides it.'
-    )
-    sln_cmake.write('if(NOT CMAKE_VS_PLATFORM_NAME)\n')
-    sln_cmake.write('    set(CMAKE_VS_PLATFORM_NAME "x64")\n')
-    sln_cmake.write('endif()\n')
-    sln_cmake.write('message(\"${CMAKE_VS_PLATFORM_NAME} architecture in use\")\n\n')
+
+    write_arch_types(sln_cmake)
 
     # TODO: try to write configuration types for each project locally due possible difference.
     write_comment(sln_cmake, 'Global configuration types')
@@ -367,17 +370,11 @@ def convert_solution(initial_context, sln_path):
 
     write_comment(sln_cmake, 'Nuget packages function stub.')
 
-    sln_cmake.write('function(use_package TARGET PACKAGE VERSION)\n')
-    sln_cmake.write('    message(WARNING "No implementation of use_package. Create yours.")\n')
-    sln_cmake.write('endfunction()\n\n')
+    write_use_package_stub(sln_cmake)
 
     write_comment(sln_cmake, 'Common utils')
     sln_cmake.write('include(CMake/Utils.cmake)\n\n')
-    utils_path = os.path.join(solution_path, 'CMake')
-    if not os.path.exists(utils_path):
-        os.makedirs(utils_path)
-    utils_src_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../utils.cmake')
-    shutil.copyfile(utils_src_path, utils_path + '/Utils.cmake')
+    copy_cmake_utils(solution_path)
 
     write_comment(sln_cmake, 'Additional Global Settings(add specific info there)')
     sln_cmake.write('include(CMake/GlobalSettingsInclude.cmake OPTIONAL)\n\n')

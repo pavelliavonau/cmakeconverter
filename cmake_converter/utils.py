@@ -474,3 +474,19 @@ def write_comment(cmake_file, text):
     cmake_file.write('# {0}\n'.format(text))
     cmake_file.write(title_line + '\n')
 
+
+def write_arch_types(cmake):
+    write_comment(
+        cmake,
+        'Set target arch type if empty. Visual studio solution generator provides it.'
+    )
+    cmake.write('if(NOT CMAKE_VS_PLATFORM_NAME)\n')
+    cmake.write('    set(CMAKE_VS_PLATFORM_NAME "x64")\n')
+    cmake.write('endif()\n')
+    cmake.write('message(\"${CMAKE_VS_PLATFORM_NAME} architecture in use\")\n\n')
+
+
+def write_use_package_stub(cmake):
+    cmake.write('function(use_package TARGET PACKAGE VERSION)\n')
+    cmake.write('    message(WARNING "No implementation of use_package. Create yours.")\n')
+    cmake.write('endfunction()\n\n')
