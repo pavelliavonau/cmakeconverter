@@ -373,7 +373,8 @@ def convert_solution(initial_context, sln_path):
     utils_path = os.path.join(solution_path, 'CMake')
     if not os.path.exists(utils_path):
         os.makedirs(utils_path)
-    shutil.copyfile('utils.cmake', utils_path + '/Utils.cmake')
+    utils_src_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../utils.cmake')
+    shutil.copyfile(utils_src_path, utils_path + '/Utils.cmake')
 
     write_comment(sln_cmake, 'Additional Global Settings(add specific info there)')
     sln_cmake.write('include(CMake/GlobalSettingsInclude.cmake OPTIONAL)\n\n')

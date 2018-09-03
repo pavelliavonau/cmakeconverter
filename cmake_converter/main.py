@@ -145,7 +145,7 @@ def main():  # pragma: no cover
             cmake_lists_path = args.cmake
         convert_project(initial_context, args.project, cmake_lists_path)
     else:
-        convert_solution(initial_context, args.solution)
+        convert_solution(initial_context, os.path.abspath(args.solution))
 
 
 if __name__ == "__main__":  # pragma: no cover
