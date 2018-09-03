@@ -223,6 +223,9 @@ def clean_cmake_lists_file(context, subdirectory, cmake_lists_set):
 
 
 def clean_cmake_lists_of_solution(context, solution_path, projects_data):
+    if not os.path.exists(os.path.join(solution_path, 'CMake')):
+        return  # first run
+
     message(context, 'Cleaning CMake Scripts', '')
     cmake_lists_set = set()
     for guid in projects_data:
