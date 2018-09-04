@@ -302,6 +302,7 @@ def replace_vs_var_with_cmake_var(context, var):
     variables_to_replace = {
         '$(SolutionDir)': '${CMAKE_SOURCE_DIR}\\',
         '$(Platform)': '${CMAKE_VS_PLATFORM_NAME}',
+        '$(PlatformName)': '${CMAKE_VS_PLATFORM_NAME}',
         '$(Configuration)': '$<CONFIG>',
         '$(ConfigurationName)': '$<CONFIG>',
         '$(ProjectDir)': '${CMAKE_CURRENT_SOURCE_DIR}\\',
