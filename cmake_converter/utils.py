@@ -455,6 +455,19 @@ def message(context, text, status):  # pragma: no cover
         print(message_begin + 'INFO : ' + text)
 
 
+def get_comment(text):
+    line_length = 80
+    title_line = ''
+
+    for i in range(0, line_length):
+        title_line = '{0}{1}'.format(title_line, '#')
+
+    comment = title_line + '\n'
+    comment += '# {0}\n'.format(text)
+    comment += title_line + '\n'
+    return comment
+
+
 def write_comment(cmake_file, text):
     """
     Write formated comment in given file wrapper
@@ -465,15 +478,7 @@ def write_comment(cmake_file, text):
     :type cmake_file: _io.TextIOWrapper
     """
 
-    line_length = 80
-    title_line = ''
-
-    for i in range(0, line_length):
-        title_line = '{0}{1}'.format(title_line, '#')
-
-    cmake_file.write(title_line + '\n')
-    cmake_file.write('# {0}\n'.format(text))
-    cmake_file.write(title_line + '\n')
+    cmake_file.write(get_comment(text))
 
 
 def write_arch_types(cmake):

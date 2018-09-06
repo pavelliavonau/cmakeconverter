@@ -19,24 +19,28 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
-import unittest2
+import unittest
 
-from cmake_converter.utils import get_title
+from cmake_converter.utils import get_comment
 
 
-class TestUtils(unittest2.TestCase):
+class TestUtils(unittest.TestCase):
     """
         This file test methods of utils package
     """
 
     def test_get_title(self):
-        """Get Title"""
+        """Get Comment"""
 
-        under_test = get_title('Title', 'text of title')
+        under_test = get_comment('text of comment')
 
         self.assertEqual(
-            '######################### Title ############################\n'
-            '# text of title                                            #\n'
-            '############################################################\n\n',
+            '################################################################################\n'
+            '# text of comment\n'
+            '################################################################################\n',
             under_test
         )
+
+
+if __name__ == '__main__':
+    unittest.main()
