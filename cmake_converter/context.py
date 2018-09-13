@@ -44,7 +44,6 @@ class Context(object):
         self.sln_deps = []
         self.target_references = []
         self.add_lib_deps = False
-        self.add_lib_dirs = []      # TODO: move to settings
         self.packages_config_path = ''
         self.import_projects = []
         self.packages = []

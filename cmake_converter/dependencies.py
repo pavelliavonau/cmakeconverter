@@ -32,9 +32,8 @@ import re
 
 from cmake_converter.data_files import get_vcxproj_data
 from cmake_converter.utils import get_global_project_name_from_vcxproj_file, normalize_path, message
-from cmake_converter.utils import write_property_of_settings, cleaning_output, write_comment
-from cmake_converter.utils import is_settings_has_data, check_for_relative_in_path,\
-    replace_vs_vars_with_cmake_vars
+from cmake_converter.utils import write_property_of_settings, write_comment
+from cmake_converter.utils import is_settings_has_data, replace_vs_vars_with_cmake_vars
 
 
 class Dependencies(object):
@@ -149,6 +148,20 @@ class Dependencies(object):
             cmake_file.write(')\n\n')
 
     @staticmethod
+    def write_target_link_dirs(cmake_file, indent, config_condition_expr,
+                               property_value, width):
+        link_dirs_str = ''
+        for link_dir in property_value:
+            if link_dirs_str != '':
+                link_dirs_str = link_dirs_str + ' '
+            link_dirs_str = link_dirs_str + '"{}"'.format(link_dir)
+
+        if link_dirs_str:
+            cmake_file.write('{0}    CONDITION {1:>{width}} {2}\n'
+                             .format(indent, config_condition_expr, link_dirs_str,
+                                     width=width))
+
+    @staticmethod
     def write_link_dependencies(context, cmake_file):
         """
         Write link dependencies of project to given cmake file
@@ -179,16 +192,19 @@ class Dependencies(object):
                 'add_lib_deps', ''
             )
 
-        if context.add_lib_dirs:
-            cmake_file.write('target_link_directories(${PROJECT_NAME}')
-            for dep in context.add_lib_dirs:
-                cmake_file.write(
-                    ' "{}"'.format(check_for_relative_in_path(
-                        context,
-                        cleaning_output(context, dep)
-                    ))
-                )
-            cmake_file.write(')\n\n')
+        if is_settings_has_data(context.sln_configurations_map,
+                                context.settings,
+                                'target_link_dirs'):
+            write_property_of_settings(
+                cmake_file, context.settings,
+                context.sln_configurations_map,
+                'target_link_directories(${PROJECT_NAME}', ')',
+                'target_link_dirs',
+                '',
+                None,
+                Dependencies.write_target_link_dirs
+            )
+            cmake_file.write('\n')
 
     @staticmethod
     def write_target_property_sheets(context, cmake_file):

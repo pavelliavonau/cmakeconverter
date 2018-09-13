@@ -70,6 +70,7 @@ class Utils(object):
             'conf': conf,
             'arch': arch,
             'inc_dirs_list': [],
+            'target_link_dirs': [],
             'pre_build_events': [],
             'pre_link_events': [],
             'post_build_events': [],

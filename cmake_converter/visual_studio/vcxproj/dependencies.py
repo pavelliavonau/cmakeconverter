@@ -25,7 +25,8 @@ import re
 
 from cmake_converter.dependencies import Dependencies
 from cmake_converter.data_files import get_xml_data, get_propertygroup
-from cmake_converter.utils import normalize_path, message, prepare_build_event_cmd_line_for_cmake
+from cmake_converter.utils import normalize_path, message, prepare_build_event_cmd_line_for_cmake, \
+    check_for_relative_in_path, cleaning_output
 
 
 class VCXDependencies(Dependencies):
@@ -84,13 +85,18 @@ class VCXDependencies(Dependencies):
             '%(AdditionalLibraryDirectories)', ''
         )
         if list_depends != '':
-            message(context, 'Additional Library Directories = {}'.format(list_depends), '')
             add_lib_dirs = []
             for d in list_depends.split(';'):
                 d = d.strip()
                 if d != '':
-                    add_lib_dirs.append(d)
-            context.add_lib_dirs = add_lib_dirs
+                    add_lib_dirs.append(
+                        check_for_relative_in_path(
+                            context,
+                            cleaning_output(context, d)
+                        )
+                    )
+            message(context, 'Additional Library Directories = {}'.format(add_lib_dirs), '')
+            context.settings[context.current_setting]['target_link_dirs'] = add_lib_dirs
 
     @staticmethod
     def add_target_property_sheet(context, attr_name, filename, node):

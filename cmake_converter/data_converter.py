@@ -104,7 +104,6 @@ class DataConverter(object):
             context.dependencies.write_custom_build_events_of_files(context, cmake_file)
             if (context.target_references or
                     context.add_lib_deps or
-                    context.add_lib_dirs or
                     context.sln_deps or
                     context.packages):
                 write_comment(cmake_file, 'Dependencies')
