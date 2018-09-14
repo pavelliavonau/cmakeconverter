@@ -62,10 +62,7 @@ class VFProjectVariables(ProjectVariables):
             path = cleaning_output(context, path)
             self.output_path = path.replace('${OUT_DIR}', self.output_path)
             context.settings[context.current_setting]['target_name'] =\
-                replace_vs_vars_with_cmake_vars(
-                    context,
-                    name
-                )
+                replace_vs_vars_with_cmake_vars(context, name)
 
         self.output_path = check_for_relative_in_path(context, self.output_path)
         context.settings[context.current_setting]['out_dir'] = self.output_path
@@ -92,4 +89,3 @@ class VFProjectVariables(ProjectVariables):
 
         context.settings[context.current_setting]['import_library_path'] = import_library_path
         context.settings[context.current_setting]['import_library_name'] = import_library_name
-

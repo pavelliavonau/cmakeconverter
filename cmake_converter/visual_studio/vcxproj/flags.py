@@ -49,9 +49,9 @@ class CPPFlags(Flags):
             #   compilation
             'UseDebugLibraries': self.set_use_debug_libraries,
             'WholeProgramOptimization': self.set_whole_program_optimization,
-            #   linking 
+            #   linking
             'GenerateDebugInformation': self.set_generate_debug_information,
-            'LinkIncremental': self.set_link_incremental,    
+            'LinkIncremental': self.set_link_incremental,
             # from definition_groups
             #   compilation
             'Optimization': self.set_optimization,

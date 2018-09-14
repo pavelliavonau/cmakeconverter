@@ -128,4 +128,3 @@ class ProjectVariables(object):
             else:
                 cmake_file.write(
                     left_string + 'RUNTIME' + right_string + '\n')
-

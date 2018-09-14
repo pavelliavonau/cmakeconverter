@@ -102,10 +102,10 @@ class DataConverter(object):
             context.dependencies.write_target_pre_link_events(context, cmake_file)
             context.dependencies.write_target_post_build_events(context, cmake_file)
             context.dependencies.write_custom_build_events_of_files(context, cmake_file)
-            if (context.target_references or
-                    context.add_lib_deps or
-                    context.sln_deps or
-                    context.packages):
+            if (context.target_references
+                    or context.add_lib_deps
+                    or context.sln_deps
+                    or context.packages):
                 write_comment(cmake_file, 'Dependencies')
             context.dependencies.write_target_references(context, cmake_file)
             context.dependencies.write_link_dependencies(context, cmake_file)

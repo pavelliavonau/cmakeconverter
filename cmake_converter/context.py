@@ -148,5 +148,3 @@ class ContextInitializer(object):
             context.cmake = context_cmake
 
         return context_cmake
-
-

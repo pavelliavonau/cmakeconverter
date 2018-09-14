@@ -44,11 +44,11 @@ pch_macro_text = """MACRO(ADD_PRECOMPILED_HEADER PrecompiledHeader PrecompiledSo
         set(PrecompiledBinary "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.pch")
         SET_SOURCE_FILES_PROPERTIES(${PrecompiledSource}
                                     PROPERTIES COMPILE_FLAGS "/Yc\\"${PrecompiledHeader}\\" """ +\
-                                                            """/Fp\\"${PrecompiledBinary}\\""
+    """/Fp\\"${PrecompiledBinary}\\""
                                                OBJECT_OUTPUTS "${PrecompiledBinary}")
         SET_SOURCE_FILES_PROPERTIES(${${SourcesVar}}
                                     PROPERTIES COMPILE_FLAGS "/Yu\\"${PrecompiledHeader}\\" """ +\
-                                                            """/Fp\\"${PrecompiledBinary}\\""
+    """/Fp\\"${PrecompiledBinary}\\""
                                                OBJECT_DEPENDS "${PrecompiledBinary}")
     endif()
     LIST(INSERT ${SourcesVar} 0 ${PrecompiledSource})
@@ -261,4 +261,3 @@ class Flags(object):
             )
 
         cmake_file.write('\n')
-

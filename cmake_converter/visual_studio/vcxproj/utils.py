@@ -36,5 +36,3 @@ class VCXUtils(Utils):
         context.settings[context.current_setting]['cl_flags'] = []
         context.settings[context.current_setting]['ln_flags'] = []
         context.settings[context.current_setting]['PrecompiledHeader'] = []
-
-
