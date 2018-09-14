@@ -137,13 +137,16 @@ class ContextInitializer(object):
         if cmake_lists:
             if os.path.exists(cmake_lists):
                 context_cmake = cmake_lists
+
         if context_cmake is None:
             message(
                 context,
-                'CMakeLists.txt path is not set. '
-                'He will be generated in current directory.',
+                'Path "{}" for CMakeLists.txt is wrong. '
+                'It will be created in working directory.'.format(cmake_lists),
                 'warn'
             )
+            context_cmake = 'CMakeLists.txt'
+
         if context:
             context.cmake = context_cmake
 

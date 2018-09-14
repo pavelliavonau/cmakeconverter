@@ -20,15 +20,16 @@
 # along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
 import os
-import unittest2
+import unittest
 import lxml
 import _io
 
 from cmake_converter.data_files import get_vcxproj_data, get_cmake_lists
 from cmake_converter.data_files import get_propertygroup, get_definitiongroup
+from cmake_converter.context import Context
 
 
-class TestDataFiles(unittest2.TestCase):
+class TestDataFiles(unittest.TestCase):
     """
         This file test 'data_files' functions
     """
@@ -39,6 +40,7 @@ class TestDataFiles(unittest2.TestCase):
     def test_get_vcxproj_data(self):
         """Get VS Project Data"""
 
+        context = Context()
         under_test = get_vcxproj_data(context, self.vs_project)
 
         self.assertTrue('ns' in under_test)
@@ -68,7 +70,9 @@ class TestDataFiles(unittest2.TestCase):
     def test_get_cmakelists(self):
         """Get CMakeLists.txt"""
 
+        context = Context()
         under_test = get_cmake_lists(context, './')
 
         self.assertTrue(under_test)
         self.assertIsInstance(under_test, _io.TextIOWrapper)
+        under_test.close()
