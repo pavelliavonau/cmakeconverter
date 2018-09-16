@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# Copyright (c) 2016-2017:
+# Copyright (c) 2016-2018:
 #   Matthieu Estrada, ttamalfor@gmail.com
+#   Pavel Liavonau, liavonlida@gmail.com
 #
 # This file is part of (CMakeConverter).
 #
@@ -20,34 +21,34 @@
 # along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
 import os
-import unittest2
+import unittest
 
-from cmake_converter.flags import CPPFlags
-from cmake_converter.data_files import get_vcxproj_data, get_cmake_lists
+from cmake_converter.context import Context
+from cmake_converter.data_converter import DataConverter
+from cmake_converter.visual_studio.vcxproj.context import VCXContextInitializer
+from cmake_converter.data_files import get_cmake_lists
 
 
-class TestFlags(unittest2.TestCase):
+class TestFlags(unittest.TestCase):
     """
         This file test methods of Flags class.
     """
 
-    cur_dir = os.path.dirname(os.path.realpath(__file__))
-    vs_project = get_vcxproj_data(context, '%s/datatest/foo.vcxproj' % cur_dir)
-    cmake_lists_test = get_cmake_lists(context, './')
+    def setUp(self):
+        cur_dir = os.path.dirname(os.path.realpath(__file__))
+        context = Context()
+        context.silent = True
+        vs_project = '{}/datatest/foo.vcxproj'.format(cur_dir)
+        VCXContextInitializer(context, vs_project, cur_dir)
+        context.cmake = './'
+        converter = DataConverter()
+        converter.convert(context)
 
-    data_test = {
-        'cmake': cmake_lists_test,
-        'cmake_output': None,
-        'vcxproj': vs_project,
-        'dependencies': None,
-        'additional_code': None,
-        'std': None,
-    }
-
+    @unittest.skip("linux flags not used")
     def test_define_linux_flags_with_std(self):
         """Define Linux Flags"""
 
-        self.data_test['cmake'] = get_cmake_lists(context, './')
+        self.data_test['cmake'] = get_cmake_lists(self.context, './')
         self.data_test['std'] = 'c++17'
         under_test = CPPFlags(self.data_test)
         under_test.define_linux_flags()
@@ -70,16 +71,3 @@ class TestFlags(unittest2.TestCase):
 
         self.assertTrue('-std=c++11' in content_test)
         cmakelists_test.close()
-
-    def test_define_group_properties(self):
-        """Define XML Groups Properties"""
-
-        under_test = CPPFlags(self.data_test)
-
-        self.assertFalse(under_test.property_groups)
-        self.assertFalse(under_test.definition_groups)
-
-        under_test.define_group_properties()
-
-        self.assertTrue(under_test.property_groups)
-        self.assertTrue(under_test.definition_groups)
