@@ -22,14 +22,11 @@
 
 import re
 import os
-import copy
 import shutil
 from multiprocessing import Pool
 
-from .vcxproj.context import VCXContextInitializer
-from .vfproj.context import VFContextInitializer
 from cmake_converter.data_converter import DataConverter
-from cmake_converter.context import ContextInitializer
+from cmake_converter.context_initializer import ContextInitializer
 from cmake_converter.data_files import get_cmake_lists
 from cmake_converter.utils import set_unix_slash, message, write_comment, write_use_package_stub,\
     write_arch_types
@@ -185,17 +182,11 @@ def convert_project(context, xml_project_path, cmake_lists_destination_path):
     """
 
     # Initialize Context of DataConverter
-    data_converter = None
-    if 'vcxproj' in xml_project_path:
-        VCXContextInitializer(context, xml_project_path, cmake_lists_destination_path)
-        data_converter = DataConverter()
-    if 'vfproj' in xml_project_path:
-        VFContextInitializer(context, xml_project_path, cmake_lists_destination_path)
-        data_converter = DataConverter()
-    if data_converter is None:
+    if not context.init(xml_project_path, cmake_lists_destination_path):
         message(context, 'Unknown project type at {0}'.format(xml_project_path), 'error')
         return
 
+    data_converter = DataConverter()
     data_converter.convert(context)
 
 
@@ -264,7 +255,7 @@ def convert_solution(initial_context, sln_path):
     project_number = 0
     for guid in projects_data:
         project_number += 1
-        project_context = copy.deepcopy(initial_context)
+        project_context = initial_context.clone()
         project_context.project_number = project_number
         project_path = projects_data[guid]['path']
         project_path = '/'.join(project_path.split('\\'))

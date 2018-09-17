@@ -20,7 +20,6 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
-from cmake_converter.context import ContextInitializer
 from cmake_converter.parser import Parser, StopParseException
 
 

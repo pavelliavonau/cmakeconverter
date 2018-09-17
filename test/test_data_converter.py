@@ -25,7 +25,6 @@ import unittest
 
 from cmake_converter.data_converter import DataConverter
 from cmake_converter.context import Context
-from cmake_converter.visual_studio.vcxproj.context import VCXContextInitializer
 
 
 class TestDataConverter(unittest.TestCase):
@@ -44,7 +43,7 @@ class TestDataConverter(unittest.TestCase):
         self.assertEqual(under_test.cmake, '')
         self.assertEqual(under_test.vcxproj, {})
 
-        VCXContextInitializer(under_test, self.vs_project, self.cur_dir)
+        under_test.init(self.vs_project, self.cur_dir)
 
         self.assertNotEqual(under_test.cmake, '')
         self.assertIsNotNone(under_test.vcxproj)
@@ -61,7 +60,7 @@ class TestDataConverter(unittest.TestCase):
         under_test = DataConverter()
 
         context = Context()
-        VCXContextInitializer(context, self.vs_project, self.cur_dir)
+        context.init(self.vs_project, self.cur_dir)
 
         old_cmake = open('CMakeLists.txt', 'r')
 
@@ -79,7 +78,7 @@ class TestDataConverter(unittest.TestCase):
         """Wrong CMake Path Write in Current Directory"""
 
         under_test = Context()
-        VCXContextInitializer(under_test, self.vs_project, '/wrong/path/to/cmake')
+        under_test.init(self.vs_project, '/wrong/path/to/cmake')
 
         # CMakeLists.txt is created in the current directory
         self.assertEqual('CMakeLists.txt', under_test.cmake)

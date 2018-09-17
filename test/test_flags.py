@@ -25,7 +25,6 @@ import unittest
 
 from cmake_converter.context import Context
 from cmake_converter.data_converter import DataConverter
-from cmake_converter.visual_studio.vcxproj.context import VCXContextInitializer
 from cmake_converter.data_files import get_cmake_lists
 
 
@@ -39,7 +38,7 @@ class TestFlags(unittest.TestCase):
         context = Context()
         context.silent = True
         vs_project = '{}/datatest/foo.vcxproj'.format(cur_dir)
-        VCXContextInitializer(context, vs_project, cur_dir)
+        context.init(vs_project, cur_dir)
         context.cmake = './'
         converter = DataConverter()
         converter.convert(context)
