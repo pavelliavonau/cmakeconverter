@@ -33,7 +33,7 @@ from cmake_converter.utils import take_name_from_list_case_ignore, normalize_pat
 from cmake_converter.utils import message, write_comment
 
 
-class ProjectFiles(object):
+class ProjectFiles:
     """
         Class who collect and store project files
     """

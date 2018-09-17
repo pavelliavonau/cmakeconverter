@@ -30,7 +30,7 @@ from cmake_converter.utils import write_property_of_settings
 from cmake_converter.utils import write_comment
 
 
-class ProjectVariables(object):
+class ProjectVariables:
     """
         Class who manage project variables
     """

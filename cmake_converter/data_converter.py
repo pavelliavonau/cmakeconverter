@@ -33,7 +33,7 @@ from cmake_converter.context import Context
 import os
 
 
-class DataConverter(object):
+class DataConverter:
     """
         Base class for converters
     """

@@ -56,7 +56,7 @@ ENDMACRO(ADD_PRECOMPILED_HEADER)\n
 """
 
 
-class Flags(object):
+class Flags:
     """
         Class who manage flags of projects
     """

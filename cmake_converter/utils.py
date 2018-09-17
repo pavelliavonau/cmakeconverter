@@ -51,7 +51,7 @@ FAIL = colorama.Fore.RED + colorama.Style.BRIGHT
 ENDC = colorama.Fore.RESET + colorama.Style.RESET_ALL
 
 
-class Utils(object):
+class Utils:
 
     def init_context_current_setting(self, context):
         """

@@ -36,7 +36,7 @@ from cmake_converter.utils import write_property_of_settings, write_comment
 from cmake_converter.utils import is_settings_has_data, replace_vs_vars_with_cmake_vars
 
 
-class Dependencies(object):
+class Dependencies:
     """
         Class who find and write dependencies of project, additionnal directories...
     """

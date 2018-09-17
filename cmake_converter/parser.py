@@ -29,7 +29,7 @@ class StopParseException(Exception):
     pass
 
 
-class Parser(object):
+class Parser:
 
     def __init__(self):
         self.reset_setting_after_nodes = set()

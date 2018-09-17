@@ -27,7 +27,7 @@ from multiprocessing import cpu_count
 from cmake_converter.utils import message
 
 
-class Context(object):
+class Context:
     """
         Converter context
     """
@@ -82,7 +82,7 @@ class Context(object):
         self.utils = None
 
 
-class ContextInitializer(object):
+class ContextInitializer:
     def __init__(self, context, vs_project, cmake_lists_destination_path):
         self.init_files(context, vs_project, cmake_lists_destination_path)
         message(
