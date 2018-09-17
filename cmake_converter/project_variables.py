@@ -67,7 +67,7 @@ class ProjectVariables:
         :type cmake_file: _io.TextIOWrapper
         """
 
-        if len(context.settings) == 0:
+        if not context.settings:
             return
 
         write_comment(cmake_file, 'Target name')
@@ -90,10 +90,12 @@ class ProjectVariables:
             '${CMAKE_SOURCE_DIR}/${CMAKE_VS_PLATFORM_NAME}/$<CONFIG>'
         )
 
+        any_setting = None
         for setting in context.settings:
+            any_setting = setting
             break
 
-        configuration_type = context.settings[setting]['target_type']
+        configuration_type = context.settings[any_setting]['target_type']
 
         if configuration_type == 'DynamicLibrary':
             cmake_file.write('set(ARCHIVE_OUT_DIR ${OUT_DIR})\n')
@@ -112,7 +114,7 @@ class ProjectVariables:
         if configuration_type:
             left_string = 'set_target_properties(${PROJECT_NAME} PROPERTIES '
             right_string = '_OUTPUT_DIRECTORY ${OUT_DIR})\n'
-            if configuration_type == 'DynamicLibrary' or configuration_type == 'StaticLibrary':
+            if configuration_type in ('DynamicLibrary', 'StaticLibrary'):
                 if configuration_type == 'DynamicLibrary':
                     cmake_file.write(
                         left_string + 'ARCHIVE' + '_OUTPUT_NAME ${ARCHIVE_OUT_NAME})\n')

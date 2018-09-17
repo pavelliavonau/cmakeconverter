@@ -28,9 +28,9 @@
 
 import os
 import glob
-import colorama
 import re
 import time
+import colorama
 
 
 def init_colorama():
@@ -130,9 +130,9 @@ def write_property_of_setting(cmake_file, indent, config_condition_expr, propert
 
 
 def get_str_value_from_property_value(property_value):
-    if type(property_value) is str:
+    if isinstance(property_value, str):
         return property_value
-    if type(property_value) is list:
+    if isinstance(property_value, list):
         return ';'.join(property_value)
 
     return property_value
@@ -460,7 +460,7 @@ def get_comment(text):
     line_length = 80
     title_line = ''
 
-    for i in range(0, line_length):
+    for _ in range(0, line_length):
         title_line = '{0}{1}'.format(title_line, '#')
 
     comment = title_line + '\n'

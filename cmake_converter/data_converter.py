@@ -26,11 +26,12 @@
      Manage conversion of **.vcxproj** data
 """
 
+import os
+
 from cmake_converter.data_files import get_cmake_lists
 from cmake_converter.flags import Flags
 from cmake_converter.utils import write_comment, message, write_arch_types, write_use_package_stub
 from cmake_converter.context import Context
-import os
 
 
 class DataConverter:

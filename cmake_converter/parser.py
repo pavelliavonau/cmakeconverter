@@ -61,7 +61,7 @@ class Parser:
 
     def _parse_nodes(self, context, parent):
         for child_node in parent:
-            if type(child_node.tag) is not str:
+            if not isinstance(child_node.tag, str):
                 continue
             child_node_tag = Parser.strip_namespace(child_node.tag)
 

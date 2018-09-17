@@ -26,10 +26,10 @@
      Manage the **VS Project** data and creation of **CMakeLists.txt** file
 """
 
+import os
 from lxml import etree
 
 from cmake_converter.utils import message
-import os
 
 
 def get_vcxproj_data(context, vs_project):

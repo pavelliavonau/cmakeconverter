@@ -63,6 +63,7 @@ class Flags:
 
     @staticmethod
     def __write_defines_for_flags(cmake_file, indent, config_condition_expr, property_value, width):
+        del width
         config = config_condition_expr.replace('$<CONFIG:', '')
         config = config.replace('>', '')
         cmake_file.write(

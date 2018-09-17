@@ -28,7 +28,6 @@
 
 import ntpath
 import os
-import re
 
 from cmake_converter.data_files import get_vcxproj_data
 from cmake_converter.utils import get_global_project_name_from_vcxproj_file, normalize_path, message
@@ -301,6 +300,7 @@ class Dependencies:
 
     @staticmethod
     def __write_file_custom_build_events(context, cmake_file, comment, value_name, event_type):
+        del event_type
         has_build_events = False
         for file in context.file_contexts:
             file_context = context.file_contexts[file]
