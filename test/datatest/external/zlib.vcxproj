@@ -235,7 +235,7 @@
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Use</PrecompiledHeader>
     </ClCompile>
     <ClCompile Include="..\..\..\core\src\threads.cpp" />-->
-    <ClCompile Include="zlibmain.cpp" />
+    <ClCompile Include="zlib.cpp" />
   </ItemGroup>
   <ItemGroup>
     <!--<ClInclude Include="..\..\..\core\src\core.h" />
@@ -245,6 +245,7 @@
     <ClInclude Include="..\..\..\core\src\stdafx.h" />
     <ClInclude Include="..\..\..\core\src\string.h" />
     <ClInclude Include="..\..\..\core\src\system.h" />-->
+    <ClInclude Include="zlib.h" />
   </ItemGroup>
   <ItemGroup>
   </ItemGroup>

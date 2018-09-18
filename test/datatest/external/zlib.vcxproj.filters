@@ -4,10 +4,18 @@
     <Filter Include="Test Sources">
       <UniqueIdentifier>{000f37f3-c5d5-448d-a825-ec696463ce53}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Headers">
+      <UniqueIdentifier>{01a4a966-1b3d-4dd0-9de3-81f1d139be01}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="zlibmain.cpp">
+    <ClCompile Include="zlib.cpp">
       <Filter>Test Sources</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="zlib.h">
+      <Filter>Headers</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
