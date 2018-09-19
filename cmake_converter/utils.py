@@ -368,12 +368,13 @@ def get_actual_filename(context, name):
     :rtype: None | str
     """
 
-    dirs = name.split('\\')
+    name = set_unix_slash(name)
+    dirs = name.split('/')
     # disk letter
-    test_name = [dirs[0].upper()]
+    test_name = [dirs[0]]
     for d in dirs[1:]:
         test_name += ["%s[%s]" % (d[:-1], d[-1])]
-    res = glob.glob('\\'.join(test_name))
+    res = glob.glob('/'.join(test_name))
     if not res:
         # File not found
         message(context, 'file or path "{0}" not found.'.format(name), 'warn')
