@@ -80,7 +80,6 @@ class DataConverter:
             write_use_package_stub(cmake_file)
 
         context.files.write_cmake_project(context, cmake_file)
-        # context.variables.add_default_target() # TODO: add conversion option to cmd line
 
         # Add additional code or not
         if context.additional_code is not None:

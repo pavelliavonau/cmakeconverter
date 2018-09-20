@@ -36,23 +36,6 @@ class ProjectVariables:
     """
 
     @staticmethod
-    def add_default_target(cmake_file):
-        """
-        Add default target release if not define
-
-        :param cmake_file: CMakeLists.txt IO wrapper
-        :type cmake_file: _io.TextIOWrapper
-        """
-
-        cmake_file.write(
-            '# Define Release by default.\n'
-            'if(NOT CMAKE_BUILD_TYPE)\n'
-            '  set(CMAKE_BUILD_TYPE "Release")\n'
-            '  message(STATUS "Build type not specified: Use Release by default.")\n'
-            'endif(NOT CMAKE_BUILD_TYPE)\n\n'
-        )
-
-    @staticmethod
     def find_outputs_variables(context, setting):
         pass
 

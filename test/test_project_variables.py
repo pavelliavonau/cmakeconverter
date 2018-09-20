@@ -142,23 +142,6 @@ class TestProjectVariables(unittest.TestCase):
 
         cmakelists_test.close()
 
-    def test_add_default_target(self):
-        """Add Release as Default Target"""
-
-        self.data_test['cmake'] = get_cmake_lists(context, self.cur_dir)
-        under_test = VCXProjectVariables(self.data_test)
-
-        under_test.add_default_target()
-
-        self.data_test['cmake'].close()
-
-        cmakelists_test = open('%s/CMakeLists.txt' % self.cur_dir, 'r')
-        content_test = cmakelists_test.read()
-
-        self.assertTrue('set(CMAKE_BUILD_TYPE "Release")' in content_test)
-
-        cmakelists_test.close()
-
     def test_add_artefact_target_outputs(self):
         """Add Artefact Target Outputs"""
 
