@@ -30,18 +30,6 @@ from cmake_converter.utils import message, prepare_build_event_cmd_line_for_cmak
 class VFDependencies(Dependencies):
 
     @staticmethod
-    def add_current_dir_to_includes(context):
-        if 'inc_dirs' in context.settings[context.current_setting]:
-            message(context, 'Include Directories found : {0}'
-                    .format(context.settings[context.current_setting]['inc_dirs']), '')
-            context.settings[context.current_setting]['inc_dirs'] += ';${CMAKE_CURRENT_SOURCE_DIR}/'
-            context.settings[context.current_setting]['inc_dirs_list'].append('./')
-        else:
-            message(context, 'Include Directories not found for this project.', '')
-            context.settings[context.current_setting]['inc_dirs'] = '${CMAKE_CURRENT_SOURCE_DIR}/'
-            context.settings[context.current_setting]['inc_dirs_list'] = ['./']
-
-    @staticmethod
     def set_target_references(context):
         if context.sln_deps:
             context.target_references = context.target_references + context.sln_deps

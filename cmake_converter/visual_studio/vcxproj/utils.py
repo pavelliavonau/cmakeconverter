@@ -33,6 +33,8 @@ class VCXUtils(Utils):
         """
 
         super(VCXUtils, self).init_context_current_setting(context)
+        context.settings[context.current_setting]['inc_dirs'] = ''
+        context.settings[context.current_setting]['inc_dirs_list'] = []
         context.settings[context.current_setting]['cl_flags'] = []
         context.settings[context.current_setting]['ln_flags'] = []
         context.settings[context.current_setting]['PrecompiledHeader'] = []

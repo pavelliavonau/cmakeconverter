@@ -64,7 +64,7 @@ class Dependencies:
             cmake_file.write('\n')
 
     @staticmethod
-    def get_additional_include_directories(aid_text, setting, context):
+    def set_additional_include_directories(aid_text, setting, context):
         """
         Return additional include directories of given context
 
@@ -93,10 +93,18 @@ class Dependencies:
                 i = replace_vs_vars_with_cmake_vars(context, i)
                 dirs.append(i)
         inc_dirs = ';'.join(dirs)
-        context.settings[setting]['inc_dirs'] = inc_dirs
-        context.settings[setting]['inc_dirs_list'] = dirs_raw
 
-        return inc_dirs
+        if context.settings[setting]['inc_dirs']:
+            inc_dirs = ';' + inc_dirs
+
+        context.settings[setting]['inc_dirs'] += inc_dirs
+        context.settings[setting]['inc_dirs_list'].extend(dirs_raw)
+
+        if inc_dirs:
+            message(
+                context,
+                'Include Directories : {0}'.format(context.settings[setting]['inc_dirs']),
+                '')
 
     @staticmethod
     def get_dependency_target_name(context, vs_project):

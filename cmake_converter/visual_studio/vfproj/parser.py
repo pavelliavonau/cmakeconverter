@@ -167,7 +167,6 @@ class VFParser(Parser):
         context.flags.prepare_context_for_flags(context)
         self._parse_nodes(context, configuration_node)
         context.flags.apply_flags_to_context(context)
-        context.dependencies.add_current_dir_to_includes(context)
 
     def __parse_configuration_name(self, context, attr_name, configuration_name, node):
         setting = configuration_name
@@ -217,7 +216,7 @@ class VFParser(Parser):
             additional_include_directories_value,
             node
     ):
-        context.dependencies.get_additional_include_directories(
+        context.dependencies.set_additional_include_directories(
             additional_include_directories_value,
             context.current_setting,
             context

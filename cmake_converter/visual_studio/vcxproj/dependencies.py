@@ -37,10 +37,9 @@ class VCXDependencies(Dependencies):
 
         """
 
-        inc_dirs = self.get_additional_include_directories(
+        self.set_additional_include_directories(
             incl_dir.text, context.current_setting, context
         )
-        message(context, 'Include Directories found : {0}'.format(inc_dirs), '')
 
     def add_target_reference(self, context, attr_name, attr_value, node):
         """
