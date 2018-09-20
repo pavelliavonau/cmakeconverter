@@ -100,9 +100,10 @@ def take_name_from_list_case_ignore(context, search_list, name_to_search):
     if real_name == '':
         message(context, '{0} file is absent at filesystem. Ignoring but check it!!'
                 .format(name_to_search), 'warn')
-    else:
-        search_list.remove(real_name)
-        return real_name
+        return ''
+
+    search_list.remove(real_name)
+    return real_name
 
 
 def is_settings_has_data(sln_configurations_map, settings, settings_key, arch=None, conf=None):
@@ -317,12 +318,12 @@ def replace_vs_var_with_cmake_var(context, var):
     }
     if var in variables_to_replace:
         return variables_to_replace[var]
-    else:
-        var_name = var[2:-1]
-        cmake_env_var = '$ENV{{{}}}'.format(var_name)
-        if var_name not in os.environ:
-            message(context, 'Unknown variable: {}, trying {}'.format(var, cmake_env_var), 'warn')
-        return cmake_env_var
+
+    var_name = var[2:-1]
+    cmake_env_var = '$ENV{{{}}}'.format(var_name)
+    if var_name not in os.environ:
+        message(context, 'Unknown variable: {}, trying {}'.format(var, cmake_env_var), 'warn')
+    return cmake_env_var
 
 
 def replace_vs_vars_with_cmake_vars(context, output):

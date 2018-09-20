@@ -124,8 +124,8 @@ class Dependencies:
 
         if project_name:
             return project_name
-        else:
-            return os.path.splitext(ntpath.basename(vs_project))[0]
+
+        return os.path.splitext(ntpath.basename(vs_project))[0]
 
     @staticmethod
     def write_target_references(context, cmake_file):

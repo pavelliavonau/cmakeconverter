@@ -102,6 +102,7 @@ class ProjectFiles:
                                                       self.file_lists_for_include_paths)
                 context.file_contexts[file_path_name] = self.__create_file_context(context)
                 return context.file_contexts[file_path_name]
+        return ''
 
     def init_file_lists_for_include_paths(self, context):
         """
@@ -176,9 +177,9 @@ class ProjectFiles:
     def get_source_group_var(source_group_name):
         if not source_group_name:
             return 'no_group_source_files'
-        else:
-            source_group_name = source_group_name.replace(' ', '_')
-            return source_group_name.replace('\\\\', '__')
+
+        source_group_name = source_group_name.replace(' ', '_')
+        return source_group_name.replace('\\\\', '__')
 
     def write_source_groups(self, context, cmake_file):
         write_comment(cmake_file, 'Source groups')
