@@ -122,7 +122,7 @@ def is_settings_has_data(sln_configurations_map, settings, settings_key, arch=No
     return False
 
 
-def write_property_of_setting(cmake_file, indent, config_condition_expr, property_value, width):
+def write_property_of_setting_f(cmake_file, indent, config_condition_expr, property_value, width):
     property_value_str = get_str_value_from_property_value(property_value)
     config_width = width + 2  # for '$<'
     cmake_file.write('{0}    {1:>{width}}:{2}>\n'
@@ -139,13 +139,16 @@ def get_str_value_from_property_value(property_value):
     return property_value
 
 # pylint: disable=R0914
+# pylint: disable=R0913
 
 
-def write_property_of_settings(cmake_file, settings, sln_setting_2_project_setting, begin_text,
-                               end_text, property_name, indent='', default=None,
-                               write_setting_property_func=write_property_of_setting):
+def write_property_of_settings(cmake_file, settings, sln_setting_2_project_setting,
+                               indent='',
+                               default=None,
+                               write_setting_property_func=write_property_of_setting_f,
+                               **kwargs):
     """
-    Write property of given settings. TODO: Add **kwargs to decrease number of parameters
+    Write property of given settings.
 
     :param cmake_file: CMakeLists.txt IO wrapper
     :type cmake_file: _io.TextIOWrapper
@@ -153,19 +156,19 @@ def write_property_of_settings(cmake_file, settings, sln_setting_2_project_setti
     :type settings: dict
     :param sln_setting_2_project_setting: solution settings attached to project
     :type sln_setting_2_project_setting: dict
-    :param begin_text: begin of text
-    :type begin_text: str
-    :param end_text: end of text
-    :type end_text: str
-    :param property_name: current property name (out_dir, inc_dirs,...)
-    :type property_name: str
     :param indent: indent to use when writing
     :type indent: str
     :param default: default text to add
     :type default: None | str
     :param write_setting_property_func: function for writing property for setting
     :type write_setting_property_func: write_property_of_setting | lambda
+    :param kwargs: begin of text
+    :type kwargs: str
     """
+
+    begin_text = kwargs['begin_text']
+    end_text = kwargs['end_text']
+    property_name = kwargs['property_name']
 
     max_config_condition_width = 0
     settings_of_arch = {}
@@ -227,6 +230,7 @@ def write_property_of_settings(cmake_file, settings, sln_setting_2_project_setti
     return not first_arch
 
 # pylint: enable=R0914
+# pylint: enable=R0913
 
 
 def get_global_project_name_from_vcxproj_file(vcxproj):

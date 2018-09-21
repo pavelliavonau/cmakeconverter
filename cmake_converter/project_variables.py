@@ -57,8 +57,10 @@ class ProjectVariables:
         write_property_of_settings(
             cmake_file, context.settings,
             context.sln_configurations_map,
-            'string(CONCAT TARGET_NAME', ')', 'target_name', '',
-            '${PROJECT_NAME}'
+            begin_text='string(CONCAT TARGET_NAME',
+            end_text=')',
+            property_name='target_name',
+            default='${PROJECT_NAME}'
         )
         cmake_file.write(
             'set_target_properties(${PROJECT_NAME} PROPERTIES OUTPUT_NAME ${TARGET_NAME})\n\n'
@@ -69,8 +71,10 @@ class ProjectVariables:
         write_property_of_settings(
             cmake_file, context.settings,
             context.sln_configurations_map,
-            'string(CONCAT OUT_DIR', ')', 'out_dir', '',
-            '${CMAKE_SOURCE_DIR}/${CMAKE_VS_PLATFORM_NAME}/$<CONFIG>'
+            begin_text='string(CONCAT OUT_DIR',
+            end_text=')',
+            property_name='out_dir',
+            default='${CMAKE_SOURCE_DIR}/${CMAKE_VS_PLATFORM_NAME}/$<CONFIG>'
         )
 
         any_setting = None
@@ -85,13 +89,17 @@ class ProjectVariables:
             write_property_of_settings(
                 cmake_file, context.settings,
                 context.sln_configurations_map,
-                'string(CONCAT ARCHIVE_OUT_DIR', ')', 'import_library_path', ''
+                begin_text='string(CONCAT ARCHIVE_OUT_DIR',
+                end_text=')',
+                property_name='import_library_path',
             )
             cmake_file.write('set(ARCHIVE_OUT_NAME ${PROJECT_NAME})\n')
             write_property_of_settings(
                 cmake_file, context.settings,
                 context.sln_configurations_map,
-                'string(CONCAT ARCHIVE_OUT_NAME', ')', 'import_library_name', ''
+                begin_text='string(CONCAT ARCHIVE_OUT_NAME',
+                end_text=')',
+                property_name='import_library_name',
             )
 
         if configuration_type:

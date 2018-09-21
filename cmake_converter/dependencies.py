@@ -58,7 +58,9 @@ class Dependencies:
             write_comment(cmake_file, 'Include directories')
         write_property_of_settings(
             cmake_file, context.settings, context.sln_configurations_map,
-            'target_include_directories(${PROJECT_NAME} PUBLIC', ')', 'inc_dirs'
+            begin_text='target_include_directories(${PROJECT_NAME} PUBLIC',
+            end_text=')',
+            property_name='inc_dirs'
         )
         if has_includes:
             cmake_file.write('\n')
@@ -195,8 +197,9 @@ class Dependencies:
             write_property_of_settings(
                 cmake_file, context.settings,
                 context.sln_configurations_map,
-                'target_link_libraries(${PROJECT_NAME}', ')',
-                'add_lib_deps', ''
+                begin_text='target_link_libraries(${PROJECT_NAME}',
+                end_text=')',
+                property_name='add_lib_deps',
             )
 
         if is_settings_has_data(context.sln_configurations_map,
@@ -205,11 +208,10 @@ class Dependencies:
             write_property_of_settings(
                 cmake_file, context.settings,
                 context.sln_configurations_map,
-                'target_link_directories(${PROJECT_NAME}', ')',
-                'target_link_dirs',
-                '',
-                None,
-                Dependencies.write_target_link_dirs
+                begin_text='target_link_directories(${PROJECT_NAME}',
+                end_text=')',
+                property_name='target_link_dirs',
+                write_setting_property_func=Dependencies.write_target_link_dirs
             )
             cmake_file.write('\n')
 
@@ -258,8 +260,9 @@ class Dependencies:
                 has_written = write_property_of_settings(
                     cmake_file, context.settings,
                     context.sln_configurations_map,
-                    'string(CONCAT "{0}"'.format(package_property_variable), ')',
-                    id_version + package_property, ''
+                    begin_text='string(CONCAT "{0}"'.format(package_property_variable),
+                    end_text=')',
+                    property_name=id_version + package_property,
                 )
                 if has_written:
                     cmake_file.write(
@@ -287,14 +290,13 @@ class Dependencies:
             write_comment(cmake_file, comment)
             write_property_of_settings(
                 cmake_file, context.settings, context.sln_configurations_map,
-                'add_custom_command_if(\n'
+                begin_text='add_custom_command_if(\n'
                 '    TARGET ${{PROJECT_NAME}}\n'
                 '    {0}\n'
-                '    COMMANDS'.format(event_type), ')',
-                value_name,
-                '',
-                None,
-                Dependencies.write_target_build_event_of_setting
+                '    COMMANDS'.format(event_type),
+                end_text=')',
+                property_name=value_name,
+                write_setting_property_func=Dependencies.write_target_build_event_of_setting
             )
             cmake_file.write('\n')
 
@@ -332,15 +334,13 @@ class Dependencies:
                         description = file_setting['file_custom_build_events']['description']
                 text = write_property_of_settings(
                     cmake_file, file_context.settings, context.sln_configurations_map,
-                    'add_custom_command_if(\n'
+                    begin_text='add_custom_command_if(\n'
                     '    OUTPUT "{0}"\n'
                     '    COMMANDS'.format(outputs),
-                    '    DEPENDS "{0}"\n'
+                    end_text='    DEPENDS "{0}"\n'
                     '    COMMENT "{1}"\n)'.format(file, description),
-                    'file_custom_build_events',
-                    '',
-                    None,
-                    Dependencies.write_file_build_event_of_setting
+                    property_name='file_custom_build_events',
+                    write_setting_property_func=Dependencies.write_file_build_event_of_setting
                 )
                 if text:
                     cmake_file.write('\n')

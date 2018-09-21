@@ -75,19 +75,19 @@ class Flags:
         write_comment(cmake_file, 'Compile definitions')
         write_property_of_settings(
             cmake_file, context.settings, context.sln_configurations_map,
-            'target_compile_definitions(${PROJECT_NAME} PRIVATE', ')', defines
+            begin_text='target_compile_definitions(${PROJECT_NAME} PRIVATE',
+            end_text=')',
+            property_name=defines
         )
         for file in context.file_contexts:
             write_property_of_settings(
                 cmake_file,
                 context.file_contexts[file].settings,
                 context.sln_configurations_map,
-                'set_source_files_properties({0} PROPERTIES'.format(file),
-                ')',
-                defines,
-                '',
-                None,
-                self.__write_defines_for_files
+                begin_text='set_source_files_properties({0} PROPERTIES'.format(file),
+                end_text=')',
+                property_name=defines,
+                write_setting_property_func=self.__write_defines_for_files
             )
         cmake_file.write('\n')
 
@@ -103,15 +103,21 @@ class Flags:
     def __write_compile_flags(context, cmake_file, compiler_flags_key):
         write_property_of_settings(
             cmake_file, context.settings, context.sln_configurations_map,
-            'target_compile_options(${PROJECT_NAME} PRIVATE', ')', compiler_flags_key, indent='    '
+            begin_text='target_compile_options(${PROJECT_NAME} PRIVATE',
+            end_text=')',
+            property_name=compiler_flags_key,
+            indent='    '
         )
         for file in context.file_contexts:
             file_cl_var = 'FILE_CL_OPTIONS'
             text = write_property_of_settings(
                 cmake_file, context.file_contexts[file].settings,
                 context.sln_configurations_map,
-                'string(CONCAT {0}'.format(file_cl_var),
-                ')', compiler_flags_key, '    ', None, Flags.__write_flags_of_files_f
+                begin_text='string(CONCAT {0}'.format(file_cl_var),
+                end_text=')',
+                property_name=compiler_flags_key,
+                indent='    ',
+                write_setting_property_func=Flags.__write_flags_of_files_f
             )
             if text:
                 cmake_file.write(
