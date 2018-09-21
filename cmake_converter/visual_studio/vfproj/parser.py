@@ -249,10 +249,10 @@ class VFParser(Parser):
             source_group = parent.attrib['Name']
         file_context = context.files.add_file_from_node(
             context,
-            context.sources,
-            file_node,
-            'RelativePath',
-            source_group
+            files_container=context.sources,
+            file_node=file_node,
+            file_node_attr='RelativePath',
+            source_group=source_group
         )
         self._parse_nodes(file_context, file_node)
         return

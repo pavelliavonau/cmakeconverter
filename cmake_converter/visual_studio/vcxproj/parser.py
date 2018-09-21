@@ -183,7 +183,10 @@ class VCXParser(Parser):
 
             file_context = context.files.add_file_from_node(
                 context,
-                context.headers, node, 'Include', source_group)
+                files_container=context.headers,
+                file_node=node,
+                file_node_attr='Include',
+                source_group=source_group)
             self._parse_nodes(file_context, node)
             return
         self._parse_nodes(context, node)
@@ -197,7 +200,10 @@ class VCXParser(Parser):
 
             file_context = context.files.add_file_from_node(
                 context,
-                context.sources, node, 'Include', source_group)
+                files_container=context.sources,
+                file_node=node,
+                file_node_attr='Include',
+                source_group=source_group)
             self._parse_nodes(file_context, node)
             return
         self._parse_nodes(context, node)
@@ -211,10 +217,10 @@ class VCXParser(Parser):
 
             file_context = context.files.add_file_from_node(
                 context,
-                context.other_project_files,
-                node,
-                'Include',
-                source_group
+                files_container=context.other_project_files,
+                file_node=node,
+                file_node_attr='Include',
+                source_group=source_group
             )
             self._parse_nodes(file_context, node)
             if 'packages.config' in node.attrib['Include']:

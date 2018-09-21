@@ -59,8 +59,48 @@ class ProjectFiles:
         context.current_setting = None
         return file_context
 
-    def add_file_from_node(self, context, files_dest_dict, file_node,
-                           file_node_attr, source_group):
+    def __add_file_into_container(self, context, **kwargs):
+
+        files_container = kwargs['files_container']
+        file_path = kwargs['file_path']
+        file_name = kwargs['file_name']
+        source_group = kwargs['source_group']
+
+        real_name = take_name_from_list_case_ignore(context, self.file_lists[file_path],
+                                                    file_name)
+        if real_name:
+            name_to_add = real_name
+        else:
+            name_to_add = file_name
+            message(context, 'Adding absent {} file into project files'
+                    .format(file_name), 'warn')
+
+        files_container[file_path].append(name_to_add)
+        if file_path:
+            file_path = file_path + '/'
+        file_path_name = file_path + name_to_add
+        working_path = os.path.dirname(context.vcxproj_path)
+        file_path_name = normalize_path(context, working_path,
+                                        file_path_name,
+                                        False)
+        if source_group not in context.source_groups:
+            context.source_groups[source_group] = []
+        context.source_groups[source_group].append(file_path_name)
+        context.source_groups[source_group].sort(key=str.lower)
+        if real_name:
+            self.include_directive_case_check(context,
+                                              file_path_name,
+                                              self.file_lists_for_include_paths)
+        context.file_contexts[file_path_name] = self.__create_file_context(context)
+        return context.file_contexts[file_path_name]
+
+    def add_file_from_node(self, context, **kwargs):
+
+        files_container = kwargs['files_container']
+        file_node = kwargs['file_node']
+        file_node_attr = kwargs['file_node_attr']
+        source_group = kwargs['source_group']
+
         if file_node.get(file_node_attr) is not None:
             node_text = str(file_node.get(file_node_attr))
             node_text = '/'.join(node_text.split('\\'))
@@ -72,36 +112,16 @@ class ProjectFiles:
                 self.file_lists[file_path] = []
                 if os.path.exists(os.path.join(vcxproj_dir, file_path)):
                     self.file_lists[file_path] = os.listdir(os.path.join(vcxproj_dir, file_path))
-            if file_path not in files_dest_dict:
-                files_dest_dict[file_path] = []
-            if file_name not in files_dest_dict[file_path]:
-                real_name = take_name_from_list_case_ignore(context, self.file_lists[file_path],
-                                                            file_name)
-                if real_name:
-                    name_to_add = real_name
-                else:
-                    name_to_add = file_name
-                    message(context, 'Adding absent {} file into project files'
-                            .format(file_name), 'warn')
-
-                files_dest_dict[file_path].append(name_to_add)
-                if file_path:
-                    file_path = file_path + '/'
-                file_path_name = file_path + name_to_add
-                working_path = os.path.dirname(context.vcxproj_path)
-                file_path_name = normalize_path(context, working_path,
-                                                file_path_name,
-                                                False)
-                if source_group not in context.source_groups:
-                    context.source_groups[source_group] = []
-                context.source_groups[source_group].append(file_path_name)
-                context.source_groups[source_group].sort(key=str.lower)
-                if real_name:
-                    self.include_directive_case_check(context,
-                                                      file_path_name,
-                                                      self.file_lists_for_include_paths)
-                context.file_contexts[file_path_name] = self.__create_file_context(context)
-                return context.file_contexts[file_path_name]
+            if file_path not in files_container:
+                files_container[file_path] = []
+            if file_name not in files_container[file_path]:
+                return self.__add_file_into_container(
+                    context,
+                    files_container=files_container,
+                    file_path=file_path,
+                    file_name=file_name,
+                    source_group=source_group
+                )
         return ''
 
     def init_file_lists_for_include_paths(self, context):
