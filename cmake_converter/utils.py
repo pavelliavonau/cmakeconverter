@@ -138,6 +138,8 @@ def get_str_value_from_property_value(property_value):
 
     return property_value
 
+# pylint: disable=R0914
+
 
 def write_property_of_settings(cmake_file, settings, sln_setting_2_project_setting, begin_text,
                                end_text, property_name, indent='', default=None,
@@ -223,6 +225,8 @@ def write_property_of_settings(cmake_file, settings, sln_setting_2_project_setti
         cmake_file.write('{0}endif()\n'.format(indent))
 
     return not first_arch
+
+# pylint: enable=R0914
 
 
 def get_global_project_name_from_vcxproj_file(vcxproj):
