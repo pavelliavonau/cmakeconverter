@@ -62,7 +62,7 @@ class Flags:
     """
 
     @staticmethod
-    def __write_defines_for_flags(cmake_file, indent, config_condition_expr, property_value, width):
+    def __write_defines_for_files(cmake_file, indent, config_condition_expr, property_value, width):
         del width
         config = config_condition_expr.replace('$<CONFIG:', '')
         config = config.replace('>', '')
@@ -87,24 +87,20 @@ class Flags:
                 defines,
                 '',
                 None,
-                self.__write_defines_for_flags
+                self.__write_defines_for_files
             )
         cmake_file.write('\n')
 
     @staticmethod
-    def __write_flags_of_files(cmake_file, indent, config_condition_expr, property_value, width):
+    def __write_flags_of_files_f(cmake_file, indent, config_condition_expr, property_value, width):
         property_value_str = ' '.join(property_value)
         config_width = width + 3  # for '"$<'
         cmake_file.write('{0}    {1:>{width}}:{2}>"\n'
                          .format(indent, '"$<' + config_condition_expr, property_value_str,
                                  width=config_width))
 
-    def write_compiler_and_linker_flags(self, context, os_check_str, compiler_check_str,
-                                        compiler_flags_key, linker_flags_key, cmake_file):
-        and_os_str = ''
-        if os_check_str:
-            and_os_str = ' AND {0}'.format(os_check_str)
-        cmake_file.write('if({0}{1})\n'.format(compiler_check_str, and_os_str))
+    @staticmethod
+    def __write_compile_flags(context, cmake_file, compiler_flags_key):
         write_property_of_settings(
             cmake_file, context.settings, context.sln_configurations_map,
             'target_compile_options(${PROJECT_NAME} PRIVATE', ')', compiler_flags_key, indent='    '
@@ -115,20 +111,15 @@ class Flags:
                 cmake_file, context.file_contexts[file].settings,
                 context.sln_configurations_map,
                 'string(CONCAT {0}'.format(file_cl_var),
-                ')', compiler_flags_key, '    ', None, self.__write_flags_of_files
+                ')', compiler_flags_key, '    ', None, Flags.__write_flags_of_files_f
             )
             if text:
                 cmake_file.write(
                     '    set_source_files_properties({0} PROPERTIES COMPILE_FLAGS ${{{1}}})\n'
                     .format(file, file_cl_var))
 
-        settings_of_arch = {}
-        for sln_setting in context.sln_configurations_map:
-            arch = sln_setting.split('|')[1]
-            if arch not in settings_of_arch:
-                settings_of_arch[arch] = {}
-            settings_of_arch[arch][sln_setting] = sln_setting
-
+    @staticmethod
+    def __write_link_flags(context, cmake_file, settings_of_arch, linker_flags_key):
         first_arch = True
         arch_has_link_flags = False
         for arch in settings_of_arch:
@@ -168,6 +159,37 @@ class Flags:
                             )
         if arch_has_link_flags:
             cmake_file.write('    endif()\n')
+
+    @staticmethod
+    def write_compile_and_link_flags(context, cmake_file, **kwargs):
+        """
+
+        :param context:
+        :param cmake_file:
+        :param kwargs:
+        :return:
+        """
+        os_check_str = kwargs['os_check_str']
+        compiler_check_str = kwargs['compiler_check_str']
+        compiler_flags_key = kwargs['compiler_flags_key']
+        linker_flags_key = kwargs['linker_flags_key']
+
+        and_os_str = ''
+        if os_check_str:
+            and_os_str = ' AND {0}'.format(os_check_str)
+        cmake_file.write('if({0}{1})\n'.format(compiler_check_str, and_os_str))
+
+        Flags.__write_compile_flags(context, cmake_file, compiler_flags_key)
+
+        settings_of_arch = {}
+        for sln_setting in context.sln_configurations_map:
+            arch = sln_setting.split('|')[1]
+            if arch not in settings_of_arch:
+                settings_of_arch[arch] = {}
+            settings_of_arch[arch][sln_setting] = sln_setting
+
+        Flags.__write_link_flags(context, cmake_file, settings_of_arch, linker_flags_key)
+
         cmake_file.write('endif()\n\n')
 
     def write_flags(self, context, cmake_file):
@@ -195,16 +217,29 @@ class Flags:
 
         write_comment(cmake_file, 'Compile and link options')
         if is_msvc:
-            self.write_compiler_and_linker_flags(context, None, 'MSVC', cl_flags, ln_flags,
-                                                 cmake_file)
+            self.write_compile_and_link_flags(
+                context, cmake_file,
+                os_check_str=None,
+                compiler_check_str='MSVC',
+                compiler_flags_key=cl_flags,
+                linker_flags_key=ln_flags,
+            )
 
         if is_ifort:
-            self.write_compiler_and_linker_flags(context, 'WIN32',
-                                                 '${CMAKE_Fortran_COMPILER_ID} STREQUAL "Intel"',
-                                                 ifort_cl_win, ifort_ln, cmake_file)
-            self.write_compiler_and_linker_flags(context, 'UNIX',
-                                                 '${CMAKE_Fortran_COMPILER_ID} STREQUAL "Intel"',
-                                                 ifort_cl_unix, ifort_ln, cmake_file)
+            self.write_compile_and_link_flags(
+                context, cmake_file,
+                os_check_str='WIN32',
+                compiler_check_str='${CMAKE_Fortran_COMPILER_ID} STREQUAL "Intel"',
+                compiler_flags_key=ifort_cl_win,
+                linker_flags_key=ifort_ln
+            )
+            self.write_compile_and_link_flags(
+                context, cmake_file,
+                os_check_str='UNIX',
+                compiler_check_str='${CMAKE_Fortran_COMPILER_ID} STREQUAL "Intel"',
+                compiler_flags_key=ifort_cl_unix,
+                linker_flags_key=ifort_ln
+            )
 
     @staticmethod
     def write_target_headers_only_artifact(context, cmake_file):
