@@ -107,7 +107,7 @@ class TestProjectFiles(unittest.TestCase):
 
         with open('{}/CMakeLists.txt'.format(self.cur_dir)) as cmake_lists_test:
             content_test = cmake_lists_test.read()
-            self.assertTrue('add_library(${PROJECT_NAME} SHARED ${ALL_FILES})' in content_test)
+            self.assertTrue('add_executable(${PROJECT_NAME} ${ALL_FILES})' in content_test)
 
     @unittest.skip("include_cmake deleted")
     def test_add_include_cmake(self):
