@@ -20,11 +20,11 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
+import os
+
 from cmake_converter.project_variables import ProjectVariables
 from cmake_converter.utils import cleaning_output, message, replace_vs_vars_with_cmake_vars,\
     check_for_relative_in_path
-
-import os
 
 
 class VFProjectVariables(ProjectVariables):
@@ -41,6 +41,8 @@ class VFProjectVariables(ProjectVariables):
         context.settings[context.current_setting]['out_dir'] = self.output_path
 
     def set_output_dir(self, context, attr_name, output_dir, node):
+        del attr_name, node
+
         if not context.cmake_output:
             self.output_path = cleaning_output(context, output_dir)
         else:
@@ -56,9 +58,11 @@ class VFProjectVariables(ProjectVariables):
         message(context, 'Output Dir = {0}'.format(self.output_path), '')
 
     def set_output_file(self, context, flag_name, output_file, node):
+        del flag_name, node
+
         if output_file:
             path = os.path.dirname(output_file)
-            name, ext = os.path.splitext(os.path.basename(output_file))
+            name, _ = os.path.splitext(os.path.basename(output_file))
             path = cleaning_output(context, path)
             self.output_path = path.replace('${OUT_DIR}', self.output_path)
             context.settings[context.current_setting]['target_name'] =\
@@ -75,12 +79,14 @@ class VFProjectVariables(ProjectVariables):
 
     @staticmethod
     def set_import_library(context, flag_name, import_library, node):
+        del flag_name, node
+
         import_library_path = ''
         import_library_name = ''
         if import_library:
             import_library_file = import_library
             path = os.path.dirname(import_library_file)
-            name, ext = os.path.splitext(os.path.basename(import_library_file))
+            name, _ = os.path.splitext(os.path.basename(import_library_file))
             import_library_path = cleaning_output(context, path)
             import_library_name = replace_vs_vars_with_cmake_vars(context, name)
             import_library_path = check_for_relative_in_path(context, import_library_path)

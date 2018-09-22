@@ -49,7 +49,7 @@ class VCXProjectVariables(ProjectVariables):
 
     def set_output_dir(self, context, node):
         if not context.cmake_output:
-                self.output_path = cleaning_output(context, node.text)
+            self.output_path = cleaning_output(context, node.text)
         else:
             if context.cmake_output[-1:] == '/' or context.cmake_output[-1:] == '\\':
                 build_type = '${CMAKE_BUILD_TYPE}'
@@ -66,7 +66,7 @@ class VCXProjectVariables(ProjectVariables):
         if output_file_node is not None:
             output_file = output_file_node.text
             path = os.path.dirname(output_file)
-            name, ext = os.path.splitext(os.path.basename(output_file))
+            name, _ = os.path.splitext(os.path.basename(output_file))
             path = cleaning_output(context, path)
             self.output_path = path.replace('${OUT_DIR}', self.output_path)
             context.settings[context.current_setting]['target_name'] =\
@@ -85,7 +85,7 @@ class VCXProjectVariables(ProjectVariables):
     def set_import_library(context, node):
         import_library_file = node.text
         path = os.path.dirname(import_library_file)
-        name, ext = os.path.splitext(os.path.basename(import_library_file))
+        name, _ = os.path.splitext(os.path.basename(import_library_file))
         import_library_path = cleaning_output(context, path)
         import_library_name = replace_vs_vars_with_cmake_vars(context, name)
         import_library_path = check_for_relative_in_path(context, import_library_path)

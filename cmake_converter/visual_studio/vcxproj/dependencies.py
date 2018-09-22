@@ -47,6 +47,8 @@ class VCXDependencies(Dependencies):
 
         """
 
+        del attr_name, node
+
         ref = self.get_dependency_target_name(
             context,
             os.path.join(os.path.dirname(context.vcxproj_path), attr_value)
@@ -104,6 +106,8 @@ class VCXDependencies(Dependencies):
 
         """
 
+        del attr_name
+
         parent = node.getparent()
         if 'Label' not in parent.attrib:
             return
@@ -147,6 +151,7 @@ class VCXDependencies(Dependencies):
 
     @staticmethod
     def set_target_dependency_packages(context, attr_name, attr_value, ext_targets):
+        del attr_name, attr_value
         for import_project_node in ext_targets:
             targets_file_path = import_project_node.get('Project')
             if targets_file_path is None:

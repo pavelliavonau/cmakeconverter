@@ -79,7 +79,7 @@ def parse_solution(sln_text):
         path = project_data_match[2]
         guid = project_data_match[3]
 
-        file_name, ext = os.path.splitext(os.path.basename(path))
+        _, ext = os.path.splitext(os.path.basename(path))
 
         if 'proj' not in ext:
             solution_folders[guid] = path
@@ -267,10 +267,12 @@ def convert_solution(initial_context, sln_path):
         project_context.solution_folder = projects_data[guid]['project_solution_dir']
         if subdirectory not in threads_data:
             threads_data[subdirectory] = []
-        threads_data[subdirectory].append({
-            'project_context': project_context,
-            'project_abs': project_abs,
-            'subdirectory': subdirectory}
+        threads_data[subdirectory].append(
+            {
+                'project_context': project_context,
+                'project_abs': project_abs,
+                'subdirectory': subdirectory
+            }
         )
 
     threads_data_list = []

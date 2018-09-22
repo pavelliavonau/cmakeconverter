@@ -37,6 +37,8 @@ class VFDependencies(Dependencies):
 
     @staticmethod
     def set_target_additional_dependencies(context, flag_name, ad_libs, node):
+        del flag_name, node
+
         if ad_libs:
             add_libs = []
             for d in ad_libs.split(';'):
@@ -55,6 +57,7 @@ class VFDependencies(Dependencies):
         Find and set additional library directories in context
 
         """
+        del flag_name, node
 
         if additional_library_directories:
             list_depends = additional_library_directories.replace(
@@ -77,6 +80,8 @@ class VFDependencies(Dependencies):
 
     @staticmethod
     def __set_custom_build_events_of_files(context, name, command_value, node):
+        del name, command_value
+
         file_settings = context.settings
         for setting in file_settings:
             if 'file_custom_build_events' not in context.settings[setting]:
@@ -109,10 +114,12 @@ class VFDependencies(Dependencies):
     @staticmethod
     def __is_excluded_from_build(node):
         if 'ExcludedFromBuild' in node.attrib:
-            return 'true' == node.attrib['ExcludedFromBuild']
+            return node.attrib['ExcludedFromBuild'] == 'true'
         return False
 
     def set_target_pre_build_events(self, context, name, command_value, node):
+        del name
+
         if self.__is_excluded_from_build(node):
             return
         self.__set_target_build_events(
@@ -123,6 +130,8 @@ class VFDependencies(Dependencies):
         )
 
     def set_target_pre_link_events(self, context, name, command_value, node):
+        del name
+
         if self.__is_excluded_from_build(node):
             return
         self.__set_target_build_events(
@@ -133,6 +142,8 @@ class VFDependencies(Dependencies):
         )
 
     def set_target_post_build_events(self, context, name, command_value, node):
+        del name
+
         if self.__is_excluded_from_build(node):
             return
         self.__set_target_build_events(

@@ -22,9 +22,8 @@
 
 import os
 
-from cmake_converter.flags import *
-from cmake_converter.utils import normalize_path
-from cmake_converter.utils import set_unix_slash
+from cmake_converter.flags import Flags, default_value, ifort_cl_unix, ifort_cl_win, ifort_ln
+from cmake_converter.utils import normalize_path, set_unix_slash, message
 
 
 class FortranFlags(Flags):
@@ -849,7 +848,7 @@ class FortranFlags(Flags):
                     pass
                 elif 'Qprec-div' in unix_option:
                     unix_option = FortranFlags.__get_no_prefix(unix_option) + '-prec-div'
-                elif '-static' == unix_option:
+                elif unix_option == '-static':
                     pass
                 elif 'Qprof-dir' in unix_option:
                     unix_option = unix_option.replace('Qprof-dir', 'prof-dir')

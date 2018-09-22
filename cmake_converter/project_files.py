@@ -43,7 +43,7 @@ class ProjectFiles:
         self.file_lists = {}
         self.file_lists_for_include_paths = {}
 
-    def include_directive_case_check(self, context, file_name, file_lists_for_include_paths):
+    def include_directive_case_check(self, context, file_path_name, file_lists_for_include_paths):
         pass
 
     @staticmethod

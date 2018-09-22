@@ -132,6 +132,8 @@ class VCXParser(Parser):
     @staticmethod
     def __parse_project_configuration_include(context, attr_name, setting,
                                               project_configuration_node):
+        del attr_name, project_configuration_node
+
         if context.is_converting_solution:
             if setting not in context.configurations_to_parse:
                 return
@@ -171,8 +173,8 @@ class VCXParser(Parser):
             )
             if filter_node:
                 return filter_node[0].text.replace('\\', '\\\\')
-            else:
-                return ''
+
+        return ''
 
     def __parse_cl_include(self, context, node):
         if 'Include' in node.attrib:
@@ -232,10 +234,10 @@ class VCXParser(Parser):
     def __parse_additional_options(context, node):
         parent = node.getparent()
         parent_tag = Parser.strip_namespace(parent.tag)
-        if 'ClCompile' == parent_tag:
+        if parent_tag == 'ClCompile':
             node.tag = 'CompileAdditionalOptions'
             context.flags.set_flag(context, node)
-        if 'Link' == parent_tag:
+        if parent_tag == 'Link':
             node.tag = 'LinkAdditionalOptions'
             context.flags.set_flag(context, node)
 
@@ -247,6 +249,8 @@ class VCXParser(Parser):
         )
 
     def __parse_condition(self, context, attr_name, condition_value, node):
+        del attr_name
+
         setting = None
         found = re.search(r".*=='(.*)'", condition_value)
         if found:

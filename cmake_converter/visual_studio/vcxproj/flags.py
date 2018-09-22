@@ -23,9 +23,26 @@
 import re
 import os
 
-from cmake_converter.flags import *
+from cmake_converter.flags import Flags, defines, cl_flags, default_value, ln_flags
 from cmake_converter.utils import take_name_from_list_case_ignore, normalize_path
-from cmake_converter.utils import set_unix_slash
+from cmake_converter.utils import set_unix_slash, message
+
+pch_macro_text = """MACRO(ADD_PRECOMPILED_HEADER PrecompiledHeader PrecompiledSource SourcesVar)
+    if(MSVC)
+        list(REMOVE_ITEM ${SourcesVar} ${PrecompiledSource})
+        set(PrecompiledBinary "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.pch")
+        SET_SOURCE_FILES_PROPERTIES(${PrecompiledSource}
+                                    PROPERTIES COMPILE_FLAGS "/Yc\\"${PrecompiledHeader}\\" """ +\
+    """/Fp\\"${PrecompiledBinary}\\""
+                                               OBJECT_OUTPUTS "${PrecompiledBinary}")
+        SET_SOURCE_FILES_PROPERTIES(${${SourcesVar}}
+                                    PROPERTIES COMPILE_FLAGS "/Yu\\"${PrecompiledHeader}\\" """ +\
+    """/Fp\\"${PrecompiledBinary}\\""
+                                               OBJECT_DEPENDS "${PrecompiledBinary}")
+    endif()
+    LIST(INSERT ${SourcesVar} 0 ${PrecompiledSource})
+ENDMACRO(ADD_PRECOMPILED_HEADER)\n
+"""
 
 
 class NodeStub:
@@ -619,13 +636,13 @@ class CPPFlags(Flags):
         cl_flag_value = ''
         mdd_value = runtime_library_node.text
         if mdd_value:
-            if 'MultiThreadedDebugDLL' == mdd_value:
+            if mdd_value == 'MultiThreadedDebugDLL':
                 cl_flag_value = mdd
-            if 'MultiThreadedDLL' == mdd_value:
+            if mdd_value == 'MultiThreadedDLL':
                 cl_flag_value = m_d
-            if 'MultiThreaded' == mdd_value:
+            if mdd_value == 'MultiThreaded':
                 cl_flag_value = m_t
-            if 'MultiThreadedDebug' == mdd_value:
+            if mdd_value == 'MultiThreadedDebug':
                 cl_flag_value = mtd
             message(context, 'RuntimeLibrary {0} is {1}'
                     .format(mdd_value, cl_flag_value), '')
@@ -954,11 +971,13 @@ class CPPFlags(Flags):
 
     def write_use_pch_macro(self, context, cmake_file):
         need_pch_macro = False
+        any_setting = None
         for setting in context.settings:
             if self.setting_has_pch(context, setting):
                 need_pch_macro = True
+                any_setting = setting
                 break
 
         if need_pch_macro:
             cmake_file.write('# Warning: pch and target are the same for every configuration\n')
-            self.write_precompiled_headers(context, setting, cmake_file)
+            self.write_precompiled_headers(context, any_setting, cmake_file)

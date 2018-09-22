@@ -169,6 +169,8 @@ class VFParser(Parser):
         context.flags.apply_flags_to_context(context)
 
     def __parse_configuration_name(self, context, attr_name, configuration_name, node):
+        del attr_name
+
         setting = configuration_name
 
         if context.is_converting_solution:
@@ -187,6 +189,8 @@ class VFParser(Parser):
 
     @staticmethod
     def __parse_target_name(context, attr_name, target_name_value, node):
+        del attr_name, node
+
         context.settings[context.current_setting]['target_name'] = target_name_value
 
     @staticmethod
@@ -195,17 +199,22 @@ class VFParser(Parser):
 
     @staticmethod
     def __parse_configuration_type(context, attr_name, configuration_type_value, node):
+        del attr_name, node
+
         configuration_type_value = configuration_type_value.replace('type', '')
         context.settings[context.current_setting]['target_type'] = configuration_type_value
 
     @staticmethod
     def __parse_tool_name(context, attr_name, tool_name_value, tool_node):
+        del attr_name, context
+
         if tool_name_value in ['VFMidlTool', 'VFManifestTool']:
             raise StopParseException()
         tool_node.tag = tool_name_value
 
     @staticmethod
     def __parse_preprocessor_definitions(context, flag_name, preprocessor_definitions_value, node):
+        del flag_name, node
         for define in preprocessor_definitions_value.split(';'):
             context.settings[context.current_setting]['defines'].append(define)
 
@@ -216,6 +225,8 @@ class VFParser(Parser):
             additional_include_directories_value,
             node
     ):
+        del flag_name, node
+
         context.dependencies.set_additional_include_directories(
             additional_include_directories_value,
             context.current_setting,
@@ -243,6 +254,8 @@ class VFParser(Parser):
         self._parse_nodes(context, filter_node)
 
     def __parse_file_relative_path(self, context, attr_name, attr_value, file_node):
+        del attr_name, attr_value
+
         source_group = ''
         parent = file_node.getparent()
         if Parser.strip_namespace(parent.tag) == 'Filter':
@@ -261,4 +274,6 @@ class VFParser(Parser):
         self._parse_nodes(context, filter_node)
 
     def __parse_filter_name(self, context, attr_name, attr_value, file_node):
+        del context, attr_name, file_node
+
         self.source_group = attr_value
