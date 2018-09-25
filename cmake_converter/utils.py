@@ -504,6 +504,7 @@ def write_arch_types(cmake):
 
 
 def write_use_package_stub(cmake):
+    write_comment(cmake, 'Nuget packages function stub.')
     cmake.write('function(use_package TARGET PACKAGE VERSION)\n')
     cmake.write('    message(WARNING "No implementation of use_package. Create yours.")\n')
     cmake.write('endfunction()\n\n')

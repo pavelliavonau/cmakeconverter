@@ -70,12 +70,40 @@ def parse_solution(sln_text):
     solution_data = {}
     projects_data = {}
     solution_folders = {}
+
+    __parse_projects_data(sln_text, solution_folders, projects_data)
+
+    __parse_configurations_of_solution(sln_text, solution_data)
+
+    __parse_project_configuration_platforms(sln_text, projects_data)
+
+    solution_folders_map = {}
+
+    __parse_nested_projects_in_solution_folders(sln_text, solution_folders_map)
+
+    set_solution_dirs_to_projects(projects_data, solution_folders_map, solution_folders)
+
+    # replace GUIDs with Project names in dependencies
+    for project_guid in projects_data:
+        project_data = projects_data[project_guid]
+        if 'sln_deps' in project_data:
+            target_deps = []
+            dependencies_list = project_data['sln_deps']
+            for dep_guid in dependencies_list:
+                dep = projects_data[dep_guid]
+                target_deps.append(dep['name'])
+            project_data['sln_deps'] = target_deps
+    solution_data['projects_data'] = projects_data
+
+    return solution_data
+
+
+def __parse_projects_data(sln_text, solution_folders, projects_data):
     p = re.compile(
         r'(Project.*\s=\s\"(.*)\",\s\"(.*)\",.*({.*\})(?:.|\n)*?EndProject(?!Section))'
     )
 
-    parsed_data = p.findall(sln_text)
-    for project_data_match in parsed_data:
+    for project_data_match in p.findall(sln_text):
         path = project_data_match[2]
         guid = project_data_match[3]
 
@@ -100,6 +128,8 @@ def parse_solution(sln_text):
                 project['sln_deps'].append(guids_deps_match[2])
         projects_data[guid] = project
 
+
+def __parse_configurations_of_solution(sln_text, solution_data):
     solution_configurations_re = re.compile(
         r'GlobalSection\(SolutionConfigurationPlatforms\) = preSolution((?:.|\n)*?)EndGlobalSection'
     )
@@ -112,6 +142,8 @@ def parse_solution(sln_text):
         for configuration in configurations:
             solution_data['sln_configurations'].append(configuration[0])
 
+
+def __parse_project_configuration_platforms(sln_text, projects_data):
     projects_configurations_re = re.compile(
         r'GlobalSection\(ProjectConfigurationPlatforms\) = postSolution((?:.|\n)*?)EndGlobalSection'
     )
@@ -125,32 +157,17 @@ def parse_solution(sln_text):
                 p['sln_configs_2_project_configs'] = {}
             p['sln_configs_2_project_configs'][configuration[1]] = configuration[2]
 
+
+def __parse_nested_projects_in_solution_folders(sln_text, solution_folders_map):
     nested_projects_re = re.compile(
         r'GlobalSection\(NestedProjects\) = preSolution((?:.|\n)*?)EndGlobalSection'
     )
-    solution_folders_map = {}
     nested_projects_matches = nested_projects_re.findall(sln_text)
     solution_dir_link_re = re.compile(r'(\{.+\}) = (\{.+\})')
     for nested_projects_match in nested_projects_matches:
         solution_dir_links = solution_dir_link_re.findall(nested_projects_match)
         for solution_dir_link in solution_dir_links:
             solution_folders_map[solution_dir_link[0]] = solution_dir_link[1]
-
-    set_solution_dirs_to_projects(projects_data, solution_folders_map, solution_folders)
-
-    # replace GUIDs with Project names in dependencies
-    for project_guid in projects_data:
-        project_data = projects_data[project_guid]
-        if 'sln_deps' in project_data:
-            target_deps = []
-            dependencies_list = project_data['sln_deps']
-            for dep_guid in dependencies_list:
-                dep = projects_data[dep_guid]
-                target_deps.append(dep['name'])
-            project_data['sln_deps'] = target_deps
-    solution_data['projects_data'] = projects_data
-
-    return solution_data
 
 
 def set_solution_dirs_to_projects(projects_data, solution_folders_map, solution_folders):
@@ -241,61 +258,32 @@ def copy_cmake_utils(cmake_lists_path):
 
 def convert_solution(initial_context, sln_path):
     initial_context.is_converting_solution = True
-    sln = open(sln_path, encoding='utf8')
-    solution_data = parse_solution(sln.read())
-    sln.close()
+
+    with open(sln_path, encoding='utf8') as sln:
+        solution_data = parse_solution(sln.read())
 
     solution_path = os.path.dirname(sln_path)
     subdirectories_set = set()
     subdirectories_to_project_name = {}
     projects_data = solution_data['projects_data']
+
     clean_cmake_lists_of_solution(initial_context, solution_path, projects_data)
 
-    threads_data = {}
-    project_number = 0
-    for guid in projects_data:
-        project_number += 1
-        project_context = initial_context.clone()
-        project_context.project_number = project_number
-        project_path = projects_data[guid]['path']
-        project_path = '/'.join(project_path.split('\\'))
-        project_abs = os.path.join(solution_path, project_path)
-        subdirectory = os.path.dirname(project_abs)
-        set_dependencies_for_project(project_context, projects_data[guid])
-        project_context.sln_configurations_map = \
-            projects_data[guid]['sln_configs_2_project_configs']
-        project_context.solution_folder = projects_data[guid]['project_solution_dir']
-        if subdirectory not in threads_data:
-            threads_data[subdirectory] = []
-        threads_data[subdirectory].append(
-            {
-                'project_context': project_context,
-                'project_abs': project_abs,
-                'subdirectory': subdirectory
-            }
-        )
+    input_data_for_converter = __get_input_data_for_converter(
+        initial_context,
+        projects_data,
+        solution_path
+    )
 
-    threads_data_list = []
-    for subdirectory in threads_data:
-        threads_data_list.append(threads_data[subdirectory])
+    results = __do_conversion(initial_context, input_data_for_converter)
 
-    results = []
-    if initial_context.jobs > 1:
-        pool = Pool(initial_context.jobs)
-        results = pool.map(run_conversion, threads_data_list)
-    else:   # do in main thread
-        i = 0
-        for threads_data in threads_data_list:
-            results.append(run_conversion(threads_data))
-            i += 1
-
-    for directory_results in results:
-        for project_result in directory_results:
-            subdirectory = os.path.relpath(project_result['cmake'], solution_path)
-            if subdirectory != '.':
-                subdirectories_set.add(subdirectory)
-            subdirectories_to_project_name[subdirectory] = project_result['project_name']
-            initial_context.solution_languages.update(project_result['solution_languages'])
+    __get_info_from_results(
+        initial_context,
+        results,
+        solution_path,
+        subdirectories_set,
+        subdirectories_to_project_name
+    )
 
     if initial_context.dry:
         return
@@ -314,17 +302,114 @@ def convert_solution(initial_context, sln_path):
 
     write_arch_types(sln_cmake)
 
-    write_comment(sln_cmake, 'Global configuration types')
-    sln_cmake.write('set(CMAKE_CONFIGURATION_TYPES\n')
+    configuration_types_list = __get_global_configuration_types(solution_data)
+    __write_global_configuration_types(sln_cmake, configuration_types_list)
+
+    __write_global_compile_options(initial_context, sln_cmake, configuration_types_list)
+
+    __write_global_link_options(sln_cmake, configuration_types_list)
+
+    write_use_package_stub(sln_cmake)
+
+    write_comment(sln_cmake, 'Common utils')
+    sln_cmake.write('include(CMake/Utils.cmake)\n\n')
+    copy_cmake_utils(solution_path)
+
+    write_comment(sln_cmake, 'Additional Global Settings(add specific info there)')
+    sln_cmake.write('include(CMake/GlobalSettingsInclude.cmake OPTIONAL)\n\n')
+
+    write_comment(sln_cmake, 'Use solution folders feature')
+    sln_cmake.write('set_property(GLOBAL PROPERTY USE_FOLDERS ON)\n\n')
+
+    __write_subdirectories(sln_cmake, subdirectories_set, subdirectories_to_project_name)
+
+    if sln_cmake_projects_text != '':
+        sln_cmake.write('\n' * 26)
+        sln_cmake.write(sln_cmake_projects_text)
+
+    sln_cmake.close()
+
+    message(initial_context, 'Conversion of solution finished', 'done')
+
+
+def __get_input_data_for_converter(initial_context, projects_data, solution_path):
+    input_data_for_converter = {}
+    project_number = 0
+    for guid in projects_data:
+        project_number += 1
+        project_context = initial_context.clone()
+        project_context.project_number = project_number
+        project_path = projects_data[guid]['path']
+        project_path = '/'.join(project_path.split('\\'))
+        project_abs = os.path.join(solution_path, project_path)
+        subdirectory = os.path.dirname(project_abs)
+        set_dependencies_for_project(project_context, projects_data[guid])
+        project_context.sln_configurations_map = \
+            projects_data[guid]['sln_configs_2_project_configs']
+        project_context.solution_folder = projects_data[guid]['project_solution_dir']
+        if subdirectory not in input_data_for_converter:
+            input_data_for_converter[subdirectory] = []
+        input_data_for_converter[subdirectory].append(
+            {
+                'project_context': project_context,
+                'project_abs': project_abs,
+                'subdirectory': subdirectory
+            }
+        )
+
+    return input_data_for_converter
+
+
+def __do_conversion(initial_context, input_data_for_converter):
+    input_converter_data_list = []
+    for subdirectory in input_data_for_converter:
+        input_converter_data_list.append(input_data_for_converter[subdirectory])
+
+    results = []
+    if initial_context.jobs > 1:
+        pool = Pool(initial_context.jobs)
+        results = pool.map(run_conversion, input_converter_data_list)
+    else:   # do in main thread
+        for data_for_converter in input_converter_data_list:
+            results.append(run_conversion(data_for_converter))
+
+    return results
+
+
+def __get_info_from_results(
+        initial_context,
+        results,
+        solution_path,
+        subdirectories_set,
+        subdirectories_to_project_name
+):
+    for directory_results in results:
+        for project_result in directory_results:
+            subdirectory = os.path.relpath(project_result['cmake'], solution_path)
+            if subdirectory != '.':
+                subdirectories_set.add(subdirectory)
+            subdirectories_to_project_name[subdirectory] = project_result['project_name']
+            initial_context.solution_languages.update(project_result['solution_languages'])
+
+
+def __get_global_configuration_types(solution_data):
     configuration_types_set = set()
     for config in solution_data['sln_configurations']:
         configuration_types_set.add(config.split('|')[0])
     configuration_types_list = list(configuration_types_set)
     configuration_types_list.sort(key=str.lower)
+    return configuration_types_list
+
+
+def __write_global_configuration_types(sln_cmake, configuration_types_list):
+    write_comment(sln_cmake, 'Global configuration types')
+    sln_cmake.write('set(CMAKE_CONFIGURATION_TYPES\n')
     for configuration_type in configuration_types_list:
         sln_cmake.write('    \"{0}\"\n'.format(configuration_type))
     sln_cmake.write('    CACHE TYPE INTERNAL FORCE\n)\n\n')
 
+
+def __write_global_compile_options(initial_context, sln_cmake, configuration_types_list):
     write_comment(sln_cmake, 'Global compiler options')
     sln_cmake.write('if(MSVC)\n')
     sln_cmake.write('    # remove default flags provided with CMake for MSVC\n')
@@ -337,6 +422,8 @@ def convert_solution(initial_context, sln_path):
                             .format(lang, configuration_type.upper()))
     sln_cmake.write('endif()\n\n')
 
+
+def __write_global_link_options(sln_cmake, configuration_types_list):
     write_comment(sln_cmake, 'Global linker options')
     sln_cmake.write('if(MSVC)\n')
     sln_cmake.write('    # remove default flags provided with CMake for MSVC\n')
@@ -360,22 +447,9 @@ def convert_solution(initial_context, sln_path):
             .format(ct_upper))
     sln_cmake.write('endif()\n\n')
 
-    write_comment(sln_cmake, 'Nuget packages function stub.')
 
-    write_use_package_stub(sln_cmake)
-
-    write_comment(sln_cmake, 'Common utils')
-    sln_cmake.write('include(CMake/Utils.cmake)\n\n')
-    copy_cmake_utils(solution_path)
-
-    write_comment(sln_cmake, 'Additional Global Settings(add specific info there)')
-    sln_cmake.write('include(CMake/GlobalSettingsInclude.cmake OPTIONAL)\n\n')
-
-    write_comment(sln_cmake, 'Use solution folders feature')
-    sln_cmake.write('set_property(GLOBAL PROPERTY USE_FOLDERS ON)\n\n')
-
+def __write_subdirectories(sln_cmake, subdirectories_set, subdirectories_to_project_name):
     write_comment(sln_cmake, 'Sub-projects')
-
     subdirectories = list(subdirectories_set)
     subdirectories.sort(key=str.lower)
     for subdirectory in subdirectories:
@@ -386,11 +460,3 @@ def convert_solution(initial_context, sln_path):
         sln_cmake.write('add_subdirectory({0}{1})\n'.format(
             set_unix_slash(subdirectory), binary_dir))
     sln_cmake.write('\n')
-
-    if sln_cmake_projects_text != '':
-        sln_cmake.write('\n' * 26)
-        sln_cmake.write(sln_cmake_projects_text)
-
-    sln_cmake.close()
-
-    message(initial_context, 'Conversion of solution finished', 'done')
