@@ -178,7 +178,7 @@ class VCXDependencies(Dependencies):
                     package_version = packages_xml_data[id_version_i][1]
                     break
 
-            if len(context.import_projects) and not id_version:
+            if context.import_projects and not id_version:
                 message(
                     context,
                     'can not find package version in {} by {} path'.format(

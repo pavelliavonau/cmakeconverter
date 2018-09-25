@@ -343,6 +343,7 @@ class FortranFlags(Flags):
     @staticmethod
     def __set_null_pointer_check(context, flag_name, flag_value):
         """
+        Set check:pointer
         """
         del context, flag_name, flag_value
         flag_values = {
@@ -354,6 +355,7 @@ class FortranFlags(Flags):
     @staticmethod
     def set_bounds_check(context, flag_name, flag_value):
         """
+        Set check:bounds
         """
         del context, flag_name, flag_value
         flag_values = {
@@ -365,6 +367,7 @@ class FortranFlags(Flags):
     @staticmethod
     def set_uninitialized_variables_check(context, flag_name, flag_value):
         """
+        Set check:uninit
         """
         del context, flag_name, flag_value
         flag_values = {
@@ -376,6 +379,7 @@ class FortranFlags(Flags):
     @staticmethod
     def set_descriptor_data_type_check(context, flag_name, flag_value):
         """
+        Set check:format
         """
         del context, flag_name, flag_value
         flag_values = {
@@ -387,6 +391,7 @@ class FortranFlags(Flags):
     @staticmethod
     def set_descriptor_data_size_check(context, flag_name, flag_value):
         """
+        Set check:output_conversion
         """
         del context, flag_name, flag_value
         flag_values = {
@@ -398,6 +403,7 @@ class FortranFlags(Flags):
     @staticmethod
     def set_arg_temp_created_check(context, flag_name, flag_value):
         """
+        Set check:arg_temp_created
         """
         del context, flag_name, flag_value
         flag_values = {
@@ -409,6 +415,7 @@ class FortranFlags(Flags):
     @staticmethod
     def set_stack_frame_check(context, flag_name, flag_value):
         """
+        Set check:stack
         """
         del context, flag_name, flag_value
         flag_values = {
@@ -420,6 +427,7 @@ class FortranFlags(Flags):
     @staticmethod
     def set_debug_parameter(context, flag_name, flag_value):
         """
+        Set check:debug-parameters
         """
         del context, flag_name, flag_value
         flag_values = {

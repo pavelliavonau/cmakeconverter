@@ -27,6 +27,9 @@ class VFParser(Parser):
 
     def __init__(self):
         Parser.__init__(self)
+        self.common_diagnostics_value = None
+        self.common_runtime_checks_value = None
+        self.source_group = ''
 
     def get_node_handlers_dict(self, context):
         node_handlers = {
@@ -268,7 +271,6 @@ class VFParser(Parser):
             source_group=source_group
         )
         self._parse_nodes(file_context, file_node)
-        return
 
     def __parse_filter(self, context, filter_node):
         self._parse_nodes(context, filter_node)

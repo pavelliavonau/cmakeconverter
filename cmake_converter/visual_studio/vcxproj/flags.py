@@ -147,7 +147,7 @@ class CPPFlags(Flags):
 
         """
         for define in defines_node.text.split(";"):
-            if define != '%(PreprocessorDefinitions)' and define != 'WIN32':
+            if define not in ('%(PreprocessorDefinitions)', 'WIN32'):
                 context.settings[context.current_setting][defines].append(define)
         if context.current_setting in self.unicode_defines:
             for define in self.unicode_defines[context.current_setting]:
@@ -475,10 +475,7 @@ class CPPFlags(Flags):
             return
 
         setting = context.current_setting
-        if 'true' in md.text:
-            context.settings[setting]['use_debug_libs'] = True
-        else:
-            context.settings[setting]['use_debug_libs'] = False
+        context.settings[setting]['use_debug_libs'] = 'true' in md.text
         message(
             context,
             'UseDebugLibrairies : {}'.format(context.settings[setting]['use_debug_libs']),
@@ -529,7 +526,7 @@ class CPPFlags(Flags):
         flags = []
         for sw in specific_warnings_node.text.strip().split(";"):
             sw = sw.strip()
-            if sw != '%(DisableSpecificWarnings)' and sw != '':
+            if sw not in ('%(DisableSpecificWarnings)', ''):
                 flag = '/wd{0}'.format(sw)
                 flags.append(flag)
         self.flags[context.current_setting][flag_name][cl_flags] = flags
