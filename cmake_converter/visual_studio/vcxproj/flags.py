@@ -141,51 +141,6 @@ class CPPFlags(Flags):
         ]
         return flags_list
 
-    def define_linux_flags(self, context, cmake_file):
-        """
-        Define the Flags for Linux platforms
-
-        :param context: converter Context
-        :type context: Context
-        :param cmake_file: CMakeLists.txt IO wrapper
-        :type cmake_file: _io.TextIOWrapper
-        """
-
-        if context.std:
-            if context.std in self.available_std:
-                message(context, 'Cmake will use C++ std {0}.'.format(context.std), 'info')
-                linux_flags = '-std=%s' % context.std
-            else:
-                message(
-                    context,
-                    'C++ std {0} version does not exist. CMake will use "c++11" instead'
-                    .format(context.std),
-                    'warn'
-                )
-                linux_flags = '-std=c++11'
-        else:
-            message(context,
-                    'No C++ std version specified. CMake will use "c++11" by default.', 'info')
-            linux_flags = '-std=c++11'
-        references = context.vcxproj['tree'].xpath('//ns:ProjectReference',
-                                                   namespaces=context.vcxproj['ns'])
-        if references:
-            for ref in references:
-                reference = str(ref.get('Include'))
-                if '\\' in reference:
-                    reference = set_unix_slash(reference)
-                lib = os.path.splitext(os.path.basename(reference))[0]
-
-                if (lib == 'lemon' or lib == 'zlib') and '-fPIC' not in linux_flags:
-                    linux_flags += ' -fPIC'
-
-        cmake_file.write('if(NOT MSVC)\n')
-        cmake_file.write('   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} %s")\n' % linux_flags)
-        cmake_file.write('   if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")\n')
-        cmake_file.write('       set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++")\n')
-        cmake_file.write('   endif()\n')
-        cmake_file.write('endif(NOT MSVC)\n\n')
-
     def set_defines(self, context, defines_node):
         """
         Defines preprocessor definitions in current settings

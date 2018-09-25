@@ -25,7 +25,6 @@ import unittest
 
 from cmake_converter.context import Context
 from cmake_converter.data_converter import DataConverter
-from cmake_converter.data_files import get_cmake_lists
 
 
 class TestFlags(unittest.TestCase):
@@ -43,30 +42,3 @@ class TestFlags(unittest.TestCase):
         converter = DataConverter()
         converter.convert(context)
 
-    @unittest.skip("linux flags not used")
-    def test_define_linux_flags_with_std(self):
-        """Define Linux Flags"""
-
-        self.data_test['cmake'] = get_cmake_lists(self.context, './')
-        self.data_test['std'] = 'c++17'
-        under_test = CPPFlags(self.data_test)
-        under_test.define_linux_flags()
-        self.data_test['cmake'].close()
-
-        cmakelists_test = open('%s/CMakeLists.txt' % self.cur_dir, 'r')
-        content_test = cmakelists_test.read()
-
-        self.assertTrue('-std=c++17' in content_test)
-        cmakelists_test.close()
-
-        self.data_test['cmake'] = get_cmake_lists(context, './')
-        self.data_test['std'] = 'c++19'
-        under_test = CPPFlags(self.data_test)
-        under_test.define_linux_flags()
-        self.data_test['cmake'].close()
-
-        cmakelists_test = open('%s/CMakeLists.txt' % self.cur_dir, 'r')
-        content_test = cmakelists_test.read()
-
-        self.assertTrue('-std=c++11' in content_test)
-        cmakelists_test.close()
