@@ -314,7 +314,6 @@ def convert_solution(initial_context, sln_path):
 
     write_arch_types(sln_cmake)
 
-    # TODO: try to write configuration types for each project locally due possible difference.
     write_comment(sln_cmake, 'Global configuration types')
     sln_cmake.write('set(CMAKE_CONFIGURATION_TYPES\n')
     configuration_types_set = set()
