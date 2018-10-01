@@ -34,52 +34,52 @@ class FortranFlags(Flags):
     def __init__(self):
         self.flags = {}
         self.flags_handlers = {
-            'SuppressStartupBanner': self.set_suppress_startup_banner,
-            'DebugInformationFormat': self.set_debug_information_format,
-            'Optimization': self.set_optimization,
+            'SuppressStartupBanner': self.__set_suppress_startup_banner,
+            'DebugInformationFormat': self.__set_debug_information_format,
+            'Optimization': self.__set_optimization,
             'InterproceduralOptimizations': self.__set_interprocedural_optimizations,
             'EnableEnhancedInstructionSet': self.__set_enable_enhanced_instruction_set,
             'EnableRecursion': self.__set_enable_recursion,
             'ReentrantCode': self.__set_reentrant_code,
-            'Preprocess': self.set_preprocess_source_file,
-            'SourceFileFormat': self.set_source_file_format,
-            'DebugParameter': self.set_debug_parameter,
-            'DefaultIncAndUsePath': self.set_default_inc_and_use_path,
-            'FixedFormLineLength': self.set_fixed_form_line_length,
-            'OpenMP': self.set_open_mp,
-            'DisableSpecificDiagnostics': self.set_disable_specific_diagnostics,
-            'Diagnostics': self.set_diagnostics,
-            'WarnDeclarations': self.set_warn_declarations,
-            'WarnUnusedVariables': self.set_warn_unused_variables,
-            'WarnIgnoreLOC': self.set_warn_ignore_loc,
-            'WarnTruncateSource': self.set_warn_truncate_source,
-            'WarnInterfaces': self.set_warn_interfaces,
-            'WarnUnalignedData': self.set_warn_unaligned_data,
-            'WarnUncalled': self.set_warn_uncalled,
-            'SuppressUsageMessages': self.set_suppress_usage_messages,
-            'RealKIND': self.set_real_kind,
-            'LocalVariableStorage': self.set_local_variable_storage,
-            'InitLocalVarToNAN': self.set_init_local_var_to_nan,
-            'FloatingPointExceptionHandling': self.set_floating_point_exception_handling,
-            'ExtendSinglePrecisionConstants': self.set_extend_single_precision_constants,
+            'Preprocess': self.__set_preprocess_source_file,
+            'SourceFileFormat': self.__set_source_file_format,
+            'DebugParameter': self.__set_debug_parameter,
+            'DefaultIncAndUsePath': self.__set_default_inc_and_use_path,
+            'FixedFormLineLength': self.__set_fixed_form_line_length,
+            'OpenMP': self.__set_open_mp,
+            'DisableSpecificDiagnostics': self.__set_disable_specific_diagnostics,
+            'Diagnostics': self.__set_diagnostics,
+            'WarnDeclarations': self.__set_warn_declarations,
+            'WarnUnusedVariables': self.__set_warn_unused_variables,
+            'WarnIgnoreLOC': self.__set_warn_ignore_loc,
+            'WarnTruncateSource': self.__set_warn_truncate_source,
+            'WarnInterfaces': self.__set_warn_interfaces,
+            'WarnUnalignedData': self.__set_warn_unaligned_data,
+            'WarnUncalled': self.__set_warn_uncalled,
+            'SuppressUsageMessages': self.__set_suppress_usage_messages,
+            'RealKIND': self.__set_real_kind,
+            'LocalVariableStorage': self.__set_local_variable_storage,
+            'InitLocalVarToNAN': self.__set_init_local_var_to_nan,
+            'FloatingPointExceptionHandling': self.__set_floating_point_exception_handling,
+            'ExtendSinglePrecisionConstants': self.__set_extend_single_precision_constants,
             'FloatingPointModel': self.__set_floating_point_model,
             'FloatingPointSpeculation': self.__set_floating_point_speculation,
-            'FloatingPointStackCheck': self.set_floating_point_stack_check,
-            'ExternalNameInterpretation': self.set_external_name_interpretation,
-            'StringLengthArgPassing': self.set_string_length_arg_passing,
-            'ExternalNameUnderscore': self.set_external_name_underscore,
-            'Traceback': self.set_traceback,
-            'RuntimeChecks': self.set_runtime_checks,
+            'FloatingPointStackCheck': self.__set_floating_point_stack_check,
+            'ExternalNameInterpretation': self.__set_external_name_interpretation,
+            'StringLengthArgPassing': self.__set_string_length_arg_passing,
+            'ExternalNameUnderscore': self.__set_external_name_underscore,
+            'Traceback': self.__set_traceback,
+            'RuntimeChecks': self.__set_runtime_checks,
             'NullPointerCheck': self.__set_null_pointer_check,
-            'BoundsCheck': self.set_bounds_check,
-            'UninitializedVariablesCheck': self.set_uninitialized_variables_check,
-            'DescriptorDataTypeCheck': self.set_descriptor_data_type_check,
-            'DescriptorDataSizeCheck': self.set_descriptor_data_size_check,
-            'ArgTempCreatedCheck': self.set_arg_temp_created_check,
-            'StackFrameCheck': self.set_stack_frame_check,
-            'RuntimeLibrary': self.set_runtime_library,
-            'DisableDefaultLibSearch': self.set_disable_default_lib_search,
-            'AdditionalOptions': self.set_additional_options,
+            'BoundsCheck': self.__set_bounds_check,
+            'UninitializedVariablesCheck': self.__set_uninitialized_variables_check,
+            'DescriptorDataTypeCheck': self.__set_descriptor_data_type_check,
+            'DescriptorDataSizeCheck': self.__set_descriptor_data_size_check,
+            'ArgTempCreatedCheck': self.__set_arg_temp_created_check,
+            'StackFrameCheck': self.__set_stack_frame_check,
+            'RuntimeLibrary': self.__set_runtime_library,
+            'DisableDefaultLibSearch': self.__set_disable_default_lib_search,
+            'AdditionalOptions': self.__set_additional_options,
         }
 
     def __set_default_flags(self, context):
@@ -219,7 +219,7 @@ class FortranFlags(Flags):
                 )
 
     @staticmethod
-    def set_floating_point_stack_check(context, flag_name, flag_value):
+    def __set_floating_point_stack_check(context, flag_name, flag_value):
         del context, flag_name, flag_value
         flag_values = {
             'true': {ifort_cl_win: '-Qfp-stack-check',
@@ -230,7 +230,7 @@ class FortranFlags(Flags):
         return flag_values
 
     @staticmethod
-    def set_external_name_underscore(context, flag_name, flag_value):
+    def __set_external_name_underscore(context, flag_name, flag_value):
         if context.file_contexts is None and flag_value == '':
             return {}
 
@@ -243,7 +243,7 @@ class FortranFlags(Flags):
         return flag_values
 
     @staticmethod
-    def set_external_name_interpretation(context, flag_name, flag_value):
+    def __set_external_name_interpretation(context, flag_name, flag_value):
         del context, flag_name, flag_value
         flag_values = {
             'extNameUpperCase': {ifort_cl_win: '-names:uppercase',
@@ -257,7 +257,7 @@ class FortranFlags(Flags):
         return flag_values
 
     @staticmethod
-    def set_diagnostics(context, flag_name, flag_value):
+    def __set_diagnostics(context, flag_name, flag_value):
         del context, flag_name, flag_value
         flag_values = {
             'diagnosticsShowAll': {ifort_cl_win: '-warn:all',
@@ -269,7 +269,7 @@ class FortranFlags(Flags):
         return flag_values
 
     @staticmethod
-    def set_warn_declarations(context, flag_name, flag_value):
+    def __set_warn_declarations(context, flag_name, flag_value):
         del context, flag_name, flag_value
         flag_values = {
             'true': {'warn_args': 'declaration'},
@@ -278,7 +278,7 @@ class FortranFlags(Flags):
         return flag_values
 
     @staticmethod
-    def set_warn_unused_variables(context, flag_name, flag_value):
+    def __set_warn_unused_variables(context, flag_name, flag_value):
         del context, flag_name, flag_value
         flag_values = {
             'true': {'warn_args': 'unused'},
@@ -287,7 +287,7 @@ class FortranFlags(Flags):
         return flag_values
 
     @staticmethod
-    def set_warn_ignore_loc(context, flag_name, flag_value):
+    def __set_warn_ignore_loc(context, flag_name, flag_value):
         del context, flag_name, flag_value
         flag_values = {
             'true': {'warn_args': 'ignore_loc'},
@@ -296,7 +296,7 @@ class FortranFlags(Flags):
         return flag_values
 
     @staticmethod
-    def set_warn_truncate_source(context, flag_name, flag_value):
+    def __set_warn_truncate_source(context, flag_name, flag_value):
         del context, flag_name, flag_value
         flag_values = {
             'true': {'warn_args': 'truncated_source'},
@@ -305,7 +305,7 @@ class FortranFlags(Flags):
         return flag_values
 
     @staticmethod
-    def set_warn_interfaces(context, flag_name, flag_value):
+    def __set_warn_interfaces(context, flag_name, flag_value):
         del context, flag_name, flag_value
         flag_values = {
             'true': {'warn_args': 'interfaces'},
@@ -314,7 +314,7 @@ class FortranFlags(Flags):
         return flag_values
 
     @staticmethod
-    def set_warn_unaligned_data(context, flag_name, flag_value):
+    def __set_warn_unaligned_data(context, flag_name, flag_value):
         del context, flag_name, flag_value
         flag_values = {
             'false': {'warn_args': 'noalignments'},
@@ -323,7 +323,7 @@ class FortranFlags(Flags):
         return flag_values
 
     @staticmethod
-    def set_warn_uncalled(context, flag_name, flag_value):
+    def __set_warn_uncalled(context, flag_name, flag_value):
         del context, flag_name, flag_value
         flag_values = {
             'true': {'warn_args': 'uncalled'},
@@ -332,7 +332,7 @@ class FortranFlags(Flags):
         return flag_values
 
     @staticmethod
-    def set_suppress_usage_messages(context, flag_name, flag_value):
+    def __set_suppress_usage_messages(context, flag_name, flag_value):
         del context, flag_name, flag_value
         flag_values = {
             'true': {'warn_args': 'nousage'},
@@ -353,7 +353,7 @@ class FortranFlags(Flags):
         return flag_values
 
     @staticmethod
-    def set_bounds_check(context, flag_name, flag_value):
+    def __set_bounds_check(context, flag_name, flag_value):
         """
         Set check:bounds
         """
@@ -365,7 +365,7 @@ class FortranFlags(Flags):
         return flag_values
 
     @staticmethod
-    def set_uninitialized_variables_check(context, flag_name, flag_value):
+    def __set_uninitialized_variables_check(context, flag_name, flag_value):
         """
         Set check:uninit
         """
@@ -377,7 +377,7 @@ class FortranFlags(Flags):
         return flag_values
 
     @staticmethod
-    def set_descriptor_data_type_check(context, flag_name, flag_value):
+    def __set_descriptor_data_type_check(context, flag_name, flag_value):
         """
         Set check:format
         """
@@ -389,7 +389,7 @@ class FortranFlags(Flags):
         return flag_values
 
     @staticmethod
-    def set_descriptor_data_size_check(context, flag_name, flag_value):
+    def __set_descriptor_data_size_check(context, flag_name, flag_value):
         """
         Set check:output_conversion
         """
@@ -401,7 +401,7 @@ class FortranFlags(Flags):
         return flag_values
 
     @staticmethod
-    def set_arg_temp_created_check(context, flag_name, flag_value):
+    def __set_arg_temp_created_check(context, flag_name, flag_value):
         """
         Set check:arg_temp_created
         """
@@ -413,7 +413,7 @@ class FortranFlags(Flags):
         return flag_values
 
     @staticmethod
-    def set_stack_frame_check(context, flag_name, flag_value):
+    def __set_stack_frame_check(context, flag_name, flag_value):
         """
         Set check:stack
         """
@@ -425,7 +425,7 @@ class FortranFlags(Flags):
         return flag_values
 
     @staticmethod
-    def set_debug_parameter(context, flag_name, flag_value):
+    def __set_debug_parameter(context, flag_name, flag_value):
         """
         Set check:debug-parameters
         """
@@ -440,7 +440,7 @@ class FortranFlags(Flags):
         return flag_values
 
     @staticmethod
-    def set_fixed_form_line_length(context, flag_name, flag_value):
+    def __set_fixed_form_line_length(context, flag_name, flag_value):
         """
         Set fixed form line length
 
@@ -456,7 +456,7 @@ class FortranFlags(Flags):
         return flag_values
 
     @staticmethod
-    def set_default_inc_and_use_path(context, flag_name, flag_value):
+    def __set_default_inc_and_use_path(context, flag_name, flag_value):
         """
         Set default include and path
 
@@ -469,7 +469,7 @@ class FortranFlags(Flags):
         return flag_values
 
     @staticmethod
-    def set_open_mp(context, flag_name, flag_value):
+    def __set_open_mp(context, flag_name, flag_value):
         """
         Set open MP flag
 
@@ -484,7 +484,7 @@ class FortranFlags(Flags):
         }
         return flag_values
 
-    def set_disable_specific_diagnostics(self, context, flag_name, flag_value):
+    def __set_disable_specific_diagnostics(self, context, flag_name, flag_value):
         """
         Set disable specific diagnostic flag
 
@@ -497,7 +497,7 @@ class FortranFlags(Flags):
             self.flags[flag_name][ifort_cl_unix] = ['-diag-disable={0}'.format(opt)]
 
     @staticmethod
-    def set_string_length_arg_passing(context, flag_name, flag_value):
+    def __set_string_length_arg_passing(context, flag_name, flag_value):
         """
         Set string lengh arg parsing
 
@@ -510,7 +510,7 @@ class FortranFlags(Flags):
         return flag_values
 
     @staticmethod
-    def set_runtime_library(context, flag_name, flag_value):
+    def __set_runtime_library(context, flag_name, flag_value):
         """
         Set runtime library flag
 
@@ -532,7 +532,7 @@ class FortranFlags(Flags):
         return flag_values
 
     @staticmethod
-    def set_disable_default_lib_search(context, flag_name, flag_value):
+    def __set_disable_default_lib_search(context, flag_name, flag_value):
         """
         Set disable default lib search
 
@@ -545,7 +545,7 @@ class FortranFlags(Flags):
         return flag_values
 
     @staticmethod
-    def set_runtime_checks(context, flag_name, flag_value):
+    def __set_runtime_checks(context, flag_name, flag_value):
         """
         Set runtime checks flag
 
@@ -561,7 +561,7 @@ class FortranFlags(Flags):
         return flag_values
 
     @staticmethod
-    def set_traceback(context, flag_name, flag_value):
+    def __set_traceback(context, flag_name, flag_value):
         """
         Set traceback flag
 
@@ -577,7 +577,7 @@ class FortranFlags(Flags):
         return flag_values
 
     @staticmethod
-    def set_extend_single_precision_constants(context, flag_name, flag_value):
+    def __set_extend_single_precision_constants(context, flag_name, flag_value):
         """
         Set extend single precision constants flag
 
@@ -629,7 +629,7 @@ class FortranFlags(Flags):
         return flag_values
 
     @staticmethod
-    def set_floating_point_exception_handling(context, flag_name, flag_value):
+    def __set_floating_point_exception_handling(context, flag_name, flag_value):
         """
         Set floating exception handling
 
@@ -645,7 +645,7 @@ class FortranFlags(Flags):
         return flag_values
 
     @staticmethod
-    def set_init_local_var_to_nan(context, flag_name, flag_value):
+    def __set_init_local_var_to_nan(context, flag_name, flag_value):
         """
         Set init local var to NaN flag
 
@@ -659,7 +659,7 @@ class FortranFlags(Flags):
         return flag_values
 
     @staticmethod
-    def set_preprocess_source_file(context, flag_name, flag_value):
+    def __set_preprocess_source_file(context, flag_name, flag_value):
         """
         Set preprocess source file flag
 
@@ -673,7 +673,7 @@ class FortranFlags(Flags):
         return flag_values
 
     @staticmethod
-    def set_optimization(context, flag_name, flag_value):
+    def __set_optimization(context, flag_name, flag_value):
         """
         Set optimization flag
 
@@ -749,7 +749,7 @@ class FortranFlags(Flags):
         return flag_values
 
     @staticmethod
-    def set_debug_information_format(context, flag_name, flag_value):
+    def __set_debug_information_format(context, flag_name, flag_value):
         """
         Set debug information format flag
 
@@ -765,7 +765,7 @@ class FortranFlags(Flags):
         return flag_values
 
     @staticmethod
-    def set_suppress_startup_banner(context, flag_name, flag_value):
+    def __set_suppress_startup_banner(context, flag_name, flag_value):
         """
         Set supress banner flag
 
@@ -778,7 +778,7 @@ class FortranFlags(Flags):
         return flag_values
 
     @staticmethod
-    def set_source_file_format(context, flag_name, flag_value):
+    def __set_source_file_format(context, flag_name, flag_value):
         """
         Set source file format flag
 
@@ -794,7 +794,7 @@ class FortranFlags(Flags):
         return flag_values
 
     @staticmethod
-    def set_local_variable_storage(context, flag_name, flag_value):
+    def __set_local_variable_storage(context, flag_name, flag_value):
         """
         Set local variable storage flag
 
@@ -808,7 +808,7 @@ class FortranFlags(Flags):
         return flag_values
 
     @staticmethod
-    def set_real_kind(context, flag_name, flag_value):
+    def __set_real_kind(context, flag_name, flag_value):
         """
         Set real kind flag
 
@@ -830,7 +830,7 @@ class FortranFlags(Flags):
             no = '-no'
         return no
 
-    def set_additional_options(self, context, flag_name, flag_value):
+    def __set_additional_options(self, context, flag_name, flag_value):
         """
         Set Additional options
 
