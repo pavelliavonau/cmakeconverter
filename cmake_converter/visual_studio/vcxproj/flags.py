@@ -98,13 +98,18 @@ class CPPFlags(Flags):
             'PrecompiledHeader': self.do_precompiled_headers,
         }
 
+    def __set_default_flag(self, context, flag_name):
+        self.flags[context.current_setting][flag_name] = {}
+        stub = NodeStub(flag_name)
+        self.set_flag(context, stub)
+
     def __set_default_flags(self, context):
+        message(context, '== start making default flags ==', '')
         if context.current_setting not in self.flags:
             self.flags[context.current_setting] = {}
         for flag_name in self.__get_result_order_of_flags():
-            self.flags[context.current_setting][flag_name] = {}
-            stub = NodeStub(flag_name)
-            self.set_flag(context, stub)
+            self.__set_default_flag(context, flag_name)
+        message(context, '== end making default flags ==', '')
 
     @staticmethod
     def __get_result_order_of_flags():
@@ -184,7 +189,7 @@ class CPPFlags(Flags):
         :param node:
         """
         del flag_name
-        if node.text == '':
+        if isinstance(node, NodeStub):
             return {}   # default pass
 
         setting = context.current_setting
@@ -350,7 +355,6 @@ class CPPFlags(Flags):
         for setting in context.settings:
             self.apply_generate_debug_information(context, setting)
             self.apply_link_incremental(context, setting)
-            self.apply_use_debug_libs(context, setting)
             for flag_name in self.__get_result_order_of_flags():
                 for context_flags_data_key in context_flags_data_keys:
                     if context_flags_data_key in self.flags[setting][flag_name]:
@@ -476,23 +480,24 @@ class CPPFlags(Flags):
 
         return flag_values
 
-    @staticmethod
-    def set_use_debug_libraries(context, flag_name, md):
+    def set_use_debug_libraries(self, context, flag_name, md):
         """
         Set Use Debug Libraries flag: /MD
 
         """
         del flag_name
-        if not md.text:
-            return
+        if isinstance(md, NodeStub):
+            md.text = 'false'
 
         setting = context.current_setting
         context.settings[setting]['use_debug_libs'] = 'true' in md.text
         message(
             context,
-            'UseDebugLibrairies : {}'.format(context.settings[setting]['use_debug_libs']),
+            'UseDebugLibraries : {}'.format(context.settings[setting]['use_debug_libs']),
             ''
         )
+        # update default of RuntimeLibrary
+        self.__set_default_flag(context, 'RuntimeLibrary')
 
     @staticmethod
     def set_warning_level(context, flag_name, node):
@@ -598,45 +603,29 @@ class CPPFlags(Flags):
         m_t = '/MT'
 
         cl_flag_value = ''
-        mdd_value = runtime_library_node.text
-        if mdd_value:
-            if mdd_value == 'MultiThreadedDebugDLL':
+        node_text = runtime_library_node.text
+        if node_text:
+            if node_text == 'MultiThreadedDebugDLL':
                 cl_flag_value = mdd
-            if mdd_value == 'MultiThreadedDLL':
+            if node_text == 'MultiThreadedDLL':
                 cl_flag_value = m_d
-            if mdd_value == 'MultiThreaded':
+            if node_text == 'MultiThreaded':
                 cl_flag_value = m_t
-            if mdd_value == 'MultiThreadedDebug':
+            if node_text == 'MultiThreadedDebug':
                 cl_flag_value = mtd
-            message(context, 'RuntimeLibrary {0} is {1}'
-                    .format(mdd_value, cl_flag_value), '')
         else:
             if context.file_contexts is not None:  # if not file context
-                cl_flag_value = m_d  # TODO: investigate what is default?
-                message(context, 'Default RuntimeLibrary {0} but may be error. Check!'
-                        .format(m_d), 'warn')
+                if isinstance(runtime_library_node, NodeStub):  # if default pass
+                    setting = context.settings[context.current_setting]
+                    if setting['use_debug_libs']:
+                        cl_flag_value = mdd
+                    else:
+                        cl_flag_value = m_d
+                    message(context, 'RuntimeLibrary : updating default...', '')
 
         if cl_flag_value:
             self.flags[context.current_setting][flag_name][cl_flags] = [cl_flag_value]
-            self.apply_use_debug_libs(context, context.current_setting)
-
-    def apply_use_debug_libs(self, context, setting):
-        if 'use_debug_libs' in context.settings[setting]:
-            rl_flag = ''
-            if cl_flags in self.flags[setting]['RuntimeLibrary']:
-                rl_flag = self.flags[setting]['RuntimeLibrary'][cl_flags][0]
-            applied_flag = rl_flag
-            if context.settings[setting]['use_debug_libs']:
-                if rl_flag == '/MD':
-                    applied_flag = '/MDd'
-                if rl_flag == '/MT':
-                    applied_flag = '/MTd'
-            else:
-                if rl_flag == '/MDd':
-                    applied_flag = '/MD'
-                if rl_flag == '/MTd':
-                    applied_flag = '/MT'
-            self.flags[setting]['RuntimeLibrary'][cl_flags] = [applied_flag]
+            message(context, 'RuntimeLibrary {}: {}'.format(node_text, cl_flag_value), '')
 
     @staticmethod
     def set_string_pooling(context, flag_name, node):
