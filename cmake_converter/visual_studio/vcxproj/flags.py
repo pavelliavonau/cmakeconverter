@@ -64,38 +64,38 @@ class CPPFlags(Flags):
         self.flags_handlers = {
             # from property_groups
             #   compilation
-            'UseDebugLibraries': self.set_use_debug_libraries,
-            'WholeProgramOptimization': self.set_whole_program_optimization,
+            'UseDebugLibraries': self.__set_use_debug_libraries,
+            'WholeProgramOptimization': self.__set_whole_program_optimization,
             #   linking
-            'GenerateDebugInformation': self.set_generate_debug_information,
-            'LinkIncremental': self.set_link_incremental,
+            'GenerateDebugInformation': self.__set_generate_debug_information,
+            'LinkIncremental': self.__set_link_incremental,
             # from definition_groups
             #   compilation
-            'Optimization': self.set_optimization,
-            'InlineFunctionExpansion': self.set_inline_function_expansion,
-            'IntrinsicFunctions': self.set_intrinsic_functions,
-            'StringPooling': self.set_string_pooling,
-            'BasicRuntimeChecks': self.set_basic_runtime_checks,
-            'RuntimeLibrary': self.set_runtime_library,
-            'FunctionLevelLinking': self.set_function_level_linking,
-            'WarningLevel': self.set_warning_level,
-            'TreatWarningAsError': self.set_warning_as_errors,
-            'DebugInformationFormat': self.set_debug_information_format,
-            'CompileAs': self.set_compile_as,
-            'FloatingPointModel': self.set_floating_point_model,
-            'RuntimeTypeInfo': self.set_runtime_type_info,
-            'DisableSpecificWarnings': self.set_disable_specific_warnings,
-            'CompileAdditionalOptions': self.set_compile_additional_options,
-            'LinkAdditionalOptions': self.set_link_additional_options,
-            'ExceptionHandling': self.set_exception_handling,
-            'BufferSecurityCheck': self.set_buffer_security_check,
-            'DiagnosticsFormat': self.set_diagnostics_format,
-            'DisableLanguageExtensions': self.set_disable_language_extensions,
-            'TreatWChar_tAsBuiltInType': self.set_treatwchar_t_as_built_in_type,
-            'ForceConformanceInForLoopScope': self.set_force_conformance_in_for_loop_scope,
-            'RemoveUnreferencedCodeData': self.set_remove_unreferenced_code_data,
-            'OpenMPSupport': self.set_openmp_support,
-            'PrecompiledHeader': self.do_precompiled_headers,
+            'Optimization': self.__set_optimization,
+            'InlineFunctionExpansion': self.__set_inline_function_expansion,
+            'IntrinsicFunctions': self.__set_intrinsic_functions,
+            'StringPooling': self.__set_string_pooling,
+            'BasicRuntimeChecks': self.__set_basic_runtime_checks,
+            'RuntimeLibrary': self.__set_runtime_library,
+            'FunctionLevelLinking': self.__set_function_level_linking,
+            'WarningLevel': self.__set_warning_level,
+            'TreatWarningAsError': self.__set_warning_as_errors,
+            'DebugInformationFormat': self.__set_debug_information_format,
+            'CompileAs': self.__set_compile_as,
+            'FloatingPointModel': self.__set_floating_point_model,
+            'RuntimeTypeInfo': self.__set_runtime_type_info,
+            'DisableSpecificWarnings': self.__set_disable_specific_warnings,
+            'CompileAdditionalOptions': self.__set_compile_additional_options,
+            'LinkAdditionalOptions': self.__set_link_additional_options,
+            'ExceptionHandling': self.__set_exception_handling,
+            'BufferSecurityCheck': self.__set_buffer_security_check,
+            'DiagnosticsFormat': self.__set_diagnostics_format,
+            'DisableLanguageExtensions': self.__set_disable_language_extensions,
+            'TreatWChar_tAsBuiltInType': self.__set_treatwchar_t_as_built_in_type,
+            'ForceConformanceInForLoopScope': self.__set_force_conformance_in_for_loop_scope,
+            'RemoveUnreferencedCodeData': self.__set_remove_unreferenced_code_data,
+            'OpenMPSupport': self.__set_openmp_support,
+            'PrecompiledHeader': self.__do_precompiled_headers,
         }
 
     def __set_default_flag(self, context, flag_name):
@@ -179,7 +179,7 @@ class CPPFlags(Flags):
         }
         return precompiled_header_values
 
-    def do_precompiled_headers(self, context, flag_name, node):
+    def __do_precompiled_headers(self, context, flag_name, node):
         """
         Add precompiled headers to settings
 
@@ -194,7 +194,7 @@ class CPPFlags(Flags):
 
         setting = context.current_setting
         precompiled_header_file_values = {default_value: {'PrecompiledHeaderFile': 'stdafx.h'}}
-        flag_value = self.set_flag_old(
+        flag_value = self.__set_flag_old(
             context,
             setting,
             '{0}/ns:ClCompile/ns:PrecompiledHeaderFile'.format(context.definition_groups[setting]),
@@ -266,7 +266,7 @@ class CPPFlags(Flags):
             context.settings[setting]['PrecompiledHeaderFile'] = pch_header_path
             context.settings[setting]['PrecompiledSourceFile'] = pch_source_path
 
-    def set_flag_old(self, context, setting, xpath, flag_values):
+    def __set_flag_old(self, context, setting, xpath, flag_values):
         """
         Return flag helper
         :param context: converter Context
@@ -353,8 +353,8 @@ class CPPFlags(Flags):
         ]
 
         for setting in context.settings:
-            self.apply_generate_debug_information(context, setting)
-            self.apply_link_incremental(context, setting)
+            self.__apply_generate_debug_information(context, setting)
+            self.__apply_link_incremental(context, setting)
             for flag_name in self.__get_result_order_of_flags():
                 for context_flags_data_key in context_flags_data_keys:
                     if context_flags_data_key in self.flags[setting][flag_name]:
@@ -375,12 +375,12 @@ class CPPFlags(Flags):
                                     value
                                 )
 
-    def apply_generate_debug_information(self, context, setting):
+    def __apply_generate_debug_information(self, context, setting):
         conf_type = context.settings[setting]['target_type']
         if conf_type and 'StaticLibrary' in conf_type:
             self.flags[setting]['GenerateDebugInformation'][ln_flags] = ''
 
-    def apply_link_incremental(self, context, setting):
+    def __apply_link_incremental(self, context, setting):
         conf_type = context.settings[setting]['target_type']
         if conf_type and 'StaticLibrary' in conf_type:
             self.flags[setting]['LinkIncremental'][ln_flags] = ''
@@ -414,7 +414,7 @@ class CPPFlags(Flags):
         return flags_message
 
     @staticmethod
-    def set_whole_program_optimization(context, flag_name, node):
+    def __set_whole_program_optimization(context, flag_name, node):
         """
         Set Whole Program Optimization flag: /GL and /LTCG
 
@@ -425,7 +425,7 @@ class CPPFlags(Flags):
         return flag_values
 
     @staticmethod
-    def set_link_incremental(context, flag_name, node):
+    def __set_link_incremental(context, flag_name, node):
         """
         Set LinkIncremental flag: /INCREMENTAL
 
@@ -440,7 +440,7 @@ class CPPFlags(Flags):
         return flag_values
 
     @staticmethod
-    def set_force_conformance_in_for_loop_scope(context, flag_name, node):
+    def __set_force_conformance_in_for_loop_scope(context, flag_name, node):
         """
         Set flag: ForceConformanceInForLoopScope
 
@@ -455,7 +455,7 @@ class CPPFlags(Flags):
         return flag_values
 
     @staticmethod
-    def set_remove_unreferenced_code_data(context, flag_name, node):
+    def __set_remove_unreferenced_code_data(context, flag_name, node):
         """
         Set flag: RemoveUnreferencedCodeData
 
@@ -470,7 +470,7 @@ class CPPFlags(Flags):
         return flag_values
 
     @staticmethod
-    def set_openmp_support(context, flag_name, node):
+    def __set_openmp_support(context, flag_name, node):
         del context, flag_name, node
         flag_values = {
             'true': {cl_flags: '/openmp'},
@@ -480,7 +480,7 @@ class CPPFlags(Flags):
 
         return flag_values
 
-    def set_use_debug_libraries(self, context, flag_name, md):
+    def __set_use_debug_libraries(self, context, flag_name, md):
         """
         Set Use Debug Libraries flag: /MD
 
@@ -500,7 +500,7 @@ class CPPFlags(Flags):
         self.__set_default_flag(context, 'RuntimeLibrary')
 
     @staticmethod
-    def set_warning_level(context, flag_name, node):
+    def __set_warning_level(context, flag_name, node):
         """
         Set Warning level for Windows: /W
 
@@ -518,7 +518,7 @@ class CPPFlags(Flags):
         return flag_values
 
     @staticmethod
-    def set_warning_as_errors(context, flag_name, node):
+    def __set_warning_as_errors(context, flag_name, node):
         """
         Set TreatWarningAsError: /WX
 
@@ -532,7 +532,7 @@ class CPPFlags(Flags):
 
         return flag_values
 
-    def set_disable_specific_warnings(self, context, flag_name, specific_warnings_node):
+    def __set_disable_specific_warnings(self, context, flag_name, specific_warnings_node):
         """
         Set DisableSpecificWarnings: /wd*
 
@@ -549,7 +549,7 @@ class CPPFlags(Flags):
         self.flags[context.current_setting][flag_name][cl_flags] = flags
         message(context, 'DisableSpecificWarnings : {}'.format(';'.join(flags)), '')
 
-    def set_compile_additional_options(self, context, flag_name, add_opts_node):
+    def __set_compile_additional_options(self, context, flag_name, add_opts_node):
         """
         Set Additional options
 
@@ -562,7 +562,7 @@ class CPPFlags(Flags):
         self.flags[context.current_setting][flag_name][cl_flags] = ready_add_opts
         message(context, 'Compile Additional Options : {}'.format(ready_add_opts), '')
 
-    def set_link_additional_options(self, context, flag_name, add_opts_node):
+    def __set_link_additional_options(self, context, flag_name, add_opts_node):
         """
         Set Additional options
 
@@ -576,7 +576,7 @@ class CPPFlags(Flags):
         message(context, 'Link Additional Options : {}'.format(ready_add_opts), '')
 
     @staticmethod
-    def set_basic_runtime_checks(context, flag_name, node):
+    def __set_basic_runtime_checks(context, flag_name, node):
         """
         Set Basic Runtime Checks flag: /RTC*
 
@@ -591,7 +591,7 @@ class CPPFlags(Flags):
 
         return flag_values
 
-    def set_runtime_library(self, context, flag_name, runtime_library_node):
+    def __set_runtime_library(self, context, flag_name, runtime_library_node):
         """
         Set RuntimeLibrary flag: /MDd
 
@@ -628,7 +628,7 @@ class CPPFlags(Flags):
             message(context, 'RuntimeLibrary {}: {}'.format(node_text, cl_flag_value), '')
 
     @staticmethod
-    def set_string_pooling(context, flag_name, node):
+    def __set_string_pooling(context, flag_name, node):
         """
         Set StringPooling flag: /GF
 
@@ -643,7 +643,7 @@ class CPPFlags(Flags):
         return flag_values
 
     @staticmethod
-    def set_optimization(context, flag_name, node):
+    def __set_optimization(context, flag_name, node):
         """
         Set Optimization flag: /Od
 
@@ -660,7 +660,7 @@ class CPPFlags(Flags):
         return flag_values
 
     @staticmethod
-    def set_inline_function_expansion(context, flag_name, node):
+    def __set_inline_function_expansion(context, flag_name, node):
         """
         Set Inline Function Expansion flag: /Ob
 
@@ -676,7 +676,7 @@ class CPPFlags(Flags):
         return flag_values
 
     @staticmethod
-    def set_intrinsic_functions(context, flag_name, node):
+    def __set_intrinsic_functions(context, flag_name, node):
         """
         Set Intrinsic Functions flag: /Oi
 
@@ -691,7 +691,7 @@ class CPPFlags(Flags):
         return flag_values
 
     @staticmethod
-    def set_runtime_type_info(context, flag_name, node):
+    def __set_runtime_type_info(context, flag_name, node):
         """
         Set RuntimeTypeInfo flag: /GR
 
@@ -706,7 +706,7 @@ class CPPFlags(Flags):
         return flag_values
 
     @staticmethod
-    def set_function_level_linking(context, flag_name, node):
+    def __set_function_level_linking(context, flag_name, node):
         """
         Set FunctionLevelLinking flag: /Gy
 
@@ -721,7 +721,7 @@ class CPPFlags(Flags):
         return flag_values
 
     @staticmethod
-    def set_debug_information_format(context, flag_name, node):
+    def __set_debug_information_format(context, flag_name, node):
         """
         Set DebugInformationFormat flag: /Zi
 
@@ -736,7 +736,7 @@ class CPPFlags(Flags):
         return flag_values
 
     @staticmethod
-    def set_compile_as(context, flag_name, node):
+    def __set_compile_as(context, flag_name, node):
         """
         Set Compile As flag: /TP, TC
 
@@ -751,7 +751,7 @@ class CPPFlags(Flags):
         return flag_values
 
     @staticmethod
-    def set_generate_debug_information(context, flag_name, node):
+    def __set_generate_debug_information(context, flag_name, node):
         """
         Set GenerateDebugInformation flag: /DEBUG
 
@@ -768,7 +768,7 @@ class CPPFlags(Flags):
         return flag_values
 
     @staticmethod
-    def set_floating_point_model(context, flag_name, node):
+    def __set_floating_point_model(context, flag_name, node):
         """
         Set FloatingPointModel flag: /fp
 
@@ -784,7 +784,7 @@ class CPPFlags(Flags):
         return flag_values
 
     @staticmethod
-    def set_exception_handling(context, flag_name, node):
+    def __set_exception_handling(context, flag_name, node):
         """
         Set ExceptionHandling flag: /EHsc
 
@@ -803,7 +803,7 @@ class CPPFlags(Flags):
         return flag_values
 
     @staticmethod
-    def set_buffer_security_check(context, flag_name, node):
+    def __set_buffer_security_check(context, flag_name, node):
         """
         Set BufferSecurityCheck flag: /GS
 
@@ -818,7 +818,7 @@ class CPPFlags(Flags):
         return flag_values
 
     @staticmethod
-    def set_diagnostics_format(context, flag_name, node):
+    def __set_diagnostics_format(context, flag_name, node):
         """
         Set DiagnosticsFormat flag : /diagnostics
 
@@ -834,7 +834,7 @@ class CPPFlags(Flags):
         return flag_values
 
     @staticmethod
-    def set_disable_language_extensions(context, flag_name, node):
+    def __set_disable_language_extensions(context, flag_name, node):
         """
         Set DisableLanguageExtensions /Za
 
@@ -849,7 +849,7 @@ class CPPFlags(Flags):
         return flag_values
 
     @staticmethod
-    def set_treatwchar_t_as_built_in_type(context, flag_name, node):
+    def __set_treatwchar_t_as_built_in_type(context, flag_name, node):
         """
         Set TreatWChar_tAsBuiltInType /Zc:wchar_t
 
@@ -864,7 +864,7 @@ class CPPFlags(Flags):
         return flag_values
 
     @staticmethod
-    def setting_has_pch(context, setting):
+    def __setting_has_pch(context, setting):
         """
         Return if there is precompiled header or not for given setting
 
@@ -892,7 +892,7 @@ class CPPFlags(Flags):
 
         need_pch_macro = False
         for setting in context.settings:
-            if self.setting_has_pch(context, setting):
+            if self.__setting_has_pch(context, setting):
                 need_pch_macro = True
                 break
 
@@ -926,7 +926,7 @@ class CPPFlags(Flags):
         need_pch_macro = False
         any_setting = None
         for setting in context.settings:
-            if self.setting_has_pch(context, setting):
+            if self.__setting_has_pch(context, setting):
                 need_pch_macro = True
                 any_setting = setting
                 break
