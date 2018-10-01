@@ -196,55 +196,67 @@ class CPPFlags(Flags):
             precompiled_header_file_values
         )
 
+        pch_file_value = context.settings[setting]['PrecompiledHeaderFile'][0]
         if flag_value:
-            context.settings[setting]['PrecompiledHeaderFile'] = [flag_value]
+            pch_file_value = flag_value
+
+        context.settings[setting]['PrecompiledHeaderFile'] = pch_file_value
 
         return self.__get_precompiled_header_node_values()
 
     @staticmethod
-    def define_pch_cpp_file(context):
+    def __define_pch_paths(context, setting):
+        pch_header_name = context.settings[setting]['PrecompiledHeaderFile']
+        found = False
+        founded_pch_h_path = ''
+        for headers_path in context.headers:
+            for header in context.headers[headers_path]:
+                if header.lower() == pch_header_name.lower():
+                    found = True
+                    founded_pch_h_path = headers_path
+                    pch_header_name = header
+                if found:
+                    break
+            if found:
+                break
+        if founded_pch_h_path:
+            founded_pch_h_path += '/'
+        pch_header_path = founded_pch_h_path + pch_header_name
+
+        pch_source_name = pch_header_name.replace('.h', '.cpp')
+        real_pch_cpp = ''
+        real_pch_cpp_path = ''
+        if founded_pch_h_path in context.sources:
+            real_pch_cpp = take_name_from_list_case_ignore(
+                context,
+                context.sources[founded_pch_h_path], pch_source_name
+            )
+            real_pch_cpp_path = founded_pch_h_path
+        else:
+            for src_path in context.sources:
+                for src in context.sources[src_path]:
+                    if pch_source_name == src:
+                        real_pch_cpp = take_name_from_list_case_ignore(
+                            context,
+                            context.sources[src_path], src
+                        )
+                        real_pch_cpp_path = src_path
+        if real_pch_cpp_path:
+            real_pch_cpp_path += '/'
+        pch_source_path = real_pch_cpp_path + real_pch_cpp
+
+        return pch_header_path, pch_source_path
+
+    def define_pch_cpp_file(self, context):
         pch_header_path = ''
         pch_source_path = ''
         for setting in context.settings:
-            if 'Use' in context.settings[setting]['PrecompiledHeader'] and pch_header_path == '':
-                pch_header_name = context.settings[setting]['PrecompiledHeaderFile'][0]
-                found = False
-                founded_pch_h_path = ''
-                for headers_path in context.headers:
-                    for header in context.headers[headers_path]:
-                        if header.lower() == pch_header_name.lower():
-                            found = True
-                            founded_pch_h_path = headers_path
-                            pch_header_name = header
-                        if found:
-                            break
-                    if found:
-                        break
-                if founded_pch_h_path:
-                    founded_pch_h_path += '/'
-                pch_header_path = founded_pch_h_path + pch_header_name
 
-                pch_source_name = pch_header_name.replace('.h', '.cpp')
-                real_pch_cpp = ''
-                real_pch_cpp_path = ''
-                if founded_pch_h_path in context.sources:
-                    real_pch_cpp = take_name_from_list_case_ignore(
-                        context,
-                        context.sources[founded_pch_h_path], pch_source_name
-                    )
-                    real_pch_cpp_path = founded_pch_h_path
-                else:
-                    for src_path in context.sources:
-                        for src in context.sources[src_path]:
-                            if pch_source_name == src:
-                                real_pch_cpp = take_name_from_list_case_ignore(
-                                    context,
-                                    context.sources[src_path], src
-                                )
-                                real_pch_cpp_path = src_path
-                if real_pch_cpp_path:
-                    real_pch_cpp_path += '/'
-                pch_source_path = real_pch_cpp_path + real_pch_cpp
+            if 'Use' not in context.settings[setting]['PrecompiledHeader']:
+                continue
+
+            if pch_header_path == '':
+                pch_header_path, pch_source_path = self.__define_pch_paths(context, setting)
 
             context.settings[setting]['PrecompiledHeaderFile'] = pch_header_path
             context.settings[setting]['PrecompiledSourceFile'] = pch_source_path
