@@ -55,6 +55,7 @@ class VCXParser(Parser):
                 context.dependencies.set_target_additional_library_directories,
             'PreprocessorDefinitions': context.flags.set_defines,
             'PrecompiledHeader': context.flags.set_flag,
+            'PrecompiledHeaderFile': context.flags.set_flag,
             'Link': self._parse_nodes,
             'Lib': self._parse_nodes,
             'ImportGroup': self._parse_nodes,

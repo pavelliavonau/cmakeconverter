@@ -95,7 +95,8 @@ class CPPFlags(Flags):
             'ForceConformanceInForLoopScope': self.__set_force_conformance_in_for_loop_scope,
             'RemoveUnreferencedCodeData': self.__set_remove_unreferenced_code_data,
             'OpenMPSupport': self.__set_openmp_support,
-            'PrecompiledHeader': self.__do_precompiled_headers,
+            'PrecompiledHeader': self.__set_precompiled_header,
+            'PrecompiledHeaderFile': self.__set_precompiled_header_file,
         }
 
     def __set_default_flag(self, context, flag_name):
@@ -143,6 +144,7 @@ class CPPFlags(Flags):
             'RemoveUnreferencedCodeData',
             'OpenMPSupport',
             'PrecompiledHeader',
+            'PrecompiledHeaderFile'
         ]
         return flags_list
 
@@ -168,7 +170,19 @@ class CPPFlags(Flags):
             self.unicode_defines[context.current_setting] = ['_MBCS']
 
     @staticmethod
-    def __get_precompiled_header_node_values():
+    def __set_precompiled_header(context, flag_name, node):
+        """
+        Add precompiled headers to settings
+
+        :param context: converter Context
+        :type context: Context
+        :param flag_name:
+        :param node:
+        """
+        del context, flag_name
+        if isinstance(node, NodeStub):
+            return {}   # default pass
+
         precompiled_header_values = {
             'Use': {'PrecompiledHeader': 'Use'},
             'NotUsing': {'PrecompiledHeader': 'NotUsing',
@@ -179,35 +193,16 @@ class CPPFlags(Flags):
         }
         return precompiled_header_values
 
-    def __do_precompiled_headers(self, context, flag_name, node):
-        """
-        Add precompiled headers to settings
-
-        :param context: converter Context
-        :type context: Context
-        :param flag_name:
-        :param node:
-        """
+    @staticmethod
+    def __set_precompiled_header_file(context, flag_name, node):
         del flag_name
-        if isinstance(node, NodeStub):
-            return {}   # default pass
 
-        setting = context.current_setting
-        precompiled_header_file_values = {default_value: {'PrecompiledHeaderFile': 'stdafx.h'}}
-        flag_value = self.__set_flag_old(
-            context,
-            setting,
-            '{0}/ns:ClCompile/ns:PrecompiledHeaderFile'.format(context.definition_groups[setting]),
-            precompiled_header_file_values
-        )
+        pch_header_file = 'stdafx.h'  # default
 
-        pch_file_value = context.settings[setting]['PrecompiledHeaderFile'][0]
-        if flag_value:
-            pch_file_value = flag_value
+        if node.text:
+            pch_header_file = node.text
 
-        context.settings[setting]['PrecompiledHeaderFile'] = pch_file_value
-
-        return self.__get_precompiled_header_node_values()
+        context.settings[context.current_setting]['PrecompiledHeaderFile'] = pch_header_file
 
     @staticmethod
     def __define_pch_paths(context, setting):
@@ -265,40 +260,6 @@ class CPPFlags(Flags):
 
             context.settings[setting]['PrecompiledHeaderFile'] = pch_header_path
             context.settings[setting]['PrecompiledSourceFile'] = pch_source_path
-
-    def __set_flag_old(self, context, setting, xpath, flag_values):
-        """
-        Return flag helper
-        :param context: converter Context
-        :type context: Context
-        :param setting: related setting (Release|Win32, Debug|x64,...)
-        :type setting: str
-        :param xpath: xpath of wanted setting
-        :type xpath: str
-        :param flag_values: flag result_node_values for given setting
-        :type flag_values: dict
-        :return: corresponding flag text of setting
-        :rtype: str
-        """
-
-        flag_element = context.vcxproj['tree'].xpath(xpath, namespaces=context.vcxproj['ns'])
-
-        result_node_values = self.__get_default_flag_values(flag_values)
-
-        flag_text, result_node_values = self.__add_flag_values_according_node_text(
-            flag_values,
-            flag_element,
-            result_node_values
-        )
-
-        flags_message = self.__add_flag_values_to_context(context.settings, setting,
-                                                          result_node_values)
-
-        if flags_message:
-            flag_name = xpath.split(':')[-1]
-            message(context, '{0} for {1} is {2} '.format(flag_name, setting, flags_message), '')
-
-        return flag_text
 
     def set_flag(self, context, node):
         """
@@ -384,34 +345,6 @@ class CPPFlags(Flags):
         conf_type = context.settings[setting]['target_type']
         if conf_type and 'StaticLibrary' in conf_type:
             self.flags[setting]['LinkIncremental'][ln_flags] = ''
-
-    @staticmethod
-    def __get_default_flag_values(flag_values):
-        node_values = {}
-        if default_value in flag_values:
-            node_values = flag_values[default_value]
-        return node_values
-
-    @staticmethod
-    def __add_flag_values_according_node_text(flag_values, flag_element_node, result_node_values):
-        flag_text = ''
-        if flag_element_node:
-            flag_text = flag_element_node[0].text
-            if flag_text in flag_values:
-                result_node_values = flag_values[flag_text]
-        return flag_text, result_node_values
-
-    @staticmethod
-    def __add_flag_values_to_context(context_destination, setting, result_node_values):
-        flags_message = {}
-        if result_node_values is not None:
-            for key in result_node_values:
-                value = result_node_values[key]
-                if key not in context_destination[setting]:
-                    context_destination[setting][key] = []
-                context_destination[setting][key].append(value)
-                flags_message[key] = value
-        return flags_message
 
     @staticmethod
     def __set_whole_program_optimization(context, flag_name, node):
