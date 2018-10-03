@@ -23,7 +23,6 @@
 import re
 
 from cmake_converter.parser import Parser, StopParseException
-from cmake_converter.data_files import get_propertygroup, get_definitiongroup
 from cmake_converter.utils import replace_vs_vars_with_cmake_vars
 from cmake_converter.data_files import get_xml_data
 
@@ -143,14 +142,6 @@ class VCXParser(Parser):
 
         context.current_setting = setting
         context.utils.init_context_current_setting(context)
-
-        # TODO: remove next
-        context.property_groups[setting] = get_propertygroup(
-            setting, ' and @Label="Configuration"'
-        )
-        context.definition_groups[setting] = get_definitiongroup(
-            setting
-        )
 
         context.variables.apply_default_values(context)
         context.current_setting = None

@@ -21,8 +21,8 @@
 # along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
 from cmake_converter.context_initializer import ContextInitializer
-from cmake_converter.data_files import get_vcxproj_data, get_propertygroup, get_definitiongroup
-from cmake_converter.utils import get_global_project_name_from_vcxproj_file, message
+from cmake_converter.data_files import get_vcxproj_data
+from cmake_converter.utils import get_global_project_name_from_vcxproj_file
 
 from .dependencies import VCXDependencies
 from .flags import CPPFlags
