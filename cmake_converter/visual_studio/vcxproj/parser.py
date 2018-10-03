@@ -42,9 +42,9 @@ class VCXParser(Parser):
             'PlatformToolset': self.do_nothing_node_stub,
             'PropertyGroup': self.__parse_property_group,
             'ItemDefinitionGroup': self.__parse_item_definition_group,
-            'ClInclude': self.__parse_cl_include,
-            'ClCompile': self.__parse_cl_compile,
-            'None': self.__parse_none,
+            'ClInclude': self._parse_nodes,
+            'ClCompile': self._parse_nodes,
+            'None': self._parse_nodes,
             'PreBuildEvent': context.dependencies.set_target_pre_build_events,
             'PreLinkEvent': context.dependencies.set_target_pre_link_events,
             'PostBuildEvent': context.dependencies.set_target_post_build_events,
@@ -98,8 +98,9 @@ class VCXParser(Parser):
             'Import_Project': context.dependencies.add_target_property_sheet,
             'ImportGroup_Label': self.__parse_import_group_label,
             'ProjectConfiguration_Include': self.__parse_project_configuration_include,
-            'ClCompile_Include': self.do_nothing_attr_stub,  # TODO?
-            'ClInclude_Include': self.do_nothing_attr_stub,  # TODO?
+            'ClCompile_Include': self.__parse_cl_compile_include_attr,
+            'ClInclude_Include': self.__parse_cl_include_include_attr,
+            'None_Include': self.__parse_cl_none_include_attr,
             'Condition': self.__parse_condition,
             'ProjectReference_Include': context.dependencies.add_target_reference,
         }
@@ -168,59 +169,41 @@ class VCXParser(Parser):
 
         return ''
 
-    def __parse_cl_include(self, context, node):
-        if 'Include' in node.attrib:
-            source_group = 'Headers'
+    def __parse_cl_include_include_attr(self, context, attr_name, value, include_node):
+        del attr_name, value
 
-            if self.filters:
-                source_group = self.__get_source_group_from_filters(node, 'ClInclude')
+        self.__parse_file_nodes(context, context.headers, include_node, 'Headers')
+        raise StopParseException()
 
-            file_context = context.files.add_file_from_node(
-                context,
-                files_container=context.headers,
-                file_node=node,
-                file_node_attr='Include',
-                source_group=source_group)
-            self._parse_nodes(file_context, node)
-            return
-        self._parse_nodes(context, node)
+    def __parse_cl_compile_include_attr(self, context, attr_name, value, cl_node):
+        del attr_name, value
 
-    def __parse_cl_compile(self, context, node):
-        if 'Include' in node.attrib:
-            source_group = 'Sources'
+        self.__parse_file_nodes(context, context.sources, cl_node, 'Sources')
+        raise StopParseException()
 
-            if self.filters:
-                source_group = self.__get_source_group_from_filters(node, 'ClCompile')
+    def __parse_cl_none_include_attr(self, context, attr_name, value, none_node):
+        del attr_name, value
 
-            file_context = context.files.add_file_from_node(
-                context,
-                files_container=context.sources,
-                file_node=node,
-                file_node_attr='Include',
-                source_group=source_group)
-            self._parse_nodes(file_context, node)
-            return
-        self._parse_nodes(context, node)
+        self.__parse_file_nodes(context, context.other_project_files, none_node, '')
+        if 'packages.config' in none_node.attrib['Include']:
+            context.packages_config_path = none_node.attrib['Include']
+        raise StopParseException()
 
-    def __parse_none(self, context, node):
-        if 'Include' in node.attrib:
-            source_group = ''
-
-            if self.filters:
-                source_group = self.__get_source_group_from_filters(node, 'None')
-
-            file_context = context.files.add_file_from_node(
-                context,
-                files_container=context.other_project_files,
-                file_node=node,
-                file_node_attr='Include',
-                source_group=source_group
+    def __parse_file_nodes(self, context, files_container, file_node, source_group):
+        if self.filters:
+            source_group = self.__get_source_group_from_filters(
+                file_node,
+                Parser.strip_namespace(file_node.tag)
             )
-            self._parse_nodes(file_context, node)
-            if 'packages.config' in node.attrib['Include']:
-                context.packages_config_path = node.attrib['Include']
-            return
-        self._parse_nodes(context, node)
+
+        file_context = context.files.add_file_from_node(
+            context,
+            files_container=files_container,
+            file_node=file_node,
+            file_node_attr='Include',
+            source_group=source_group
+        )
+        self._parse_nodes(file_context, file_node)
 
     @staticmethod
     def __parse_additional_options(context, node):
