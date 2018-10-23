@@ -253,6 +253,8 @@ class VCXDependencies(Dependencies):
         for command in build_event_node:
             if 'Command' not in command.tag:
                 continue
+            if command.text is None:
+                continue
             for build_event in command.text.split('\n'):
                 build_event = build_event.strip()
                 if build_event:
