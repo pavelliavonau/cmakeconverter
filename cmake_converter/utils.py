@@ -31,6 +31,7 @@ import glob
 import re
 import time
 import colorama
+import ntpath
 
 
 def init_colorama():
@@ -408,10 +409,11 @@ def normalize_path(context, working_path, path_to_normalize, remove_relative=Tru
     :rtype: str
     """
 
-    joined_path = os.path.normpath(os.path.join(working_path, path_to_normalize.strip()))
-    actual_path_name = get_actual_filename(context, joined_path)
+    joined_path = os.path.join(working_path, ntpath.normpath(path_to_normalize.strip()))
+    normal_path = os.path.normpath(joined_path)
+    actual_path_name = get_actual_filename(context, normal_path)
     if actual_path_name is None:
-        actual_path_name = joined_path
+        actual_path_name = normal_path
     normal_path = set_unix_slash(os.path.relpath(actual_path_name, working_path))
     normal_path = check_for_relative_in_path(context, normal_path, remove_relative)
 
