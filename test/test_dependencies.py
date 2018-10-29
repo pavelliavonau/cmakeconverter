@@ -48,7 +48,7 @@ class TestDependencies(unittest.TestCase):
         with open('CMakeLists.txt') as cmake_lists_test:
             cmake_content = cmake_lists_test.read()
             self.assertTrue(
-                '${CMAKE_CURRENT_SOURCE_DIR}/../../../external/g3log/latest/src' in cmake_content
+                '${CMAKE_CURRENT_SOURCE_DIR}/external' in cmake_content
             )
 
     def test_write_dependencies(self):
