@@ -169,16 +169,19 @@ endfunction()
 
 ################################################################################
 # Add link directory
-#     target_link_directories(<target> [[CONDITION condition] [item1 [item2 [...]]]]...)
+#     target_link_directories(<target> <PRIVATE|PUBLIC|INTERFACE> [CONDITION condition] <item1> [<PRIVATE|PUBLIC|INTERFACE> [CONDITION condition] <item2>...]...)
 ################################################################################
 cmake_policy(PUSH)
 cmake_policy(SET CMP0054 NEW)
-function(target_link_directories TARGET)
+cmake_policy(SET CMP0057 NEW)
+function(target_link_directories TARGET TYPE)
     if(${CMAKE_GENERATOR} MATCHES "Visual Studio")
         set(QUOTE "")
     else()
         set(QUOTE "\"")
     endif()
+
+    set(TYPES "PRIVATE" "PUBLIC" "INTERFACE")
 
     unset(LINK_DIRS)
     unset(ARG_ROLE)
@@ -188,14 +191,18 @@ function(target_link_directories TARGET)
             set(ARG_ROLE "CONDITION_KEYWORD")
         elseif("${ARG_ROLE}" STREQUAL "CONDITION_KEYWORD")
             set(ARG_ROLE "CONDITION")
+        elseif("${ARG}" IN_LIST TYPES)
+            set(ARG_ROLE "TYPE")
         else()
             set(ARG_ROLE "PATH")
         endif()
 
         if("${ARG_ROLE}" STREQUAL "CONDITION")
             set(CONDITION "${ARG}")
+        elseif("${ARG_ROLE}" STREQUAL "TYPE")
+            set(TYPE "${ARG}")
         elseif("${ARG_ROLE}" STREQUAL "PATH")
-            list(APPEND LINK_DIRS "$<${CONDITION}:${CMAKE_LIBRARY_PATH_FLAG}${QUOTE}${ARG}${QUOTE}>")
+            list(APPEND LINK_DIRS ${TYPE} "$<${CONDITION}:${CMAKE_LIBRARY_PATH_FLAG}${QUOTE}${ARG}${QUOTE}>")
         endif()
     endforeach()
 

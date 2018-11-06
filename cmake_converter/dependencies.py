@@ -183,7 +183,7 @@ class Dependencies:
 
         if context.target_references:
             cmake_file.write('# Link with other targets.\n')
-            cmake_file.write('target_link_libraries(${PROJECT_NAME}')
+            cmake_file.write('target_link_libraries(${PROJECT_NAME} PUBLIC')
             for reference in context.target_references:
                 cmake_file.write(' ' + reference)
                 msg = 'External library found : {0}'.format(reference)
@@ -197,7 +197,7 @@ class Dependencies:
             write_property_of_settings(
                 cmake_file, context.settings,
                 context.sln_configurations_map,
-                begin_text='target_link_libraries(${PROJECT_NAME}',
+                begin_text='target_link_libraries(${PROJECT_NAME} PUBLIC',
                 end_text=')',
                 property_name='add_lib_deps',
             )
@@ -208,7 +208,7 @@ class Dependencies:
             write_property_of_settings(
                 cmake_file, context.settings,
                 context.sln_configurations_map,
-                begin_text='target_link_directories(${PROJECT_NAME}',
+                begin_text='target_link_directories(${PROJECT_NAME} PUBLIC',
                 end_text=')',
                 property_name='target_link_dirs',
                 write_setting_property_func=Dependencies.write_target_link_dirs
