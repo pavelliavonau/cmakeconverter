@@ -187,7 +187,7 @@ class VCXDependencies(Dependencies):
                     ),
                     'warn'
                 )
-                return
+                continue
 
             ext_properties = []
             if targets_file_path:
