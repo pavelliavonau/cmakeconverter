@@ -209,7 +209,8 @@ def write_property_of_settings(cmake_file, settings, sln_setting_2_project_setti
                 if mapped_setting[property_name]:
                     if not has_property_value:
                         begin_text = begin_text.replace('\n', '\n' + indent + command_indent)
-                        cmake_file.write('{0}{1}\n'.format(indent + command_indent, begin_text))
+                        if begin_text:
+                            cmake_file.write('{0}{1}\n'.format(indent + command_indent, begin_text))
                         has_property_value = True
                     config_condition_expr = '$<CONFIG:{0}>'.format(sln_conf)
                     config_expressions.append(config_condition_expr)
@@ -224,7 +225,8 @@ def write_property_of_settings(cmake_file, settings, sln_setting_2_project_setti
                                  .format(indent + command_indent, ','.join(config_expressions),
                                          default))
             end_text = end_text.replace('\n', '\n' + indent + command_indent)
-            cmake_file.write('{0}{1}\n'.format(indent + command_indent, end_text))
+            if end_text:
+                cmake_file.write('{0}{1}\n'.format(indent + command_indent, end_text))
     if not first_arch:
         cmake_file.write('{0}endif()\n'.format(indent))
 

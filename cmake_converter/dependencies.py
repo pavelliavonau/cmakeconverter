@@ -216,6 +216,19 @@ class Dependencies:
             cmake_file.write('\n')
 
     @staticmethod
+    def write_property_sheets(cmake_file, indent, config_condition_expr,
+                              property_value, width):
+        config = config_condition_expr.replace('$<CONFIG:', '').replace('>', '')
+
+        if property_value:
+            cmake_file.write('{0}use_props({1}\n'
+                             .format(indent, config, width=width-len('$<CONFIG:>')))
+            for property_sheet_cmake in property_value:
+                cmake_file.write('{}    "{}"\n'.format(indent, property_sheet_cmake))
+
+            cmake_file.write('{})\n'.format(indent))
+
+    @staticmethod
     def write_target_property_sheets(context, cmake_file):
         """
         Write target property sheets of current context
@@ -226,10 +239,18 @@ class Dependencies:
         :type cmake_file: _io.TextIOWrapper
         """
 
-        if context.property_sheets:
+        if is_settings_has_data(context.sln_configurations_map,
+                                context.settings,
+                                'property_sheets'):
             write_comment(cmake_file, 'Includes for CMake from *.props')
-            for property_sheet in context.property_sheets:
-                cmake_file.write('include({0} OPTIONAL)\n'.format(property_sheet))
+            write_property_of_settings(
+                cmake_file, context.settings,
+                context.sln_configurations_map,
+                begin_text='',
+                end_text='',
+                property_name='property_sheets',
+                write_setting_property_func=Dependencies.write_property_sheets
+            )
             cmake_file.write('\n')
 
     @staticmethod

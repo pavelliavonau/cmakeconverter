@@ -71,7 +71,6 @@ class Context:
         self.supported_architectures = set()
         self.settings = {}
         self.current_setting = None
-        self.property_sheets = []
         # helpers
         self.parser = None
         self.variables = None

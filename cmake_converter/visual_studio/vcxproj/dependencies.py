@@ -133,7 +133,6 @@ class VCXDependencies(Dependencies):
             return
         if 'PropertySheets' not in parent.attrib['Label']:
             return
-        props_set = set(context.property_sheets)
         label = node.get('Label')
         if label:
             return
@@ -141,18 +140,17 @@ class VCXDependencies(Dependencies):
             return
         # props_path = os.path.join(os.path.dirname(context.vcxproj_path), filename)
         working_path = os.path.dirname(context.vcxproj_path)
-        props_set.add(
-            normalize_path(
+        props_cmake_path = normalize_path(
                 context,
                 working_path,
                 filename,
                 False
             ).replace('.props', '.cmake')
-        )
+        message(context, 'cmake from property sheet: {}'.format(props_cmake_path), '')
+        context.settings[context.current_setting]['property_sheets'].append(props_cmake_path)
         # properties_xml = get_xml_data(context, props_path)
         # if properties_xml:
         #     properties_xml.close()  # TODO collect data from props
-        context.property_sheets = sorted(props_set)
 
     @staticmethod
     def __get_info_from_packages_config(context):
