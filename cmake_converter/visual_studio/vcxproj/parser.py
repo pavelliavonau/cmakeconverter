@@ -52,6 +52,8 @@ class VCXParser(Parser):
             'AdditionalDependencies': context.dependencies.set_target_additional_dependencies,
             'AdditionalLibraryDirectories':
                 context.dependencies.set_target_additional_library_directories,
+            'IgnoreSpecificDefaultLibraries':
+                context.dependencies.set_target_ignore_specific_default_libraries,
             'PreprocessorDefinitions': context.flags.set_defines,
             'PrecompiledHeader': context.flags.set_flag,
             'PrecompiledHeaderFile': context.flags.set_flag,
