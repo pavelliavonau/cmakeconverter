@@ -228,10 +228,10 @@ class VCXParser(Parser):
     def __parse_condition(self, context, attr_name, condition_value, node):
         del attr_name
 
-        setting = None
         found = re.search(r".*=='(.*)'", condition_value)
-        if found:
-            setting = found.group(1)
+        if not found:
+            return
+        setting = found.group(1)
         if setting in context.settings:
             context.current_setting = setting
             context.flags.prepare_context_for_flags(context)
