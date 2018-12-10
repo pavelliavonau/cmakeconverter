@@ -93,7 +93,6 @@ class DataConverter:
             write_comment(cmake_file, 'Target')
             context.flags.write_target_artifact(context, cmake_file)
             self.write_supported_architectures_check(context, cmake_file)
-            context.dependencies.write_target_property_sheets(context, cmake_file)
             context.variables.write_target_outputs(context, cmake_file)
             context.dependencies.write_include_directories(context, cmake_file)
             context.flags.write_defines(context, cmake_file)
@@ -109,6 +108,7 @@ class DataConverter:
                 write_comment(cmake_file, 'Dependencies')
             context.dependencies.write_target_references(context, cmake_file)
             context.dependencies.write_link_dependencies(context, cmake_file)
+            context.dependencies.write_target_property_sheets(context, cmake_file)
             context.dependencies.write_target_dependency_packages(context, cmake_file)
         else:
             Flags.write_target_headers_only_artifact(context, cmake_file)

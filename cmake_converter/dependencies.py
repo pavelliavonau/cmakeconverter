@@ -227,7 +227,7 @@ class Dependencies:
         """
 
         if context.property_sheets:
-            cmake_file.write('# Includes for CMake from *.props\n')
+            write_comment(cmake_file, 'Includes for CMake from *.props')
             for property_sheet in context.property_sheets:
                 cmake_file.write('include({0} OPTIONAL)\n'.format(property_sheet))
             cmake_file.write('\n')
