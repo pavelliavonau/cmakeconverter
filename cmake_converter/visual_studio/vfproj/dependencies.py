@@ -47,8 +47,7 @@ class VFDependencies(Dependencies):
                         add_libs.append(d.replace('.lib', ''))
             context.add_lib_deps = True
             message(context, 'Additional Dependencies = {0}'.format(add_libs), '')
-            context.settings[context.current_setting]['add_lib_deps'] =\
-                '$<SEMICOLON>'.join(add_libs)
+            context.settings[context.current_setting]['add_lib_deps'] = add_libs
 
     @staticmethod
     def set_target_additional_library_directories(context, flag_name,

@@ -164,8 +164,8 @@ class VFParser(Parser):
         if 'target_type' not in context.settings[context.current_setting]:
             context.settings[context.current_setting]['target_type'] = 'Application'
 
-        if 'target_name' not in context.settings[context.current_setting]:
-            context.settings[context.current_setting]['target_name'] = context.project_name
+        if not context.settings[context.current_setting]['target_name']:
+            context.settings[context.current_setting]['target_name'] = [context.project_name]
 
         context.flags.prepare_context_for_flags(context)
         self._parse_nodes(context, configuration_node)
@@ -194,7 +194,7 @@ class VFParser(Parser):
     def __parse_target_name(context, attr_name, target_name_value, node):
         del attr_name, node
 
-        context.settings[context.current_setting]['target_name'] = target_name_value
+        context.settings[context.current_setting]['target_name'] = [target_name_value]
 
     @staticmethod
     def __parse_configuration_intermediate_dir(context, attr_name, intermediate_dir_value, node):

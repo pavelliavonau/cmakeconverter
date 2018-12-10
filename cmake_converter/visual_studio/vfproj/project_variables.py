@@ -38,7 +38,7 @@ class VFProjectVariables(ProjectVariables):
     def apply_default_values(self, context):
         self.output_path = '$(SolutionDir)$(Platform)/$(Configuration)/'  # default value
         self.output_path = cleaning_output(context, self.output_path)
-        context.settings[context.current_setting]['out_dir'] = self.output_path
+        context.settings[context.current_setting]['out_dir'] = [self.output_path]
 
     def set_output_dir(self, context, attr_name, output_dir, node):
         del attr_name, node
@@ -54,7 +54,7 @@ class VFProjectVariables(ProjectVariables):
 
         self.output_path = self.output_path.strip().replace('\n', '')
         self.output_path = check_for_relative_in_path(context, self.output_path)
-        context.settings[context.current_setting]['out_dir'] = self.output_path
+        context.settings[context.current_setting]['out_dir'] = [self.output_path]
         message(context, 'Output Dir = {0}'.format(self.output_path), '')
 
     def set_output_file(self, context, flag_name, output_file, node):
@@ -66,10 +66,10 @@ class VFProjectVariables(ProjectVariables):
             path = cleaning_output(context, path)
             self.output_path = path.replace('${OUT_DIR}', self.output_path)
             context.settings[context.current_setting]['target_name'] =\
-                replace_vs_vars_with_cmake_vars(context, name)
+                [replace_vs_vars_with_cmake_vars(context, name)]
 
         self.output_path = check_for_relative_in_path(context, self.output_path)
-        context.settings[context.current_setting]['out_dir'] = self.output_path
+        context.settings[context.current_setting]['out_dir'] = [self.output_path]
 
         message(
             context,
@@ -93,5 +93,5 @@ class VFProjectVariables(ProjectVariables):
             message(context, 'Import library path = {0}'.format(import_library_path), '')
             message(context, 'Import library name = {0}'.format(import_library_name), '')
 
-        context.settings[context.current_setting]['import_library_path'] = import_library_path
-        context.settings[context.current_setting]['import_library_name'] = import_library_name
+        context.settings[context.current_setting]['import_library_path'] = [import_library_path]
+        context.settings[context.current_setting]['import_library_name'] = [import_library_name]

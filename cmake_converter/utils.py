@@ -70,8 +70,14 @@ class Utils:
             'defines': [],
             'conf': conf,
             'arch': arch,
+            'target_name': [],
+            'out_dir': [],
+            'inc_dirs': [],
             'inc_dirs_list': [],
+            'add_lib_deps': [],
             'target_link_dirs': [],
+            'import_library_path': [],
+            'import_library_name': [],
             'pre_build_events': [],
             'pre_link_events': [],
             'post_build_events': [],
@@ -123,21 +129,25 @@ def is_settings_has_data(sln_configurations_map, settings, settings_key, arch=No
     return False
 
 
-def write_property_of_setting_f(cmake_file, indent, config_condition_expr, property_value, width):
-    property_value_str = get_str_value_from_property_value(property_value)
+def write_property_of_setting_f(cmake_file,
+                                indent,
+                                config_condition_expr,
+                                property_value,
+                                width,
+                                **kwargs):
+    separator = kwargs['separator']
+    property_value_str = get_str_value_from_property_value(property_value, separator)
     config_width = width + 2  # for '$<'
     cmake_file.write('{0}    {1:>{width}}:{2}>\n'
                      .format(indent, '$<' + config_condition_expr, property_value_str,
                              width=config_width))
 
 
-def get_str_value_from_property_value(property_value):
-    if isinstance(property_value, str):
-        return property_value
+def get_str_value_from_property_value(property_value, separator):
     if isinstance(property_value, list):
-        return ';'.join(property_value)
+        return separator.join(property_value)
 
-    return property_value
+    raise str('property value must be a list')
 
 # pylint: disable=R0914
 # pylint: disable=R0913
@@ -146,6 +156,7 @@ def get_str_value_from_property_value(property_value):
 def write_property_of_settings(cmake_file, settings, sln_setting_2_project_setting,
                                indent='',
                                default=None,
+                               separator=';',
                                write_setting_property_func=write_property_of_setting_f,
                                **kwargs):
     """
@@ -161,6 +172,8 @@ def write_property_of_settings(cmake_file, settings, sln_setting_2_project_setti
     :type indent: str
     :param default: default text to add
     :type default: None | str
+    :param separator: separator for property list
+    :type separator: ; | str
     :param write_setting_property_func: function for writing property for setting
     :type write_setting_property_func: write_property_of_setting | lambda
     :param kwargs: begin of text
@@ -218,7 +231,8 @@ def write_property_of_settings(cmake_file, settings, sln_setting_2_project_setti
                                                 indent + command_indent,
                                                 config_condition_expr,
                                                 mapped_setting[property_name],
-                                                max_config_condition_width)
+                                                max_config_condition_width,
+                                                separator=separator)
         if has_property_value:
             if default:
                 cmake_file.write('{0}    $<$<NOT:$<OR:{1}>>:{2}>\n'

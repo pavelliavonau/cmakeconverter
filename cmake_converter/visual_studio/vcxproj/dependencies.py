@@ -73,8 +73,7 @@ class VCXDependencies(Dependencies):
                         add_libs.append(d.replace('.lib', ''))
             message(context, 'Additional Dependencies : {}'.format(add_libs), '')
             context.add_lib_deps = True
-            context.settings[context.current_setting]['add_lib_deps'] =\
-                '$<SEMICOLON>'.join(add_libs)
+            context.settings[context.current_setting]['add_lib_deps'] = add_libs
 
     @staticmethod
     def set_target_additional_library_directories(context, additional_library_directories):
@@ -258,7 +257,7 @@ class VCXDependencies(Dependencies):
                         if id_version not in context.settings[setting]['packages']:
                             context.settings[setting]['packages'][id_version] = {}
                         context.settings[setting]['packages'][id_version][ext_property] = \
-                            ext_property_node[0].text
+                            [ext_property_node[0].text]
                         message(context, '{0} property of {1} {2} for {3} is {4}'
                                 .format(ext_property,
                                         package_id,

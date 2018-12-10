@@ -86,20 +86,15 @@ class Dependencies:
         working_path = os.path.dirname(context.vcxproj_path)
         inc_dir = aid_text.replace('$(ProjectDir)', './')
         inc_dir = inc_dir.replace('%(AdditionalIncludeDirectories)', '')
-        dirs = []
+        inc_dirs = context.settings[setting]['inc_dirs']
         dirs_raw = []
         for i in inc_dir.split(';'):
             if i:
                 dirs_raw.append(i)
                 i = normalize_path(context, working_path, i)
                 i = replace_vs_vars_with_cmake_vars(context, i)
-                dirs.append(i)
-        inc_dirs = ';'.join(dirs)
+                inc_dirs.append(i)
 
-        if context.settings[setting]['inc_dirs']:
-            inc_dirs = ';' + inc_dirs
-
-        context.settings[setting]['inc_dirs'] += inc_dirs
         context.settings[setting]['inc_dirs_list'].extend(dirs_raw)
 
         if inc_dirs:
@@ -158,7 +153,7 @@ class Dependencies:
 
     @staticmethod
     def write_target_link_dirs(cmake_file, indent, config_condition_expr,
-                               property_value, width):
+                               property_value, width, **kwargs):
         link_dirs_str = ''
         for link_dir in property_value:
             if link_dirs_str != '':
@@ -200,6 +195,7 @@ class Dependencies:
                 begin_text='target_link_libraries(${PROJECT_NAME} PUBLIC',
                 end_text=')',
                 property_name='add_lib_deps',
+                separator='$<SEMICOLON>'
             )
 
         if is_settings_has_data(context.sln_configurations_map,
@@ -217,7 +213,7 @@ class Dependencies:
 
     @staticmethod
     def write_property_sheets(cmake_file, indent, config_condition_expr,
-                              property_value, width):
+                              property_value, width, **kwargs):
         config = config_condition_expr.replace('$<CONFIG:', '').replace('>', '')
 
         if property_value:
@@ -296,7 +292,7 @@ class Dependencies:
 
     @staticmethod
     def write_target_build_event_of_setting(cmake_file, indent, config_condition_expr,
-                                            property_value, width):
+                                            property_value, width, **kwargs):
         for command in property_value:
             cmake_file.write('{0}    COMMAND {1:>{width}} {2}\n'
                              .format(indent, config_condition_expr, command,
@@ -323,7 +319,7 @@ class Dependencies:
 
     @staticmethod
     def write_file_build_event_of_setting(cmake_file, indent, config_condition_expr,
-                                          property_value, width):
+                                          property_value, width, **kwargs):
         # for command in property_value:
         cmake_file.write('{0}    COMMAND {1:>{width}} {2}\n'
                          .format(indent, config_condition_expr, property_value['command_line'],

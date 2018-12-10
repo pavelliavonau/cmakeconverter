@@ -28,7 +28,6 @@
 
 from cmake_converter.utils import message, write_comment, is_settings_has_data
 from cmake_converter.utils import write_property_of_settings
-from cmake_converter.utils import get_str_value_from_property_value
 
 cl_flags = 'cl_flags'               # MSVC compile flags (Windows only)
 ln_flags = 'ln_flags'               # MSVC link flags (Windows only)
@@ -45,13 +44,18 @@ class Flags:
     """
 
     @staticmethod
-    def __write_defines_for_files(cmake_file, indent, config_condition_expr, property_value, width):
+    def __write_defines_for_files(cmake_file,
+                                  indent,
+                                  config_condition_expr,
+                                  property_value,
+                                  width,
+                                  **kwargs):
         del width
         config = config_condition_expr.replace('$<CONFIG:', '')
         config = config.replace('>', '')
         cmake_file.write(
             '{0}    COMPILE_DEFINITIONS_{1} "{2}"\n'
-            .format(indent, config.upper(), get_str_value_from_property_value(property_value))
+            .format(indent, config.upper(), ';'.join(property_value))
         )
 
     def write_defines(self, context, cmake_file):
@@ -75,7 +79,12 @@ class Flags:
         cmake_file.write('\n')
 
     @staticmethod
-    def __write_flags_of_files_f(cmake_file, indent, config_condition_expr, property_value, width):
+    def __write_flags_of_files_f(cmake_file,
+                                 indent,
+                                 config_condition_expr,
+                                 property_value,
+                                 width,
+                                 **kwargs):
         property_value_str = ' '.join(property_value)
         config_width = width + 3  # for '"$<'
         cmake_file.write('{0}    {1:>{width}}:{2}>"\n'
