@@ -85,6 +85,7 @@ class CPPFlags(Flags):
             'FloatingPointModel': self.__set_floating_point_model,
             'RuntimeTypeInfo': self.__set_runtime_type_info,
             'DisableSpecificWarnings': self.__set_disable_specific_warnings,
+            'ConformanceMode': self.__set_conformance_mode,
             'CompileAdditionalOptions': self.__set_compile_additional_options,
             'LinkAdditionalOptions': self.__set_link_additional_options,
             'ExceptionHandling': self.__set_exception_handling,
@@ -115,6 +116,7 @@ class CPPFlags(Flags):
     @staticmethod
     def __get_result_order_of_flags():
         flags_list = [
+            'ConformanceMode',
             'UseDebugLibraries',
             'WholeProgramOptimization',
             'GenerateDebugInformation',
@@ -484,6 +486,23 @@ class CPPFlags(Flags):
                 flags.append(flag)
         self.flags[context.current_setting][flag_name][cl_flags] = flags
         message(context, 'DisableSpecificWarnings : {}'.format(';'.join(flags)), '')
+
+    @staticmethod
+    def __set_conformance_mode(context, flag_name, conformance_mode_node):
+        """
+        Handle ConformanceMode
+        :param context:
+        :param flag_name:
+        :param conformance_mode_node:
+        :return:
+        """
+        del context, flag_name, conformance_mode_node
+        flag_values = {
+            'true': {cl_flags: '/permissive-'},
+            'false': {},
+            default_value: {}
+        }
+        return flag_values
 
     def __set_compile_additional_options(self, context, flag_name, add_opts_node):
         """

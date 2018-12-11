@@ -82,6 +82,7 @@ class VCXParser(Parser):
             'FloatingPointModel': context.flags.set_flag,
             'RuntimeTypeInfo': context.flags.set_flag,
             'DisableSpecificWarnings': context.flags.set_flag,
+            'ConformanceMode': context.flags.set_flag,
             'AdditionalOptions': self.__parse_additional_options,
             'ExceptionHandling': context.flags.set_flag,
             'BufferSecurityCheck': context.flags.set_flag,
