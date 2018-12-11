@@ -136,11 +136,12 @@ def write_property_of_setting_f(cmake_file,
                                 width,
                                 **kwargs):
     separator = kwargs['separator']
+    quotes = '"' if kwargs['quotes'] else ''
     property_value_str = get_str_value_from_property_value(property_value, separator)
-    config_width = width + 2  # for '$<'
-    cmake_file.write('{0}    {1:>{width}}:{2}>\n'
-                     .format(indent, '$<' + config_condition_expr, property_value_str,
-                             width=config_width))
+    config_width = width + 2 + len(quotes)  # for '$<'
+    cmake_file.write('{0}    {1:>{width}}:{2}>{3}\n'
+                     .format(indent, quotes + '$<' + config_condition_expr, property_value_str,
+                             quotes, width=config_width))
 
 
 def get_str_value_from_property_value(property_value, separator):
@@ -157,6 +158,7 @@ def write_property_of_settings(cmake_file, settings, sln_setting_2_project_setti
                                indent='',
                                default=None,
                                separator=';',
+                               in_quotes=False,
                                write_setting_property_func=write_property_of_setting_f,
                                **kwargs):
     """
@@ -174,6 +176,8 @@ def write_property_of_settings(cmake_file, settings, sln_setting_2_project_setti
     :type default: None | str
     :param separator: separator for property list
     :type separator: ; | str
+    :param in_quotes: Enclose configuration settings in quotes
+    :type in_quotes: False | bool
     :param write_setting_property_func: function for writing property for setting
     :type write_setting_property_func: write_property_of_setting | lambda
     :param kwargs: begin of text
@@ -232,7 +236,8 @@ def write_property_of_settings(cmake_file, settings, sln_setting_2_project_setti
                                                 config_condition_expr,
                                                 mapped_setting[property_name],
                                                 max_config_condition_width,
-                                                separator=separator)
+                                                separator=separator,
+                                                quotes=in_quotes)
         if has_property_value:
             if default:
                 cmake_file.write('{0}    $<$<NOT:$<OR:{1}>>:{2}>\n'

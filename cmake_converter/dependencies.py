@@ -195,7 +195,7 @@ class Dependencies:
                 begin_text='target_link_libraries(${PROJECT_NAME} PUBLIC',
                 end_text=')',
                 property_name='add_lib_deps',
-                separator='$<SEMICOLON>'
+                in_quotes=True
             )
 
         if is_settings_has_data(context.sln_configurations_map,
