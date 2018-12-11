@@ -64,7 +64,8 @@ class Flags:
             cmake_file, context.settings, context.sln_configurations_map,
             begin_text='target_compile_definitions(${PROJECT_NAME} PRIVATE',
             end_text=')',
-            property_name=defines
+            property_name=defines,
+            in_quotes=True
         )
         for file in context.file_contexts:
             write_property_of_settings(

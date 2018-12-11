@@ -25,7 +25,7 @@ import os
 
 from cmake_converter.flags import Flags, defines, cl_flags, default_value, ln_flags
 from cmake_converter.utils import take_name_from_list_case_ignore, normalize_path
-from cmake_converter.utils import set_unix_slash, message
+from cmake_converter.utils import set_unix_slash, message, replace_vs_vars_with_cmake_vars
 
 pch_macro_text = """MACRO(ADD_PRECOMPILED_HEADER PrecompiledHeader PrecompiledSource SourcesVar)
     if(MSVC)
@@ -155,6 +155,9 @@ class CPPFlags(Flags):
         """
         for define in defines_node.text.split(";"):
             if define not in ('%(PreprocessorDefinitions)', 'WIN32'):
+                define = replace_vs_vars_with_cmake_vars(context, define)
+                define = define.replace('\\', '\\\\')
+                define = define.replace('"', '\\"')
                 context.settings[context.current_setting][defines].append(define)
         if context.current_setting in self.unicode_defines:
             for define in self.unicode_defines[context.current_setting]:
