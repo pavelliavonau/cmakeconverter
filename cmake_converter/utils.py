@@ -137,11 +137,36 @@ def write_property_of_setting_f(cmake_file,
                                 **kwargs):
     separator = kwargs['separator']
     quotes = '"' if kwargs['quotes'] else ''
+
+    indent = indent + '    '
+    config_width = width + 3 + len(quotes)  # for '$<' and ':'
+
     property_value_str = get_str_value_from_property_value(property_value, separator)
-    config_width = width + 2 + len(quotes)  # for '$<'
-    cmake_file.write('{0}    {1:>{width}}:{2}>{3}\n'
-                     .format(indent, quotes + '$<' + config_condition_expr, property_value_str,
-                             quotes, width=config_width))
+    property_list_str = property_value_str.split('\n')
+
+    if len(property_list_str) == 1:
+        cmake_file.write('{0}{1:>{width}}{2}>{3}\n'
+                         .format(indent, quotes + '$<' + config_condition_expr + ':',
+                                 separator.join(property_value),
+                                 quotes, width=config_width))
+        return
+
+    first = True
+    prop_indent = indent + ' ' * (config_width - len(quotes))
+    for prop in property_list_str:
+        if first:
+            cmake_file.write('{0}{1:>{width}}{3}{2}\n'
+                             .format(indent, quotes + '$<' + config_condition_expr + ':',
+                                     quotes, prop, width=config_width))
+            first = False
+            continue
+        cmake_file.write(
+            '{0}{1:>{width}}\n'.format(prop_indent, quotes + prop + quotes, width=config_width)
+        )
+
+    cmake_file.write('{0}{1}\n'
+                     .format(prop_indent, quotes + '>' + quotes
+                             , width=config_width))
 
 
 def get_str_value_from_property_value(property_value, separator):
