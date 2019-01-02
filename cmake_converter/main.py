@@ -141,7 +141,7 @@ def main():  # pragma: no cover
     message(initial_context, 'warnings level = {}'. format(initial_context.warn_level), 'done')
 
     if not args.solution:
-        cmake_lists_path = os.path.dirname(args.project)
+        cmake_lists_path = os.path.dirname(os.path.abspath(args.project))
         if args.cmake:
             cmake_lists_path = args.cmake
         clean_cmake_lists_file(initial_context, cmake_lists_path, set())
