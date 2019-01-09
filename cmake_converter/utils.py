@@ -45,6 +45,8 @@ def init_colorama():
     colorama.init(convert=convert, strip=strip)
 
 
+init_colorama()
+
 DONE = colorama.Fore.GREEN + colorama.Style.BRIGHT
 OK = colorama.Fore.CYAN + colorama.Style.BRIGHT
 WARN = colorama.Fore.YELLOW + colorama.Style.BRIGHT

@@ -32,7 +32,7 @@ import os
 from cmake_converter.context import Context
 from cmake_converter.visual_studio.solution import convert_solution, convert_project,\
     clean_cmake_lists_file, copy_cmake_utils
-from cmake_converter.utils import message, init_colorama
+from cmake_converter.utils import message
 
 
 def main():  # pragma: no cover
@@ -153,5 +153,4 @@ def main():  # pragma: no cover
 
 
 if __name__ == "__main__":  # pragma: no cover
-    init_colorama()
     main()
