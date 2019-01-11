@@ -254,9 +254,6 @@ class Flags:
         message(context, 'CMake will show fake custom Library.', 'warn')
         cmake_file.write('add_custom_target(${PROJECT_NAME} SOURCES ${ALL_FILES})\n\n')
 
-    def write_precompiled_headers_macro(self, context, cmake_file):
-        pass
-
     def write_use_pch_macro(self, context, cmake_file):
         pass
 

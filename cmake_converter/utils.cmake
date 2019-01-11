@@ -255,3 +255,20 @@ macro(use_props CONFIG)
         endif()
     endforeach()
 endmacro()
+
+################################################################################
+# Macro for MSVC precompiled headers
+################################################################################
+MACRO(ADD_PRECOMPILED_HEADER PrecompiledHeader PrecompiledSource SourcesVar)
+    if(MSVC)
+        list(REMOVE_ITEM ${SourcesVar} ${PrecompiledSource})
+        set(PrecompiledBinary "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.pch")
+        SET_SOURCE_FILES_PROPERTIES(${PrecompiledSource}
+                                    PROPERTIES COMPILE_FLAGS "/Yc\"${PrecompiledHeader}\" /Fp\"${PrecompiledBinary}\""
+                                               OBJECT_OUTPUTS "${PrecompiledBinary}")
+        SET_SOURCE_FILES_PROPERTIES(${${SourcesVar}}
+                                    PROPERTIES COMPILE_FLAGS "/Yu\"${PrecompiledHeader}\" /Fp\"${PrecompiledBinary}\""
+                                               OBJECT_DEPENDS "${PrecompiledBinary}")
+    endif()
+    LIST(INSERT ${SourcesVar} 0 ${PrecompiledSource})
+ENDMACRO(ADD_PRECOMPILED_HEADER)

@@ -27,23 +27,6 @@ from cmake_converter.flags import Flags, defines, cl_flags, default_value, ln_fl
 from cmake_converter.utils import take_name_from_list_case_ignore, normalize_path
 from cmake_converter.utils import set_unix_slash, message, replace_vs_vars_with_cmake_vars
 
-pch_macro_text = """MACRO(ADD_PRECOMPILED_HEADER PrecompiledHeader PrecompiledSource SourcesVar)
-    if(MSVC)
-        list(REMOVE_ITEM ${SourcesVar} ${PrecompiledSource})
-        set(PrecompiledBinary "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.pch")
-        SET_SOURCE_FILES_PROPERTIES(${PrecompiledSource}
-                                    PROPERTIES COMPILE_FLAGS "/Yc\\"${PrecompiledHeader}\\" """ +\
-    """/Fp\\"${PrecompiledBinary}\\""
-                                               OBJECT_OUTPUTS "${PrecompiledBinary}")
-        SET_SOURCE_FILES_PROPERTIES(${${SourcesVar}}
-                                    PROPERTIES COMPILE_FLAGS "/Yu\\"${PrecompiledHeader}\\" """ +\
-    """/Fp\\"${PrecompiledBinary}\\""
-                                               OBJECT_DEPENDS "${PrecompiledBinary}")
-    endif()
-    LIST(INSERT ${SourcesVar} 0 ${PrecompiledSource})
-ENDMACRO(ADD_PRECOMPILED_HEADER)\n
-"""
-
 
 class NodeStub:
     def __init__(self, flag_name):
@@ -834,25 +817,6 @@ class CPPFlags(Flags):
         has_pch = context.settings[setting]['PrecompiledHeader']
 
         return 'Use' in has_pch
-
-    def write_precompiled_headers_macro(self, context, cmake_file):
-        """
-        Write Precompiled header macro (only for MSVC compiler)
-
-        :param context: converter Context
-        :type context: Context
-        :param cmake_file: CMakeLIsts.txt IO wrapper
-        :type cmake_file: _io.TextIOWrapper
-        """
-
-        need_pch_macro = False
-        for setting in context.settings:
-            if self.__setting_has_pch(context, setting):
-                need_pch_macro = True
-                break
-
-        if need_pch_macro:
-            cmake_file.write(pch_macro_text)
 
     @staticmethod
     def write_precompiled_headers(context, setting, cmake_file):
