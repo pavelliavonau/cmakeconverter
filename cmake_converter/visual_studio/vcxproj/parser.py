@@ -48,6 +48,8 @@ class VCXParser(Parser):
             'PreBuildEvent': context.dependencies.set_target_pre_build_events,
             'PreLinkEvent': context.dependencies.set_target_pre_link_events,
             'PostBuildEvent': context.dependencies.set_target_post_build_events,
+            'ProjectReference': self._parse_nodes,
+            'LinkLibraryDependencies': context.dependencies.set_link_library_dependencies,
             'AdditionalIncludeDirectories': context.dependencies.set_include_dirs,
             'AdditionalDependencies': context.dependencies.set_target_additional_dependencies,
             'AdditionalLibraryDirectories':

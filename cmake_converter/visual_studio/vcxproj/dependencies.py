@@ -100,6 +100,15 @@ class VCXDependencies(Dependencies):
             context.settings[context.current_setting]['target_link_dirs'] = add_lib_dirs
 
     @staticmethod
+    def set_link_library_dependencies(context, node):
+        if node.text.strip() == 'true':
+            message(context, 'LinkLibraryDependencies is true that is not supported with cmake. '
+                             'There is a workaround with cmake object libraries but it is hard to '
+                             'implement it in converter. '
+                             'You should switch LinkLibraryDependencies to false, otherwise you '
+                             'might have problems with linking.', 'warn1')
+
+    @staticmethod
     def set_target_ignore_specific_default_libraries(context, node):
         """
         IgnoreSpecificDefaultLibraries node handler
