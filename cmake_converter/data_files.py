@@ -57,21 +57,25 @@ def get_vcxproj_data(context, vs_project):
     except AssertionError:  # pragma: no cover
         message(
             context,
-            '.vcxproj file cannot be import, because this file does not seem to comply with'
-            ' Microsoft xml data !',
+            '{} file cannot be import, because this file does not seem to comply with'
+            ' Microsoft xml data !'.format(vs_project),
             'error'
         )
         exit(1)
     except (OSError, IOError):  # pragma: no cover
         message(
             context,
-            '%s file cannot be import. '
-            'Please, verify you have rights to this directory or file exists !' % vs_project,
+            '{} file cannot be import. '
+            'Please, verify you have rights to this directory or file exists !'.format(vs_project),
             'error'
         )
         exit(1)
     except etree.XMLSyntaxError:  # pragma: no cover
-        message(context, 'This file is not a ".vcxproj" file or XML is broken !', 'error')
+        message(
+            context,
+            'File {} is not a ".vcxproj" file or XML is broken !'.format(vs_project),
+            'error'
+        )
         exit(1)
 
     return vcxproj
@@ -110,21 +114,25 @@ def get_xml_data(context, xml_file):
     except AssertionError:  # pragma: no cover
         message(
             context,
-            '.xml file cannot be import, because this file does not seem to comply with'
-            ' Microsoft xml data !',
+            '.xml file {} cannot be import, because this file does not seem to comply with'
+            ' Microsoft xml data !'.format(xml_file),
             'error'
         )
         exit(1)
     except (OSError, IOError):  # pragma: no cover
         message(
             context,
-            '%s file cannot be import. '
-            'Please, verify you have rights to this directory or file exists !' % xml_file,
+            '{} file cannot be import. '
+            'Please, verify you have rights to this directory or file exists !'.format(xml_file),
             'error'
         )
         exit(1)
     except etree.XMLSyntaxError:  # pragma: no cover
-        message(context, 'This file is not a ".xml" file or XML is broken !', 'error')
+        message(
+            context,
+            'File {} is not a ".xml" file or XML is broken !'.format(xml_file),
+            'error'
+        )
         exit(1)
 
     return xml
