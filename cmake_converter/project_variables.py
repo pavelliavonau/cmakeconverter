@@ -26,8 +26,11 @@
      Manage creation of CMake variables that will be used during compilation
 """
 
+import os
+
 from cmake_converter.utils import write_property_of_settings
-from cmake_converter.utils import write_comment
+from cmake_converter.utils import write_comment, replace_vs_vars_with_cmake_vars
+from cmake_converter.utils import cleaning_output, message, check_for_relative_in_path
 
 
 class ProjectVariables:
@@ -36,8 +39,66 @@ class ProjectVariables:
     """
 
     @staticmethod
-    def find_outputs_variables(context, setting):
-        pass
+    def apply_default_values(context):
+        output_path = '$(SolutionDir)$(Platform)/$(Configuration)/'  # default value
+        output_path = cleaning_output(context, output_path)
+        context.settings[context.current_setting]['out_dir'] = [output_path]
+
+        target_name = '$(ProjectName)'  # default value
+        context.settings[context.current_setting]['target_name'] = [replace_vs_vars_with_cmake_vars(
+            context,
+            target_name
+        )]
+
+    @staticmethod
+    def set_target_name(context, target_name_value):
+        context.settings[context.current_setting]['target_name'] = [replace_vs_vars_with_cmake_vars(
+            context,
+            target_name_value
+        )]
+        message(context, 'TargetName = {}'.format(target_name_value), '')
+
+    @staticmethod
+    def set_output_dir_impl(context, output_node_text):
+        output_path = ''
+        if not context.cmake_output:
+            output_path = cleaning_output(context, output_node_text)
+        else:
+            if context.cmake_output[-1:] == '/' or context.cmake_output[-1:] == '\\':
+                build_type = '${CMAKE_BUILD_TYPE}'
+            else:
+                build_type = '/${CMAKE_BUILD_TYPE}'
+            output_path = context.cmake_output + build_type
+
+        output_path = output_path.strip().replace('\n', '')
+        output_path = check_for_relative_in_path(context, output_path)
+        context.settings[context.current_setting]['out_dir'] = [output_path]
+        message(context, 'Output Dir = {0}'.format(output_path), '')
+
+    @staticmethod
+    def set_output_file_impl(context, output_file_node_text):
+        if output_file_node_text:
+            output_path = context.settings[context.current_setting]['out_dir'][0]
+            output_file = cleaning_output(context, output_file_node_text)
+            output_file = output_file.replace('${OUT_DIR}', output_path)
+            output_path = os.path.dirname(output_file)
+            name, _ = os.path.splitext(os.path.basename(output_file))
+            name = name.replace(
+                '${TARGET_NAME}',
+                context.settings[context.current_setting]['target_name'][0]
+            )
+            context.settings[context.current_setting]['target_name'] = \
+                [replace_vs_vars_with_cmake_vars(context, name)]
+
+            output_path = check_for_relative_in_path(context, output_path)
+            context.settings[context.current_setting]['out_dir'] = [output_path]
+
+        message(
+            context,
+            'Output File : dir="{}" name="{}"'.format(
+                context.settings[context.current_setting]['out_dir'][0],
+                context.settings[context.current_setting]['target_name']),
+            '')
 
     @staticmethod
     def write_target_outputs(context, cmake_file):

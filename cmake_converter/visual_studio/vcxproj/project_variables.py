@@ -32,59 +32,12 @@ class VCXProjectVariables(ProjectVariables):
         Class who defines all the CMake variables to be used by the C/C++ project
     """
 
-    @staticmethod
-    def apply_default_values(context):
-        output_path = '$(SolutionDir)$(Platform)/$(Configuration)/'  # default value
-        output_path = cleaning_output(context, output_path)
-        context.settings[context.current_setting]['out_dir'] = [output_path]
+    def set_output_dir(self, context, node):
+        self.set_output_dir_impl(context, node.text)
 
-        target_name = '$(ProjectName)'  # default value
-        context.settings[context.current_setting]['target_name'] = [replace_vs_vars_with_cmake_vars(
-            context,
-            target_name
-        )]
-
-    @staticmethod
-    def set_output_dir(context, node):
-        output_path = ''
-        if not context.cmake_output:
-            output_path = cleaning_output(context, node.text)
-        else:
-            if context.cmake_output[-1:] == '/' or context.cmake_output[-1:] == '\\':
-                build_type = '${CMAKE_BUILD_TYPE}'
-            else:
-                build_type = '/${CMAKE_BUILD_TYPE}'
-            output_path = context.cmake_output + build_type
-
-        output_path = output_path.strip().replace('\n', '')
-        output_path = check_for_relative_in_path(context, output_path)
-        context.settings[context.current_setting]['out_dir'] = [output_path]
-        message(context, 'Output Dir = {0}'.format(output_path), '')
-
-    @staticmethod
-    def set_output_file(context, output_file_node):
-        output_path = context.settings[context.current_setting]['out_dir'][0]
+    def set_output_file(self, context, output_file_node):
         if output_file_node is not None:
-            output_file = output_file_node.text
-            output_file = cleaning_output(context, output_file)
-            output_file = output_file.replace('${OUT_DIR}', output_path)
-            output_path = os.path.dirname(output_file)
-            name, _ = os.path.splitext(os.path.basename(output_file))
-            name = name.replace(
-                '${TARGET_NAME}',
-                context.settings[context.current_setting]['target_name'][0]
-            )
-            context.settings[context.current_setting]['target_name'] =\
-                [replace_vs_vars_with_cmake_vars(context, name)]
-
-        output_path = check_for_relative_in_path(context, output_path)
-        context.settings[context.current_setting]['out_dir'] = [output_path]
-
-        message(
-            context,
-            'Output File : dir="{}" name="{}"'.format(
-                output_path, context.settings[context.current_setting]['target_name']),
-            '')
+            self.set_output_file_impl(context, output_file_node.text)
 
     @staticmethod
     def set_import_library(context, node):

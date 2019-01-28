@@ -223,10 +223,7 @@ class VCXParser(Parser):
 
     @staticmethod
     def __parse_target_name_node(context, node):
-        context.settings[context.current_setting]['target_name'] = [replace_vs_vars_with_cmake_vars(
-            context,
-            node.text
-        )]
+        context.variables.set_target_name(context, node.text)
 
     def __parse_condition(self, context, attr_name, condition_value, node):
         del attr_name

@@ -32,50 +32,15 @@ class VFProjectVariables(ProjectVariables):
          Class who defines all the CMake variables to be used by the Fortran project
     """
 
-    def __init__(self):
-        self.output_path = ''
-
-    def apply_default_values(self, context):
-        self.output_path = '$(SolutionDir)$(Platform)/$(Configuration)/'  # default value
-        self.output_path = cleaning_output(context, self.output_path)
-        context.settings[context.current_setting]['out_dir'] = [self.output_path]
-
     def set_output_dir(self, context, attr_name, output_dir, node):
         del attr_name, node
 
-        if not context.cmake_output:
-            self.output_path = cleaning_output(context, output_dir)
-        else:
-            if context.cmake_output[-1:] == '/' or context.cmake_output[-1:] == '\\':
-                build_type = '${CMAKE_BUILD_TYPE}'
-            else:
-                build_type = '/${CMAKE_BUILD_TYPE}'
-            self.output_path = context.cmake_output + build_type
-
-        self.output_path = self.output_path.strip().replace('\n', '')
-        self.output_path = check_for_relative_in_path(context, self.output_path)
-        context.settings[context.current_setting]['out_dir'] = [self.output_path]
-        message(context, 'Output Dir = {0}'.format(self.output_path), '')
+        self.set_output_dir_impl(context, output_dir)
 
     def set_output_file(self, context, flag_name, output_file, node):
         del flag_name, node
 
-        if output_file:
-            path = os.path.dirname(output_file)
-            name, _ = os.path.splitext(os.path.basename(output_file))
-            path = cleaning_output(context, path)
-            self.output_path = path.replace('${OUT_DIR}', self.output_path)
-            context.settings[context.current_setting]['target_name'] =\
-                [replace_vs_vars_with_cmake_vars(context, name)]
-
-        self.output_path = check_for_relative_in_path(context, self.output_path)
-        context.settings[context.current_setting]['out_dir'] = [self.output_path]
-
-        message(
-            context,
-            'Output File : dir={0} name{1}'.format(
-                self.output_path, context.settings[context.current_setting]['target_name']),
-            '')
+        self.set_output_file_impl(context, output_file)
 
     @staticmethod
     def set_import_library(context, flag_name, import_library, node):
