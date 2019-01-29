@@ -35,7 +35,7 @@ class TestFlags(unittest.TestCase):
     def setUp(self):
         cur_dir = os.path.dirname(os.path.realpath(__file__))
         context = Context()
-        context.silent = True
+        context.verbose = False
         vs_project = '{}/datatest/foo.vcxproj'.format(cur_dir)
         context.init(vs_project, cur_dir)
         context.cmake = './'

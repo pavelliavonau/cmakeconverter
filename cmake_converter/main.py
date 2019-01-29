@@ -41,7 +41,8 @@ def main():  # pragma: no cover
 
     """
 
-    usage = "cmake-converter -p <vcxproj> [-c | -a | -D | -O | -i | -std | -dry | -silent | -j]"
+    usage = "cmake-converter -p <vcxproj> " \
+            "[-c | -a | -D | -O | -i | -v | -std | -dry | -verbose | -j]"
     # Init parser
     parser = argparse.ArgumentParser(
         usage=usage,
@@ -85,9 +86,9 @@ def main():  # pragma: no cover
         action='store_true'
     )
     parser.add_argument(
-        '-silent', '--silent-mode',
+        '-v', '--verbose-mode',
         help='run converter without info messages in log.',
-        dest='silent',
+        dest='verbose',
         action='store_true'
     )
     parser.add_argument(
@@ -128,9 +129,9 @@ def main():  # pragma: no cover
         initial_context.dry = True
         message(initial_context, 'Converter runs in dry mode', 'done')
 
-    if args.silent:
-        initial_context.silent = True
-        message(initial_context, 'Converter runs in silent mode', 'done')
+    if args.verbose:
+        initial_context.verbose = True
+        message(initial_context, 'Converter runs in verbose mode', 'done')
 
     if args.jobs:
         initial_context.jobs = int(args.jobs)

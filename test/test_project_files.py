@@ -38,7 +38,7 @@ class TestProjectFiles(unittest.TestCase):
     cur_dir = os.path.dirname(os.path.realpath(__file__))
 
     def setUp(self):
-        self.context.silent = True
+        self.context.verbose = False
         vs_project = '{}/datatest/foo.vcxproj'.format(self.cur_dir)
         self.context.init(vs_project, self.cur_dir)
         self.context.cmake = './'

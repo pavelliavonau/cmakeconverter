@@ -54,7 +54,7 @@ class Context:
         self.cmake_output = None
         self.std = None
         self.dry = False
-        self.silent = False
+        self.verbose = False
         self.warn_level = 3
         self.is_converting_solution = False
 

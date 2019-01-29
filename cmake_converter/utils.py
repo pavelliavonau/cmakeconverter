@@ -511,9 +511,8 @@ def message(context, text, status):  # pragma: no cover
     elif status == 'done':
         print(message_begin + DONE + text + ENDC)
     else:
-        if context.silent:
-            return
-        print(message_begin + 'INFO : ' + text)
+        if context.verbose:
+            print(message_begin + 'INFO : ' + text)
 
 
 def get_comment(text):
