@@ -696,10 +696,21 @@ class FortranFlags(Flags):
         Set InterproceduralOptimizations
 
         """
-        del context, flag_name, flag_value
+        del flag_name, flag_value
+
+        target_type = context.settings[context.current_setting]['target_type']
+        fat_lto_option = ''
+        if target_type == 'StaticLibrary':
+            fat_lto_option = ';-ffat-lto-objects'
+            message(
+                context,
+                'For unix added option -ffat-lto-objects to fix linking with -ipo.',
+                ''
+            )
+
         flag_values = {
             'ipoMultiFile': {ifort_cl_win: '-Qipo',
-                             ifort_cl_unix: '-ipo'},
+                             ifort_cl_unix: '-ipo{}'.format(fat_lto_option)},
             'ipoSingleFile': {ifort_cl_win: '-Qip',
                               ifort_cl_unix: '-ip'},
             default_value: {}
