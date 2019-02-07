@@ -241,10 +241,27 @@ cmake_policy(POP)
 #     props_files - CMake scripts
 ################################################################################
 macro(use_props CONFIG)
-    set(PROPS_CONFIG "${CONFIG}")
-    string(TOUPPER "${CONFIG}" PROPS_CONFIG_U)
-
     foreach(PROPS_FILE ${ARGN})
+        use_props_new("${PROJECT_NAME}" "${CONFIG}" "${PROPS_FILE}")
+    endforeach()
+endmacro()
+
+################################################################################
+# Use props file for a target and configs
+#     use_props(<target> <configs...> <props_file>)
+# Inside <props_file> there are following variables:
+#     PROPS_TARGET   - <target>
+#     PROPS_CONFIG   - One of <configs...>
+#     PROPS_CONFIG_U - Uppercase PROPS_CONFIG
+# Input:
+#     target      - Target to apply props file
+#     configs     - Build configurations to apply props file
+#     props_file  - CMake script
+################################################################################
+macro(use_props_new TARGET CONFIGS PROPS_FILE)
+    set(PROPS_TARGET "${TARGET}")
+    foreach(PROPS_CONFIG ${CONFIGS})
+        string(TOUPPER "${PROPS_CONFIG}" PROPS_CONFIG_U)
         if(NOT IS_ABSOLUTE "${PROPS_FILE}")
             set(PROPS_FILE "${CMAKE_CURRENT_LIST_DIR}/${PROPS_FILE}")
         endif()
