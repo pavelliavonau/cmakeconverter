@@ -232,21 +232,6 @@ endfunction()
 cmake_policy(POP)
 
 ################################################################################
-# Use props file for last target
-#     use_props(<config> <props_files...>)
-#
-# Input:
-#     config      - Build configuration which is passed to props file through
-#                   PROPS_CONFIG and PROPS_CONFIG_U variables
-#     props_files - CMake scripts
-################################################################################
-macro(use_props CONFIG)
-    foreach(PROPS_FILE ${ARGN})
-        use_props_new("${PROJECT_NAME}" "${CONFIG}" "${PROPS_FILE}")
-    endforeach()
-endmacro()
-
-################################################################################
 # Use props file for a target and configs
 #     use_props(<target> <configs...> <props_file>)
 # Inside <props_file> there are following variables:
@@ -258,17 +243,16 @@ endmacro()
 #     configs     - Build configurations to apply props file
 #     props_file  - CMake script
 ################################################################################
-macro(use_props_new TARGET CONFIGS PROPS_FILE)
+macro(use_props TARGET CONFIGS PROPS_FILE)
     set(PROPS_TARGET "${TARGET}")
     foreach(PROPS_CONFIG ${CONFIGS})
         string(TOUPPER "${PROPS_CONFIG}" PROPS_CONFIG_U)
-        if(NOT IS_ABSOLUTE "${PROPS_FILE}")
-            set(PROPS_FILE "${CMAKE_CURRENT_LIST_DIR}/${PROPS_FILE}")
-        endif()
-        if(EXISTS "${PROPS_FILE}")
-            include("${PROPS_FILE}")
+
+        get_filename_component(ABSOLUTE_PROPS_FILE "${PROPS_FILE}" ABSOLUTE BASE_DIR "${CMAKE_CURRENT_LIST_DIR}")
+        if(EXISTS "${ABSOLUTE_PROPS_FILE}")
+            include("${ABSOLUTE_PROPS_FILE}")
         else()
-            message(WARNING "Corresponding cmake file from props \"${PROPS_FILE}\" doesn't exist")
+            message(WARNING "Corresponding cmake file from props \"${ABSOLUTE_PROPS_FILE}\" doesn't exist")
         endif()
     endforeach()
 endmacro()

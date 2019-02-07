@@ -221,12 +221,14 @@ class Dependencies:
         config = config_condition_expr.replace('$<CONFIG:', '').replace('>', '')
 
         if property_value:
-            cmake_file.write('{0}use_props({1}\n'
-                             .format(indent, config, width=width-len('$<CONFIG:>')))
             for property_sheet_cmake in property_value:
-                cmake_file.write('{}    "{}"\n'.format(indent, property_sheet_cmake))
-
-            cmake_file.write('{})\n'.format(indent))
+                cmake_file.write(
+                    '{}use_props(${{PROJECT_NAME}} {:<{width}} "{}")\n'.format(
+                        indent,
+                        config,
+                        property_sheet_cmake,
+                        width=width - len('$<CONFIG:>'))
+                )
 
     @staticmethod
     def write_target_property_sheets(context, cmake_file):
