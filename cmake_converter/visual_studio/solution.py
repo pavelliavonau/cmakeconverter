@@ -406,7 +406,7 @@ def __write_global_configuration_types(sln_cmake, configuration_types_list):
     sln_cmake.write('set(CMAKE_CONFIGURATION_TYPES\n')
     for configuration_type in configuration_types_list:
         sln_cmake.write('    \"{0}\"\n'.format(configuration_type))
-    sln_cmake.write('    CACHE TYPE INTERNAL FORCE\n)\n\n')
+    sln_cmake.write('    CACHE STRING "" FORCE\n)\n\n')
 
 
 def __write_global_compile_options(initial_context, sln_cmake, configuration_types_list):
