@@ -251,7 +251,7 @@ class Flags:
         :type cmake_file: _io.TextIOWrapper
         """
 
-        message(context, 'CMake will show fake custom Library.', 'warn')
+        message(context, 'CMake will show fake custom Library.', '')
         cmake_file.write('add_custom_target(${PROJECT_NAME} SOURCES ${ALL_FILES})\n\n')
 
     def write_use_pch_macro(self, context, cmake_file):
