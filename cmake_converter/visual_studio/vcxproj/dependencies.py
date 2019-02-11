@@ -101,12 +101,17 @@ class VCXDependencies(Dependencies):
 
     @staticmethod
     def set_link_library_dependencies(context, node):
-        if node.text.strip() == 'true':
-            message(context, 'LinkLibraryDependencies is true that is not supported with cmake. '
-                             'There is a workaround with cmake object libraries but it is hard to '
-                             'implement it in converter. '
-                             'You should switch LinkLibraryDependencies to false, otherwise you '
-                             'might have problems with linking.', 'warn1')
+        if context.current_setting is not None:
+            configuration_type = context.settings[context.current_setting]['target_type']
+            if node.text.strip() == 'true' and configuration_type == 'StaticLibrary':
+                message(
+                    context,
+                    'LinkLibraryDependencies is true that is not supported with cmake. '
+                    'There is a workaround with cmake object libraries but it is hard to '
+                    'implement it in converter. '
+                    'You should switch LinkLibraryDependencies to false, otherwise you '
+                    'might have problems with linking.', 'warn1'
+                )
 
     @staticmethod
     def set_target_ignore_specific_default_libraries(context, node):
