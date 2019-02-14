@@ -685,7 +685,7 @@ class FortranFlags(Flags):
             'optimizeFull': {ifort_cl_win: '-O3',
                              ifort_cl_unix: '-O3'},
             'optimizeDisabled': {ifort_cl_win: '-Od',
-                                 ifort_cl_unix: '-Od'},
+                                 ifort_cl_unix: '-O0'},
             default_value: {}
         }
         return flag_values
