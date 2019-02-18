@@ -80,19 +80,6 @@ class Flags:
         cmake_file.write('\n')
 
     @staticmethod
-    def __write_flags_of_files_f(cmake_file,
-                                 indent,
-                                 config_condition_expr,
-                                 property_value,
-                                 width,
-                                 **kwargs):
-        property_value_str = ' '.join(property_value)
-        config_width = width + 3  # for '"$<'
-        cmake_file.write('{0}    {1:>{width}}:{2}>"\n'
-                         .format(indent, '"$<' + config_condition_expr, property_value_str,
-                                 width=config_width))
-
-    @staticmethod
     def __write_compile_flags(context, cmake_file, compiler_flags_key):
         write_property_of_settings(
             cmake_file, context.settings, context.sln_configurations_map,
@@ -111,11 +98,11 @@ class Flags:
                 end_text=')',
                 property_name=compiler_flags_key,
                 indent='    ',
-                write_setting_property_func=Flags.__write_flags_of_files_f
+                in_quotes=True
             )
             if text:
                 cmake_file.write(
-                    '    set_source_files_properties({0} PROPERTIES COMPILE_FLAGS ${{{1}}})\n'
+                    '    source_file_compile_options({0} ${{{1}}})\n'
                     .format(file, file_cl_var))
 
     @staticmethod
