@@ -81,19 +81,17 @@ class VFDependencies(Dependencies):
     def __set_custom_build_events_of_files(context, name, command_value, node):
         del name, command_value
 
-        file_settings = context.settings
-        for setting in file_settings:
-            if 'file_custom_build_events' not in context.settings[setting]:
-                context.settings[setting]['file_custom_build_events'] = {}
-            custom_event_data = {
-                'command_line': prepare_build_event_cmd_line_for_cmake(
-                    context,
-                    node.attrib['CommandLine']
-                ),
-                'description': node.attrib['Description'],
-                'outputs': node.attrib['Outputs'],
-            }
-            context.settings[setting]['file_custom_build_events'] = custom_event_data
+        if 'file_custom_build_events' not in context.settings[context.current_setting]:
+            context.settings[context.current_setting]['file_custom_build_events'] = {}
+        custom_event_data = {
+            'command_line': prepare_build_event_cmd_line_for_cmake(
+                context,
+                node.attrib['CommandLine']
+            ),
+            'description': node.attrib['Description'],
+            'outputs': node.attrib['Outputs'],
+        }
+        context.settings[context.current_setting]['file_custom_build_events'] = custom_event_data
 
     @staticmethod
     def __set_target_build_events(context, value_name, event_type, command_value):
