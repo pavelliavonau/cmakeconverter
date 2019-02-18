@@ -99,7 +99,8 @@ class Flags:
             begin_text='target_compile_options(${PROJECT_NAME} PRIVATE',
             end_text=')',
             property_name=compiler_flags_key,
-            indent='    '
+            indent='    ',
+            ignore_global=True  # TODO: get rid of global defaults and make False
         )
         for file in context.file_contexts:
             file_cl_var = 'FILE_CL_OPTIONS'
@@ -182,6 +183,8 @@ class Flags:
 
         settings_of_arch = {}
         for sln_setting in context.sln_configurations_map:
+            if sln_setting is None:
+                continue
             arch = sln_setting.split('|')[1]
             if arch not in settings_of_arch:
                 settings_of_arch[arch] = {}
@@ -270,6 +273,8 @@ class Flags:
 
         configuration_type = None
         for s in context.settings:
+            if s is None:
+                continue
             configuration_type = context.settings[s]['target_type']
             if configuration_type:
                 break

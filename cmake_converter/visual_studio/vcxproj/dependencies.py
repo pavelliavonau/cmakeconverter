@@ -139,18 +139,13 @@ class VCXDependencies(Dependencies):
 
         """
 
-        del attr_name
+        del attr_name, node
 
-        parent = node.getparent()
-        if 'Label' not in parent.attrib:
+        if 'Microsoft' in filename:  # ignore props provided by Microsoft
             return
-        if 'PropertySheets' not in parent.attrib['Label']:
+        if filename[-8:] == '.targets':  # ignore targets files
             return
-        label = node.get('Label')
-        if label:
-            return
-        if 'Microsoft.CPP.UpgradeFromVC60' in filename:
-            return
+
         # props_path = os.path.join(os.path.dirname(context.vcxproj_path), filename)
         working_path = os.path.dirname(context.vcxproj_path)
         props_cmake_path = normalize_path(

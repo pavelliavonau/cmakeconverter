@@ -91,5 +91,7 @@ class Context:
         for key in context_initializer_map:
             if key in xml_project_path:
                 context_initializer_map[key](self, xml_project_path, cmake_lists_destination_path)
+                self.utils.init_context_current_setting(self)  # None - global settings
+                self.flags.prepare_context_for_flags(self)
                 return True
         return False

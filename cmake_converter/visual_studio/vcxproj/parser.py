@@ -23,7 +23,6 @@
 import re
 
 from cmake_converter.parser import Parser, StopParseException
-from cmake_converter.utils import replace_vs_vars_with_cmake_vars
 from cmake_converter.data_files import get_xml_data
 
 
@@ -42,6 +41,7 @@ class VCXParser(Parser):
             'PlatformToolset': self.do_nothing_node_stub,
             'PropertyGroup': self.__parse_property_group,
             'ItemDefinitionGroup': self.__parse_item_definition_group,
+            'Import': self._parse_nodes,
             'ClInclude': self._parse_nodes,
             'ClCompile': self._parse_nodes,
             'None': self._parse_nodes,

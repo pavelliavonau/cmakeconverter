@@ -62,7 +62,8 @@ class Dependencies:
             end_text=')',
             property_name='inc_dirs',
             separator=';\n',
-            in_quotes=True
+            in_quotes=True,
+            ignore_global=True  # TODO: get rid of global defaults and make False
         )
         if has_includes:
             cmake_file.write(
@@ -218,16 +219,24 @@ class Dependencies:
     @staticmethod
     def write_property_sheets(cmake_file, indent, config_condition_expr,
                               property_value, width, **kwargs):
-        config = config_condition_expr.replace('$<CONFIG:', '').replace('>', '')
+        config = '"${CMAKE_CONFIGURATION_TYPES}" '
+        width_diff = 0
+        if config_condition_expr is not None:
+            config = config_condition_expr.replace('$<CONFIG:', '').replace('>', '')
+            config += ' '
+            width_diff = len('$<CONFIG:>') - 1
 
         if property_value:
             for property_sheet_cmake in property_value:
+                result_width = width - width_diff
+                if result_width < 0:
+                    result_width = 0
                 cmake_file.write(
-                    '{}use_props(${{PROJECT_NAME}} {:<{width}} "{}")\n'.format(
+                    '{}use_props(${{PROJECT_NAME}} {:<{width}}"{}")\n'.format(
                         indent,
                         config,
                         property_sheet_cmake,
-                        width=width - len('$<CONFIG:>'))
+                        width=result_width)
                 )
 
     @staticmethod
@@ -327,6 +336,8 @@ class Dependencies:
     def write_file_build_event_of_setting(cmake_file, indent, config_condition_expr,
                                           property_value, width, **kwargs):
         # for command in property_value:
+        if config_condition_expr is None:
+            return
         cmake_file.write('{0}    COMMAND {1:>{width}} {2}\n'
                          .format(indent, config_condition_expr, property_value['command_line'],
                                  width=width))

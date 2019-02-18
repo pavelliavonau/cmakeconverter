@@ -161,9 +161,6 @@ class VFParser(Parser):
 
     def __parse_configuration(self, context, configuration_node):
 
-        if 'target_type' not in context.settings[context.current_setting]:
-            context.settings[context.current_setting]['target_type'] = 'Application'
-
         context.flags.prepare_context_for_flags(context)
         self._parse_nodes(context, configuration_node)
         context.flags.apply_flags_to_context(context)

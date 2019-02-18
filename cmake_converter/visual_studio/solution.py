@@ -154,7 +154,7 @@ def __parse_project_configuration_platforms(sln_text, projects_data):
         for configuration in configurations:
             p = projects_data[configuration[0]]
             if 'sln_configs_2_project_configs' not in p:
-                p['sln_configs_2_project_configs'] = {}
+                p['sln_configs_2_project_configs'] = {None: None}
             p['sln_configs_2_project_configs'][configuration[1]] = configuration[2]
 
 

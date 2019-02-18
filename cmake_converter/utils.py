@@ -64,15 +64,21 @@ class Utils:
         :type context: Context
         """
 
-        conf_arch = context.current_setting.split('|')
-        conf = conf_arch[0]
-        arch = conf_arch[1]
-        context.supported_architectures.add(arch)
+        conf = None
+        arch = None
+
+        if context.current_setting is not None:
+            conf_arch = context.current_setting.split('|')
+            conf = conf_arch[0]
+            arch = conf_arch[1]
+            context.supported_architectures.add(arch)
+
         context.settings[context.current_setting] = {
             'defines': [],
             'conf': conf,
             'arch': arch,
             'target_name': [],
+            'target_type': '',
             'out_dir': [],
             'inc_dirs': [],
             'inc_dirs_list': [],
@@ -177,6 +183,47 @@ def get_str_value_from_property_value(property_value, separator):
 
     raise str('property value must be a list')
 
+
+def write_selected_sln_setting(cmake_file,
+                               settings,
+                               sln_setting_2_project_setting,
+                               sln_setting,
+                               property_name,
+                               has_property_value,
+                               begin_text,
+                               indent,
+                               command_indent,
+                               sln_conf,
+                               config_expressions,
+                               write_setting_property_func,
+                               max_config_condition_width,
+                               separator,
+                               in_quotes,
+                               ):
+
+    mapped_setting = settings[sln_setting_2_project_setting[sln_setting]]
+    if property_name in mapped_setting:
+        if mapped_setting[property_name]:
+            if not has_property_value:
+                begin_text = begin_text.replace('\n', '\n' + indent + command_indent)
+                if begin_text:
+                    cmake_file.write('{0}{1}\n'.format(indent + command_indent, begin_text))
+                has_property_value = True
+
+            config_condition_expr = None
+            if sln_conf is not None:
+                config_condition_expr = '$<CONFIG:{0}>'.format(sln_conf)
+                config_expressions.append(config_condition_expr)
+            write_setting_property_func(cmake_file,
+                                        indent + command_indent,
+                                        config_condition_expr,
+                                        mapped_setting[property_name],
+                                        max_config_condition_width,
+                                        separator=separator,
+                                        quotes=in_quotes)
+    return has_property_value
+
+
 # pylint: disable=R0914
 # pylint: disable=R0913
 
@@ -187,6 +234,7 @@ def write_property_of_settings(cmake_file, settings, sln_setting_2_project_setti
                                separator=';',
                                in_quotes=False,
                                write_setting_property_func=write_property_of_setting_f,
+                               ignore_global=False,
                                **kwargs):
     """
     Write property of given settings.
@@ -207,6 +255,8 @@ def write_property_of_settings(cmake_file, settings, sln_setting_2_project_setti
     :type in_quotes: False | bool
     :param write_setting_property_func: function for writing property for setting
     :type write_setting_property_func: write_property_of_setting | lambda
+    :param ignore_global: ignore global setting
+    :type ignore_global: bool
     :param kwargs: begin of text
     :type kwargs: str
     """
@@ -215,9 +265,27 @@ def write_property_of_settings(cmake_file, settings, sln_setting_2_project_setti
     end_text = kwargs['end_text']
     property_name = kwargs['property_name']
 
+    has_property_value = False
+
+    if not ignore_global:
+        write_selected_sln_setting(
+            cmake_file, settings, sln_setting_2_project_setting, None, property_name,
+            has_property_value, begin_text,
+            indent,
+            '',
+            None,
+            [],
+            write_setting_property_func,
+            0,
+            separator,
+            in_quotes
+        )
+
     max_config_condition_width = 0
     settings_of_arch = {}
     for sln_setting in sln_setting_2_project_setting:
+        if sln_setting is None:
+            continue
         conf = sln_setting.split('|')[0]
         arch = sln_setting.split('|')[1]
         length = len('$<CONFIG:{0}>'.format(conf))
@@ -248,23 +316,19 @@ def write_property_of_settings(cmake_file, settings, sln_setting_2_project_setti
             sln_conf = sln_setting.split('|')[0]
             if sln_setting_2_project_setting[sln_setting] not in settings:
                 continue
-            mapped_setting = settings[sln_setting_2_project_setting[sln_setting]]
-            if property_name in mapped_setting:
-                if mapped_setting[property_name]:
-                    if not has_property_value:
-                        begin_text = begin_text.replace('\n', '\n' + indent + command_indent)
-                        if begin_text:
-                            cmake_file.write('{0}{1}\n'.format(indent + command_indent, begin_text))
-                        has_property_value = True
-                    config_condition_expr = '$<CONFIG:{0}>'.format(sln_conf)
-                    config_expressions.append(config_condition_expr)
-                    write_setting_property_func(cmake_file,
-                                                indent + command_indent,
-                                                config_condition_expr,
-                                                mapped_setting[property_name],
-                                                max_config_condition_width,
-                                                separator=separator,
-                                                quotes=in_quotes)
+
+            has_property_value = write_selected_sln_setting(
+                cmake_file, settings, sln_setting_2_project_setting, sln_setting, property_name,
+                has_property_value, begin_text,
+                indent,
+                command_indent,
+                sln_conf,
+                config_expressions,
+                write_setting_property_func,
+                max_config_condition_width,
+                separator,
+                in_quotes
+            )
         if has_property_value:
             if default:
                 cmake_file.write('{0}    $<$<NOT:$<OR:{1}>>:{2}>\n'

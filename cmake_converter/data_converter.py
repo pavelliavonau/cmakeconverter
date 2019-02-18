@@ -54,6 +54,8 @@ class DataConverter:
     def verify_data(context):
         target_types = set()
         for setting in context.settings:
+            if setting is None:
+                continue
             target_types.add(context.settings[setting]['target_type'])
 
         if len(target_types) > 1:
