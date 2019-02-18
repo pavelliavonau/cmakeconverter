@@ -62,8 +62,7 @@ class Dependencies:
             end_text=')',
             property_name='inc_dirs',
             separator=';\n',
-            in_quotes=True,
-            ignore_global=True  # TODO: get rid of global defaults and make False
+            in_quotes=True
         )
         if has_includes:
             cmake_file.write(

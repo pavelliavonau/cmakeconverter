@@ -147,14 +147,20 @@ def write_property_of_setting_f(cmake_file,
     quotes = '"' if kwargs['quotes'] else ''
 
     indent = indent + '    '
-    config_width = width + 3 + len(quotes)  # for '$<' and ':'
+    config_condition_expr_str = ''
+    config_width = 0
+    if config_condition_expr is not None:
+        config_condition_expr_str = '$<' + config_condition_expr + ':'
+        config_width = width + 3 + len(quotes)  # for '$<' and ':'
+    else:
+        print('hi')
 
     property_value_str = get_str_value_from_property_value(property_value, separator)
     property_list_str = property_value_str.split('\n')
 
     if len(property_list_str) == 1:
         cmake_file.write('{0}{1:>{width}}{2}>{3}\n'
-                         .format(indent, quotes + '$<' + config_condition_expr + ':',
+                         .format(indent, quotes + config_condition_expr_str,
                                  separator.join(property_value),
                                  quotes, width=config_width))
         return
@@ -164,7 +170,7 @@ def write_property_of_setting_f(cmake_file,
     for prop in property_list_str:
         if first:
             cmake_file.write('{0}{1:>{width}}{3}{2}\n'
-                             .format(indent, quotes + '$<' + config_condition_expr + ':',
+                             .format(indent, quotes + config_condition_expr_str,
                                      quotes, prop, width=config_width))
             first = False
             continue
@@ -224,6 +230,23 @@ def write_selected_sln_setting(cmake_file,
     return has_property_value
 
 
+def write_footer_of_settings(cmake_file,
+                             indent,
+                             command_indent,
+                             config_expressions,
+                             end_text,
+                             has_property_value,
+                             default):
+    if has_property_value:
+        if default:
+            cmake_file.write('{0}    $<$<NOT:$<OR:{1}>>:{2}>\n'
+                             .format(indent + command_indent, ','.join(config_expressions),
+                                     default))
+        end_text = end_text.replace('\n', '\n' + indent + command_indent)
+        if end_text:
+            cmake_file.write('{0}{1}\n'.format(indent + command_indent, end_text))
+
+
 # pylint: disable=R0914
 # pylint: disable=R0913
 
@@ -268,18 +291,27 @@ def write_property_of_settings(cmake_file, settings, sln_setting_2_project_setti
     has_property_value = False
 
     if not ignore_global:
-        write_selected_sln_setting(
+        command_indent = ''
+        config_expressions = []
+        has_property_value = write_selected_sln_setting(
             cmake_file, settings, sln_setting_2_project_setting, None, property_name,
             has_property_value, begin_text,
             indent,
-            '',
+            command_indent,
             None,
-            [],
+            config_expressions,
             write_setting_property_func,
             0,
             separator,
             in_quotes
         )
+
+        write_footer_of_settings(cmake_file,
+                                 indent,command_indent,
+                                 config_expressions,
+                                 end_text,
+                                 has_property_value,
+                                 default)
 
     max_config_condition_width = 0
     settings_of_arch = {}
@@ -329,14 +361,12 @@ def write_property_of_settings(cmake_file, settings, sln_setting_2_project_setti
                 separator,
                 in_quotes
             )
-        if has_property_value:
-            if default:
-                cmake_file.write('{0}    $<$<NOT:$<OR:{1}>>:{2}>\n'
-                                 .format(indent + command_indent, ','.join(config_expressions),
-                                         default))
-            end_text = end_text.replace('\n', '\n' + indent + command_indent)
-            if end_text:
-                cmake_file.write('{0}{1}\n'.format(indent + command_indent, end_text))
+        write_footer_of_settings(cmake_file,
+                                 indent,command_indent,
+                                 config_expressions,
+                                 end_text,
+                                 has_property_value,
+                                 default)
     if not first_arch:
         cmake_file.write('{0}endif()\n'.format(indent))
 
