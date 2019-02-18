@@ -275,30 +275,6 @@ MACRO(ADD_PRECOMPILED_HEADER PrecompiledHeader PrecompiledSource SourcesVar)
 ENDMACRO(ADD_PRECOMPILED_HEADER)
 
 ################################################################################
-# Add compile flags to source file
-#     source_file_compile_flags(<source_file> [compile_flags...])
-# Input:
-#     source_file   - Source file
-#     compile_flags - Flags to add to COMPILE_FLAGS property
-################################################################################
-function(source_file_compile_flags SOURCE_FILE)
-    if("${ARGC}" LESS_EQUAL "1")
-        return()
-    endif()
-
-    list(JOIN ARGN " " NEW_FLAGS)
-    get_source_file_property(COMPILE_FLAGS "${SOURCE_FILE}" COMPILE_FLAGS)
-
-    if(COMPILE_FLAGS)
-        set(COMPILE_FLAGS "${COMPILE_FLAGS} ${NEW_FLAGS}")
-    else()
-        set(COMPILE_FLAGS "${NEW_FLAGS}")
-    endif()
-
-    set_source_files_properties("${SOURCE_FILE}" PROPERTIES COMPILE_FLAGS "${COMPILE_FLAGS}")
-endfunction()
-
-################################################################################
 # Add compile options to source file
 #     source_file_compile_options(<source_file> [compile_options...])
 # Input:
