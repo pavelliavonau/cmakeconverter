@@ -150,9 +150,9 @@ class Dependencies:
                 deps_to_write.append(sln_dep)
 
         if deps_to_write:
-            cmake_file.write('add_dependencies(${PROJECT_NAME}')
+            cmake_file.write('add_dependencies(${PROJECT_NAME}\n')
             for dep in deps_to_write:
-                cmake_file.write(' {0}'.format(dep))
+                cmake_file.write('    {0}\n'.format(dep))
             cmake_file.write(')\n\n')
 
     @staticmethod
