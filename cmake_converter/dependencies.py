@@ -182,9 +182,9 @@ class Dependencies:
 
         if context.target_references:
             cmake_file.write('# Link with other targets.\n')
-            cmake_file.write('target_link_libraries(${PROJECT_NAME} PUBLIC')
+            cmake_file.write('target_link_libraries(${PROJECT_NAME} PUBLIC\n')
             for reference in context.target_references:
-                cmake_file.write(' ' + reference)
+                cmake_file.write('    {}\n'.format(reference))
                 msg = 'External library found : {0}'.format(reference)
                 message(context, msg, '')
             cmake_file.write(')\n\n')
