@@ -65,6 +65,7 @@ class Flags:
             begin_text='target_compile_definitions(${PROJECT_NAME} PRIVATE',
             end_text=')',
             property_name=defines,
+            separator=';\n',
             in_quotes=True
         )
         for file in context.file_contexts:
