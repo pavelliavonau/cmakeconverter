@@ -204,7 +204,8 @@ class ProjectFiles:
     def write_source_groups(self, context, cmake_file):
         write_comment(cmake_file, 'Source groups')
 
-        for source_group in sorted(context.source_groups):
+        source_group_list = sorted(context.source_groups)
+        for source_group in source_group_list:
             source_group_var = self.get_source_group_var(source_group)
             cmake_file.write('set({}\n'.format(source_group_var))
             for src_file in context.source_groups[source_group]:
@@ -215,10 +216,10 @@ class ProjectFiles:
                 'source_group("{}" FILES ${{{}}})\n\n'.format(source_group, source_group_var)
             )
 
-        cmake_file.write('set(ALL_FILES ')
-        for source_group in context.source_groups:
+        cmake_file.write('set(ALL_FILES\n')
+        for source_group in source_group_list:
             cmake_file.write(
-                ' ${{{}}}'.format(context.files.get_source_group_var(source_group))
+                '    ${{{}}}\n'.format(context.files.get_source_group_var(source_group))
             )
         cmake_file.write(')\n\n')
 
