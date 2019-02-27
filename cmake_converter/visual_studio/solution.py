@@ -23,6 +23,7 @@
 import re
 import os
 import shutil
+from collections import OrderedDict
 from multiprocessing import Pool
 
 from cmake_converter.data_converter import DataConverter
@@ -68,7 +69,7 @@ def parse_solution(sln_text):
     """
 
     solution_data = {}
-    projects_data = {}
+    projects_data = OrderedDict()
     solution_folders = {}
 
     __parse_projects_data(sln_text, solution_folders, projects_data)
@@ -154,7 +155,7 @@ def __parse_project_configuration_platforms(sln_text, projects_data):
         for configuration in configurations:
             p = projects_data[configuration[0]]
             if 'sln_configs_2_project_configs' not in p:
-                p['sln_configs_2_project_configs'] = {None: None}
+                p['sln_configs_2_project_configs'] = OrderedDict({None: None})
             p['sln_configs_2_project_configs'][configuration[1]] = configuration[2]
 
 

@@ -32,6 +32,7 @@ import re
 import time
 import colorama
 import ntpath
+from collections import OrderedDict
 
 
 def init_colorama():
@@ -312,7 +313,7 @@ def write_property_of_settings(cmake_file, settings, sln_setting_2_project_setti
                                  default)
 
     max_config_condition_width = 0
-    settings_of_arch = {}
+    settings_of_arch = OrderedDict()
     for sln_setting in sln_setting_2_project_setting:
         if sln_setting is None:
             continue
@@ -322,7 +323,7 @@ def write_property_of_settings(cmake_file, settings, sln_setting_2_project_setti
         if length > max_config_condition_width:
             max_config_condition_width = length
         if arch not in settings_of_arch:
-            settings_of_arch[arch] = {}
+            settings_of_arch[arch] = OrderedDict()
         settings_of_arch[arch][sln_setting] = sln_setting
 
     first_arch = True

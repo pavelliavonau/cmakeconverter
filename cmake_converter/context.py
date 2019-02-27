@@ -22,6 +22,7 @@
 
 import time
 from multiprocessing import cpu_count
+from collections import OrderedDict
 import copy
 
 from cmake_converter.visual_studio.vcxproj.context_initializer import VCXContextInitializer
@@ -67,7 +68,7 @@ class Context:
         self.headers = {}
         self.other_project_files = {}
         self.source_groups = {}
-        self.file_contexts = {}
+        self.file_contexts = OrderedDict()
         self.supported_architectures = set()
         self.settings = {}
         self.current_setting = None

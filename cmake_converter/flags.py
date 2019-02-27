@@ -26,6 +26,8 @@
      Manage compilation flags of project
 """
 
+from collections import OrderedDict
+
 from cmake_converter.utils import message, write_comment, is_settings_has_data
 from cmake_converter.utils import write_property_of_settings
 
@@ -169,13 +171,13 @@ class Flags:
 
         Flags.__write_compile_flags(context, cmake_file, compiler_flags_key)
 
-        settings_of_arch = {}
+        settings_of_arch = OrderedDict()
         for sln_setting in context.sln_configurations_map:
             if sln_setting is None:
                 continue
             arch = sln_setting.split('|')[1]
             if arch not in settings_of_arch:
-                settings_of_arch[arch] = {}
+                settings_of_arch[arch] = OrderedDict()
             settings_of_arch[arch][sln_setting] = sln_setting
 
         Flags.__write_link_flags(context, cmake_file, settings_of_arch, linker_flags_key)
