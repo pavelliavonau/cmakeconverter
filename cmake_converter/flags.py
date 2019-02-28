@@ -89,8 +89,7 @@ class Flags:
             begin_text='target_compile_options(${PROJECT_NAME} PRIVATE',
             end_text=')',
             property_name=compiler_flags_key,
-            indent='    ',
-            ignore_global=True  # TODO: get rid of global defaults and make False
+            indent='    '
         )
         for file in context.file_contexts:
             file_cl_var = 'FILE_CL_OPTIONS'

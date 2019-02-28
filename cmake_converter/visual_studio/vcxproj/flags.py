@@ -259,6 +259,9 @@ class CPPFlags(Flags):
         :return:
         """
 
+        if context.current_setting is None:
+            return
+
         flag_name = re.sub(r'{.*\}', '', node.tag)  # strip namespace
         flag_value = node.text
 

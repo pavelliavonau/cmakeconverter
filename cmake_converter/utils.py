@@ -256,7 +256,6 @@ def write_property_of_settings(cmake_file, settings, sln_setting_2_project_setti
                                separator=';',
                                in_quotes=False,
                                write_setting_property_func=write_property_of_setting_f,
-                               ignore_global=False,
                                **kwargs):
     """
     Write property of given settings.
@@ -277,8 +276,6 @@ def write_property_of_settings(cmake_file, settings, sln_setting_2_project_setti
     :type in_quotes: False | bool
     :param write_setting_property_func: function for writing property for setting
     :type write_setting_property_func: write_property_of_setting | lambda
-    :param ignore_global: ignore global setting
-    :type ignore_global: bool
     :param kwargs: begin of text
     :type kwargs: str
     """
@@ -289,28 +286,27 @@ def write_property_of_settings(cmake_file, settings, sln_setting_2_project_setti
 
     has_property_value = False
 
-    if not ignore_global:
-        command_indent = ''
-        config_expressions = []
-        has_property_value = write_selected_sln_setting(
-            cmake_file, settings, sln_setting_2_project_setting, None, property_name,
-            has_property_value, begin_text,
-            indent,
-            command_indent,
-            None,
-            config_expressions,
-            write_setting_property_func,
-            0,
-            separator,
-            in_quotes
-        )
+    command_indent = ''
+    config_expressions = []
+    has_property_value = write_selected_sln_setting(
+        cmake_file, settings, sln_setting_2_project_setting, None, property_name,
+        has_property_value, begin_text,
+        indent,
+        command_indent,
+        None,
+        config_expressions,
+        write_setting_property_func,
+        0,
+        separator,
+        in_quotes
+    )
 
-        write_footer_of_settings(cmake_file,
-                                 indent,command_indent,
-                                 config_expressions,
-                                 end_text,
-                                 has_property_value,
-                                 default)
+    write_footer_of_settings(cmake_file,
+                             indent,command_indent,
+                             config_expressions,
+                             end_text,
+                             has_property_value,
+                             default)
 
     max_config_condition_width = 0
     settings_of_arch = OrderedDict()
