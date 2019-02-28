@@ -26,7 +26,7 @@ import re
 from cmake_converter.dependencies import Dependencies
 from cmake_converter.data_files import get_xml_data, get_propertygroup
 from cmake_converter.utils import normalize_path, message, prepare_build_event_cmd_line_for_cmake, \
-    check_for_relative_in_path, cleaning_output
+    check_for_relative_in_path, cleaning_output, set_native_slash, get_mount_point
 from cmake_converter.flags import ln_flags
 
 
@@ -182,6 +182,12 @@ class VCXDependencies(Dependencies):
             targets_file_path = import_project_node.get('Project')
             if targets_file_path is None:
                 continue
+
+            drive, _ = os.path.splitdrive(targets_file_path)
+            if not drive:  # targets_file_path is not absolute
+                mount_point = get_mount_point(context.vcxproj_path)
+                targets_file_path = set_native_slash(os.path.join(mount_point, targets_file_path))
+                targets_file_path = os.path.normpath(targets_file_path)
 
             context.import_projects.append(targets_file_path)
 

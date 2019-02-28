@@ -24,7 +24,7 @@ import os
 
 from cmake_converter.project_variables import ProjectVariables
 from cmake_converter.utils import cleaning_output, message, replace_vs_vars_with_cmake_vars, \
-    check_for_relative_in_path
+    check_for_relative_in_path, set_native_slash
 
 
 class VCXProjectVariables(ProjectVariables):
@@ -42,6 +42,7 @@ class VCXProjectVariables(ProjectVariables):
     @staticmethod
     def set_import_library(context, node):
         import_library_file = node.text
+        import_library_file = set_native_slash(import_library_file)
         path = os.path.dirname(import_library_file)
         name, _ = os.path.splitext(os.path.basename(import_library_file))
         import_library_path = cleaning_output(context, path)

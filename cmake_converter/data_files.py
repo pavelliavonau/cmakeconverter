@@ -29,7 +29,30 @@
 import os
 from lxml import etree
 
-from cmake_converter.utils import message
+from cmake_converter.utils import message, get_actual_filename, set_unix_slash
+
+
+def search_file_path(context, xml_file):
+    xml_file = set_unix_slash(xml_file)
+
+    found_xml_file = get_actual_filename(context, xml_file)
+
+    if found_xml_file is None:
+        message(
+            context,
+            '{0} file not exists. '.format(xml_file),
+            'error'
+        )
+        return None
+
+    if found_xml_file != xml_file:
+        message(
+            context,
+            'file reference probably has wrong case {0}'.format(xml_file),
+            'warn4'
+        )
+
+    return found_xml_file
 
 
 def get_vcxproj_data(context, vs_project):
@@ -45,7 +68,7 @@ def get_vcxproj_data(context, vs_project):
     """
 
     vcxproj = {}
-    vs_project = '/'.join(vs_project.split('\\'))
+    vs_project = search_file_path(context, vs_project)
 
     try:
         tree = etree.parse(vs_project)
@@ -94,15 +117,7 @@ def get_xml_data(context, xml_file):
     """
 
     xml = {}
-    xml_file = '/'.join(xml_file.split('\\'))
-
-    if not os.path.exists(xml_file):
-        message(
-            context,
-            '{0} file not exists. '.format(xml_file),
-            'error'
-        )
-        return None
+    xml_file = search_file_path(context, xml_file)
 
     try:
         tree = etree.parse(xml_file)

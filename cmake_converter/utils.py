@@ -409,6 +409,38 @@ def set_unix_slash(win_path):
     return unix_path
 
 
+def set_native_slash(raw_path):
+    """
+    Set native slash
+
+    :param raw_path: any style path
+    :type raw_path: str
+    :return: unix style path
+    :rtype: str
+    """
+
+    to_replace = ''
+    if os.path.sep == '\\':
+        to_replace = '/'
+    if os.path.sep == '/':
+        to_replace = '\\'
+
+    return raw_path.strip().replace(to_replace, os.path.sep)
+
+
+def get_mount_point(path):
+    folders = path.split(os.path.sep)
+    mount_point = ''
+    for folder in folders:
+        if not folder:
+            mount_point += '/'
+            continue
+        mount_point += '{}/'.format(folder)
+        if os.path.ismount(mount_point):
+            break
+    return mount_point
+
+
 def check_for_relative_in_path(context, path, remove_relative=True):
     """
     Return path by adding CMake variable or current path prefix, to remove relative
@@ -507,6 +539,15 @@ def cleaning_output(context, output):
     return output
 
 
+def insensitive_glob(path):
+    drive, path = os.path.splitdrive(path)
+
+    def either(c):
+        return '[{}{}]'.format(c.lower(), c.upper()) if c.isalpha() else c
+    pattern = drive + ''.join(map(either, path))
+    return glob.glob(pattern)
+
+
 def get_actual_filename(context, name):
     """
     Return actual filename from given name if file iis found, else return None
@@ -519,13 +560,7 @@ def get_actual_filename(context, name):
     :rtype: None | str
     """
 
-    name = set_unix_slash(name)
-    dirs = name.split('/')
-    # disk letter
-    test_name = [dirs[0]]
-    for d in dirs[1:]:
-        test_name += ["%s[%s]" % (d[:-1], d[-1])]
-    res = glob.glob('/'.join(test_name))
+    res = insensitive_glob(name)
     if not res:
         # File not found
         message(context, 'file or path "{0}" not found.'.format(name), 'warn')
@@ -550,10 +585,11 @@ def normalize_path(context, working_path, path_to_normalize, remove_relative=Tru
     :rtype: str
     """
 
-    joined_path = os.path.join(working_path, ntpath.normpath(path_to_normalize.strip()))
+    joined_path = set_native_slash(os.path.join(working_path, ntpath.normpath(path_to_normalize.strip())))
     normal_path = os.path.normpath(joined_path)
     actual_path_name = get_actual_filename(context, normal_path)
     if actual_path_name is None:
+        message(context, 'getting actual filesystem name failed : "{}"'.format(normal_path), 'warn3')
         actual_path_name = normal_path
     normal_path = set_unix_slash(os.path.relpath(actual_path_name, working_path))
     normal_path = check_for_relative_in_path(context, normal_path, remove_relative)

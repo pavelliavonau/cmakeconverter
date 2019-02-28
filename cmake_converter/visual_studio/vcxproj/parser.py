@@ -24,6 +24,7 @@ import re
 
 from cmake_converter.parser import Parser, StopParseException
 from cmake_converter.data_files import get_xml_data
+from cmake_converter.utils import get_actual_filename
 
 
 class VCXParser(Parser):
@@ -112,7 +113,9 @@ class VCXParser(Parser):
         return attributes_handlers
 
     def parse(self, context):
-        self.filters = get_xml_data(context, context.vcxproj_path + '.filters')
+        filters_file = get_actual_filename(context, context.vcxproj_path + '.filters')
+        if filters_file is not None:
+            self.filters = get_xml_data(context, filters_file)
         tree = context.vcxproj['tree']
         root = tree.getroot()
         self._parse_nodes(context, root)
