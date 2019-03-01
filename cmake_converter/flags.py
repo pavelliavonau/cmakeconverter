@@ -89,6 +89,7 @@ class Flags:
             begin_text='target_compile_options(${PROJECT_NAME} PRIVATE',
             end_text=')',
             property_name=compiler_flags_key,
+            separator=';\n',
             indent='    '
         )
         for file in context.file_contexts:
