@@ -493,7 +493,7 @@ class FortranFlags(Flags):
 
         """
         del context
-        # TODO: split list
+        # value must be a list with ',' separator
         opt = flag_value
         if opt:
             self.flags[flag_name][ifort_cl_win] = ['-Qdiag-disable:{0}'.format(opt)]
