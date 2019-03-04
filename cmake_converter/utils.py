@@ -65,16 +65,13 @@ class Utils:
         :type context: Context
         """
 
-        conf = None
-        arch = None
+        conf = context.current_setting[0]
+        arch = context.current_setting[1]
 
-        if context.current_setting is not None:
-            conf_arch = context.current_setting.split('|')
-            conf = conf_arch[0]
-            arch = conf_arch[1]
+        if arch is not None:
             context.supported_architectures.add(arch)
 
-        context.settings[context.current_setting] = {
+        context.settings[(conf, arch)] = {
             'defines': [],
             'conf': conf,
             'arch': arch,
@@ -289,7 +286,7 @@ def write_property_of_settings(cmake_file, settings, sln_setting_2_project_setti
     command_indent = ''
     config_expressions = []
     has_property_value = write_selected_sln_setting(
-        cmake_file, settings, sln_setting_2_project_setting, None, property_name,
+        cmake_file, settings, sln_setting_2_project_setting, (None, None), property_name,
         has_property_value, begin_text,
         indent,
         command_indent,
@@ -311,10 +308,10 @@ def write_property_of_settings(cmake_file, settings, sln_setting_2_project_setti
     max_config_condition_width = 0
     settings_of_arch = OrderedDict()
     for sln_setting in sln_setting_2_project_setting:
-        if sln_setting is None:
+        if None in sln_setting:
             continue
-        conf = sln_setting.split('|')[0]
-        arch = sln_setting.split('|')[1]
+        conf = sln_setting[0]
+        arch = sln_setting[1]
         length = len('$<CONFIG:{0}>'.format(conf))
         if length > max_config_condition_width:
             max_config_condition_width = length
@@ -340,7 +337,7 @@ def write_property_of_settings(cmake_file, settings, sln_setting_2_project_setti
         command_indent = '    '
         config_expressions = []
         for sln_setting in settings_of_arch[arch]:
-            sln_conf = sln_setting.split('|')[0]
+            sln_conf = sln_setting[0]
             if sln_setting_2_project_setting[sln_setting] not in settings:
                 continue
 
@@ -620,7 +617,7 @@ def message(context, text, status):  # pragma: no cover
     if context.project_number:
         message_begin = message_begin + '{0}> '.format(context.project_number)
 
-    if context.current_setting:
+    if None not in context.current_setting:
         text = '{0} : {1}'.format(context.current_setting, text)
 
     if status == 'error':

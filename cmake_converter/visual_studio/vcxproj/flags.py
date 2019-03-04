@@ -259,7 +259,7 @@ class CPPFlags(Flags):
         :return:
         """
 
-        if context.current_setting is None:
+        if None in context.current_setting:
             return
 
         flag_name = re.sub(r'{.*\}', '', node.tag)  # strip namespace

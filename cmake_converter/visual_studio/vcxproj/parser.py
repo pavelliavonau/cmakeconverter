@@ -143,6 +143,8 @@ class VCXParser(Parser):
                                               project_configuration_node):
         del attr_name, project_configuration_node
 
+        setting = tuple(setting.split('|'))
+
         if context.is_converting_solution:
             if setting not in context.configurations_to_parse:
                 return
@@ -153,7 +155,7 @@ class VCXParser(Parser):
         context.utils.init_context_current_setting(context)
 
         context.variables.apply_default_values(context)
-        context.current_setting = None
+        context.current_setting = (None, None)
 
     @staticmethod
     def __parse_configuration_type(context, node):
@@ -234,11 +236,11 @@ class VCXParser(Parser):
         found = re.search(r".*=='(.*)'", condition_value)
         if not found:
             return
-        setting = found.group(1)
+        setting = tuple(found.group(1).split('|'))
         if setting in context.settings:
             context.current_setting = setting
             context.flags.prepare_context_for_flags(context)
             self.reset_current_setting_after_parsing_node(node)
         else:
-            context.current_setting = None
+            context.current_setting = (None, None)
             raise StopParseException()

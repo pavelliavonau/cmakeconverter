@@ -127,7 +127,7 @@ class Flags:
                 )
             first_arch = False
             for sln_setting in settings_of_arch[arch]:
-                sln_conf = sln_setting.split('|')[0]
+                sln_conf = sln_setting[0]
                 mapped_setting_name = context.sln_configurations_map[sln_setting]
                 mapped_setting = context.settings[mapped_setting_name]
                 if mapped_setting[linker_flags_key]:
@@ -173,9 +173,9 @@ class Flags:
 
         settings_of_arch = OrderedDict()
         for sln_setting in context.sln_configurations_map:
-            if sln_setting is None:
+            arch = sln_setting[1]
+            if arch is None:
                 continue
-            arch = sln_setting.split('|')[1]
             if arch not in settings_of_arch:
                 settings_of_arch[arch] = OrderedDict()
             settings_of_arch[arch][sln_setting] = sln_setting
@@ -263,7 +263,7 @@ class Flags:
 
         configuration_type = None
         for s in context.settings:
-            if s is None:
+            if None in s:
                 continue
             configuration_type = context.settings[s]['target_type']
             if configuration_type:

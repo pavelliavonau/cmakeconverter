@@ -101,7 +101,7 @@ class VCXDependencies(Dependencies):
 
     @staticmethod
     def set_link_library_dependencies(context, node):
-        if context.current_setting is not None:
+        if None in context.current_setting:
             configuration_type = context.settings[context.current_setting]['target_type']
             if node.text.strip() == 'true' and configuration_type == 'StaticLibrary':
                 message(
@@ -263,6 +263,8 @@ class VCXDependencies(Dependencies):
 
             for ext_property in ext_properties:
                 for setting in context.settings:
+                    if None in setting:
+                        continue
                     if 'packages' not in context.settings[setting]:
                         context.settings[setting]['packages'] = {}
                     ext_property_node = context.vcxproj['tree'].xpath(

@@ -151,7 +151,7 @@ class FortranFlags(Flags):
         :return:
         """
         del node
-        if context.current_setting is None:
+        if None in context.current_setting:
             return
 
         flag_values = self.flags_handlers[flag_name](context, flag_name, flag_value)

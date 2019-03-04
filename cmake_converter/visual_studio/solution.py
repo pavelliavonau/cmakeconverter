@@ -155,8 +155,9 @@ def __parse_project_configuration_platforms(sln_text, projects_data):
         for configuration in configurations:
             p = projects_data[configuration[0]]
             if 'sln_configs_2_project_configs' not in p:
-                p['sln_configs_2_project_configs'] = OrderedDict({None: None})
-            p['sln_configs_2_project_configs'][configuration[1]] = configuration[2]
+                p['sln_configs_2_project_configs'] = OrderedDict({(None, None): (None, None)})
+            p['sln_configs_2_project_configs'][tuple(configuration[1].split('|'))] = \
+                tuple(configuration[2].split('|'))
 
 
 def __parse_nested_projects_in_solution_folders(sln_text, solution_folders_map):

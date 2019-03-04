@@ -141,7 +141,7 @@ class ProjectVariables:
         any_setting = None
         for setting in context.settings:
             any_setting = setting
-            if any_setting is not None:
+            if None not in any_setting:
                 break
 
         configuration_type = context.settings[any_setting]['target_type']

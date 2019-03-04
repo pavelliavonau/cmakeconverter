@@ -167,7 +167,7 @@ def get_propertygroup(target_platform, attributes=''):
 
     prop = \
         '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'{0}\'"{1}]'.format(
-            target_platform, attributes)
+            '|'.join(target_platform), attributes)
 
     return prop
 
@@ -184,7 +184,7 @@ def get_definitiongroup(target_platform):
 
     item = \
         '//ns:ItemDefinitionGroup[@Condition="\'$(Configuration)|' \
-        '$(Platform)\'==\'{0}\'"]'.format(target_platform)
+        '$(Platform)\'==\'{0}\'"]'.format('|'.join(target_platform))
 
     return item
 

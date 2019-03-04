@@ -168,11 +168,11 @@ class VFParser(Parser):
     def __parse_configuration_name(self, context, attr_name, configuration_name, node):
         del attr_name
 
-        setting = configuration_name
+        setting = tuple(configuration_name.split('|'))
 
         if context.is_converting_solution:
             if setting not in context.configurations_to_parse:
-                context.current_setting = None
+                context.current_setting = (None, None)
                 raise StopParseException()
         else:
             context.sln_configurations_map[setting] = setting

@@ -77,7 +77,7 @@ class Parser:
                 message(context, 'No handler for <{}> node.'.format(child_node_tag), 'warn4')
 
             if child_node in self.reset_setting_after_nodes:
-                context.current_setting = None
+                context.current_setting = (None, None)
                 self.reset_setting_after_nodes.remove(child_node)
 
     def _parse_attributes(self, context, node):

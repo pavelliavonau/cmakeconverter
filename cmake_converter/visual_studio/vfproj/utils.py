@@ -33,7 +33,7 @@ class VFUtils(Utils):
         """
 
         super(VFUtils, self).init_context_current_setting(context)
-        if context.current_setting is not None:
+        if None not in context.current_setting:
             context.settings[context.current_setting]['inc_dirs'] = ['${CMAKE_CURRENT_SOURCE_DIR}/']
         context.settings[context.current_setting]['inc_dirs_list'] = ['./']
         context.settings[context.current_setting]['ifort_cl_win'] = []
