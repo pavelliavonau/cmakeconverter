@@ -69,6 +69,8 @@ def get_vcxproj_data(context, vs_project):
 
     vcxproj = {}
     vs_project = search_file_path(context, vs_project)
+    if vs_project is None:
+        return None
 
     try:
         tree = etree.parse(vs_project)
@@ -118,6 +120,8 @@ def get_xml_data(context, xml_file):
 
     xml = {}
     xml_file = search_file_path(context, xml_file)
+    if xml_file is None:
+        return None
 
     try:
         tree = etree.parse(xml_file)
