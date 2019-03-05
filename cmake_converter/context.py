@@ -51,13 +51,9 @@ class Context:
         self.packages = []
 
         self.additional_code = None
-        self.dependencies = None
-        self.cmake_output = None
-        self.std = None
         self.dry = False
         self.verbose = False
         self.warn_level = 3
-        self.is_converting_solution = False
 
         self.sln_configurations_map = dict()
         self.solution_folder = ''

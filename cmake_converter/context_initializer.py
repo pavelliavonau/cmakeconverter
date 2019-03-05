@@ -33,9 +33,8 @@ class ContextInitializer:
             'Initialization data for conversion of project {0}'.format(context.vcxproj_path),
             ''
         )
-        if context.is_converting_solution:
-            for sln_config in context.sln_configurations_map:
-                context.configurations_to_parse.add(context.sln_configurations_map[sln_config])
+        for sln_config in context.sln_configurations_map:
+            context.configurations_to_parse.add(context.sln_configurations_map[sln_config])
 
     def init_context(self, context, vs_project):
         """

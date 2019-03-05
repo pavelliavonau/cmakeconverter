@@ -30,8 +30,7 @@ import argparse
 import os
 
 from cmake_converter.context import Context
-from cmake_converter.visual_studio.solution import convert_solution, convert_project,\
-    clean_cmake_lists_file, copy_cmake_utils
+from cmake_converter.visual_studio.solution import convert_solution
 from cmake_converter.utils import message
 
 
@@ -41,53 +40,27 @@ def main():  # pragma: no cover
 
     """
 
-    usage = "cmake-converter -p <vcxproj> " \
-            "[-c | -a | -D | -O | -i | -v | -std | -dry | -verbose | -j]"
-    # Init parser
+    usage = "cmake-converter -s <path/to/file.sln> " \
+            "[ -h | -d | -v | -w  | -j | -a ]"
     parser = argparse.ArgumentParser(
         usage=usage,
-        description='Convert Visual Studio projects (.vcxproj) to CMakeLists.txt'
+        description='Converts Visual Studio projects in solution (*.sln) to CMakeLists.txt tree'
     )
     parser.add_argument(
         '-s', '--solution',
-        help='valid solution file. i.e.: ../../my.sln',
+        help='[required] valid solution file. i.e.: ../../my.sln',
+        required=True,
         dest='solution'
     )
     parser.add_argument(
-        '-p', '--project',
-        help='[required] valid vcxproj file. i.e.: ../../mylib.vcxproj',
-        dest='project'
-    )
-    parser.add_argument(
-        '-c', '--cmake',
-        help='define output of CMakeLists.txt file',
-        dest='cmake'
-    )
-    parser.add_argument(
-        '-a', '--additional',
-        help='import cmake code from file.cmake to your final CMakeLists.txt',
-        dest='additional'
-    )
-    parser.add_argument(
-        '-D', '--dependencies',
-        help='replace dependencies found in .vcxproj, separated by colons. '
-             'i.e.: external/zlib/cmake/:../../external/g3log/cmake/',
-        dest='dependencies'
-    )
-    parser.add_argument(
-        '-O', '--cmakeoutput',
-        help='define output of artefact produces by CMake.',
-        dest='cmakeoutput'
-    )
-    parser.add_argument(
-        '-dry', '--dry-run',
-        help='run converter without writing files.',
+        '-d', '--dry-run',
+        help='run converter without touching files.',
         dest='dry',
         action='store_true'
     )
     parser.add_argument(
         '-v', '--verbose-mode',
-        help='run converter without info messages in log.',
+        help='run converter with more messages in log.',
         dest='verbose',
         action='store_true'
     )
@@ -102,28 +75,16 @@ def main():  # pragma: no cover
         dest='jobs',
     )
     parser.add_argument(
-        '-std', '--std',
-        help='choose your C++ std version. Default : c++11',
-        dest='std'
+        '-a', '--additional',
+        help='[experimental] import cmake code from file.cmake to your final CMakeLists.txt',
+        dest='additional'
     )
 
-    # Get args
     args = parser.parse_args()
 
-    if not args.project and not args.solution:
-        parser.print_help()
-        exit(0)
-
     initial_context = Context()
-
     # Prepare context
     initial_context.additional_code = args.additional
-    if args.dependencies:
-        initial_context.dependencies = args.dependencies.split(':')
-    initial_context.cmake_output = args.cmakeoutput
-
-    if args.std:
-        initial_context.std = args.std
 
     if args.dry:
         initial_context.dry = True
@@ -141,16 +102,7 @@ def main():  # pragma: no cover
         initial_context.warn_level = int(args.warn)
     message(initial_context, 'warnings level = {}'. format(initial_context.warn_level), 'done')
 
-    if not args.solution:
-        cmake_lists_path = os.path.dirname(os.path.abspath(args.project))
-        if args.cmake:
-            cmake_lists_path = args.cmake
-        clean_cmake_lists_file(initial_context, cmake_lists_path, set())
-        project_abs_path = os.path.abspath(args.project)
-        convert_project(initial_context, project_abs_path, cmake_lists_path)
-        copy_cmake_utils(os.path.dirname(project_abs_path))
-    else:
-        convert_solution(initial_context, os.path.abspath(args.solution))
+    convert_solution(initial_context, os.path.abspath(args.solution))
 
 
 if __name__ == "__main__":  # pragma: no cover

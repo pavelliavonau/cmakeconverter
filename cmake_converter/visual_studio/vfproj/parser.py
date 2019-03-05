@@ -170,12 +170,9 @@ class VFParser(Parser):
 
         setting = tuple(configuration_name.split('|'))
 
-        if context.is_converting_solution:
-            if setting not in context.configurations_to_parse:
-                context.current_setting = (None, None)
-                raise StopParseException()
-        else:
-            context.sln_configurations_map[setting] = setting
+        if setting not in context.configurations_to_parse:
+            context.current_setting = (None, None)
+            raise StopParseException()
 
         context.current_setting = setting
         self.common_diagnostics_value = None

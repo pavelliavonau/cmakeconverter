@@ -145,11 +145,8 @@ class VCXParser(Parser):
 
         setting = tuple(setting.split('|'))
 
-        if context.is_converting_solution:
-            if setting not in context.configurations_to_parse:
-                return
-        else:
-            context.sln_configurations_map[setting] = setting
+        if setting not in context.configurations_to_parse:
+            return
 
         context.current_setting = setting
         context.utils.init_context_current_setting(context)

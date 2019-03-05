@@ -42,10 +42,8 @@ class TestProjectVariables(unittest.TestCase):
         'cmake': cmake_lists_test,
         'cmakeoutput': None,
         'vcxproj': vcxproj_data_test,
-        'dependencies': None,
         'include': None,
         'additional': None,
-        'std': None,
     }
 
     def test_init_project_variables(self):

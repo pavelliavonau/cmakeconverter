@@ -92,11 +92,9 @@ class TestDataConverter(unittest.TestCase):
             'cmakeoutput': '',
             'vcxproj': self.vs_project,
             'project': self.vs_project,
-            'dependencies': [],
             'include': '../../test.txt',
             'includecmake': '../../test.cmake',
             'additional': '',
-            'std': '',
         }
         under_test = DataConverter(data_test)
         under_test.init_files(self.vs_project, '.')

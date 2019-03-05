@@ -259,7 +259,6 @@ def copy_cmake_utils(cmake_lists_path):
 
 
 def convert_solution(initial_context, sln_path):
-    initial_context.is_converting_solution = True
 
     with open(sln_path, encoding='utf8') as sln:
         solution_data = parse_solution(sln.read())

@@ -60,16 +60,13 @@ class ProjectVariables:
 
     @staticmethod
     def set_output_dir_impl(context, output_node_text):
-        output_path = ''
-        if not context.cmake_output:
-            output_path = cleaning_output(context, output_node_text)
-        else:
-            if context.cmake_output[-1:] == '/' or context.cmake_output[-1:] == '\\':
-                build_type = '${CMAKE_BUILD_TYPE}'
-            else:
-                build_type = '/${CMAKE_BUILD_TYPE}'
-            output_path = context.cmake_output + build_type
+        """
 
+        :param context:
+        :param output_node_text:
+        :return:
+        """
+        output_path = cleaning_output(context, output_node_text)
         output_path = output_path.strip().replace('\n', '')
         output_path = check_for_relative_in_path(context, output_path)
         context.settings[context.current_setting]['out_dir'] = [output_path]
