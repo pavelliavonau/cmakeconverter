@@ -296,3 +296,8 @@ function(source_file_compile_options SOURCE_FILE)
 
     set_source_files_properties("${SOURCE_FILE}" PROPERTIES COMPILE_OPTIONS "${COMPILE_OPTIONS}")
 endfunction()
+
+################################################################################
+# Default properties of C++ projects
+################################################################################
+set(DEFAULT_CXX_PROPS "${CMAKE_CURRENT_LIST_DIR}/DefaultCXX.cmake")
