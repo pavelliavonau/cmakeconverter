@@ -58,7 +58,7 @@ class Dependencies:
             write_comment(cmake_file, 'Include directories')
         write_property_of_settings(
             cmake_file, context.settings, context.sln_configurations_map,
-            begin_text='target_include_directories(${PROJECT_NAME} PUBLIC ',
+            begin_text='target_include_directories(${PROJECT_NAME} PUBLIC',
             end_text=')',
             property_name='inc_dirs',
             separator=';\n',
