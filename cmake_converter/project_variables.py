@@ -134,6 +134,9 @@ class ProjectVariables:
         if not context.settings:
             return
 
+        if context.root_namespace:
+            cmake_file.write('set(ROOT_NAMESPACE {})\n\n'.format(context.root_namespace))
+
         if is_settings_has_data(context.sln_configurations_map,
                                 context.settings,
                                 'TARGET_NAME'):

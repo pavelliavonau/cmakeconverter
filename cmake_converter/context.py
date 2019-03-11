@@ -60,6 +60,7 @@ class Context:
         self.configurations_to_parse = set()
         self.cmake = ''
         self.project_name = ''
+        self.root_namespace = ''
         self.sources = {}
         self.headers = {}
         self.other_project_files = {}

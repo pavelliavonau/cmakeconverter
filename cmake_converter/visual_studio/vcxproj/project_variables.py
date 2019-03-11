@@ -33,6 +33,10 @@ class VCXProjectVariables(ProjectVariables):
         Class who defines all the CMake variables to be used by the C/C++ project
     """
 
+    @staticmethod
+    def set_root_namespace(context, node):
+        context.root_namespace = node.text
+
     def set_output_dir(self, context, node):
         self.set_output_dir_impl(context, node.text)
 

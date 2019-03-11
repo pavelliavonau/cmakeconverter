@@ -485,6 +485,7 @@ def replace_vs_var_with_cmake_var(context, var):
         '$(ConfigurationName)': '$<CONFIG>',
         '$(ProjectDir)': '${CMAKE_CURRENT_SOURCE_DIR}\\',
         '$(ProjectName)': '${PROJECT_NAME}',
+        '$(RootNamespace)': '${ROOT_NAMESPACE}',
         '$(OutDir)': '${OUTPUT_DIRECTORY}',
         '$(OUTDIR)': '${OUTPUT_DIRECTORY}',
         '$(TargetDir)': '${OUTPUT_DIRECTORY}',

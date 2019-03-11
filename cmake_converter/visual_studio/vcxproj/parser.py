@@ -41,6 +41,7 @@ class VCXParser(Parser):
             'CharacterSet': context.flags.set_character_set,
             'PlatformToolset': self.do_nothing_node_stub,
             'PropertyGroup': self.__parse_property_group,
+            'RootNamespace': context.variables.set_root_namespace,
             'ItemDefinitionGroup': self.__parse_item_definition_group,
             'Import': self._parse_nodes,
             'ClInclude': self._parse_nodes,
