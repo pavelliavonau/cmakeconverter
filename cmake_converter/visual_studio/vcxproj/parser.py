@@ -151,7 +151,6 @@ class VCXParser(Parser):
         context.current_setting = setting
         context.utils.init_context_current_setting(context)
 
-        context.variables.apply_default_values(context)
         context.current_setting = (None, None)
 
     @staticmethod

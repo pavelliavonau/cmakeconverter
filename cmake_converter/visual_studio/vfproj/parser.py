@@ -178,7 +178,6 @@ class VFParser(Parser):
         self.common_diagnostics_value = None
         self.common_runtime_checks_value = None
         context.utils.init_context_current_setting(context)
-        context.variables.apply_default_values(context)
         self.reset_current_setting_after_parsing_node(node)
 
     @staticmethod

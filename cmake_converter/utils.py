@@ -75,15 +75,15 @@ class Utils:
             'defines': [],
             'conf': conf,
             'arch': arch,
-            'target_name': [],
+            'TARGET_NAME': [],
             'target_type': '',
-            'out_dir': [],
+            'OUTPUT_DIRECTORY': [],
             'inc_dirs': [],
             'inc_dirs_list': [],
             'add_lib_deps': [],
             'target_link_dirs': [],
-            'import_library_path': [],
-            'import_library_name': [],
+            'ARCHIVE_OUTPUT_DIRECTORY': [],
+            'ARCHIVE_OUTPUT_NAME': [],
             'pre_build_events': [],
             'pre_link_events': [],
             'post_build_events': [],
@@ -222,7 +222,8 @@ def write_selected_sln_setting(cmake_file,
                                         mapped_setting[property_name],
                                         max_config_condition_width,
                                         separator=separator,
-                                        quotes=in_quotes)
+                                        quotes=in_quotes,
+                                        property_name=property_name)
     return has_property_value
 
 
@@ -465,7 +466,7 @@ def make_os_specific_shell_path(output):
     variables_to_replace = {
         '$(SolutionDir)': '${CMAKE_SOURCE_DIR}/',
         '$(ProjectDir)': '${CMAKE_CURRENT_SOURCE_DIR}/',
-        '$(OutDir)': '${OUT_DIR}',
+        '$(OutDir)': '${OUTPUT_DIRECTORY}',
         '$(TargetPath)': '$<TARGET_FILE:${PROJECT_NAME}>',
     }
     for var in variables_to_replace:
@@ -484,9 +485,9 @@ def replace_vs_var_with_cmake_var(context, var):
         '$(ConfigurationName)': '$<CONFIG>',
         '$(ProjectDir)': '${CMAKE_CURRENT_SOURCE_DIR}\\',
         '$(ProjectName)': '${PROJECT_NAME}',
-        '$(OutDir)': '${OUT_DIR}',
-        '$(OUTDIR)': '${OUT_DIR}',
-        '$(TargetDir)': '${OUT_DIR}',
+        '$(OutDir)': '${OUTPUT_DIRECTORY}',
+        '$(OUTDIR)': '${OUTPUT_DIRECTORY}',
+        '$(TargetDir)': '${OUTPUT_DIRECTORY}',
         '$(TargetName)': '${TARGET_NAME}',
         '$(TargetFileName)': '$<TARGET_FILE_NAME:${TARGET_NAME}>',
         '$(TargetPath)': '$<TARGET_FILE:${PROJECT_NAME}>',

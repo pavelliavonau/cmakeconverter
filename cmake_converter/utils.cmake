@@ -223,7 +223,7 @@ function(target_link_directories TARGET TYPE)
         elseif("${ARG_ROLE}" STREQUAL "TYPE")
             set(TYPE "${ARG}")
         elseif("${ARG_ROLE}" STREQUAL "PATH")
-            list(APPEND LINK_DIRS ${TYPE} "$<${CONDITION}:${CMAKE_LIBRARY_PATH_FLAG}${QUOTE}${ARG}${QUOTE}>")
+            list(APPEND LINK_DIRS ${TYPE} "$<${CONDITION}:$<IF:$<STREQUAL:${ARG},>,,${CMAKE_LIBRARY_PATH_FLAG}${QUOTE}${ARG}${QUOTE}>>")
         endif()
     endforeach()
 
@@ -298,6 +298,7 @@ function(source_file_compile_options SOURCE_FILE)
 endfunction()
 
 ################################################################################
-# Default properties of C++ projects
+# Default properties of visual studio projects
 ################################################################################
 set(DEFAULT_CXX_PROPS "${CMAKE_CURRENT_LIST_DIR}/DefaultCXX.cmake")
+set(DEFAULT_Fortran_PROPS "${CMAKE_CURRENT_LIST_DIR}/DefaultFortran.cmake")

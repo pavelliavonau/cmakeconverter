@@ -24,7 +24,8 @@ import os
 
 from cmake_converter.project_variables import ProjectVariables
 from cmake_converter.utils import cleaning_output, message, replace_vs_vars_with_cmake_vars, \
-    check_for_relative_in_path, set_native_slash
+    check_for_relative_in_path, set_native_slash, write_property_of_settings, write_comment, \
+    is_settings_has_data
 
 
 class VCXProjectVariables(ProjectVariables):
@@ -57,5 +58,5 @@ class VCXProjectVariables(ProjectVariables):
             '{0} : Import library name = {1}'.format(context.current_setting, import_library_name),
             '')
 
-        context.settings[context.current_setting]['import_library_path'] = [import_library_path]
-        context.settings[context.current_setting]['import_library_name'] = [import_library_name]
+        context.settings[context.current_setting]['ARCHIVE_OUTPUT_DIRECTORY'] = [import_library_path]
+        context.settings[context.current_setting]['ARCHIVE_OUTPUT_NAME'] = [import_library_name]

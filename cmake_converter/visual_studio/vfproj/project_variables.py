@@ -59,5 +59,5 @@ class VFProjectVariables(ProjectVariables):
             message(context, 'Import library path = {0}'.format(import_library_path), '')
             message(context, 'Import library name = {0}'.format(import_library_name), '')
 
-        context.settings[context.current_setting]['import_library_path'] = [import_library_path]
-        context.settings[context.current_setting]['import_library_name'] = [import_library_name]
+        context.settings[context.current_setting]['ARCHIVE_OUTPUT_DIRECTORY'] = [import_library_path]
+        context.settings[context.current_setting]['ARCHIVE_OUTPUT_NAME'] = [import_library_name]

@@ -333,3 +333,17 @@ class VCXDependencies(Dependencies):
     #         'custom_build_step',
     #         'Custom build'
     #     )
+
+    def write_target_property_sheets(self, context, cmake_file):
+        """
+        Write target property sheets of current context
+
+        :param context: current context
+        :type context: Context
+        :param cmake_file: CMakeLists.txt IO wrapper
+        :type cmake_file: _io.TextIOWrapper
+        """
+        cmake_file.write(
+            'use_props(${PROJECT_NAME} "${CMAKE_CONFIGURATION_TYPES}" "${DEFAULT_CXX_PROPS}")\n'
+        )
+        super(VCXDependencies, self).write_target_property_sheets(context, cmake_file)

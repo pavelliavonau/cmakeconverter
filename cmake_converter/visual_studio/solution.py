@@ -254,8 +254,12 @@ def copy_cmake_utils(cmake_lists_path):
     utils_path = os.path.join(cmake_lists_path, 'CMake')
     if not os.path.exists(utils_path):
         os.makedirs(utils_path)
-    utils_src_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../utils.cmake')
-    shutil.copyfile(utils_src_path, utils_path + '/Utils.cmake')
+    src_dir = os.path.dirname(os.path.abspath(__file__))
+    shutil.copyfile(os.path.join(src_dir, '../utils.cmake'), utils_path + '/Utils.cmake')
+    shutil.copyfile(os.path.join(src_dir, '../Default.cmake'), utils_path + '/Default.cmake')
+    shutil.copyfile(os.path.join(src_dir, '../DefaultCXX.cmake'), utils_path + '/DefaultCXX.cmake')
+    shutil.copyfile(os.path.join(src_dir, '../DefaultFortran.cmake'),
+                                 utils_path + '/DefaultFortran.cmake')
 
 
 def convert_solution(initial_context, sln_path):

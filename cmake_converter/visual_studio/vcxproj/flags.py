@@ -559,9 +559,9 @@ class CPPFlags(Flags):
                 if isinstance(runtime_library_node, NodeStub):  # if default pass
                     setting = context.settings[context.current_setting]
                     if setting['use_debug_libs']:
-                        cl_flag_value = mdd
+                        cl_flag_value = '${DEFAULT_CXX_DEBUG_RUNTIME_LIBRARY}'
                     else:
-                        cl_flag_value = m_d
+                        cl_flag_value = '${DEFAULT_CXX_RUNTIME_LIBRARY}'
                     message(context, 'RuntimeLibrary : updating default...', '')
 
         if cl_flag_value:
@@ -738,7 +738,7 @@ class CPPFlags(Flags):
             'false': {},
             'true': {cl_flags: '/EHsc'},
             'Async': {cl_flags: '/EHa'},
-            default_value: {cl_flags: '/EHsc'}  # TODO: investigate default
+            default_value: {cl_flags: '${DEFAULT_CXX_EXCEPTION_HANDLING}'}
         }
 
         return flag_values
