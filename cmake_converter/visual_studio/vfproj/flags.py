@@ -66,6 +66,7 @@ class FortranFlags(Flags):
             'FloatingPointSpeculation': self.__set_floating_point_speculation,
             'FloatingPointStackCheck': self.__set_floating_point_stack_check,
             'ExternalNameInterpretation': self.__set_external_name_interpretation,
+            'CallingConvention': self.__set_calling_convention,
             'StringLengthArgPassing': self.__set_string_length_arg_passing,
             'ExternalNameUnderscore': self.__set_external_name_underscore,
             'Traceback': self.__set_traceback,
@@ -122,6 +123,7 @@ class FortranFlags(Flags):
             'FloatingPointSpeculation',
             'FloatingPointStackCheck',
             'ExternalNameInterpretation',
+            'CallingConvention',
             'StringLengthArgPassing',
             'ExternalNameUnderscore',
             'Traceback',
@@ -255,6 +257,18 @@ class FortranFlags(Flags):
                                  ifort_cl_unix: '-names lowercase'},
             'extNameAsIs': {ifort_cl_win: '-names:as_is',
                             ifort_cl_unix: '-names as_is'},
+            default_value: {}
+        }
+        return flag_values
+
+    @staticmethod
+    def __set_calling_convention(context, flag_name, flag_value):
+        del context, flag_name, flag_value
+        flag_values = {
+            'callConventionCRef': {ifort_cl_win: '-iface:cref'},
+            'callConventionStdRef': {ifort_cl_win: '-iface:stdref'},
+            'callConventionStdCall': {ifort_cl_win: '-iface:stdcall'},
+            'callConventionCVF': {ifort_cl_win: '-iface:cvf'},
             default_value: {}
         }
         return flag_values

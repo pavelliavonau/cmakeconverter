@@ -90,6 +90,7 @@ class VFParser(Parser):
             'VFFortranCompilerTool_FloatingPointSpeculation': context.flags.set_flag,
             'VFFortranCompilerTool_FloatingPointStackCheck': context.flags.set_flag,
             'VFFortranCompilerTool_ExternalNameInterpretation': context.flags.set_flag,
+            'VFFortranCompilerTool_CallingConvention': context.flags.set_flag,
             'VFFortranCompilerTool_StringLengthArgPassing': context.flags.set_flag,
             'VFFortranCompilerTool_ExternalNameUnderscore': context.flags.set_flag,
             'VFFortranCompilerTool_Traceback': context.flags.set_flag,
