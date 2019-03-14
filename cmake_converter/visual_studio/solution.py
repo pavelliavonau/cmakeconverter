@@ -233,8 +233,8 @@ def clean_cmake_lists_file(context, subdirectory, cmake_lists_set):
         message(context, 'not found {}'.format(cmake_path_to_clean), 'warn')
 
 
-def clean_cmake_lists_of_solution(context, solution_path, projects_data):
-    if not os.path.exists(os.path.join(solution_path, 'CMake')):
+def clean_cmake_lists_of_solution(context, projects_data):
+    if not os.path.exists(os.path.join(context.solution_path, 'CMake')):
         return  # first run
 
     message(context, 'Cleaning CMake Scripts', '')
@@ -242,11 +242,11 @@ def clean_cmake_lists_of_solution(context, solution_path, projects_data):
     for guid in projects_data:
         project_path = projects_data[guid]['path']
         project_path = '/'.join(project_path.split('\\'))
-        project_abs = os.path.join(solution_path, project_path)
+        project_abs = os.path.join(context.solution_path, project_path)
         subdirectory = os.path.dirname(project_abs)
         clean_cmake_lists_file(context, subdirectory, cmake_lists_set)
 
-    clean_cmake_lists_file(context, solution_path, cmake_lists_set)
+    clean_cmake_lists_file(context, context.solution_path, cmake_lists_set)
     print('\n')
 
 
@@ -267,17 +267,16 @@ def convert_solution(initial_context, sln_path):
     with open(sln_path, encoding='utf8') as sln:
         solution_data = parse_solution(sln.read())
 
-    solution_path = os.path.dirname(sln_path)
+    initial_context.solution_path = os.path.dirname(sln_path)
     subdirectories_set = set()
     subdirectories_to_project_name = {}
     projects_data = solution_data['projects_data']
 
-    clean_cmake_lists_of_solution(initial_context, solution_path, projects_data)
+    clean_cmake_lists_of_solution(initial_context, projects_data)
 
     input_data_for_converter = __get_input_data_for_converter(
         initial_context,
-        projects_data,
-        solution_path
+        projects_data
     )
 
     results = __do_conversion(initial_context, input_data_for_converter)
@@ -285,7 +284,6 @@ def convert_solution(initial_context, sln_path):
     __get_info_from_results(
         initial_context,
         results,
-        solution_path,
         subdirectories_set,
         subdirectories_to_project_name
     )
@@ -293,13 +291,13 @@ def convert_solution(initial_context, sln_path):
     if initial_context.dry:
         return
 
-    sln_cmake = get_cmake_lists(initial_context, solution_path, 'r')
+    sln_cmake = get_cmake_lists(initial_context, initial_context.solution_path, 'r')
     sln_cmake_projects_text = ''
     if sln_cmake is not None:
         sln_cmake_projects_text = sln_cmake.read()
         sln_cmake.close()
 
-    sln_cmake = get_cmake_lists(initial_context, solution_path)
+    sln_cmake = get_cmake_lists(initial_context, initial_context.solution_path)
     DataConverter.add_cmake_version_required(sln_cmake)
     sln_cmake.write(
         'project({0})\n\n'.format(os.path.splitext(os.path.basename(sln_path))[0])
@@ -318,7 +316,7 @@ def convert_solution(initial_context, sln_path):
 
     write_comment(sln_cmake, 'Common utils')
     sln_cmake.write('include(CMake/Utils.cmake)\n\n')
-    copy_cmake_utils(solution_path)
+    copy_cmake_utils(initial_context.solution_path)
 
     write_comment(sln_cmake, 'Additional Global Settings(add specific info there)')
     sln_cmake.write('include(CMake/GlobalSettingsInclude.cmake OPTIONAL)\n\n')
@@ -337,7 +335,7 @@ def convert_solution(initial_context, sln_path):
     message(initial_context, 'Conversion of solution finished', 'done')
 
 
-def __get_input_data_for_converter(initial_context, projects_data, solution_path):
+def __get_input_data_for_converter(initial_context, projects_data):
     input_data_for_converter = {}
     project_number = 0
     for guid in projects_data:
@@ -346,7 +344,7 @@ def __get_input_data_for_converter(initial_context, projects_data, solution_path
         project_context.project_number = project_number
         project_path = projects_data[guid]['path']
         project_path = '/'.join(project_path.split('\\'))
-        project_abs = os.path.join(solution_path, project_path)
+        project_abs = os.path.join(initial_context.solution_path, project_path)
         subdirectory = os.path.dirname(project_abs)
         set_dependencies_for_project(project_context, projects_data[guid])
         project_context.sln_configurations_map = \
@@ -384,13 +382,12 @@ def __do_conversion(initial_context, input_data_for_converter):
 def __get_info_from_results(
         initial_context,
         results,
-        solution_path,
         subdirectories_set,
         subdirectories_to_project_name
 ):
     for directory_results in results:
         for project_result in directory_results:
-            subdirectory = os.path.relpath(project_result['cmake'], solution_path)
+            subdirectory = os.path.relpath(project_result['cmake'], initial_context.solution_path)
             if subdirectory != '.':
                 subdirectories_set.add(subdirectory)
             subdirectories_to_project_name[subdirectory] = project_result['project_name']

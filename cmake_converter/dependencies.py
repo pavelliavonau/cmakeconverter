@@ -87,6 +87,7 @@ class Dependencies:
 
         working_path = os.path.dirname(context.vcxproj_path)
         inc_dir = aid_text.replace('$(ProjectDir)', './')
+        inc_dir = inc_dir.replace('$(SolutionDir)', context.solution_path)
         inc_dir = inc_dir.replace('%(AdditionalIncludeDirectories)', '')
         inc_dirs = context.settings[setting]['inc_dirs']
         dirs_raw = []
