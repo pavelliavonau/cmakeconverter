@@ -51,6 +51,7 @@ class Context:
         self.import_projects = []
         self.packages = []
 
+        self.projects_regexp = '.*'
         self.additional_code = None
         self.dry = False
         self.verbose = False

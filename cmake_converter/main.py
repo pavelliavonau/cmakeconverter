@@ -41,7 +41,7 @@ def main():  # pragma: no cover
     """
 
     usage = "cmake-converter -s <path/to/file.sln> " \
-            "[ -h | -d | -v | -w  | -j | -a ]"
+            "[ -h | -p | -d | -v | -w | -j | -a ]"
     parser = argparse.ArgumentParser(
         usage=usage,
         description='Converts Visual Studio projects in solution (*.sln) to CMakeLists.txt tree'
@@ -51,6 +51,11 @@ def main():  # pragma: no cover
         help='[required] valid solution file. i.e.: ../../my.sln',
         required=True,
         dest='solution'
+    )
+    parser.add_argument(
+        '-p', '--projects-filter',
+        help='python regexp to filter that projects should be converted from the given solution',
+        dest='projects_regexp'
     )
     parser.add_argument(
         '-d', '--dry-run',
@@ -85,6 +90,9 @@ def main():  # pragma: no cover
     initial_context = Context()
     # Prepare context
     initial_context.additional_code = args.additional
+
+    if args.projects_regexp:
+        initial_context.projects_regexp = args.projects_regexp
 
     if args.dry:
         initial_context.dry = True

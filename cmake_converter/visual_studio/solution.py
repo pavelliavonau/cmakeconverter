@@ -338,11 +338,17 @@ def convert_solution(initial_context, sln_path):
 def __get_input_data_for_converter(initial_context, projects_data):
     input_data_for_converter = {}
     project_number = 0
+    projects_filter_pattern = re.compile(initial_context.projects_regexp)
     for guid in projects_data:
         project_number += 1
         project_context = initial_context.clone()
         project_context.project_number = project_number
         project_path = projects_data[guid]['path']
+
+        m = projects_filter_pattern.match(project_path)
+        if m is None:
+            continue
+
         project_path = '/'.join(project_path.split('\\'))
         project_abs = os.path.join(initial_context.solution_path, project_path)
         subdirectory = os.path.dirname(project_abs)
