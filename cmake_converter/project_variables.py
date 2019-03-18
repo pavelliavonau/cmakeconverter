@@ -154,7 +154,6 @@ class ProjectVariables:
                                 context.settings,
                                 'OUTPUT_DIRECTORY'):
             write_comment(cmake_file, 'Output directory')
-
             write_property_of_settings(
                 cmake_file, context.settings,
                 context.sln_configurations_map,
@@ -164,27 +163,20 @@ class ProjectVariables:
                 write_setting_property_func=ProjectVariables.write_target_property
             )
 
-        if is_settings_has_data(context.sln_configurations_map,
-                                context.settings,
-                                'ARCHIVE_OUTPUT_DIRECTORY'):
-            write_property_of_settings(
-                cmake_file, context.settings,
-                context.sln_configurations_map,
-                begin_text='set_target_properties(${PROJECT_NAME} PROPERTIES',
-                end_text=')',
-                property_name='ARCHIVE_OUTPUT_DIRECTORY',
-                write_setting_property_func=ProjectVariables.write_target_property
-            )
+        write_property_of_settings(
+            cmake_file, context.settings,
+            context.sln_configurations_map,
+            begin_text='set_target_properties(${PROJECT_NAME} PROPERTIES',
+            end_text=')',
+            property_name='ARCHIVE_OUTPUT_DIRECTORY',
+            write_setting_property_func=ProjectVariables.write_target_property
+        )
 
-        if is_settings_has_data(context.sln_configurations_map,
-                                context.settings,
-                                'ARCHIVE_OUTPUT_NAME'):
-            cmake_file.write('set(ARCHIVE_OUT_NAME ${TARGET_NAME})\n')
-            write_property_of_settings(
-                cmake_file, context.settings,
-                context.sln_configurations_map,
-                begin_text='set_target_properties(${PROJECT_NAME} PROPERTIES',
-                end_text=')',
-                property_name='ARCHIVE_OUTPUT_NAME',
-                write_setting_property_func=ProjectVariables.write_target_property
-            )
+        write_property_of_settings(
+            cmake_file, context.settings,
+            context.sln_configurations_map,
+            begin_text='set_target_properties(${PROJECT_NAME} PROPERTIES',
+            end_text=')',
+            property_name='ARCHIVE_OUTPUT_NAME',
+            write_setting_property_func=ProjectVariables.write_target_property
+        )

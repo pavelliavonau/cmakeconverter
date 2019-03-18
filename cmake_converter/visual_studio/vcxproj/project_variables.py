@@ -24,8 +24,7 @@ import os
 
 from cmake_converter.project_variables import ProjectVariables
 from cmake_converter.utils import cleaning_output, message, replace_vs_vars_with_cmake_vars, \
-    check_for_relative_in_path, set_native_slash, write_property_of_settings, write_comment, \
-    is_settings_has_data
+    check_for_relative_in_path, set_native_slash
 
 
 class VCXProjectVariables(ProjectVariables):
