@@ -84,6 +84,7 @@ class Utils:
             'target_link_dirs': [],
             'ARCHIVE_OUTPUT_DIRECTORY': [],
             'ARCHIVE_OUTPUT_NAME': [],
+            'PDB_OUTPUT_DIRECTORY': [],
             'pre_build_events': [],
             'pre_link_events': [],
             'post_build_events': [],
@@ -474,6 +475,24 @@ def make_os_specific_shell_path(output):
             output = output.replace(var, '$<SHELL_PATH:{0}>'.format(variables_to_replace[var]))
 
     return output
+
+
+def resolve_path_variables_of_vs(context, path_with_vars):
+    path_with_vars = path_with_vars.replace('$(ProjectDir)', './')
+    path_with_vars = path_with_vars.replace('$(SolutionDir)', context.solution_path)
+    return path_with_vars
+
+
+def get_dir_name_with_vars(context, path):
+    del context
+    dirname = os.path.dirname(path)
+    if not dirname:
+        dirname_pattern = re.compile(r'(\$\{.*dir[^\}]*\})', re.IGNORECASE)
+        m = dirname_pattern.match(path)
+        if m:
+            dirname = m.group(0)
+
+    return dirname
 
 
 def replace_vs_var_with_cmake_var(context, var):

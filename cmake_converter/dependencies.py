@@ -32,7 +32,8 @@ import os
 from cmake_converter.data_files import get_vcxproj_data
 from cmake_converter.utils import get_global_project_name_from_vcxproj_file, normalize_path, message
 from cmake_converter.utils import write_property_of_settings, write_comment
-from cmake_converter.utils import is_settings_has_data, replace_vs_vars_with_cmake_vars
+from cmake_converter.utils import is_settings_has_data, replace_vs_vars_with_cmake_vars, \
+    resolve_path_variables_of_vs
 
 
 class Dependencies:
@@ -86,8 +87,7 @@ class Dependencies:
             return
 
         working_path = os.path.dirname(context.vcxproj_path)
-        inc_dir = aid_text.replace('$(ProjectDir)', './')
-        inc_dir = inc_dir.replace('$(SolutionDir)', context.solution_path)
+        inc_dir = resolve_path_variables_of_vs(context, aid_text)
         inc_dir = inc_dir.replace('%(AdditionalIncludeDirectories)', '')
         inc_dirs = context.settings[setting]['inc_dirs']
         dirs_raw = []

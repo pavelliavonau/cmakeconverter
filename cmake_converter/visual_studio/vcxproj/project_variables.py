@@ -24,7 +24,7 @@ import os
 
 from cmake_converter.project_variables import ProjectVariables
 from cmake_converter.utils import cleaning_output, message, replace_vs_vars_with_cmake_vars, \
-    check_for_relative_in_path, set_native_slash
+    check_for_relative_in_path, set_native_slash, get_dir_name_with_vars
 
 
 class VCXProjectVariables(ProjectVariables):
@@ -63,3 +63,24 @@ class VCXProjectVariables(ProjectVariables):
 
         context.settings[context.current_setting]['ARCHIVE_OUTPUT_DIRECTORY'] = [import_library_path]
         context.settings[context.current_setting]['ARCHIVE_OUTPUT_NAME'] = [import_library_name]
+
+    @staticmethod
+    def set_program_database_file(context, node):
+        program_database_file = node.text.strip()
+        if not program_database_file:
+            return
+
+        program_database_file = replace_vs_vars_with_cmake_vars(context, program_database_file)
+        program_database_file = set_native_slash(program_database_file)
+        path = get_dir_name_with_vars(context, program_database_file)
+        program_database_path = cleaning_output(context, path)
+        program_database_path = check_for_relative_in_path(context, program_database_path)
+        message(
+            context,
+            '{0} : Program database directory = {1}'.format(
+                context.current_setting,
+                program_database_path
+            ),
+            '')
+
+        context.settings[context.current_setting]['PDB_OUTPUT_DIRECTORY'] = [program_database_path]
