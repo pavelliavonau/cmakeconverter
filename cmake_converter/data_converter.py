@@ -138,7 +138,7 @@ class DataConverter:
         :type cmake_file: _io.TextIOWrapper
         """
 
-        cmake_file.write('cmake_minimum_required(VERSION 3.12.0 FATAL_ERROR)\n\n')
+        cmake_file.write('cmake_minimum_required(VERSION 3.13.0 FATAL_ERROR)\n\n')
 
     @staticmethod
     def write_supported_architectures_check(context, cmake_file):

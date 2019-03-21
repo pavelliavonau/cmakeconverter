@@ -179,59 +179,6 @@ function(add_custom_command_if)
 endfunction()
 
 ################################################################################
-# Add link directory
-#     target_link_directories(<target>
-#         <PRIVATE|PUBLIC|INTERFACE> [CONDITION condition] <items1...>
-#        [<PRIVATE|PUBLIC|INTERFACE> [CONDITION condition] <items2...>]...)
-#
-# Input:
-#     target    - Target name
-#     INTERFACE - Affects property INTERFACE_LINK_LIBRARIES
-#     PUBLIC    - Affects property INTERFACE_LINK_LIBRARIES and LINK_LIBRARIES
-#     PRIVATE   - Affects property LINK_LIBRARIES .
-#     condition - Generator expression for wrapping the following items
-#     items     - Link directories
-################################################################################
-cmake_policy(PUSH)
-cmake_policy(SET CMP0054 NEW)
-cmake_policy(SET CMP0057 NEW)
-function(target_link_directories TARGET TYPE)
-    if(${CMAKE_GENERATOR} MATCHES "Visual Studio")
-        set(QUOTE "")
-    else()
-        set(QUOTE "\"")
-    endif()
-
-    set(TYPES "PRIVATE" "PUBLIC" "INTERFACE")
-
-    unset(LINK_DIRS)
-    unset(ARG_ROLE)
-    set(CONDITION "1")
-    foreach(ARG ${ARGN})
-        if("${ARG}" STREQUAL "CONDITION")
-            set(ARG_ROLE "CONDITION_KEYWORD")
-        elseif("${ARG_ROLE}" STREQUAL "CONDITION_KEYWORD")
-            set(ARG_ROLE "CONDITION")
-        elseif("${ARG}" IN_LIST TYPES)
-            set(ARG_ROLE "TYPE")
-        else()
-            set(ARG_ROLE "PATH")
-        endif()
-
-        if("${ARG_ROLE}" STREQUAL "CONDITION")
-            set(CONDITION "${ARG}")
-        elseif("${ARG_ROLE}" STREQUAL "TYPE")
-            set(TYPE "${ARG}")
-        elseif("${ARG_ROLE}" STREQUAL "PATH")
-            list(APPEND LINK_DIRS ${TYPE} "$<${CONDITION}:$<IF:$<STREQUAL:${ARG},>,,${CMAKE_LIBRARY_PATH_FLAG}${QUOTE}${ARG}${QUOTE}>>")
-        endif()
-    endforeach()
-
-    target_link_libraries(${TARGET} ${LINK_DIRS})
-endfunction()
-cmake_policy(POP)
-
-################################################################################
 # Use props file for a target and configs
 #     use_props(<target> <configs...> <props_file>)
 # Inside <props_file> there are following variables:

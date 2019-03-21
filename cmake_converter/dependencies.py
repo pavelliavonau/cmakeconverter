@@ -155,20 +155,6 @@ class Dependencies:
             cmake_file.write(')\n\n')
 
     @staticmethod
-    def write_target_link_dirs(cmake_file, property_indent, config_condition_expr,
-                               property_value, width, **kwargs):
-        link_dirs_str = ''
-        for link_dir in property_value:
-            if link_dirs_str != '':
-                link_dirs_str = link_dirs_str + ' '
-            link_dirs_str = link_dirs_str + '"{}"'.format(link_dir)
-
-        if link_dirs_str:
-            cmake_file.write('{0}    CONDITION {1:>{width}} {2}\n'
-                             .format(property_indent, config_condition_expr, link_dirs_str,
-                                     width=width))
-
-    @staticmethod
     def write_link_dependencies(context, cmake_file):
         """
         Write link dependencies of project to given cmake file
@@ -213,7 +199,7 @@ class Dependencies:
                 begin_text='target_link_directories(${PROJECT_NAME} PUBLIC',
                 end_text=')',
                 property_name='target_link_dirs',
-                write_setting_property_func=Dependencies.write_target_link_dirs
+                in_quotes=True
             )
             cmake_file.write('\n')
 
