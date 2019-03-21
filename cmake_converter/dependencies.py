@@ -191,15 +191,18 @@ class Dependencies:
         if is_settings_has_data(context.sln_configurations_map,
                                 context.settings,
                                 'add_lib_deps'):
-            cmake_file.write('# Link with other additional libraries.\n')
             write_property_of_settings(
                 cmake_file, context.settings,
                 context.sln_configurations_map,
-                begin_text='target_link_libraries(${PROJECT_NAME} PUBLIC',
+                begin_text='string(CONCAT ADDITIONAL_LIBRARY_DEPENDENCIES',
                 end_text=')',
                 property_name='add_lib_deps',
-                in_quotes=True
+                separator=';\n',
+                in_quotes=True,
             )
+            cmake_file.write(
+                'target_link_libraries(${PROJECT_NAME} PUBLIC '
+                '"${ADDITIONAL_LIBRARY_DEPENDENCIES}")\n\n')
 
         if is_settings_has_data(context.sln_configurations_map,
                                 context.settings,
