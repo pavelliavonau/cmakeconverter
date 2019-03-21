@@ -93,7 +93,7 @@ class ProjectVariables:
 
     @staticmethod
     def write_target_property(cmake_file,
-                              indent,
+                              property_indent,
                               config_condition_expr,
                               property_value,
                               width,
@@ -113,7 +113,7 @@ class ProjectVariables:
                     result_width = 0
                 cmake_file.write(
                     '{}    {}{:<{width}}"{}"\n'.format(
-                        indent,
+                        property_indent,
                         property_name,
                         config.upper(),
                         property_sheet_cmake,

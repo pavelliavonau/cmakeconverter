@@ -47,7 +47,7 @@ class Flags:
 
     @staticmethod
     def __write_defines_for_files(cmake_file,
-                                  indent,
+                                  property_indent,
                                   config_condition_expr,
                                   property_value,
                                   width,
@@ -57,7 +57,7 @@ class Flags:
         config = config.replace('>', '')
         cmake_file.write(
             '{0}    COMPILE_DEFINITIONS_{1} "{2}"\n'
-            .format(indent, config.upper(), ';'.join(property_value))
+            .format(property_indent, config.upper(), ';'.join(property_value))
         )
 
     def write_defines(self, context, cmake_file):

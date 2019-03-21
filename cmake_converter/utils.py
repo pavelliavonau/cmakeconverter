@@ -137,47 +137,35 @@ def is_settings_has_data(sln_configurations_map, settings, settings_key, arch=No
 
 
 def write_property_of_setting_f(cmake_file,
-                                indent,
+                                property_indent,
                                 config_condition_expr,
                                 property_value,
                                 width,
                                 **kwargs):
-    separator = kwargs['separator']
-    quotes = '"' if kwargs['quotes'] else ''
+    del width
 
-    indent = indent + '    '
+    separator = kwargs['separator']
+    quotes = '"' if kwargs['in_quotes'] else ''
+
+    prop_value_indent = config_indent = property_indent + '    '
     config_condition_expr_str = ''
-    config_width = 0
     if config_condition_expr is not None:
         config_condition_expr_str = '$<' + config_condition_expr + ':'
-        config_width = width + 3 + len(quotes)  # for '$<' and ':'
 
     property_value_str = get_str_value_from_property_value(property_value, separator)
     property_list_str = property_value_str.split('\n')
 
-    if len(property_list_str) == 1:
-        cmake_file.write('{0}{1:>{width}}{2}>{3}\n'
-                         .format(indent, quotes + config_condition_expr_str,
-                                 separator.join(property_value),
-                                 quotes, width=config_width))
-        return
+    if config_condition_expr:
+        cmake_file.write('{0}{1}{2}\n'.format(config_indent, quotes + config_condition_expr_str, quotes))
+        prop_value_indent = config_indent + '    '
 
-    first = True
-    prop_indent = indent + ' ' * (config_width - len(quotes))
     for prop in property_list_str:
-        if first:
-            cmake_file.write('{0}{1:>{width}}{3}{2}\n'
-                             .format(indent, quotes + config_condition_expr_str,
-                                     quotes, prop, width=config_width))
-            first = False
-            continue
         cmake_file.write(
-            '{0}{1}\n'.format(prop_indent, quotes + prop + quotes)
+            '{0}{1}\n'.format(prop_value_indent, quotes + prop + quotes)
         )
 
-    cmake_file.write('{0}{1}\n'
-                     .format(prop_indent, quotes + '>' + quotes
-                             , width=config_width))
+    if config_condition_expr:
+        cmake_file.write('{0}{1}\n'.format(config_indent, quotes + '>' + quotes))
 
 
 def get_str_value_from_property_value(property_value, separator):
@@ -191,18 +179,18 @@ def write_selected_sln_setting(cmake_file,
                                settings,
                                sln_setting_2_project_setting,
                                sln_setting,
-                               property_name,
                                has_property_value,
-                               begin_text,
-                               indent,
                                command_indent,
                                sln_conf,
                                config_expressions,
-                               write_setting_property_func,
                                max_config_condition_width,
-                               separator,
-                               in_quotes,
+                               **kwargs
                                ):
+
+    begin_text = kwargs['begin_text']
+    property_name = kwargs['property_name']
+    indent = kwargs['indent']
+    write_setting_property_func = kwargs['write_setting_property_func']
 
     mapped_setting = settings[sln_setting_2_project_setting[sln_setting]]
     if property_name in mapped_setting:
@@ -222,19 +210,21 @@ def write_selected_sln_setting(cmake_file,
                                         config_condition_expr,
                                         mapped_setting[property_name],
                                         max_config_condition_width,
-                                        separator=separator,
-                                        quotes=in_quotes,
-                                        property_name=property_name)
+                                        **kwargs
+                                        )
     return has_property_value
 
 
 def write_footer_of_settings(cmake_file,
-                             indent,
                              command_indent,
                              config_expressions,
-                             end_text,
                              has_property_value,
-                             default):
+                             **kwargs):
+
+    default = kwargs['default']
+    end_text = kwargs['end_text']
+    indent = kwargs['indent']
+
     if has_property_value:
         if default:
             cmake_file.write('{0}    $<$<NOT:$<OR:{1}>>:{2}>\n'
@@ -249,13 +239,7 @@ def write_footer_of_settings(cmake_file,
 # pylint: disable=R0913
 
 
-def write_property_of_settings(cmake_file, settings, sln_setting_2_project_setting,
-                               indent='',
-                               default=None,
-                               separator=';',
-                               in_quotes=False,
-                               write_setting_property_func=write_property_of_setting_f,
-                               **kwargs):
+def write_property_of_settings(cmake_file, settings, sln_setting_2_project_setting, **kwargs):
     """
     Write property of given settings.
 
@@ -265,47 +249,57 @@ def write_property_of_settings(cmake_file, settings, sln_setting_2_project_setti
     :type settings: dict
     :param sln_setting_2_project_setting: solution settings attached to project
     :type sln_setting_2_project_setting: dict
-    :param indent: indent to use when writing
-    :type indent: str
-    :param default: default text to add
-    :type default: None | str
-    :param separator: separator for property list
-    :type separator: ; | str
-    :param in_quotes: Enclose configuration settings in quotes
-    :type in_quotes: False | bool
-    :param write_setting_property_func: function for writing property for setting
-    :type write_setting_property_func: write_property_of_setting | lambda
     :param kwargs: begin of text
-    :type kwargs: str
+
+    kwargs:
+    indent: indent to use when writing
+    indent: str
+    default: default text to add
+    default: None | str
+    separator: separator for property list
+    separator: ; | str
+    in_quotes: Enclose configuration settings in quotes
+    in_quotes: False | bool
+    write_setting_property_func: function for writing property for setting
+    write_setting_property_func: write_property_of_setting | lambda
+
     """
 
-    begin_text = kwargs['begin_text']
-    end_text = kwargs['end_text']
     property_name = kwargs['property_name']
+
+    # defaults
+    if 'separator' not in kwargs:
+        kwargs['separator'] = ';'
+    if 'indent' not in kwargs:
+        kwargs['indent'] = ''
+    if 'default' not in kwargs:
+        kwargs['default'] = None
+    if 'in_quotes' not in kwargs:
+        kwargs['in_quotes'] = False
+    if 'write_setting_property_func' not in kwargs:
+        kwargs['write_setting_property_func'] = write_property_of_setting_f
+
+    indent = kwargs['indent']
 
     has_property_value = False
 
     command_indent = ''
     config_expressions = []
     has_property_value = write_selected_sln_setting(
-        cmake_file, settings, sln_setting_2_project_setting, (None, None), property_name,
-        has_property_value, begin_text,
-        indent,
+        cmake_file, settings, sln_setting_2_project_setting, (None, None),
+        has_property_value,
         command_indent,
         None,
         config_expressions,
-        write_setting_property_func,
         0,
-        separator,
-        in_quotes
+        **kwargs
     )
 
     write_footer_of_settings(cmake_file,
-                             indent,command_indent,
+                             command_indent,
                              config_expressions,
-                             end_text,
                              has_property_value,
-                             default)
+                             **kwargs)
 
     max_config_condition_width = 0
     settings_of_arch = OrderedDict()
@@ -344,23 +338,19 @@ def write_property_of_settings(cmake_file, settings, sln_setting_2_project_setti
                 continue
 
             has_property_value = write_selected_sln_setting(
-                cmake_file, settings, sln_setting_2_project_setting, sln_setting, property_name,
-                has_property_value, begin_text,
-                indent,
+                cmake_file, settings, sln_setting_2_project_setting, sln_setting,
+                has_property_value,
                 command_indent,
                 sln_conf,
                 config_expressions,
-                write_setting_property_func,
                 max_config_condition_width,
-                separator,
-                in_quotes
+                **kwargs
             )
         write_footer_of_settings(cmake_file,
-                                 indent,command_indent,
+                                 command_indent,
                                  config_expressions,
-                                 end_text,
                                  has_property_value,
-                                 default)
+                                 **kwargs)
     if not first_arch:
         cmake_file.write('{0}endif()\n'.format(indent))
 

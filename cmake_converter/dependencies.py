@@ -155,7 +155,7 @@ class Dependencies:
             cmake_file.write(')\n\n')
 
     @staticmethod
-    def write_target_link_dirs(cmake_file, indent, config_condition_expr,
+    def write_target_link_dirs(cmake_file, property_indent, config_condition_expr,
                                property_value, width, **kwargs):
         link_dirs_str = ''
         for link_dir in property_value:
@@ -165,7 +165,7 @@ class Dependencies:
 
         if link_dirs_str:
             cmake_file.write('{0}    CONDITION {1:>{width}} {2}\n'
-                             .format(indent, config_condition_expr, link_dirs_str,
+                             .format(property_indent, config_condition_expr, link_dirs_str,
                                      width=width))
 
     @staticmethod
@@ -218,7 +218,7 @@ class Dependencies:
             cmake_file.write('\n')
 
     @staticmethod
-    def write_property_sheets(cmake_file, indent, config_condition_expr,
+    def write_property_sheets(cmake_file, property_indent, config_condition_expr,
                               property_value, width, **kwargs):
         config = '"${CMAKE_CONFIGURATION_TYPES}" '
         width_diff = 0
@@ -234,7 +234,7 @@ class Dependencies:
                     result_width = 0
                 cmake_file.write(
                     '{}use_props(${{PROJECT_NAME}} {:<{width}}"{}")\n'.format(
-                        indent,
+                        property_indent,
                         config,
                         property_sheet_cmake,
                         width=result_width)
@@ -307,11 +307,11 @@ class Dependencies:
             )
 
     @staticmethod
-    def write_target_build_event_of_setting(cmake_file, indent, config_condition_expr,
+    def write_target_build_event_of_setting(cmake_file, property_indent, config_condition_expr,
                                             property_value, width, **kwargs):
         for command in property_value:
             cmake_file.write('{0}    COMMAND {1:>{width}} {2}\n'
-                             .format(indent, config_condition_expr, command,
+                             .format(property_indent, config_condition_expr, command,
                                      width=width))
 
     @staticmethod
@@ -334,13 +334,14 @@ class Dependencies:
             cmake_file.write('\n')
 
     @staticmethod
-    def write_file_build_event_of_setting(cmake_file, indent, config_condition_expr,
+    def write_file_build_event_of_setting(cmake_file, property_indent, config_condition_expr,
                                           property_value, width, **kwargs):
         # for command in property_value:
         if config_condition_expr is None:
             return
         cmake_file.write('{0}    COMMAND {1:>{width}} {2}\n'
-                         .format(indent, config_condition_expr, property_value['command_line'],
+                         .format(property_indent, config_condition_expr,
+                                 property_value['command_line'],
                                  width=width))
 
     @staticmethod
