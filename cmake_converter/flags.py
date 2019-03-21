@@ -109,46 +109,15 @@ class Flags:
                     .format(file, file_cl_var))
 
     @staticmethod
-    def __write_link_flags(context, cmake_file, settings_of_arch, linker_flags_key):
-        first_arch = True
-        arch_has_link_flags = False
-        for arch in settings_of_arch:
-            arch_has_link_flags |= is_settings_has_data(context.sln_configurations_map,
-                                                        context.settings, linker_flags_key, arch)
-            if not arch_has_link_flags:
-                break
-            if first_arch:
-                cmake_file.write(
-                    '    if(\"${{CMAKE_VS_PLATFORM_NAME}}\" STREQUAL \"{0}\")\n'.format(arch)
-                )
-            else:
-                cmake_file.write(
-                    '    elseif(\"${{CMAKE_VS_PLATFORM_NAME}}\" STREQUAL \"{0}\")\n'.format(arch)
-                )
-            first_arch = False
-            for sln_setting in settings_of_arch[arch]:
-                sln_conf = sln_setting[0]
-                mapped_setting_name = context.sln_configurations_map[sln_setting]
-                mapped_setting = context.settings[mapped_setting_name]
-                if mapped_setting[linker_flags_key]:
-                    configuration_type = context.settings[mapped_setting_name]['target_type']
-                    if configuration_type:
-                        if 'StaticLibrary' in configuration_type:
-                            cmake_file.write(
-                                '        set_target_properties(${{PROJECT_NAME}}'
-                                ' PROPERTIES STATIC_LIBRARY_FLAGS_{0} "{1}")\n'
-                                .format(sln_conf.upper(),
-                                        ' '.join(mapped_setting[linker_flags_key]))
-                            )
-                        else:
-                            cmake_file.write(
-                                '        set_target_properties(${{PROJECT_NAME}} PROPERTIES '
-                                'LINK_FLAGS_{0} "{1}")\n'
-                                .format(sln_conf.upper(),
-                                        ' '.join(mapped_setting[linker_flags_key]))
-                            )
-        if arch_has_link_flags:
-            cmake_file.write('    endif()\n')
+    def __write_link_flags(context, cmake_file, linker_flags_key):
+        write_property_of_settings(
+            cmake_file, context.settings, context.sln_configurations_map,
+            begin_text='target_link_options(${PROJECT_NAME} PRIVATE',
+            end_text=')',
+            property_name=linker_flags_key,
+            separator=';\n',
+            indent='    '
+        )
 
     @staticmethod
     def write_compile_and_link_flags(context, cmake_file, **kwargs):
@@ -170,17 +139,7 @@ class Flags:
         cmake_file.write('if({0}{1})\n'.format(compiler_check_str, and_os_str))
 
         Flags.__write_compile_flags(context, cmake_file, compiler_flags_key)
-
-        settings_of_arch = OrderedDict()
-        for sln_setting in context.sln_configurations_map:
-            arch = sln_setting[1]
-            if arch is None:
-                continue
-            if arch not in settings_of_arch:
-                settings_of_arch[arch] = OrderedDict()
-            settings_of_arch[arch][sln_setting] = sln_setting
-
-        Flags.__write_link_flags(context, cmake_file, settings_of_arch, linker_flags_key)
+        Flags.__write_link_flags(context, cmake_file, linker_flags_key)
 
         cmake_file.write('endif()\n\n')
 
