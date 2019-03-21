@@ -68,9 +68,6 @@ class Utils:
         conf = context.current_setting[0]
         arch = context.current_setting[1]
 
-        if arch is not None:
-            context.supported_architectures.add(arch)
-
         context.settings[(conf, arch)] = {
             'defines': [],
             'conf': conf,
@@ -315,6 +312,8 @@ def write_property_of_settings(cmake_file, settings, sln_setting_2_project_setti
             settings_of_arch[arch] = OrderedDict()
         settings_of_arch[arch][sln_setting] = sln_setting
 
+    single_arch = len(settings_of_arch) == 1
+    command_indent = ''
     first_arch = True
     for arch in settings_of_arch:
         has_data = is_settings_has_data(sln_setting_2_project_setting, settings, property_name,
@@ -322,15 +321,16 @@ def write_property_of_settings(cmake_file, settings, sln_setting_2_project_setti
         if not has_data:
             continue
 
-        if first_arch:
-            cmake_file.write('{0}if(\"${{CMAKE_VS_PLATFORM_NAME}}\" STREQUAL \"{1}\")\n'
-                             .format(indent, arch))
-        else:
-            cmake_file.write('{0}elseif(\"${{CMAKE_VS_PLATFORM_NAME}}\" STREQUAL \"{1}\")\n'
-                             .format(indent, arch))
+        if not single_arch:
+            command_indent = '    '
+            if first_arch:
+                cmake_file.write('{0}if(\"${{CMAKE_VS_PLATFORM_NAME}}\" STREQUAL \"{1}\")\n'
+                                 .format(indent, arch))
+            else:
+                cmake_file.write('{0}elseif(\"${{CMAKE_VS_PLATFORM_NAME}}\" STREQUAL \"{1}\")\n'
+                                 .format(indent, arch))
         first_arch = False
         has_property_value = False
-        command_indent = '    '
         config_expressions = []
         for sln_setting in settings_of_arch[arch]:
             sln_conf = sln_setting[0]
@@ -351,7 +351,7 @@ def write_property_of_settings(cmake_file, settings, sln_setting_2_project_setti
                                  config_expressions,
                                  has_property_value,
                                  **kwargs)
-    if not first_arch:
+    if not first_arch and not single_arch:
         cmake_file.write('{0}endif()\n'.format(indent))
 
     return not first_arch

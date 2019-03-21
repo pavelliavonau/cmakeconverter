@@ -87,7 +87,6 @@ class DataConverter:
             context.flags.write_use_pch_macro(context, cmake_file)
             write_comment(cmake_file, 'Target')
             context.flags.write_target_artifact(context, cmake_file)
-            self.write_supported_architectures_check(context, cmake_file)
             context.dependencies.write_target_property_sheets(context, cmake_file)
             context.variables.write_target_outputs(context, cmake_file)
             context.dependencies.write_include_directories(context, cmake_file)
@@ -139,22 +138,3 @@ class DataConverter:
         """
 
         cmake_file.write('cmake_minimum_required(VERSION 3.13.0 FATAL_ERROR)\n\n')
-
-    @staticmethod
-    def write_supported_architectures_check(context, cmake_file):
-        arch_list = list(context.supported_architectures)
-        arch_list.sort()
-        cmake_file.write('if(NOT (')
-        first = True
-        for arch in arch_list:
-            if first:
-                cmake_file.write('\"${{CMAKE_VS_PLATFORM_NAME}}\" STREQUAL \"{0}\"'
-                                 .format(arch))
-                first = False
-            else:
-                cmake_file.write('\n     OR \"${{CMAKE_VS_PLATFORM_NAME}}\" STREQUAL \"{0}\"'
-                                 .format(arch))
-        cmake_file.write('))\n')
-        cmake_file.write(
-            '    message(WARNING "${CMAKE_VS_PLATFORM_NAME} arch is not supported!")\n')
-        cmake_file.write('endif()\n\n')

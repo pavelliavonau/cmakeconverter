@@ -58,7 +58,7 @@ def run_conversion(subdirectory_projects_data):
     return result
 
 
-def parse_solution(sln_text):
+def parse_solution(initial_context, sln_text):
     """
     Parse given solution
 
@@ -74,7 +74,7 @@ def parse_solution(sln_text):
 
     __parse_projects_data(sln_text, solution_folders, projects_data)
 
-    __parse_configurations_of_solution(sln_text, solution_data)
+    __parse_configurations_of_solution(initial_context, sln_text, solution_data)
 
     __parse_project_configuration_platforms(sln_text, projects_data)
 
@@ -130,7 +130,7 @@ def __parse_projects_data(sln_text, solution_folders, projects_data):
         projects_data[guid] = project
 
 
-def __parse_configurations_of_solution(sln_text, solution_data):
+def __parse_configurations_of_solution(initial_context, sln_text, solution_data):
     solution_configurations_re = re.compile(
         r'GlobalSection\(SolutionConfigurationPlatforms\) = preSolution((?:.|\n)*?)EndGlobalSection'
     )
@@ -142,6 +142,7 @@ def __parse_configurations_of_solution(sln_text, solution_data):
         configurations = sln_configuration_re.findall(solution_configuration_match)
         for configuration in configurations:
             solution_data['sln_configurations'].append(configuration[0])
+            initial_context.supported_architectures.add(configuration[0].split('|')[1])
 
 
 def __parse_project_configuration_platforms(sln_text, projects_data):
@@ -265,7 +266,7 @@ def copy_cmake_utils(cmake_lists_path):
 def convert_solution(initial_context, sln_path):
 
     with open(sln_path, encoding='utf8') as sln:
-        solution_data = parse_solution(sln.read())
+        solution_data = parse_solution(initial_context, sln.read())
 
     initial_context.solution_path = os.path.dirname(sln_path)
     subdirectories_set = set()
@@ -306,6 +307,7 @@ def convert_solution(initial_context, sln_path):
     write_arch_types(sln_cmake)
 
     configuration_types_list = __get_global_configuration_types(solution_data)
+    __write_supported_architectures_check(initial_context, sln_cmake)
     __write_global_configuration_types(sln_cmake, configuration_types_list)
 
     __write_global_compile_options(initial_context, sln_cmake, configuration_types_list)
@@ -407,6 +409,25 @@ def __get_global_configuration_types(solution_data):
     configuration_types_list = list(configuration_types_set)
     configuration_types_list.sort(key=str.lower)
     return configuration_types_list
+
+
+def __write_supported_architectures_check(context, cmake_file):
+    arch_list = list(context.supported_architectures)
+    arch_list.sort()
+    cmake_file.write('if(NOT (')
+    first = True
+    for arch in arch_list:
+        if first:
+            cmake_file.write('\"${{CMAKE_VS_PLATFORM_NAME}}\" STREQUAL \"{0}\"'
+                             .format(arch))
+            first = False
+        else:
+            cmake_file.write('\n     OR \"${{CMAKE_VS_PLATFORM_NAME}}\" STREQUAL \"{0}\"'
+                             .format(arch))
+    cmake_file.write('))\n')
+    cmake_file.write(
+        '    message(FATAL_ERROR "${CMAKE_VS_PLATFORM_NAME} arch is not supported!")\n')
+    cmake_file.write('endif()\n\n')
 
 
 def __write_global_configuration_types(sln_cmake, configuration_types_list):
