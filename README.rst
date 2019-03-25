@@ -24,23 +24,23 @@ Introduction
 This project aims to facilitate the conversion of Visual Studio solution to CMake projects.
 The goal is to give to a Python script, a **\*.sln** file, and output a set of **CMakeLists.txt** that may be used for generating visual studio solution backward as perfect as possible. Project is useful for porting VS projects into crossplatform CMake build system.
 
-**Note :** Actually, it's **only works** with ``C/C++``(\*.vcxproj) and ``Fortran``(\*.vfproj) projects.
+**Note :** Actually, it's **only works** with  ``C/C++`` (\*.vcxproj) and ``Fortran`` (\*.vfproj) projects.
 
 Quick Install & Run
 -------------------
 
-You may have **Python3** installed to make this library works !
+**Python3** is required!
 
 Install from Pip
 ~~~~~~~~~~~~~~~~
 
-Install cmake-converter as a standard python library::
+Install last release of cmake-converter::
 
     # If you're under Windows, use "pip" instead "pip3"
     pip3 install cmake_converter
 
-Install from Source
-~~~~~~~~~~~~~~~~~~~
+Install from Source(the most fresh version)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Simply clone this repository and type the following command to install it::
 
@@ -66,8 +66,3 @@ Contributions to this project are welcome and encouraged ...
 Issues in the project repository are the common way to raise an information.
 
 **Note:** if you have an issue, please provide me if possible the visual studio project involved.
-
-For QMake
----------
-
-If you're looking for QMake to CMake, please look at `qmake2cmake <https://github.com/digitalist/qmake2cmake>`_ by *digitalist*.
