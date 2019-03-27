@@ -24,6 +24,18 @@ from cmake_converter.utils import Utils
 
 
 class VFUtils(Utils):
+
+    def lists_of_settings_to_merge(self):
+        lists = super(VFUtils, self).lists_of_settings_to_merge()
+        lists.extend(
+            [
+                'ifort_cl_win',
+                'ifort_cl_unix',
+                'ifort_ln'
+            ]
+        )
+        return lists
+
     def init_context_current_setting(self, context):
         """
         Define settings of converter.
@@ -33,12 +45,11 @@ class VFUtils(Utils):
         """
 
         super(VFUtils, self).init_context_current_setting(context)
+        for l in self.lists_of_settings_to_merge():
+            context.settings[context.current_setting][l] = []
         if None not in context.current_setting:
             context.settings[context.current_setting]['inc_dirs'] = ['${CMAKE_CURRENT_SOURCE_DIR}/']
         context.settings[context.current_setting]['inc_dirs_list'] = ['./']
-        context.settings[context.current_setting]['ifort_cl_win'] = []
-        context.settings[context.current_setting]['ifort_cl_unix'] = []
-        context.settings[context.current_setting]['ifort_ln'] = []
         context.settings[context.current_setting]['assume_args'] = []
         context.settings[context.current_setting]['warn_args'] = []
         context.settings[context.current_setting]['check_args'] = []

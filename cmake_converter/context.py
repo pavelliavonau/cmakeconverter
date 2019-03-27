@@ -69,7 +69,7 @@ class Context:
         self.source_groups = {}
         self.file_contexts = OrderedDict()
         self.supported_architectures = set()
-        self.settings = {}
+        self.settings = OrderedDict()
         self.current_setting = (None, None)  # (conf, arch)
         # helpers
         self.parser = None

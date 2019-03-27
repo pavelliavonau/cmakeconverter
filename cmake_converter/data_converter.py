@@ -27,6 +27,7 @@
 """
 
 import os
+from collections import OrderedDict
 
 from cmake_converter.data_files import get_cmake_lists
 from cmake_converter.flags import Flags
@@ -65,7 +66,76 @@ class DataConverter:
                 'warn'
             )
 
-    def write_data(self, context, cmake_file):
+    @staticmethod
+    def merge_data_settings(context):
+        """
+
+        :param context:
+        :return:
+        """
+        for arch in context.supported_architectures:
+            context.settings[(None, arch)] = {}
+            context.current_setting = (None, arch)
+            context.utils.init_context_current_setting(context)
+            merged_settings = context.settings[(None, arch)]
+
+            for key in context.utils.lists_of_settings_to_merge():
+                lists_of_items_to_merge = OrderedDict()
+                set_of_items = set()
+
+                # get intersection pass
+                for setting in context.settings:
+                    if key not in context.settings[setting] \
+                            or setting[1] != arch \
+                            or setting[0] is None:
+                        continue
+                    settings_list = context.settings[setting][key]
+                    if not lists_of_items_to_merge:  # first pass
+                        set_of_items = set(settings_list)
+
+                    lists_of_items_to_merge[setting] = settings_list
+                    set_of_items = set_of_items.intersection(set(context.settings[setting][key]))
+
+                # removing common settings from configurations
+                for setting in lists_of_items_to_merge:
+                    settings_list = lists_of_items_to_merge[setting]
+                    result_settings_list = []
+                    for element in settings_list:
+                        if element not in set_of_items:
+                            result_settings_list.append(element)
+                    context.settings[setting][key] = result_settings_list
+
+                # get order of common settings pass
+                merged_order_list = []
+                i = 0
+                while True:
+                    out_of_bounds = 0
+                    for setting in lists_of_items_to_merge:
+                        settings_list = lists_of_items_to_merge[setting]
+                        if i < len(settings_list):
+                            merged_order_list.append(settings_list[i])
+                        else:
+                            out_of_bounds += 1
+
+                    if out_of_bounds == len(lists_of_items_to_merge):
+                        break
+                    i += 1
+
+                # getting ordered common settings
+                common_ordered_list = []
+                for element in merged_order_list:
+                    if element in set_of_items:
+                        common_ordered_list.append(element)
+                        set_of_items.remove(element)
+                        if not set_of_items:
+                            break
+
+                merged_settings[key] = common_ordered_list
+
+            context.sln_configurations_map[(None, arch)] = (None, arch)
+
+    @staticmethod
+    def write_data(context, cmake_file):
         """
         Write data defined in converter.
 
@@ -116,6 +186,7 @@ class DataConverter:
         message(context, 'Collecting data for project {0}'.format(context.vcxproj_path), '')
         self.collect_data(context)
         self.verify_data(context)
+        self.merge_data_settings(context)
         if context.dry:
             return
         if os.path.exists(context.cmake + '/CMakeLists.txt'):

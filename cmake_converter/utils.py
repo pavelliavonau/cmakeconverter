@@ -57,6 +57,15 @@ ENDC = colorama.Fore.RESET + colorama.Style.RESET_ALL
 
 class Utils:
 
+    @staticmethod
+    def lists_of_settings_to_merge():
+        return [
+            'defines',
+            'inc_dirs',
+            'target_link_dirs',
+            'PDB_OUTPUT_DIRECTORY'
+        ]
+
     def init_context_current_setting(self, context):
         """
         Define settings of converter.
@@ -68,20 +77,17 @@ class Utils:
         conf = context.current_setting[0]
         arch = context.current_setting[1]
 
-        context.settings[(conf, arch)] = {
-            'defines': [],
+        setting = (conf, arch)
+        context.settings[setting] = {
             'conf': conf,
             'arch': arch,
             'TARGET_NAME': [],
             'target_type': '',
             'OUTPUT_DIRECTORY': [],
-            'inc_dirs': [],
             'inc_dirs_list': [],
             'add_lib_deps': [],
-            'target_link_dirs': [],
             'ARCHIVE_OUTPUT_DIRECTORY': [],
             'ARCHIVE_OUTPUT_NAME': [],
-            'PDB_OUTPUT_DIRECTORY': [],
             'pre_build_events': [],
             'pre_link_events': [],
             'post_build_events': [],
@@ -301,13 +307,14 @@ def write_property_of_settings(cmake_file, settings, sln_setting_2_project_setti
     max_config_condition_width = 0
     settings_of_arch = OrderedDict()
     for sln_setting in sln_setting_2_project_setting:
-        if None in sln_setting:
+        arch = sln_setting[1]
+        if arch is None:
             continue
         conf = sln_setting[0]
-        arch = sln_setting[1]
-        length = len('$<CONFIG:{0}>'.format(conf))
-        if length > max_config_condition_width:
-            max_config_condition_width = length
+        if conf is not None:
+            length = len('$<CONFIG:{0}>'.format(conf))
+            if length > max_config_condition_width:
+                max_config_condition_width = length
         if arch not in settings_of_arch:
             settings_of_arch[arch] = OrderedDict()
         settings_of_arch[arch][sln_setting] = sln_setting

@@ -24,6 +24,17 @@ from cmake_converter.utils import Utils
 
 
 class VCXUtils(Utils):
+
+    def lists_of_settings_to_merge(self):
+        lists = super(VCXUtils, self).lists_of_settings_to_merge()
+        lists.extend(
+            [
+                'cl_flags',
+                'ln_flags'
+            ]
+        )
+        return lists
+
     def init_context_current_setting(self, context):
         """
         Define settings of converter.
@@ -33,8 +44,8 @@ class VCXUtils(Utils):
         """
 
         super(VCXUtils, self).init_context_current_setting(context)
+        for l in self.lists_of_settings_to_merge():
+            context.settings[context.current_setting][l] = []
         context.settings[context.current_setting]['inc_dirs_list'] = []
-        context.settings[context.current_setting]['cl_flags'] = []
-        context.settings[context.current_setting]['ln_flags'] = []
         context.settings[context.current_setting]['PrecompiledHeader'] = []
         context.settings[context.current_setting]['property_sheets'] = []
