@@ -31,7 +31,8 @@ class VFUtils(Utils):
             [
                 'ifort_cl_win',
                 'ifort_cl_unix',
-                'ifort_ln'
+                'ifort_ln_win',
+                'ifort_ln_unix',
             ]
         )
         return lists

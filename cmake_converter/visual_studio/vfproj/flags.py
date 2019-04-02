@@ -22,7 +22,8 @@
 
 import os
 
-from cmake_converter.flags import Flags, default_value, ifort_cl_unix, ifort_cl_win, ifort_ln
+from cmake_converter.flags import Flags, default_value, ifort_cl_unix, ifort_cl_win, ifort_ln_win, \
+    ifort_ln_unix
 from cmake_converter.utils import normalize_path, set_unix_slash, message
 
 
@@ -81,6 +82,7 @@ class FortranFlags(Flags):
             'RuntimeLibrary': self.__set_runtime_library,
             'DisableDefaultLibSearch': self.__set_disable_default_lib_search,
             'AdditionalOptions': self.__set_additional_options,
+            'GenerateDebugInformation': self.__generate_debug_information,
         }
 
     def __set_default_flags(self, context):
@@ -138,6 +140,7 @@ class FortranFlags(Flags):
             'RuntimeLibrary',
             'DisableDefaultLibSearch',
             'AdditionalOptions',
+            'GenerateDebugInformation',
         ]
         return flags_list
 
@@ -191,7 +194,8 @@ class FortranFlags(Flags):
         context_flags_data_keys = [
             ifort_cl_win,
             ifort_cl_unix,
-            ifort_ln,
+            ifort_ln_win,
+            ifort_ln_unix,
             'assume_args',
             'warn_args',
             'check_args'
@@ -907,6 +911,15 @@ class FortranFlags(Flags):
                 self.flags[flag_name][ifort_cl_unix].append(unix_option)
             message(context,
                     'Additional Options : {0}'.format(str(ready_add_opts)), '')
+
+    @staticmethod
+    def __generate_debug_information(context, flag_name, flag_value):
+        del context, flag_name, flag_value
+        flag_values = {
+            'true': {ifort_ln_win: '/DEBUG'},
+            default_value: {}
+        }
+        return flag_values
 
     @staticmethod
     def write_target_artifact(context, cmake_file):

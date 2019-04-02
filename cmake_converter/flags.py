@@ -35,7 +35,8 @@ cl_flags = 'cl_flags'               # MSVC compile flags (Windows only)
 ln_flags = 'ln_flags'               # MSVC link flags (Windows only)
 ifort_cl_win = 'ifort_cl_win'       # ifort compile flags (Windows)
 ifort_cl_unix = 'ifort_cl_unix'     # ifort compile flags (Unix)
-ifort_ln = 'ifort_ln'               # ifort link flags
+ifort_ln_win = 'ifort_ln_win'       # ifort link flags for windows
+ifort_ln_unix = 'ifort_ln_unix'     # ifort link flags for unix
 defines = 'defines'                 # compile definitions (cross platform)
 default_value = 'default_value'
 
@@ -182,14 +183,14 @@ class Flags:
                 os_check_str='WIN32',
                 compiler_check_str='${CMAKE_Fortran_COMPILER_ID} STREQUAL "Intel"',
                 compiler_flags_key=ifort_cl_win,
-                linker_flags_key=ifort_ln
+                linker_flags_key=ifort_ln_win
             )
             self.write_compile_and_link_flags(
                 context, cmake_file,
                 os_check_str='UNIX',
                 compiler_check_str='${CMAKE_Fortran_COMPILER_ID} STREQUAL "Intel"',
                 compiler_flags_key=ifort_cl_unix,
-                linker_flags_key=ifort_ln
+                linker_flags_key=ifort_ln_unix
             )
 
     @staticmethod

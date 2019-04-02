@@ -112,6 +112,7 @@ class VFParser(Parser):
             'VFFortranCompilerTool_PdbFile': self.do_nothing_attr_stub,  # TODO?
             'VFFortranCompilerTool_ParallelizerDiagLevel': self.do_nothing_attr_stub,  # obsolete?
             'VFFortranCompilerTool_VectorizerDiagLevel': self.do_nothing_attr_stub,  # obsolete?
+            'VFLinkerTool_GenerateDebugInformation': context.flags.set_flag,
             'VFLinkerTool_OutputFile': context.variables.set_output_file,
             'VFLibrarianTool_OutputFile': context.variables.set_output_file,
             'VFLinkerTool_ImportLibrary': context.variables.set_import_library,
