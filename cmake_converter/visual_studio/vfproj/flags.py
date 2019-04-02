@@ -243,7 +243,7 @@ class FortranFlags(Flags):
         flag_values = {
             'true': {'assume_args': 'underscore'},
             'false': {'assume_args': 'nounderscore'},
-            default_value: {'assume_args': 'nounderscore'}
+            default_value: {}
         }
         return flag_values
 
