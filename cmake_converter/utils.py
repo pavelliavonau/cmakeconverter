@@ -63,7 +63,8 @@ class Utils:
             'defines',
             'inc_dirs',
             'target_link_dirs',
-            'PDB_OUTPUT_DIRECTORY'
+            'PDB_OUTPUT_DIRECTORY',
+            'PDB_NAME'
         ]
 
     def init_context_current_setting(self, context):
@@ -483,13 +484,18 @@ def resolve_path_variables_of_vs(context, path_with_vars):
 def get_dir_name_with_vars(context, path):
     del context
     dirname = os.path.dirname(path)
+    file_name = os.path.basename(path)
     if not dirname:
         dirname_pattern = re.compile(r'(\$\{.*dir[^\}]*\})', re.IGNORECASE)
         m = dirname_pattern.match(path)
         if m:
             dirname = m.group(0)
 
-    return dirname
+        file_name = path.replace(dirname, '')
+
+    file_name, _ = os.path.splitext(os.path.basename(file_name))
+
+    return dirname, file_name
 
 
 def replace_vs_var_with_cmake_var(context, var):

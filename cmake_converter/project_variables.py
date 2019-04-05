@@ -31,6 +31,7 @@ import os
 from cmake_converter.utils import write_property_of_settings, is_settings_has_data
 from cmake_converter.utils import write_comment, replace_vs_vars_with_cmake_vars
 from cmake_converter.utils import cleaning_output, message, check_for_relative_in_path
+from cmake_converter.utils import set_native_slash, get_dir_name_with_vars
 
 
 class ProjectVariables:
@@ -90,6 +91,25 @@ class ProjectVariables:
                     context.settings[context.current_setting]['OUTPUT_DIRECTORY'][0],
                     context.settings[context.current_setting]['TARGET_NAME']),
                 '')
+
+    @staticmethod
+    def set_path_and_name_from_node(context, node_name, value, path_property, name_property):
+        file_path_value = value.strip()
+        if not file_path_value:
+            return
+
+        file_path_value = replace_vs_vars_with_cmake_vars(context, file_path_value)
+        file_path_value = set_native_slash(file_path_value)
+        path, name = get_dir_name_with_vars(context, file_path_value)
+        result_name = replace_vs_vars_with_cmake_vars(context, name)
+        result_path = cleaning_output(context, path)
+        result_path = check_for_relative_in_path(context, result_path)
+
+        message(context, '{} directory = {}'.format(node_name, result_path), '')
+        message(context, '{} name = {}'.format(node_name, result_name), '')
+
+        context.settings[context.current_setting][path_property] = [result_path]
+        context.settings[context.current_setting][name_property] = [result_name]
 
     @staticmethod
     def write_target_property(cmake_file,
@@ -189,4 +209,12 @@ class ProjectVariables:
             property_name='PDB_OUTPUT_DIRECTORY',
             write_setting_property_func=ProjectVariables.write_target_property
         )
-
+        # PDB_NAME doesn't support generator expressions yet (CMake 3.13)
+        # write_property_of_settings(
+        #     cmake_file, context.settings,
+        #     context.sln_configurations_map,
+        #     begin_text='set_target_properties(${PROJECT_NAME} PROPERTIES',
+        #     end_text=')',
+        #     property_name='PDB_NAME',
+        #     write_setting_property_func=ProjectVariables.write_target_property
+        # )

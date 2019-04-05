@@ -20,11 +20,7 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
-import os
-
 from cmake_converter.project_variables import ProjectVariables
-from cmake_converter.utils import cleaning_output, message, replace_vs_vars_with_cmake_vars,\
-    check_for_relative_in_path, set_native_slash
 
 
 class VFProjectVariables(ProjectVariables):
@@ -42,22 +38,13 @@ class VFProjectVariables(ProjectVariables):
 
         self.set_output_file_impl(context, output_file)
 
-    @staticmethod
-    def set_import_library(context, flag_name, import_library, node):
+    def set_import_library(self, context, flag_name, import_library, node):
         del flag_name, node
 
-        import_library_path = ''
-        import_library_name = ''
-        if import_library:
-            import_library_file = import_library
-            import_library_file = set_native_slash(import_library_file)
-            path = os.path.dirname(import_library_file)
-            name, _ = os.path.splitext(os.path.basename(import_library_file))
-            import_library_path = cleaning_output(context, path)
-            import_library_name = replace_vs_vars_with_cmake_vars(context, name)
-            import_library_path = check_for_relative_in_path(context, import_library_path)
-            message(context, 'Import library path = {0}'.format(import_library_path), '')
-            message(context, 'Import library name = {0}'.format(import_library_name), '')
-
-        context.settings[context.current_setting]['ARCHIVE_OUTPUT_DIRECTORY'] = [import_library_path]
-        context.settings[context.current_setting]['ARCHIVE_OUTPUT_NAME'] = [import_library_name]
+        self.set_path_and_name_from_node(
+            context,
+            'Import library',
+            import_library,
+            'ARCHIVE_OUTPUT_DIRECTORY',
+            'ARCHIVE_OUTPUT_NAME'
+        )
