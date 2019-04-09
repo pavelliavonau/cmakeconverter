@@ -205,21 +205,36 @@ macro(use_props TARGET CONFIGS PROPS_FILE)
 endmacro()
 
 ################################################################################
-# Macro for MSVC precompiled headers
+# Function for MSVC precompiled headers
+#     add_precompiled_header(<target> <precompiled_header> <precompiled_source>)
+# Input:
+#     target             - Target to which add precompiled header
+#     precompiled_header - Name of precompiled header
+#     precompiled_source - Name of precompiled source file
 ################################################################################
-MACRO(ADD_PRECOMPILED_HEADER PrecompiledHeader PrecompiledSource SourcesVar)
+function(add_precompiled_header TARGET PRECOMPILED_HEADER PRECOMPILED_SOURCE)
+    get_target_property(SOURCES "${TARGET}" SOURCES)
+    list(REMOVE_ITEM SOURCES "${PRECOMPILED_SOURCE}")
+
     if(MSVC)
-        list(REMOVE_ITEM ${SourcesVar} ${PrecompiledSource})
-        set(PrecompiledBinary "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.pch")
-        SET_SOURCE_FILES_PROPERTIES(${PrecompiledSource}
-                                    PROPERTIES COMPILE_OPTIONS "/Yc${PrecompiledHeader};/Fp${PrecompiledBinary}"
-                                               OBJECT_OUTPUTS "${PrecompiledBinary}")
-        SET_SOURCE_FILES_PROPERTIES(${${SourcesVar}}
-                                    PROPERTIES COMPILE_OPTIONS "/Yu${PrecompiledHeader};/Fp${PrecompiledBinary}"
-                                               OBJECT_DEPENDS "${PrecompiledBinary}")
+        set(PRECOMPILED_BINARY "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/${PROJECT_NAME}.pch")
+
+        set_source_files_properties(
+            "${PRECOMPILED_SOURCE}"
+            PROPERTIES
+            COMPILE_OPTIONS "/Yc${PRECOMPILED_HEADER};/Fp${PRECOMPILED_BINARY}"
+            OBJECT_OUTPUTS "${PRECOMPILED_BINARY}")
+
+        set_source_files_properties(
+            ${SOURCES}
+            PROPERTIES
+            COMPILE_OPTIONS "/Yu${PRECOMPILED_HEADER};/Fp${PRECOMPILED_BINARY}"
+            OBJECT_DEPENDS "${PRECOMPILED_BINARY}")
     endif()
-    LIST(INSERT ${SourcesVar} 0 ${PrecompiledSource})
-ENDMACRO(ADD_PRECOMPILED_HEADER)
+
+    list(INSERT SOURCES 0 "${PRECOMPILED_SOURCE}")
+    set_target_properties("${TARGET}" PROPERTIES SOURCES "${SOURCES}")
+endfunction()
 
 ################################################################################
 # Add compile options to source file
