@@ -838,21 +838,20 @@ class CPPFlags(Flags):
         pch_source = context.settings[setting]['PrecompiledSourceFile']
         working_path = os.path.dirname(context.vcxproj_path)
         cmake_file.write(
-            'ADD_PRECOMPILED_HEADER("{0}" "{1}" ALL_FILES)\n\n'.format(
+            'add_precompiled_header(${{PROJECT_NAME}} "{0}" "{1}")\n\n'.format(
                 os.path.basename(pch_header),
                 normalize_path(context, working_path, pch_source, False)
             )
         )
 
-    def write_use_pch_macro(self, context, cmake_file):
-        need_pch_macro = False
+    def write_use_pch_function(self, context, cmake_file):
+        need_pch = False
         any_setting = None
         for setting in context.settings:
             if self.__setting_has_pch(context, setting):
-                need_pch_macro = True
+                need_pch = True
                 any_setting = setting
                 break
 
-        if need_pch_macro:
-            cmake_file.write('# Warning: pch and target are the same for every configuration\n')
+        if need_pch:
             self.write_precompiled_headers(context, any_setting, cmake_file)
