@@ -32,6 +32,10 @@ class VCXProjectVariables(ProjectVariables):
     def set_root_namespace(context, node):
         context.root_namespace = node.text
 
+    @staticmethod
+    def set_windows_target_version(context, node):
+        context.target_windows_version = node.text
+
     def set_output_dir(self, context, node):
         self.set_output_dir_impl(context, node.text)
 

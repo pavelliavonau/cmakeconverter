@@ -63,6 +63,7 @@ class Context:
         self.cmake = ''
         self.project_name = ''
         self.root_namespace = ''
+        self.target_windows_version = ''
         self.sources = {}
         self.headers = {}
         self.other_project_files = {}

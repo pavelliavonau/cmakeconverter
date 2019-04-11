@@ -42,6 +42,7 @@ class VCXParser(Parser):
             'PlatformToolset': self.do_nothing_node_stub,
             'PropertyGroup': self.__parse_property_group,
             'RootNamespace': context.variables.set_root_namespace,
+            'WindowsTargetPlatformVersion': context.variables.set_windows_target_version,
             'ItemDefinitionGroup': self.__parse_item_definition_group,
             'Import': self._parse_nodes,
             'ClInclude': self._parse_nodes,

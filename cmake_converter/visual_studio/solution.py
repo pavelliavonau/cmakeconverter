@@ -52,7 +52,8 @@ def run_conversion(subdirectory_projects_data):
             {
                 'cmake': project_context.cmake,
                 'project_name': project_context.project_name,
-                'solution_languages': project_context.solution_languages
+                'solution_languages': project_context.solution_languages,
+                'target_windows_ver': project_context.target_windows_version
             }
         )
     return result
@@ -301,6 +302,10 @@ def convert_solution(initial_context, sln_path):
     sln_cmake = get_cmake_lists(initial_context, initial_context.solution_path)
     DataConverter.add_cmake_version_required(sln_cmake)
     sln_cmake.write(
+        'set(CMAKE_SYSTEM_VERSION {} CACHE TYPE INTERNAL FORCE)\n\n'
+        .format(initial_context.target_windows_version)
+    )
+    sln_cmake.write(
         'project({0})\n\n'.format(os.path.splitext(os.path.basename(sln_path))[0])
     )
 
@@ -400,6 +405,14 @@ def __get_info_from_results(
                 subdirectories_set.add(subdirectory)
             subdirectories_to_project_name[subdirectory] = project_result['project_name']
             initial_context.solution_languages.update(project_result['solution_languages'])
+            if initial_context.target_windows_version and \
+                    project_result['target_windows_ver'] and \
+                    initial_context.target_windows_version != project_result['target_windows_ver']:
+                message(
+                   initial_context,
+                   'CMake does not support more than 1 version of windows SDK', 'warn'
+                )
+            initial_context.target_windows_version = project_result['target_windows_ver']
 
 
 def __get_global_configuration_types(solution_data):
