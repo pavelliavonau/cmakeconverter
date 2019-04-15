@@ -412,7 +412,8 @@ def __get_info_from_results(
                    initial_context,
                    'CMake does not support more than 1 version of windows SDK', 'warn'
                 )
-            initial_context.target_windows_version = project_result['target_windows_ver']
+            if project_result['target_windows_ver']:
+                initial_context.target_windows_version = project_result['target_windows_ver']
 
 
 def __get_global_configuration_types(solution_data):
