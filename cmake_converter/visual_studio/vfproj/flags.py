@@ -525,7 +525,8 @@ class FortranFlags(Flags):
         """
         del context, flag_name, flag_value
         flag_values = {
-            'strLenArgsMixed': {ifort_cl_win: '-iface:mixed_str_len_arg'},
+            'strLenArgsMixed': {ifort_cl_win: '-iface:mixed_str_len_arg',
+                                ifort_cl_unix: '-mixed-str-len-arg'},
             default_value: {}
         }
         return flag_values
