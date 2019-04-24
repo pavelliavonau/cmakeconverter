@@ -85,6 +85,14 @@ def main():  # pragma: no cover
         dest='additional'
     )
 
+    parser.add_argument(
+        '-pi', '--private-include-directories',
+        help='use PRIVATE specifier for target_include_directories',
+        dest='private_includes',
+        default=False,
+        action='store_true'
+    )
+
     args = parser.parse_args()
 
     initial_context = Context()
@@ -109,6 +117,10 @@ def main():  # pragma: no cover
     if args.warn:
         initial_context.warn_level = int(args.warn)
     message(initial_context, 'warnings level = {}'. format(initial_context.warn_level), 'done')
+
+    if args.private_includes:
+        message(initial_context, 'include directories will be PRIVATE', 'done')
+        initial_context.private_include_directories = True
 
     convert_solution(initial_context, os.path.abspath(args.solution))
 

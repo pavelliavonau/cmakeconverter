@@ -57,9 +57,16 @@ class Dependencies:
                                             'inc_dirs')
         if has_includes:
             write_comment(cmake_file, 'Include directories')
+
+        include_directories_specifier = 'PUBLIC'
+        if context.private_include_directories:
+            include_directories_specifier = 'PRIVATE'
+
         write_property_of_settings(
             cmake_file, context.settings, context.sln_configurations_map,
-            begin_text='target_include_directories(${PROJECT_NAME} PUBLIC',
+            begin_text='target_include_directories(${{PROJECT_NAME}} {}'.format(
+                include_directories_specifier
+            ),
             end_text=')',
             property_name='inc_dirs',
             separator=';\n',
