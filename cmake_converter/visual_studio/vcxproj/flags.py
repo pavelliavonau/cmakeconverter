@@ -69,6 +69,7 @@ class CPPFlags(Flags):
             'RuntimeTypeInfo': self.__set_runtime_type_info,
             'DisableSpecificWarnings': self.__set_disable_specific_warnings,
             'ConformanceMode': self.__set_conformance_mode,
+            'LanguageStandard': self.__set_language_standard,
             'CompileAdditionalOptions': self.__set_compile_additional_options,
             'LinkAdditionalOptions': self.__set_link_additional_options,
             'ExceptionHandling': self.__set_exception_handling,
@@ -100,6 +101,7 @@ class CPPFlags(Flags):
     def __get_result_order_of_flags():
         flags_list = [
             'ConformanceMode',
+            'LanguageStandard',
             'UseDebugLibraries',
             'WholeProgramOptimization',
             'GenerateDebugInformation',
@@ -486,6 +488,24 @@ class CPPFlags(Flags):
         flag_values = {
             'true': {cl_flags: '/permissive-'},
             'false': {},
+            default_value: {}
+        }
+        return flag_values
+
+    @staticmethod
+    def __set_language_standard(context, flag_name, language_standard_node):
+        """
+        Handle LanguageStandard
+        :param context:
+        :param flag_name:
+        :param language_standard_node:
+        :return:
+        """
+        del context, flag_name, language_standard_node
+        flag_values = {
+            'stdcpp14': {cl_flags: '/std:c++14'},
+            'stdcpp17': {cl_flags: '/std:c++17'},
+            'stdcpplatest': {cl_flags: '/std:c++latest'},
             default_value: {}
         }
         return flag_values
