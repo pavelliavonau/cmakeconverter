@@ -66,3 +66,11 @@ Contributions to this project are welcome and encouraged ...
 Issues in the project repository are the common way to raise an information.
 
 **Note:** if you have an issue, please provide me if possible the visual studio project involved.
+
+Support project (Donation)
+--------------------------
+
+If you appreciate my efforts related to this project, give me a gift. I'll be glad to get some money working for free ;)
+
+.. image:: https://raw.githubusercontent.com/stefan-niedermann/paypal-donate-button/master/paypal-donate-button.png
+    :target: https://www.paypal.me/pavelliavonau?locale.x=en_US
