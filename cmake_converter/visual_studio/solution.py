@@ -34,21 +34,23 @@ from cmake_converter.utils import set_unix_slash, message, write_comment, write_
 
 
 def run_conversion(subdirectory_projects_data):
+    results = []
     for project_data in subdirectory_projects_data:
         project_context = project_data['project_context']
         name = project_context.project_number
         message(project_context, '------ Starting {} -------'.format(name), '')
-        convert_project(
+        converted = convert_project(
             project_context,
             project_data['project_abs'],
             project_data['subdirectory'],
         )
         message(project_context, '------ Exiting  {} -------'.format(name), '')
 
-    result = []
-    for project_data in subdirectory_projects_data:
+        if not converted:
+            continue
+
         project_context = project_data['project_context']
-        result.append(
+        results.append(
             {
                 'cmake': project_context.cmake,
                 'project_name': project_context.project_name,
@@ -56,7 +58,7 @@ def run_conversion(subdirectory_projects_data):
                 'target_windows_ver': project_context.target_windows_version
             }
         )
-    return result
+    return results
 
 
 def parse_solution(initial_context, sln_text):
@@ -205,10 +207,11 @@ def convert_project(context, xml_project_path, cmake_lists_destination_path):
     # Initialize Context of DataConverter
     if not context.init(xml_project_path, cmake_lists_destination_path):
         message(context, 'Unknown project type at {0}'.format(xml_project_path), 'error')
-        return
+        return False
 
     data_converter = DataConverter()
     data_converter.convert(context)
+    return True
 
 
 def set_dependencies_for_project(context, project_data):
