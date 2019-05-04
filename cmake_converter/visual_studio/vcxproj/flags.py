@@ -141,6 +141,7 @@ class CPPFlags(Flags):
 
         """
         for define in defines_node.text.split(";"):
+            define = define.strip()
             if define != '%(PreprocessorDefinitions)':
                 define = replace_vs_vars_with_cmake_vars(context, define)
                 define = define.replace('\\', '\\\\')

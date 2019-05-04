@@ -211,6 +211,7 @@ class VFParser(Parser):
     def __parse_preprocessor_definitions(context, flag_name, preprocessor_definitions_value, node):
         del flag_name, node
         for define in preprocessor_definitions_value.split(';'):
+            define = define.strip()
             context.settings[context.current_setting]['defines'].append(define)
 
     @staticmethod
