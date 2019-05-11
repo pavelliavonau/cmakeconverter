@@ -222,4 +222,4 @@ def get_cmake_lists(context, cmake_path=None, open_type='w'):
     if not os.path.exists(cmake) and open_type == 'r':
         return None
 
-    return open(cmake, open_type, newline='\n')
+    return open(cmake, open_type, newline='\n', encoding='utf-8')
