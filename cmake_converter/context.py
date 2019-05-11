@@ -55,7 +55,7 @@ class Context:
         self.additional_code = None
         self.dry = False
         self.verbose = False
-        self.warn_level = 3
+        self.warn_level = 2
         self.private_include_directories = False
 
         self.sln_configurations_map = dict()
