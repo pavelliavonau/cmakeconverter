@@ -69,6 +69,7 @@ class VCXParser(Parser):
             'OutputFile': context.variables.set_output_file,
             'ImportLibrary': context.variables.set_import_library,
             'ProgramDatabaseFile': context.variables.set_program_database_file,
+            'ProgramDataBaseFileName': context.variables.set_program_database_file,
             'OutDir': context.variables.set_output_dir,
             'TargetName': self.__parse_target_name_node,
             'UseDebugLibraries': context.flags.set_flag,
