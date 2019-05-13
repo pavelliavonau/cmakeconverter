@@ -62,6 +62,7 @@ class CPPFlags(Flags):
             'RuntimeLibrary': self.__set_runtime_library,
             'FunctionLevelLinking': self.__set_function_level_linking,
             'WarningLevel': self.__set_warning_level,
+            'SuppressStartupBanner': self.__set_suppress_startup_banner,
             'TreatWarningAsError': self.__set_warning_as_errors,
             'DebugInformationFormat': self.__set_debug_information_format,
             'CompileAs': self.__set_compile_as,
@@ -114,6 +115,7 @@ class CPPFlags(Flags):
             'RuntimeLibrary',
             'FunctionLevelLinking',
             'WarningLevel',
+            'SuppressStartupBanner',
             'TreatWarningAsError',
             'DebugInformationFormat',
             'CompileAs',
@@ -443,6 +445,25 @@ class CPPFlags(Flags):
         }
 
         return flag_values
+
+    @staticmethod
+    def __set_suppress_startup_banner(context, flag_name, node):
+        del context, flag_name
+
+        if isinstance(node, NodeStub):  # ignore default pass
+            return None
+
+        parent = node.getparent()
+        if 'ClCompile' in parent.tag:
+            return {
+                'true': {cl_flags: '/nologo'},
+                default_value: {}
+            }
+        else:
+            return {
+                'true': {ln_flags: '/NOLOGO'},
+                default_value: {}
+            }
 
     @staticmethod
     def __set_warning_as_errors(context, flag_name, node):

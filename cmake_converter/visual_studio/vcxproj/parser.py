@@ -82,6 +82,7 @@ class VCXParser(Parser):
             'RuntimeLibrary': context.flags.set_flag,
             'FunctionLevelLinking': context.flags.set_flag,
             'WarningLevel': context.flags.set_flag,
+            'SuppressStartupBanner': context.flags.set_flag,
             'TreatWarningAsError': context.flags.set_flag,
             'DebugInformationFormat': context.flags.set_flag,
             'CompileAs': context.flags.set_flag,
