@@ -124,7 +124,7 @@ class ProjectVariables:
         config = ''
         if config_condition_expr is not None:
             config = '_' + config_condition_expr.replace('$<CONFIG:', '').replace('>', '') + ' '
-            width_diff = len('$<CONFIG:>') - len('_ ')
+        width_diff = len('$<CONFIG:>') - len('_ ')
 
         if property_value:
             for property_sheet_cmake in property_value:
