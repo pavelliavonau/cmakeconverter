@@ -51,6 +51,7 @@ class CPPFlags(Flags):
             'WholeProgramOptimization': self.__set_whole_program_optimization,
             #   linking
             'GenerateDebugInformation': self.__set_generate_debug_information,
+            'DataExecutionPrevention': self.__data_execution_prevention,
             'LinkIncremental': self.__set_link_incremental,
             # from definition_groups
             #   compilation
@@ -106,6 +107,7 @@ class CPPFlags(Flags):
             'UseDebugLibraries',
             'WholeProgramOptimization',
             'GenerateDebugInformation',
+            'DataExecutionPrevention',
             'LinkIncremental',
             'Optimization',
             'InlineFunctionExpansion',
@@ -746,6 +748,21 @@ class CPPFlags(Flags):
             'true': {ln_flags: '/DEBUG'},
             'false': {},
             default_value: {ln_flags: '/DEBUG:FULL'}
+        }
+
+        return flag_values
+
+    @staticmethod
+    def __data_execution_prevention(context, flag_name, node):
+        """
+        Set DataExecutionPrevention flag: /NXCOMPAT
+
+        """
+        del context, flag_name, node
+        flag_values = {
+            'true': {ln_flags: '/NXCOMPAT'},
+            'false': {ln_flags: '/NXCOMPAT:NO'},
+            default_value: {}
         }
 
         return flag_values
