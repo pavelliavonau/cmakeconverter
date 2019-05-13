@@ -42,6 +42,7 @@ class VCXParser(Parser):
             'PlatformToolset': self.do_nothing_node_stub,
             'PropertyGroup': self.__parse_property_group,
             'RootNamespace': context.variables.set_root_namespace,
+            '_ProjectFileVersion': self.do_nothing_node_stub,
             'WindowsTargetPlatformVersion': context.variables.set_windows_target_version,
             'ItemDefinitionGroup': self.__parse_item_definition_group,
             'Import': self._parse_nodes,
@@ -106,6 +107,8 @@ class VCXParser(Parser):
     def get_attribute_handlers_dict(self, context):
         attributes_handlers = {
             'ItemGroup_Label': self.do_nothing_attr_stub,
+            'PropertyGroup_Label': self.do_nothing_attr_stub,
+            'Import_Label': self.do_nothing_attr_stub,
             'Import_Project': context.dependencies.add_target_property_sheet,
             'ImportGroup_Label': self.__parse_import_group_label,
             'ProjectConfiguration_Include': self.__parse_project_configuration_include,
