@@ -41,6 +41,7 @@ class VCXParser(Parser):
             'CharacterSet': context.flags.set_character_set,
             'PlatformToolset': self.do_nothing_node_stub,
             'PropertyGroup': self.__parse_property_group,
+            'ProjectGuid': self.do_nothing_node_stub,
             'RootNamespace': context.variables.set_root_namespace,
             '_ProjectFileVersion': self.do_nothing_node_stub,
             'WindowsTargetPlatformVersion': context.variables.set_windows_target_version,
