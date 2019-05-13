@@ -51,7 +51,8 @@ class CPPFlags(Flags):
             'WholeProgramOptimization': self.__set_whole_program_optimization,
             #   linking
             'GenerateDebugInformation': self.__set_generate_debug_information,
-            'DataExecutionPrevention': self.__data_execution_prevention,
+            'DataExecutionPrevention': self.__set_data_execution_prevention,
+            'RandomizedBaseAddress': self.__set_randomized_base_address,
             'LinkIncremental': self.__set_link_incremental,
             # from definition_groups
             #   compilation
@@ -108,6 +109,7 @@ class CPPFlags(Flags):
             'WholeProgramOptimization',
             'GenerateDebugInformation',
             'DataExecutionPrevention',
+            'RandomizedBaseAddress',
             'LinkIncremental',
             'Optimization',
             'InlineFunctionExpansion',
@@ -753,7 +755,7 @@ class CPPFlags(Flags):
         return flag_values
 
     @staticmethod
-    def __data_execution_prevention(context, flag_name, node):
+    def __set_data_execution_prevention(context, flag_name, node):
         """
         Set DataExecutionPrevention flag: /NXCOMPAT
 
@@ -762,6 +764,21 @@ class CPPFlags(Flags):
         flag_values = {
             'true': {ln_flags: '/NXCOMPAT'},
             'false': {ln_flags: '/NXCOMPAT:NO'},
+            default_value: {}
+        }
+
+        return flag_values
+
+    @staticmethod
+    def __set_randomized_base_address(context, flag_name, node):
+        """
+        Set RandomizedBaseAddress flag: /DYNAMICBASE
+
+        """
+        del context, flag_name, node
+        flag_values = {
+            'true': {ln_flags: '/DYNAMICBASE'},
+            'false': {ln_flags: '/DYNAMICBASE:NO'},
             default_value: {}
         }
 

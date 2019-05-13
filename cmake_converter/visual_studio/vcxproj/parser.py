@@ -77,6 +77,7 @@ class VCXParser(Parser):
             'GenerateDebugInformation': context.flags.set_flag,
             'LinkIncremental': context.flags.set_flag,
             'DataExecutionPrevention': context.flags.set_flag,
+            'RandomizedBaseAddress': context.flags.set_flag,
             'Optimization': context.flags.set_flag,
             'InlineFunctionExpansion': context.flags.set_flag,
             'IntrinsicFunctions': context.flags.set_flag,
