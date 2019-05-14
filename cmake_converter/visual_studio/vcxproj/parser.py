@@ -44,6 +44,9 @@ class VCXParser(Parser):
             'ProjectGuid': self.do_nothing_node_stub,
             'RootNamespace': context.variables.set_root_namespace,
             '_ProjectFileVersion': self.do_nothing_node_stub,
+            'CodeAnalysisRuleSet': self.do_nothing_node_stub,         # no support in CMake
+            'CodeAnalysisRules': self.do_nothing_node_stub,           # no support in CMake
+            'CodeAnalysisRuleAssemblies': self.do_nothing_node_stub,  # no support in CMake
             'WindowsTargetPlatformVersion': context.variables.set_windows_target_version,
             'ItemDefinitionGroup': self.__parse_item_definition_group,
             'Import': self._parse_nodes,
