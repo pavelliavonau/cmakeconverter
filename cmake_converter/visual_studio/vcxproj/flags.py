@@ -24,7 +24,7 @@ import re
 import os
 
 from cmake_converter.flags import Flags, defines, cl_flags, default_value, ln_flags
-from cmake_converter.utils import take_name_from_list_case_ignore, normalize_path
+from cmake_converter.utils import take_name_from_list_case_ignore, normalize_path, cleaning_output
 from cmake_converter.utils import set_unix_slash, message, replace_vs_vars_with_cmake_vars
 
 
@@ -67,6 +67,7 @@ class CPPFlags(Flags):
             'SuppressStartupBanner': self.__set_suppress_startup_banner,
             'TreatWarningAsError': self.__set_warning_as_errors,
             'DebugInformationFormat': self.__set_debug_information_format,
+            'AssemblerListingLocation': self.__set_assembler_listing_location,
             'CompileAs': self.__set_compile_as,
             'FloatingPointModel': self.__set_floating_point_model,
             'RuntimeTypeInfo': self.__set_runtime_type_info,
@@ -122,6 +123,7 @@ class CPPFlags(Flags):
             'SuppressStartupBanner',
             'TreatWarningAsError',
             'DebugInformationFormat',
+            'AssemblerListingLocation',
             'CompileAs',
             'FloatingPointModel',
             'RuntimeTypeInfo',
@@ -719,6 +721,28 @@ class CPPFlags(Flags):
             'EditAndContinue': {cl_flags: '/ZI'},
             default_value: {}
         }
+
+        return flag_values
+
+    @staticmethod
+    def __set_assembler_listing_location(context, flag_name, node):
+        """
+        Set AssemblerListingLocation flag: /Fa
+
+        """
+        del flag_name
+        flag_values = {
+            default_value: {}
+        }
+
+        if node.text:
+            flag_values.update(
+                {
+                    node.text: {
+                        cl_flags: '/Fa{}'.format(cleaning_output(context, node.text))
+                    }
+                }
+            )
 
         return flag_values
 
