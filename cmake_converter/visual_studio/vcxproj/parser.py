@@ -67,6 +67,7 @@ class VCXParser(Parser):
             'PreprocessorDefinitions': context.flags.set_defines,
             'PrecompiledHeader': context.flags.set_flag,
             'PrecompiledHeaderFile': context.flags.set_flag,
+            'PrecompiledHeaderOutputFile': self.do_nothing_node_stub,  # no GenEx at OBJECT_OUTPUTS
             'Link': self._parse_nodes,
             'Lib': self._parse_nodes,
             'ImportGroup': self._parse_nodes,
