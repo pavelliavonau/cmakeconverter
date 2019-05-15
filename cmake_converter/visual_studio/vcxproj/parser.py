@@ -84,6 +84,8 @@ class VCXParser(Parser):
             'UseDebugLibraries': context.flags.set_flag,
             'WholeProgramOptimization': context.flags.set_flag,
             'SubSystem': context.flags.set_flag,
+            'OptimizeReferences': context.flags.set_flag,
+            'EnableCOMDATFolding': context.flags.set_flag,
             'GenerateDebugInformation': context.flags.set_flag,
             'LinkIncremental': context.flags.set_flag,
             'DataExecutionPrevention': context.flags.set_flag,

@@ -52,6 +52,8 @@ class CPPFlags(Flags):
             #   linking
             'GenerateDebugInformation': self.__set_generate_debug_information,
             'SubSystem': self.__set_sub_system,
+            'OptimizeReferences': self.__set_optimize_references,
+            'EnableCOMDATFolding': self.__set_enable_comdat_folding,
             'DataExecutionPrevention': self.__set_data_execution_prevention,
             'RandomizedBaseAddress': self.__set_randomized_base_address,
             'LinkIncremental': self.__set_link_incremental,
@@ -114,6 +116,8 @@ class CPPFlags(Flags):
             'WholeProgramOptimization',
             'GenerateDebugInformation',
             'SubSystem',
+            'OptimizeReferences',
+            'EnableCOMDATFolding',
             'DataExecutionPrevention',
             'RandomizedBaseAddress',
             'LinkIncremental',
@@ -839,6 +843,36 @@ class CPPFlags(Flags):
             'EFI ROM': {ln_flags: '/SUBSYSTEM:EFI_ROM'},
             'EFI Runtime': {ln_flags: '/SUBSYSTEM:EFI_RUNTIME_DRIVER'},
             'POSIX': {ln_flags: '/SUBSYSTEM:POSIX'},
+            default_value: {}
+        }
+
+        return flag_values
+
+    @staticmethod
+    def __set_optimize_references(context, flag_name, node):
+        """
+        Set OptimizeReferences flag: /OPT:REF
+
+        """
+        del context, flag_name, node
+        flag_values = {
+            'true': {ln_flags: '/OPT:REF'},
+            'false': {ln_flags: '/OPT:NOREF'},
+            default_value: {}
+        }
+
+        return flag_values
+
+    @staticmethod
+    def __set_enable_comdat_folding(context, flag_name, node):
+        """
+        Set EnableCOMDATFolding flag: /OPT:ICF
+
+        """
+        del context, flag_name, node
+        flag_values = {
+            'true': {ln_flags: '/OPT:ICF'},
+            'false': {ln_flags: '/OPT:NOICF'},
             default_value: {}
         }
 
