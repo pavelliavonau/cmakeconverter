@@ -69,6 +69,7 @@ class CPPFlags(Flags):
             'DebugInformationFormat': self.__set_debug_information_format,
             'AssemblerListingLocation': self.__set_assembler_listing_location,
             'AssemblerOutput': self.__set_assembler_output,
+            'ObjectFileName': self.__set_output_file_name,
             'CompileAs': self.__set_compile_as,
             'FloatingPointModel': self.__set_floating_point_model,
             'RuntimeTypeInfo': self.__set_runtime_type_info,
@@ -126,6 +127,7 @@ class CPPFlags(Flags):
             'DebugInformationFormat',
             'AssemblerListingLocation',
             'AssemblerOutput',
+            'ObjectFileName',
             'CompileAs',
             'FloatingPointModel',
             'RuntimeTypeInfo',
@@ -762,6 +764,28 @@ class CPPFlags(Flags):
             'All': {cl_flags: '/FAcs'},
             default_value: {}
         }
+
+        return flag_values
+
+    @staticmethod
+    def __set_output_file_name(context, flag_name, node):
+        """
+        Set ObjectFileName flag: /Fo
+
+        """
+        del flag_name
+        flag_values = {
+            default_value: {}
+        }
+
+        if node.text:
+            flag_values.update(
+                {
+                    node.text: {
+                        cl_flags: '/Fo{}'.format(cleaning_output(context, node.text))
+                    }
+                }
+            )
 
         return flag_values
 
