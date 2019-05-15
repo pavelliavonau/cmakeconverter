@@ -90,6 +90,7 @@ class VCXParser(Parser):
             'Optimization': context.flags.set_flag,
             'InlineFunctionExpansion': context.flags.set_flag,
             'IntrinsicFunctions': context.flags.set_flag,
+            'SDLCheck': context.flags.set_flag,
             'StringPooling': context.flags.set_flag,
             'BasicRuntimeChecks': context.flags.set_flag,
             'RuntimeLibrary': context.flags.set_flag,

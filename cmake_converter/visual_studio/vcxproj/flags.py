@@ -59,6 +59,7 @@ class CPPFlags(Flags):
             'Optimization': self.__set_optimization,
             'InlineFunctionExpansion': self.__set_inline_function_expansion,
             'IntrinsicFunctions': self.__set_intrinsic_functions,
+            'SDLCheck': self.__set_sdl_check,
             'StringPooling': self.__set_string_pooling,
             'BasicRuntimeChecks': self.__set_basic_runtime_checks,
             'RuntimeLibrary': self.__set_runtime_library,
@@ -117,6 +118,7 @@ class CPPFlags(Flags):
             'Optimization',
             'InlineFunctionExpansion',
             'IntrinsicFunctions',
+            'SDLCheck',
             'StringPooling',
             'BasicRuntimeChecks',
             'RuntimeLibrary',
@@ -678,6 +680,21 @@ class CPPFlags(Flags):
         flag_values = {
             'true': {cl_flags: '/Oi'},
             'false': {cl_flags: '/Oi-'},
+            default_value: {}
+        }
+
+        return flag_values
+
+    @staticmethod
+    def __set_sdl_check(context, flag_name, node):
+        """
+        Set SDLCheck flag: /sdl
+
+        """
+        del context, flag_name, node
+        flag_values = {
+            'true': {cl_flags: '/sdl'},
+            'false': {cl_flags: '/sdl-'},
             default_value: {}
         }
 
