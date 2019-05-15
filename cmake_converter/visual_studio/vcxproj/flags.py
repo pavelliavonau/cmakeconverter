@@ -68,6 +68,7 @@ class CPPFlags(Flags):
             'TreatWarningAsError': self.__set_warning_as_errors,
             'DebugInformationFormat': self.__set_debug_information_format,
             'AssemblerListingLocation': self.__set_assembler_listing_location,
+            'AssemblerOutput': self.__set_assembler_output,
             'CompileAs': self.__set_compile_as,
             'FloatingPointModel': self.__set_floating_point_model,
             'RuntimeTypeInfo': self.__set_runtime_type_info,
@@ -124,6 +125,7 @@ class CPPFlags(Flags):
             'TreatWarningAsError',
             'DebugInformationFormat',
             'AssemblerListingLocation',
+            'AssemblerOutput',
             'CompileAs',
             'FloatingPointModel',
             'RuntimeTypeInfo',
@@ -743,6 +745,23 @@ class CPPFlags(Flags):
                     }
                 }
             )
+
+        return flag_values
+
+    @staticmethod
+    def __set_assembler_output(context, flag_name, node):
+        """
+        Set AssemblerOutput flag: /FA
+
+        """
+        del context, flag_name, node
+        flag_values = {
+            'AssemblyCode': {cl_flags: '/FA'},
+            'AssemblyAndMachineCode': {cl_flags: '/FAc'},
+            'AssemblyAndSourceCode': {cl_flags: '/FAs'},
+            'All': {cl_flags: '/FAcs'},
+            default_value: {}
+        }
 
         return flag_values
 

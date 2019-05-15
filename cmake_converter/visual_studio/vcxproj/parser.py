@@ -73,6 +73,7 @@ class VCXParser(Parser):
             'OutputFile': context.variables.set_output_file,
             'ImportLibrary': context.variables.set_import_library,
             'AssemblerListingLocation': context.flags.set_flag,
+            'AssemblerOutput': context.flags.set_flag,
             'ProgramDatabaseFile': context.variables.set_program_database_file,
             'ProgramDataBaseFileName': context.variables.set_program_database_file,
             'OutDir': context.variables.set_output_dir,
