@@ -51,6 +51,7 @@ class CPPFlags(Flags):
             'WholeProgramOptimization': self.__set_whole_program_optimization,
             #   linking
             'GenerateDebugInformation': self.__set_generate_debug_information,
+            'SubSystem': self.__set_sub_system,
             'DataExecutionPrevention': self.__set_data_execution_prevention,
             'RandomizedBaseAddress': self.__set_randomized_base_address,
             'LinkIncremental': self.__set_link_incremental,
@@ -112,6 +113,7 @@ class CPPFlags(Flags):
             'UseDebugLibraries',
             'WholeProgramOptimization',
             'GenerateDebugInformation',
+            'SubSystem',
             'DataExecutionPrevention',
             'RandomizedBaseAddress',
             'LinkIncremental',
@@ -816,6 +818,27 @@ class CPPFlags(Flags):
         flag_values = {
             'CompileAsCpp': {cl_flags: '/TP'},
             'CompileAsC': {cl_flags: '/TC'},
+            default_value: {}
+        }
+
+        return flag_values
+
+    @staticmethod
+    def __set_sub_system(context, flag_name, node):
+        """
+        Set SubSystem flag: /SUBSYSTEM
+
+        """
+        del context, flag_name, node
+        flag_values = {
+            'Console': {ln_flags: '/SUBSYSTEM:CONSOLE'},
+            'Windows': {ln_flags: '/SUBSYSTEM:WINDOWS'},
+            'Native': {ln_flags: '/SUBSYSTEM:NATIVE'},
+            'EFI Application': {ln_flags: '/SUBSYSTEM:EFI_APPLICATION'},
+            'EFI Boot Service Driver': {ln_flags: '/SUBSYSTEM:EFI_BOOT_SERVICE_DRIVER'},
+            'EFI ROM': {ln_flags: '/SUBSYSTEM:EFI_ROM'},
+            'EFI Runtime': {ln_flags: '/SUBSYSTEM:EFI_RUNTIME_DRIVER'},
+            'POSIX': {ln_flags: '/SUBSYSTEM:POSIX'},
             default_value: {}
         }
 

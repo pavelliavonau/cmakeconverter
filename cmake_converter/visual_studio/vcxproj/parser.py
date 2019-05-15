@@ -83,6 +83,7 @@ class VCXParser(Parser):
             'TargetName': self.__parse_target_name_node,
             'UseDebugLibraries': context.flags.set_flag,
             'WholeProgramOptimization': context.flags.set_flag,
+            'SubSystem': context.flags.set_flag,
             'GenerateDebugInformation': context.flags.set_flag,
             'LinkIncremental': context.flags.set_flag,
             'DataExecutionPrevention': context.flags.set_flag,
