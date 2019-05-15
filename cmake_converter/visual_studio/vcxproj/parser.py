@@ -57,6 +57,7 @@ class VCXParser(Parser):
             'PreLinkEvent': context.dependencies.set_target_pre_link_events,
             'PostBuildEvent': context.dependencies.set_target_post_build_events,
             'ProjectReference': self._parse_nodes,
+            'Project': self.do_nothing_node_stub,  # just GUID at <ProjectReference>
             'LinkLibraryDependencies': context.dependencies.set_link_library_dependencies,
             'AdditionalIncludeDirectories': context.dependencies.set_include_dirs,
             'AdditionalDependencies': context.dependencies.set_target_additional_dependencies,
