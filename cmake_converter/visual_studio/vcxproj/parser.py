@@ -36,6 +36,7 @@ class VCXParser(Parser):
     def get_node_handlers_dict(self, context):
         node_handlers = {
             'ItemGroup': self.__parse_item_group,
+            'Target': self._parse_nodes,
             'ProjectConfiguration': self.do_nothing_node_stub,
             'ConfigurationType': self.__parse_configuration_type,
             'CharacterSet': context.flags.set_character_set,
@@ -133,6 +134,7 @@ class VCXParser(Parser):
             'None_Include': self.__parse_cl_none_include_attr,
             'Condition': self.__parse_condition,
             'ProjectReference_Include': context.dependencies.add_target_reference,
+            'Target_Name': self.__parse_target_name_attr,
         }
         return attributes_handlers
 
@@ -263,4 +265,11 @@ class VCXParser(Parser):
             self.reset_current_setting_after_parsing_node(node)
         else:
             context.current_setting = (None, None)
+            raise StopParseException()
+
+    @staticmethod
+    def __parse_target_name_attr(context, attr_name, target_name_value, node):
+        del context, attr_name, node
+
+        if target_name_value == 'EnsureNuGetPackageBuildImports':
             raise StopParseException()
