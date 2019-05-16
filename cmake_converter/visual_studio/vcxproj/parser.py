@@ -54,6 +54,7 @@ class VCXParser(Parser):
             'ClInclude': self._parse_nodes,
             'ClCompile': self._parse_nodes,
             'None': self._parse_nodes,
+            'SubType': self.do_nothing_node_stub,  # no support in CMake
             'PreBuildEvent': context.dependencies.set_target_pre_build_events,
             'PreLinkEvent': context.dependencies.set_target_pre_link_events,
             'PostBuildEvent': context.dependencies.set_target_post_build_events,
