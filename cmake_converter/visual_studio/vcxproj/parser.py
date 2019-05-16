@@ -56,6 +56,7 @@ class VCXParser(Parser):
             'ClInclude': self._parse_nodes,
             'ClCompile': self._parse_nodes,
             'None': self._parse_nodes,
+            'Text': self._parse_nodes,
             'SubType': self.do_nothing_node_stub,  # no support in CMake
             'PreBuildEvent': context.dependencies.set_target_pre_build_events,
             'PreLinkEvent': context.dependencies.set_target_pre_link_events,
@@ -136,6 +137,7 @@ class VCXParser(Parser):
             'ClCompile_Include': self.__parse_cl_compile_include_attr,
             'ClInclude_Include': self.__parse_cl_include_include_attr,
             'None_Include': self.__parse_cl_none_include_attr,
+            'Text_Include': self.__parse_cl_none_include_attr,
             'Condition': self.__parse_condition,
             'ProjectReference_Include': context.dependencies.add_target_reference,
             'Target_Name': self.__parse_target_name_attr,
