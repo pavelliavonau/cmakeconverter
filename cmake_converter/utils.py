@@ -510,7 +510,7 @@ def replace_vs_var_with_cmake_var(context, var):
         '$(RootNamespace)': '${ROOT_NAMESPACE}',
         '$(OutDir)': '${OUTPUT_DIRECTORY}',
         '$(OUTDIR)': '${OUTPUT_DIRECTORY}',
-        '$(IntDir)': '${CMAKE_CFG_INTDIR}',
+        '$(IntDir)': '${CMAKE_CURRENT_BINARY_DIR}\\${CMAKE_CFG_INTDIR}\\',
         '$(TargetDir)': '${OUTPUT_DIRECTORY}',
         '$(TargetName)': '${TARGET_NAME}',
         '$(TargetFileName)': '$<TARGET_FILE_NAME:${TARGET_NAME}>',
