@@ -220,9 +220,11 @@ class VCXParser(Parser):
     def __parse_cl_none_include_attr(self, context, attr_name, value, none_node):
         del attr_name, value
 
-        self.__parse_file_nodes(context, context.other_project_files, none_node, '')
         if 'packages.config' in none_node.attrib['Include']:
             context.packages_config_path = none_node.attrib['Include']
+        else:
+            self.__parse_file_nodes(context, context.other_project_files, none_node, '')
+
         raise StopParseException()
 
     def __parse_file_nodes(self, context, files_container, file_node, source_group):
