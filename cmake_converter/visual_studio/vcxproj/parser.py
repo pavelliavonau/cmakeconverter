@@ -79,7 +79,7 @@ class VCXParser(Parser):
             'AssemblerOutput': context.flags.set_flag,
             'ObjectFileName': context.flags.set_flag,
             'ProgramDatabaseFile': context.variables.set_program_database_file,
-            'ProgramDataBaseFileName': context.variables.set_program_database_file,
+            'ProgramDataBaseFileName': self.do_nothing_node_stub,  # no support of GenEx in CMake
             'OutDir': context.variables.set_output_dir,
             'TargetName': self.__parse_target_name_node,
             'UseDebugLibraries': context.flags.set_flag,
