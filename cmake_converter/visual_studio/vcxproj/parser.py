@@ -42,8 +42,10 @@ class VCXParser(Parser):
             'CharacterSet': context.flags.set_character_set,
             'PlatformToolset': self.do_nothing_node_stub,
             'PropertyGroup': self.__parse_property_group,
+            'ProjectName': self.do_nothing_node_stub,  # handled globally, ignore here
             'ProjectGuid': self.do_nothing_node_stub,
             'RootNamespace': context.variables.set_root_namespace,
+            'RestorePackages': self.do_nothing_node_stub,             # no support in CMake
             '_ProjectFileVersion': self.do_nothing_node_stub,
             'CodeAnalysisRuleSet': self.do_nothing_node_stub,         # no support in CMake
             'CodeAnalysisRules': self.do_nothing_node_stub,           # no support in CMake
@@ -81,6 +83,7 @@ class VCXParser(Parser):
             'ObjectFileName': context.flags.set_flag,
             'ProgramDatabaseFile': context.variables.set_program_database_file,
             'ProgramDataBaseFileName': self.do_nothing_node_stub,  # no support of GenEx in CMake
+            'IntDir': self.do_nothing_node_stub,  # no analog at CMake
             'OutDir': context.variables.set_output_dir,
             'TargetName': self.__parse_target_name_node,
             'UseDebugLibraries': context.flags.set_flag,
