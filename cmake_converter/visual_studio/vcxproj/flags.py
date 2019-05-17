@@ -80,6 +80,7 @@ class CPPFlags(Flags):
             'FloatingPointModel': self.__set_floating_point_model,
             'RuntimeTypeInfo': self.__set_runtime_type_info,
             'DisableSpecificWarnings': self.__set_disable_specific_warnings,
+            'SupportJustMyCode': self.__set_support_just_my_code,
             'ConformanceMode': self.__set_conformance_mode,
             'LanguageStandard': self.__set_language_standard,
             'CompileAdditionalOptions': self.__set_compile_additional_options,
@@ -113,6 +114,7 @@ class CPPFlags(Flags):
     def __get_result_order_of_flags():
         flags_list = [
             'ConformanceMode',
+            'SupportJustMyCode',
             'LanguageStandard',
             'UseDebugLibraries',
             'WholeProgramOptimization',
@@ -518,6 +520,22 @@ class CPPFlags(Flags):
                 flags.append(flag)
         self.flags[context.current_setting][flag_name][cl_flags] = flags
         message(context, 'DisableSpecificWarnings : {}'.format(';'.join(flags)), '')
+
+    @staticmethod
+    def __set_support_just_my_code(context, flag_name, node):
+        """
+        Handle SupportJustMyCode
+        :param context:
+        :param flag_name:
+        :param node:
+        :return:
+        """
+        del context, flag_name, node
+        flag_values = {
+            'true': {cl_flags: '/JMC'},
+            default_value: {}
+        }
+        return flag_values
 
     @staticmethod
     def __set_conformance_mode(context, flag_name, conformance_mode_node):
