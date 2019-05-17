@@ -197,7 +197,13 @@ class DataConverter:
         message(context, 'Writing data for project {0}'.format(context.vcxproj_path), '')
         self.write_data(context, cmake_file)
         cmake_file.close()
-        message(context, 'Conversion done   : Project {0}'.format(context.project_name), 'done')
+        warnings = ''
+        if context.warnings_count > 0:
+            warnings = ' ({} warnings)'.format(context.warnings_count)
+        message(
+            context,
+            'Conversion done   : Project {}{}'.format(context.project_name, warnings), 'done'
+        )
 
     @staticmethod
     def add_cmake_version_required(cmake_file):

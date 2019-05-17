@@ -55,7 +55,8 @@ def run_conversion(subdirectory_projects_data):
                 'cmake': project_context.cmake,
                 'project_name': project_context.project_name,
                 'solution_languages': project_context.solution_languages,
-                'target_windows_ver': project_context.target_windows_version
+                'target_windows_ver': project_context.target_windows_version,
+                'warnings_count': project_context.warnings_count
             }
         )
     return results
@@ -342,7 +343,10 @@ def convert_solution(initial_context, sln_path):
 
     sln_cmake.close()
 
-    message(initial_context, 'Conversion of solution finished', 'done')
+    warnings = ''
+    if initial_context.warnings_count > 0:
+        warnings = ' ({} warnings)'.format(initial_context.warnings_count)
+    message(initial_context, 'Conversion of solution finished{}'.format(warnings), 'done')
 
 
 def __get_input_data_for_converter(initial_context, projects_data):
@@ -417,6 +421,7 @@ def __get_info_from_results(
                 )
             if project_result['target_windows_ver']:
                 initial_context.target_windows_version = project_result['target_windows_ver']
+            initial_context.warnings_count += project_result['warnings_count']
 
 
 def __get_global_configuration_types(solution_data):
