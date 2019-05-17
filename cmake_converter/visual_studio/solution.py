@@ -50,6 +50,7 @@ def run_conversion(subdirectory_projects_data):
             continue
 
         project_context = project_data['project_context']
+        # Can't return context as a result due PicklingError
         results.append(
             {
                 'cmake': project_context.cmake,
