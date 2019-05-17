@@ -104,6 +104,7 @@ class VCXParser(Parser):
             'EnableCOMDATFolding': context.flags.set_flag,
             'GenerateDebugInformation': context.flags.set_flag,
             'LinkIncremental': context.flags.set_flag,
+            'Profile': context.flags.set_flag,
             'DataExecutionPrevention': context.flags.set_flag,
             'RandomizedBaseAddress': context.flags.set_flag,
             'Optimization': context.flags.set_flag,

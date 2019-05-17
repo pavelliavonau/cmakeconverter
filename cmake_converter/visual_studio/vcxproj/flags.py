@@ -55,6 +55,7 @@ class CPPFlags(Flags):
             'SubSystem': self.__set_sub_system,
             'OptimizeReferences': self.__set_optimize_references,
             'EnableCOMDATFolding': self.__set_enable_comdat_folding,
+            'Profile': self.__set_profile,
             'DataExecutionPrevention': self.__set_data_execution_prevention,
             'RandomizedBaseAddress': self.__set_randomized_base_address,
             'LinkIncremental': self.__set_link_incremental,
@@ -120,6 +121,7 @@ class CPPFlags(Flags):
             'SubSystem',
             'OptimizeReferences',
             'EnableCOMDATFolding',
+            'Profile',
             'DataExecutionPrevention',
             'RandomizedBaseAddress',
             'LinkIncremental',
@@ -908,6 +910,20 @@ class CPPFlags(Flags):
             'true': {ln_flags: '/DEBUG'},
             'false': {},
             default_value: {ln_flags: '/DEBUG:FULL'}
+        }
+
+        return flag_values
+
+    @staticmethod
+    def __set_profile(context, flag_name, node):
+        """
+        Set DataExecutionPrevention flag: /NXCOMPAT
+
+        """
+        del context, flag_name, node
+        flag_values = {
+            'true': {ln_flags: '/PROFILE'},
+            default_value: {}
         }
 
         return flag_values
