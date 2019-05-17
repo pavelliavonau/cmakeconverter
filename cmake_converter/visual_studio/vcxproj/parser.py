@@ -123,6 +123,7 @@ class VCXParser(Parser):
             'FloatingPointModel': context.flags.set_flag,
             'RuntimeTypeInfo': context.flags.set_flag,
             'DisableSpecificWarnings': context.flags.set_flag,
+            'EnablePREfast': self.do_nothing_node_stub,     # no support from CMake
             'SupportJustMyCode': context.flags.set_flag,
             'ConformanceMode': context.flags.set_flag,
             'LanguageStandard': context.flags.set_flag,
