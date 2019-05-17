@@ -50,6 +50,10 @@ class VCXParser(Parser):
             'CodeAnalysisRuleSet': self.do_nothing_node_stub,         # no support in CMake
             'CodeAnalysisRules': self.do_nothing_node_stub,           # no support in CMake
             'CodeAnalysisRuleAssemblies': self.do_nothing_node_stub,  # no support in CMake
+            'SccProjectName': self.do_nothing_node_stub,              # no support in CMake
+            'SccAuxPath': self.do_nothing_node_stub,                  # no support in CMake
+            'SccLocalPath': self.do_nothing_node_stub,                # no support in CMake
+            'SccProvider': self.do_nothing_node_stub,                 # no support in CMake
             'WindowsTargetPlatformVersion': context.variables.set_windows_target_version,
             'ItemDefinitionGroup': self.__parse_item_definition_group,
             'Import': self._parse_nodes,
