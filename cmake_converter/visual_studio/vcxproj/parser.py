@@ -89,6 +89,7 @@ class VCXParser(Parser):
             'TargetName': self.__parse_target_name_node,
             'UseDebugLibraries': context.flags.set_flag,
             'WholeProgramOptimization': context.flags.set_flag,
+            'ImageHasSafeExceptionHandlers': context.flags.set_flag,
             'SubSystem': context.flags.set_flag,
             'OptimizeReferences': context.flags.set_flag,
             'EnableCOMDATFolding': context.flags.set_flag,

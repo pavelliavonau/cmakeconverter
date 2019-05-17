@@ -51,6 +51,7 @@ class CPPFlags(Flags):
             'WholeProgramOptimization': self.__set_whole_program_optimization,
             #   linking
             'GenerateDebugInformation': self.__set_generate_debug_information,
+            'ImageHasSafeExceptionHandlers': self.__set_image_has_safe_exception_handlers,
             'SubSystem': self.__set_sub_system,
             'OptimizeReferences': self.__set_optimize_references,
             'EnableCOMDATFolding': self.__set_enable_comdat_folding,
@@ -115,6 +116,7 @@ class CPPFlags(Flags):
             'UseDebugLibraries',
             'WholeProgramOptimization',
             'GenerateDebugInformation',
+            'ImageHasSafeExceptionHandlers',
             'SubSystem',
             'OptimizeReferences',
             'EnableCOMDATFolding',
@@ -822,6 +824,21 @@ class CPPFlags(Flags):
         flag_values = {
             'CompileAsCpp': {cl_flags: '/TP'},
             'CompileAsC': {cl_flags: '/TC'},
+            default_value: {}
+        }
+
+        return flag_values
+
+    @staticmethod
+    def __set_image_has_safe_exception_handlers(context, flag_name, node):
+        """
+        Set ImageHasSafeExceptionHandlers flag: /SAFESEH
+
+        """
+        del context, flag_name, node
+        flag_values = {
+            'false': {ln_flags: '/SAFESEH:NO'},
+            'true': {ln_flags: '/SAFESEH'},
             default_value: {}
         }
 
