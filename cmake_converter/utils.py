@@ -89,6 +89,7 @@ class Utils:
             'add_lib_deps': [],
             'ARCHIVE_OUTPUT_DIRECTORY': [],
             'ARCHIVE_OUTPUT_NAME': [],
+            'VS_GLOBAL_KEYWORD': [],
             'pre_build_events': [],
             'pre_link_events': [],
             'post_build_events': [],

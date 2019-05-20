@@ -123,8 +123,8 @@ class ProjectVariables:
 
         config = ''
         if config_condition_expr is not None:
-            config = '_' + config_condition_expr.replace('$<CONFIG:', '').replace('>', '') + ' '
-        width_diff = len('$<CONFIG:>') - len('_ ')
+            config = '_' + config_condition_expr.replace('$<CONFIG:', '').replace('>', '')
+        width_diff = len('$<CONFIG:>') - len('_')
 
         if property_value:
             for property_sheet_cmake in property_value:
@@ -132,7 +132,7 @@ class ProjectVariables:
                 if result_width < 0:
                     result_width = 0
                 cmake_file.write(
-                    '{}    {}{:<{width}}"{}"\n'.format(
+                    '{}    {}{:<{width}} "{}"\n'.format(
                         property_indent,
                         property_name,
                         config.upper(),
@@ -156,6 +156,15 @@ class ProjectVariables:
 
         if context.root_namespace:
             cmake_file.write('set(ROOT_NAMESPACE {})\n\n'.format(context.root_namespace))
+
+        write_property_of_settings(
+            cmake_file, context.settings,
+            context.sln_configurations_map,
+            begin_text='set_target_properties(${PROJECT_NAME} PROPERTIES',
+            end_text=')',
+            property_name='VS_GLOBAL_KEYWORD',
+            write_setting_property_func=ProjectVariables.write_target_property
+        )
 
         if is_settings_has_data(context.sln_configurations_map,
                                 context.settings,

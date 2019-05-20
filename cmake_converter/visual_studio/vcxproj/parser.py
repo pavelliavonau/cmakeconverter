@@ -45,6 +45,7 @@ class VCXParser(Parser):
             'ProjectName': self.do_nothing_node_stub,  # handled globally, ignore here
             'ProjectGuid': self.do_nothing_node_stub,
             'RootNamespace': context.variables.set_root_namespace,
+            'Keyword': context.variables.set_keyword,
             'RestorePackages': self.do_nothing_node_stub,             # no support in CMake
             '_ProjectFileVersion': self.do_nothing_node_stub,
             'CodeAnalysisRuleSet': self.do_nothing_node_stub,         # no support in CMake

@@ -33,6 +33,10 @@ class VCXProjectVariables(ProjectVariables):
         context.root_namespace = node.text
 
     @staticmethod
+    def set_keyword(context, node):
+        context.settings[context.current_setting]['VS_GLOBAL_KEYWORD'] = [node.text]
+
+    @staticmethod
     def set_windows_target_version(context, node):
         context.target_windows_version = node.text
 
