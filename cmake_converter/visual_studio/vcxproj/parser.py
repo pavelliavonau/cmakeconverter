@@ -129,6 +129,7 @@ class VCXParser(Parser):
             'LanguageStandard': context.flags.set_flag,
             'AdditionalOptions': self.__parse_additional_options,
             'ExceptionHandling': context.flags.set_flag,
+            'ControlFlowGuard': context.flags.set_flag,
             'BufferSecurityCheck': context.flags.set_flag,
             'DiagnosticsFormat': context.flags.set_flag,
             'DisableLanguageExtensions': context.flags.set_flag,

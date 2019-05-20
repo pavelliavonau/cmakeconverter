@@ -86,6 +86,7 @@ class CPPFlags(Flags):
             'CompileAdditionalOptions': self.__set_compile_additional_options,
             'LinkAdditionalOptions': self.__set_link_additional_options,
             'ExceptionHandling': self.__set_exception_handling,
+            'ControlFlowGuard': self.__set_control_flow_guard,
             'BufferSecurityCheck': self.__set_buffer_security_check,
             'DiagnosticsFormat': self.__set_diagnostics_format,
             'DisableLanguageExtensions': self.__set_disable_language_extensions,
@@ -150,6 +151,7 @@ class CPPFlags(Flags):
             'LinkAdditionalOptions',
             'ExceptionHandling',
             'BufferSecurityCheck',
+            'ControlFlowGuard',
             'DiagnosticsFormat',
             'DisableLanguageExtensions',
             'TreatWChar_tAsBuiltInType',
@@ -1021,6 +1023,20 @@ class CPPFlags(Flags):
         flag_values = {
             'false': {cl_flags: '/GS-'},
             'true': {cl_flags: '/GS'},
+            default_value: {}
+        }
+
+        return flag_values
+
+    @staticmethod
+    def __set_control_flow_guard(context, flag_name, node):
+        """
+        Set ControlFlowGuard flag: /guard:cf
+
+        """
+        del context, flag_name, node
+        flag_values = {
+            'Guard': {cl_flags: '/guard:cf'},
             default_value: {}
         }
 
