@@ -48,6 +48,7 @@ class VCXParser(Parser):
             'Keyword': context.variables.set_keyword,
             'RestorePackages': self.do_nothing_node_stub,             # no support in CMake
             '_ProjectFileVersion': self.do_nothing_node_stub,
+            'VCProjectVersion': self.do_nothing_node_stub,
             'CodeAnalysisRuleSet': self.do_nothing_node_stub,         # no support in CMake
             'CodeAnalysisRules': self.do_nothing_node_stub,           # no support in CMake
             'CodeAnalysisRuleAssemblies': self.do_nothing_node_stub,  # no support in CMake
