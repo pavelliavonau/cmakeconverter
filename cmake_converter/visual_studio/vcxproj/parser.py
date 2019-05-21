@@ -88,6 +88,7 @@ class VCXParser(Parser):
             'Link': self._parse_nodes,
             'Lib': self._parse_nodes,
             'ImportGroup': self._parse_nodes,
+            'ProjectExtensions': self.do_nothing_node_stub,  # no support in CMake
             'OutputFile': context.variables.set_output_file,
             'ImportLibrary': context.variables.set_import_library,
             'AssemblerListingLocation': context.flags.set_flag,
