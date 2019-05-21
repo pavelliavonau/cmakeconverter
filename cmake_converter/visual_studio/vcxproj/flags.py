@@ -50,6 +50,7 @@ class CPPFlags(Flags):
             'UseDebugLibraries': self.__set_use_debug_libraries,
             'WholeProgramOptimization': self.__set_whole_program_optimization,
             #   linking
+            'StackReserveSize': self.__set_stack_reserve_size,
             'GenerateDebugInformation': self.__set_generate_debug_information,
             'ImageHasSafeExceptionHandlers': self.__set_image_has_safe_exception_handlers,
             'SubSystem': self.__set_sub_system,
@@ -119,6 +120,7 @@ class CPPFlags(Flags):
             'LanguageStandard',
             'UseDebugLibraries',
             'WholeProgramOptimization',
+            'StackReserveSize',
             'GenerateDebugInformation',
             'ImageHasSafeExceptionHandlers',
             'SubSystem',
@@ -931,6 +933,28 @@ class CPPFlags(Flags):
             'false': {},
             default_value: {ln_flags: '/DEBUG:FULL'}
         }
+
+        return flag_values
+
+    @staticmethod
+    def __set_stack_reserve_size(context, flag_name, node):
+        """
+        Set StackReserveSize flag: /STACK
+
+        """
+        del context, flag_name
+        flag_values = {
+            default_value: {}
+        }
+
+        if node.text:
+            flag_values.update(
+                {
+                    node.text: {
+                        ln_flags: '/STACK:{}'.format(node.text)
+                    }
+                }
+            )
 
         return flag_values
 
