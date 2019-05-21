@@ -69,6 +69,7 @@ class CPPFlags(Flags):
             'SDLCheck': self.__set_sdl_check,
             'StringPooling': self.__set_string_pooling,
             'BasicRuntimeChecks': self.__set_basic_runtime_checks,
+            'CompileAsManaged': self.__set_compile_as_managed,
             'RuntimeLibrary': self.__set_runtime_library,
             'FunctionLevelLinking': self.__set_function_level_linking,
             'WarningLevel': self.__set_warning_level,
@@ -138,6 +139,7 @@ class CPPFlags(Flags):
             'SDLCheck',
             'StringPooling',
             'BasicRuntimeChecks',
+            'CompileAsManaged',
             'RuntimeLibrary',
             'FunctionLevelLinking',
             'WarningLevel',
@@ -615,6 +617,22 @@ class CPPFlags(Flags):
             'StackFrameRuntimeCheck': {cl_flags: '/RTCs'},
             'UninitializedLocalUsageCheck': {cl_flags: '/RTCu'},
             'EnableFastChecks': {cl_flags: '/RTC1'},
+            default_value: {}
+        }
+
+        return flag_values
+
+    @staticmethod
+    def __set_compile_as_managed(context, flag_name, node):
+        """
+        Set CompileAsManaged flag: /clr*
+
+        """
+        del context, flag_name, node
+        flag_values = {
+            'Pure': {cl_flags: '/clr:pure'},
+            'Safe': {cl_flags: '/clr:safe'},
+            'true': {cl_flags: '/clr'},
             default_value: {}
         }
 
