@@ -69,6 +69,7 @@ class CPPFlags(Flags):
             'SDLCheck': self.__set_sdl_check,
             'StringPooling': self.__set_string_pooling,
             'BasicRuntimeChecks': self.__set_basic_runtime_checks,
+            'ShowIncludes': self.__set_show_includes,
             'CompileAsManaged': self.__set_compile_as_managed,
             'RuntimeLibrary': self.__set_runtime_library,
             'FunctionLevelLinking': self.__set_function_level_linking,
@@ -139,6 +140,7 @@ class CPPFlags(Flags):
             'SDLCheck',
             'StringPooling',
             'BasicRuntimeChecks',
+            'ShowIncludes',
             'CompileAsManaged',
             'RuntimeLibrary',
             'FunctionLevelLinking',
@@ -617,6 +619,20 @@ class CPPFlags(Flags):
             'StackFrameRuntimeCheck': {cl_flags: '/RTCs'},
             'UninitializedLocalUsageCheck': {cl_flags: '/RTCu'},
             'EnableFastChecks': {cl_flags: '/RTC1'},
+            default_value: {}
+        }
+
+        return flag_values
+
+    @staticmethod
+    def __set_show_includes(context, flag_name, node):
+        """
+        Set ShowIncludes flag: /showIncludes*
+
+        """
+        del context, flag_name, node
+        flag_values = {
+            'true': {cl_flags: '/showIncludes'},
             default_value: {}
         }
 
