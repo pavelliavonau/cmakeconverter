@@ -50,6 +50,7 @@ class CPPFlags(Flags):
             'UseDebugLibraries': self.__set_use_debug_libraries,
             'WholeProgramOptimization': self.__set_whole_program_optimization,
             #   linking
+            'FixedBaseAddress': self.__set_fixed_base_address,
             'StackReserveSize': self.__set_stack_reserve_size,
             'GenerateDebugInformation': self.__set_generate_debug_information,
             'ImageHasSafeExceptionHandlers': self.__set_image_has_safe_exception_handlers,
@@ -120,6 +121,7 @@ class CPPFlags(Flags):
             'LanguageStandard',
             'UseDebugLibraries',
             'WholeProgramOptimization',
+            'FixedBaseAddress',
             'StackReserveSize',
             'GenerateDebugInformation',
             'ImageHasSafeExceptionHandlers',
@@ -932,6 +934,21 @@ class CPPFlags(Flags):
             'true': {ln_flags: '/DEBUG'},
             'false': {},
             default_value: {ln_flags: '/DEBUG:FULL'}
+        }
+
+        return flag_values
+
+    @staticmethod
+    def __set_fixed_base_address(context, flag_name, node):
+        """
+        Set FixedBaseAddress flag: /FIXED
+
+        """
+        del context, flag_name, node
+        flag_values = {
+            'true': {ln_flags: '/FIXED'},
+            'false': {ln_flags: '/FIXED:NO'},
+            default_value: {}
         }
 
         return flag_values

@@ -103,6 +103,7 @@ class VCXParser(Parser):
             'SubSystem': context.flags.set_flag,
             'OptimizeReferences': context.flags.set_flag,
             'EnableCOMDATFolding': context.flags.set_flag,
+            'FixedBaseAddress': context.flags.set_flag,
             'StackReserveSize': context.flags.set_flag,
             'GenerateDebugInformation': context.flags.set_flag,
             'LinkIncremental': context.flags.set_flag,
