@@ -60,6 +60,7 @@ class CPPFlags(Flags):
             'Profile': self.__set_profile,
             'DataExecutionPrevention': self.__set_data_execution_prevention,
             'RandomizedBaseAddress': self.__set_randomized_base_address,
+            'IgnoreEmbeddedIDL': self.__set_ignore_embedded_idl,
             'LinkIncremental': self.__set_link_incremental,
             # from definition_groups
             #   compilation
@@ -135,6 +136,7 @@ class CPPFlags(Flags):
             'DataExecutionPrevention',
             'RandomizedBaseAddress',
             'LinkIncremental',
+            'IgnoreEmbeddedIDL',
             'Optimization',
             'InlineFunctionExpansion',
             'IntrinsicFunctions',
@@ -1050,6 +1052,20 @@ class CPPFlags(Flags):
         flag_values = {
             'true': {ln_flags: '/DYNAMICBASE'},
             'false': {ln_flags: '/DYNAMICBASE:NO'},
+            default_value: {}
+        }
+
+        return flag_values
+
+    @staticmethod
+    def __set_ignore_embedded_idl(context, flag_name, node):
+        """
+        Set IgnoreEmbeddedIDL flag: /IGNOREIDL
+
+        """
+        del context, flag_name, node
+        flag_values = {
+            'true': {ln_flags: '/IGNOREIDL'},
             default_value: {}
         }
 
