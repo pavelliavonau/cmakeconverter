@@ -74,6 +74,7 @@ class CPPFlags(Flags):
             'BasicRuntimeChecks': self.__set_basic_runtime_checks,
             'ShowIncludes': self.__set_show_includes,
             'CompileAsManaged': self.__set_compile_as_managed,
+            'EnableEnhancedInstructionSet': self.__set_enable_enhanced_instruction_set,
             'CallingConvention': self.__set_calling_convention,
             'RuntimeLibrary': self.__set_runtime_library,
             'FunctionLevelLinking': self.__set_function_level_linking,
@@ -152,6 +153,7 @@ class CPPFlags(Flags):
             'BasicRuntimeChecks',
             'ShowIncludes',
             'CompileAsManaged',
+            'EnableEnhancedInstructionSet',
             'CallingConvention',
             'RuntimeLibrary',
             'FunctionLevelLinking',
@@ -678,6 +680,24 @@ class CPPFlags(Flags):
             'Pure': {cl_flags: '/clr:pure'},
             'Safe': {cl_flags: '/clr:safe'},
             'true': {cl_flags: '/clr'},
+            default_value: {}
+        }
+
+        return flag_values
+
+    @staticmethod
+    def __set_enable_enhanced_instruction_set(context, flag_name, node):
+        """
+        Set EnableEnhancedInstructionSet flag: /arch:*
+
+        """
+        del context, flag_name, node
+        flag_values = {
+            'StreamingSIMDExtensions': {cl_flags: '/arch:SSE'},
+            'StreamingSIMDExtensions2': {cl_flags: '/arch:SSE2'},
+            'AdvancedVectorExtensions': {cl_flags: '/arch:AVX'},
+            'AdvancedVectorExtensions2': {cl_flags: '/arch:AVX2'},
+            'NoExtensions': {cl_flags: '/arch:IA32'},
             default_value: {}
         }
 
