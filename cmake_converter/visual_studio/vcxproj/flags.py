@@ -87,6 +87,7 @@ class CPPFlags(Flags):
             'ObjectFileName': self.__set_output_file_name,
             'CompileAs': self.__set_compile_as,
             'FloatingPointModel': self.__set_floating_point_model,
+            'StructMemberAlignment': self.__set_struct_member_alignment,
             'RuntimeTypeInfo': self.__set_runtime_type_info,
             'CLRSupport': self.__set_compile_as_managed,
             'DisableSpecificWarnings': self.__set_disable_specific_warnings,
@@ -164,6 +165,7 @@ class CPPFlags(Flags):
             'ObjectFileName',
             'CompileAs',
             'FloatingPointModel',
+            'StructMemberAlignment',
             'RuntimeTypeInfo',
             'CLRSupport',
             'DisableSpecificWarnings',
@@ -1162,6 +1164,24 @@ class CPPFlags(Flags):
             'Precise': {cl_flags: '/fp:precise'},
             'Strict': {cl_flags: '/fp:strict'},
             'Fast': {cl_flags: '/fp:fast'},
+            default_value: {}
+        }
+
+        return flag_values
+
+    @staticmethod
+    def __set_struct_member_alignment(context, flag_name, node):
+        """
+        Set StructMemberAlignment flag: /Zp
+
+        """
+        del context, flag_name, node
+        flag_values = {
+            '1Byte': {cl_flags: '/Zp1'},
+            '2Bytes': {cl_flags: '/Zp2'},
+            '4Bytes': {cl_flags: '/Zp4'},
+            '8Bytes': {cl_flags: '/Zp8'},
+            '16Bytes': {cl_flags: '/Zp16'},
             default_value: {}
         }
 

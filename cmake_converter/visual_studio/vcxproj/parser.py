@@ -134,6 +134,7 @@ class VCXParser(Parser):
             'DebugInformationFormat': context.flags.set_flag,
             'CompileAs': context.flags.set_flag,
             'FloatingPointModel': context.flags.set_flag,
+            'StructMemberAlignment': context.flags.set_flag,
             'RuntimeTypeInfo': context.flags.set_flag,
             'DisableSpecificWarnings': context.flags.set_flag,
             'EnablePREfast': self.do_nothing_node_stub,     # no support from CMake
