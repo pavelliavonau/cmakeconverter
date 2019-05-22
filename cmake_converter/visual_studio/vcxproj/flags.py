@@ -53,6 +53,7 @@ class CPPFlags(Flags):
             'FixedBaseAddress': self.__set_fixed_base_address,
             'StackReserveSize': self.__set_stack_reserve_size,
             'GenerateDebugInformation': self.__set_generate_debug_information,
+            'TargetMachine': self.__set_target_machine,
             'ImageHasSafeExceptionHandlers': self.__set_image_has_safe_exception_handlers,
             'SubSystem': self.__set_sub_system,
             'OptimizeReferences': self.__set_optimize_references,
@@ -131,6 +132,7 @@ class CPPFlags(Flags):
             'FixedBaseAddress',
             'StackReserveSize',
             'GenerateDebugInformation',
+            'TargetMachine',
             'ImageHasSafeExceptionHandlers',
             'SubSystem',
             'OptimizeReferences',
@@ -1010,6 +1012,31 @@ class CPPFlags(Flags):
             'true': {ln_flags: '/DEBUG'},
             'false': {},
             default_value: {ln_flags: '/DEBUG:FULL'}
+        }
+
+        return flag_values
+
+    @staticmethod
+    def __set_target_machine(context, flag_name, node):
+        """
+        Set TargetMachine flag: /MACHINE
+
+        """
+        del context, flag_name, node
+        flag_values = {
+            'MachineARM': {ln_flags: '/MACHINE:ARM'},
+            'MachineARM64': {ln_flags: '/MACHINE:ARM64'},
+            'MachineEBC': {ln_flags: '/MACHINE:EBC'},
+            'MachineIA64': {ln_flags: '/MACHINE:IA64'},
+            'MachineMIPS': {ln_flags: '/MACHINE:MIPS'},
+            'MachineMIPS16': {ln_flags: '/MACHINE:MIPS16'},
+            'MachineMIPSFPU': {ln_flags: '/MACHINE:MIPSFPU'},
+            'MachineMIPSFPU16': {ln_flags: '/MACHINE:MIPSFPU16'},
+            'MachineTHUMB': {ln_flags: '/MACHINE:THUMB'},
+            'MachineX64': {ln_flags: '/MACHINE:X64'},
+            'MachineX86': {ln_flags: '/MACHINE:X86'},
+            'false': {},
+            default_value: {}
         }
 
         return flag_values

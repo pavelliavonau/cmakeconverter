@@ -109,6 +109,7 @@ class VCXParser(Parser):
             'FixedBaseAddress': context.flags.set_flag,
             'StackReserveSize': context.flags.set_flag,
             'GenerateDebugInformation': context.flags.set_flag,
+            'TargetMachine': context.flags.set_flag,
             'LinkIncremental': context.flags.set_flag,
             'Profile': context.flags.set_flag,
             'DataExecutionPrevention': context.flags.set_flag,
