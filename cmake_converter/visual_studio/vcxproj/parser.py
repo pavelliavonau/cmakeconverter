@@ -40,6 +40,7 @@ class VCXParser(Parser):
             'ProjectConfiguration': self.do_nothing_node_stub,
             'ConfigurationType': self.__parse_configuration_type,
             'CharacterSet': context.flags.set_character_set,
+            'CLRSupport': context.flags.set_flag,
             'PlatformToolset': self.do_nothing_node_stub,
             'PropertyGroup': self.__parse_property_group,
             'ProjectName': self.do_nothing_node_stub,  # handled globally, ignore here
