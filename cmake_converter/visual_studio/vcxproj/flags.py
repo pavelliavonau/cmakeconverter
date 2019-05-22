@@ -61,6 +61,7 @@ class CPPFlags(Flags):
             'DataExecutionPrevention': self.__set_data_execution_prevention,
             'RandomizedBaseAddress': self.__set_randomized_base_address,
             'IgnoreEmbeddedIDL': self.__set_ignore_embedded_idl,
+            'AssemblyDebug': self.__set_assembly_debug,
             'LinkIncremental': self.__set_link_incremental,
             # from definition_groups
             #   compilation
@@ -72,10 +73,12 @@ class CPPFlags(Flags):
             'BasicRuntimeChecks': self.__set_basic_runtime_checks,
             'ShowIncludes': self.__set_show_includes,
             'CompileAsManaged': self.__set_compile_as_managed,
+            'CallingConvention': self.__set_calling_convention,
             'RuntimeLibrary': self.__set_runtime_library,
             'FunctionLevelLinking': self.__set_function_level_linking,
             'WarningLevel': self.__set_warning_level,
             'SuppressStartupBanner': self.__set_suppress_startup_banner,
+            'FloatingPointExceptions': self.__set_floating_point_exceptions,
             'TreatWarningAsError': self.__set_warning_as_errors,
             'DebugInformationFormat': self.__set_debug_information_format,
             'AssemblerListingLocation': self.__set_assembler_listing_location,
@@ -137,6 +140,7 @@ class CPPFlags(Flags):
             'RandomizedBaseAddress',
             'LinkIncremental',
             'IgnoreEmbeddedIDL',
+            'AssemblyDebug',
             'Optimization',
             'InlineFunctionExpansion',
             'IntrinsicFunctions',
@@ -145,10 +149,12 @@ class CPPFlags(Flags):
             'BasicRuntimeChecks',
             'ShowIncludes',
             'CompileAsManaged',
+            'CallingConvention',
             'RuntimeLibrary',
             'FunctionLevelLinking',
             'WarningLevel',
             'SuppressStartupBanner',
+            'FloatingPointExceptions',
             'TreatWarningAsError',
             'DebugInformationFormat',
             'AssemblerListingLocation',
@@ -504,6 +510,21 @@ class CPPFlags(Flags):
             }
 
     @staticmethod
+    def __set_floating_point_exceptions(context, flag_name, node):
+        """
+        Set FloatingPointExceptions: /fp:except
+
+        """
+        del context, flag_name, node
+        flag_values = {
+            'true': {cl_flags: '/fp:except'},
+            'false': {cl_flags: '/fp:except-'},
+            default_value: {}
+        }
+
+        return flag_values
+
+    @staticmethod
     def __set_warning_as_errors(context, flag_name, node):
         """
         Set TreatWarningAsError: /WX
@@ -653,6 +674,23 @@ class CPPFlags(Flags):
             'Pure': {cl_flags: '/clr:pure'},
             'Safe': {cl_flags: '/clr:safe'},
             'true': {cl_flags: '/clr'},
+            default_value: {}
+        }
+
+        return flag_values
+
+    @staticmethod
+    def __set_calling_convention(context, flag_name, node):
+        """
+        Set CallingConvention flag: /G**
+
+        """
+        del context, flag_name, node
+        flag_values = {
+            'Cdecl': {cl_flags: '/Gd'},
+            'FastCall': {cl_flags: '/Gr'},
+            'StdCall': {cl_flags: '/Gz'},
+            'VectorCall': {cl_flags: '/Gv'},
             default_value: {}
         }
 
@@ -1066,6 +1104,21 @@ class CPPFlags(Flags):
         del context, flag_name, node
         flag_values = {
             'true': {ln_flags: '/IGNOREIDL'},
+            default_value: {}
+        }
+
+        return flag_values
+
+    @staticmethod
+    def __set_assembly_debug(context, flag_name, node):
+        """
+        Set AssemblyDebug flag: /ASSEMBLYDEBUG
+
+        """
+        del context, flag_name, node
+        flag_values = {
+            'true': {ln_flags: '/ASSEMBLYDEBUG'},
+            'false': {ln_flags: '/ASSEMBLYDEBUG:DISABLE'},
             default_value: {}
         }
 
