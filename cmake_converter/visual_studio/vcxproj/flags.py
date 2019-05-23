@@ -75,6 +75,7 @@ class CPPFlags(Flags):
             'ShowIncludes': self.__set_show_includes,
             'CompileAsManaged': self.__set_compile_as_managed,
             'EnableEnhancedInstructionSet': self.__set_enable_enhanced_instruction_set,
+            'OmitFramePointers': self.__set_omit_frame_pointers,
             'CallingConvention': self.__set_calling_convention,
             'RuntimeLibrary': self.__set_runtime_library,
             'FunctionLevelLinking': self.__set_function_level_linking,
@@ -154,6 +155,7 @@ class CPPFlags(Flags):
             'ShowIncludes',
             'CompileAsManaged',
             'EnableEnhancedInstructionSet',
+            'OmitFramePointers',
             'CallingConvention',
             'RuntimeLibrary',
             'FunctionLevelLinking',
@@ -698,6 +700,21 @@ class CPPFlags(Flags):
             'AdvancedVectorExtensions': {cl_flags: '/arch:AVX'},
             'AdvancedVectorExtensions2': {cl_flags: '/arch:AVX2'},
             'NoExtensions': {cl_flags: '/arch:IA32'},
+            default_value: {}
+        }
+
+        return flag_values
+
+    @staticmethod
+    def __set_omit_frame_pointers(context, flag_name, node):
+        """
+        Set OmitFramePointers flag: /Oy
+
+        """
+        del context, flag_name, node
+        flag_values = {
+            'true': {cl_flags: '/Oy'},
+            'false': {cl_flags: '/Oy-'},
             default_value: {}
         }
 

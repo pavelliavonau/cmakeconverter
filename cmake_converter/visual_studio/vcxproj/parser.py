@@ -125,6 +125,7 @@ class VCXParser(Parser):
             'ShowIncludes': context.flags.set_flag,
             'CompileAsManaged': context.flags.set_flag,
             'EnableEnhancedInstructionSet': context.flags.set_flag,
+            'OmitFramePointers': context.flags.set_flag,
             'CallingConvention': context.flags.set_flag,
             'RuntimeLibrary': context.flags.set_flag,
             'FunctionLevelLinking': context.flags.set_flag,
