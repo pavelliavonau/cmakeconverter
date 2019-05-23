@@ -121,6 +121,7 @@ class VCXParser(Parser):
             'IntrinsicFunctions': context.flags.set_flag,
             'SDLCheck': context.flags.set_flag,
             'StringPooling': context.flags.set_flag,
+            'EnableFiberSafeOptimizations': context.flags.set_flag,
             'BasicRuntimeChecks': context.flags.set_flag,
             'ShowIncludes': context.flags.set_flag,
             'CompileAsManaged': context.flags.set_flag,

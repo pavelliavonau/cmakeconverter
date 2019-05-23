@@ -71,6 +71,7 @@ class CPPFlags(Flags):
             'IntrinsicFunctions': self.__set_intrinsic_functions,
             'SDLCheck': self.__set_sdl_check,
             'StringPooling': self.__set_string_pooling,
+            'EnableFiberSafeOptimizations': self.__set_enable_fiber_safe_optimizations,
             'BasicRuntimeChecks': self.__set_basic_runtime_checks,
             'ShowIncludes': self.__set_show_includes,
             'CompileAsManaged': self.__set_compile_as_managed,
@@ -151,6 +152,7 @@ class CPPFlags(Flags):
             'IntrinsicFunctions',
             'SDLCheck',
             'StringPooling',
+            'EnableFiberSafeOptimizations',
             'BasicRuntimeChecks',
             'ShowIncludes',
             'CompileAsManaged',
@@ -783,6 +785,20 @@ class CPPFlags(Flags):
         flag_values = {
             'true': {cl_flags: '/GF'},
             'false': {cl_flags: '/GF-'},
+            default_value: {}
+        }
+
+        return flag_values
+
+    @staticmethod
+    def __set_enable_fiber_safe_optimizations(context, flag_name, node):
+        """
+        Set EnableFiberSafeOptimizations flag: /GT
+
+        """
+        del context, flag_name, node
+        flag_values = {
+            'true': {cl_flags: '/GT'},
             default_value: {}
         }
 
