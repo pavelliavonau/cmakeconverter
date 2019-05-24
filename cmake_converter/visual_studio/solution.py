@@ -77,6 +77,8 @@ def parse_solution(initial_context, sln_text):
     projects_data = OrderedDict()
     solution_folders = {}
 
+    __check_solution_version(initial_context, sln_text)
+
     __parse_projects_data(sln_text, solution_folders, projects_data)
 
     __parse_configurations_of_solution(initial_context, sln_text, solution_data)
@@ -102,6 +104,20 @@ def parse_solution(initial_context, sln_text):
     solution_data['projects_data'] = projects_data
 
     return solution_data
+
+
+def __check_solution_version(initial_context, sln_text):
+    version_pattern = re.compile(
+        r'Microsoft Visual Studio Solution File, Format Version (.*)'
+    )
+    version_match = version_pattern.findall(sln_text)
+    if not version_match or float(version_match[0]) < 9:
+        message(initial_context, 'Solution files with versions below 9.00 are not supported.'
+                                 ' Version {} found. Upgrade you solution and try again, please'
+                .format(version_match[0]), 'error')
+        exit(1)
+
+    message(initial_context, 'Version of solution is {}'.format(version_match[0]), '')
 
 
 def __parse_projects_data(sln_text, solution_folders, projects_data):
