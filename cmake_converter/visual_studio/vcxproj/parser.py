@@ -117,6 +117,7 @@ class VCXParser(Parser):
             'RandomizedBaseAddress': context.flags.set_flag,
             'IgnoreEmbeddedIDL': context.flags.set_flag,
             'AssemblyDebug': context.flags.set_flag,
+            'MinimalRebuild': context.flags.set_flag,
             'Optimization': context.flags.set_flag,
             'InlineFunctionExpansion': context.flags.set_flag,
             'IntrinsicFunctions': context.flags.set_flag,

@@ -66,6 +66,7 @@ class CPPFlags(Flags):
             'LinkIncremental': self.__set_link_incremental,
             # from definition_groups
             #   compilation
+            'MinimalRebuild': self.__set_minimal_rebuild,
             'Optimization': self.__set_optimization,
             'InlineFunctionExpansion': self.__set_inline_function_expansion,
             'IntrinsicFunctions': self.__set_intrinsic_functions,
@@ -148,6 +149,7 @@ class CPPFlags(Flags):
             'LinkIncremental',
             'IgnoreEmbeddedIDL',
             'AssemblyDebug',
+            'MinimalRebuild',
             'Optimization',
             'InlineFunctionExpansion',
             'IntrinsicFunctions',
@@ -801,6 +803,21 @@ class CPPFlags(Flags):
         del context, flag_name, node
         flag_values = {
             'true': {cl_flags: '/GT'},
+            default_value: {}
+        }
+
+        return flag_values
+
+    @staticmethod
+    def __set_minimal_rebuild(context, flag_name, node):
+        """
+        Set MinimalRebuild flag: /Gm
+
+        """
+        del context, flag_name, node
+        flag_values = {
+            'true': {cl_flags: '/Gm'},
+            'false': {cl_flags: '/Gm-'},
             default_value: {}
         }
 
