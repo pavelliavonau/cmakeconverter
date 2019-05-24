@@ -31,7 +31,7 @@ from collections import OrderedDict
 
 from cmake_converter.data_files import get_cmake_lists
 from cmake_converter.flags import Flags
-from cmake_converter.utils import write_comment, message
+from cmake_converter.utils import write_comment, message, get_mapped_arch
 from cmake_converter.context import Context
 
 
@@ -74,10 +74,11 @@ class DataConverter:
         :return:
         """
         for arch in context.supported_architectures:
-            context.settings[(None, arch)] = {}
-            context.current_setting = (None, arch)
+            mapped_arch = get_mapped_arch(context.sln_configurations_map, arch)
+            context.settings[(None, mapped_arch)] = {}
+            context.current_setting = (None, mapped_arch)
             context.utils.init_context_current_setting(context)
-            merged_settings = context.settings[(None, arch)]
+            merged_settings = context.settings[(None, mapped_arch)]
 
             for key in context.utils.lists_of_settings_to_merge():
                 lists_of_items_to_merge = OrderedDict()
@@ -86,7 +87,7 @@ class DataConverter:
                 # get intersection pass
                 for setting in context.settings:
                     if key not in context.settings[setting] \
-                            or setting[1] != arch \
+                            or setting[1] != mapped_arch \
                             or setting[0] is None:
                         continue
                     settings_list = context.settings[setting][key]
@@ -132,7 +133,7 @@ class DataConverter:
 
                 merged_settings[key] = common_ordered_list
 
-            context.sln_configurations_map[(None, arch)] = (None, arch)
+            context.sln_configurations_map[(None, arch)] = (None, mapped_arch)
 
     @staticmethod
     def write_data(context, cmake_file):

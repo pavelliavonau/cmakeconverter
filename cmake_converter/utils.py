@@ -126,10 +126,13 @@ def take_name_from_list_case_ignore(context, search_list, name_to_search):
 
 
 def is_settings_has_data(sln_configurations_map, settings, settings_key, arch=None, conf=None):
-    for sln_setting in settings:
-        if sln_setting not in sln_configurations_map:
-            continue
+    if arch:
+        arch = get_mapped_arch(sln_configurations_map, arch)
+
+    for sln_setting in sln_configurations_map:
         mapped_setting_name = sln_configurations_map[sln_setting]
+        if mapped_setting_name not in settings:
+            continue
         mapped_setting = settings[mapped_setting_name]
         if settings_key in mapped_setting:
             if arch and mapped_setting['arch'] != arch:
@@ -178,6 +181,13 @@ def get_str_value_from_property_value(property_value, separator):
         return separator.join(property_value)
 
     raise str('property value must be a list')
+
+
+def get_mapped_arch(sln_setting_2_project_setting, arch):
+    for setting in sln_setting_2_project_setting:
+        if setting[1] == arch:
+            return sln_setting_2_project_setting[setting][1]
+    return None
 
 
 def write_selected_sln_setting(cmake_file,
