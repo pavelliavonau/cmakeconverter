@@ -88,6 +88,7 @@ class CPPFlags(Flags):
             'AssemblerListingLocation': self.__set_assembler_listing_location,
             'AssemblerOutput': self.__set_assembler_output,
             'ObjectFileName': self.__set_output_file_name,
+            'FavorSizeOrSpeed': self.__set_favour_size_or_speed,
             'CompileAs': self.__set_compile_as,
             'FloatingPointModel': self.__set_floating_point_model,
             'StructMemberAlignment': self.__set_struct_member_alignment,
@@ -169,6 +170,7 @@ class CPPFlags(Flags):
             'AssemblerListingLocation',
             'AssemblerOutput',
             'ObjectFileName',
+            'FavorSizeOrSpeed',
             'CompileAs',
             'FloatingPointModel',
             'StructMemberAlignment',
@@ -970,6 +972,21 @@ class CPPFlags(Flags):
                     }
                 }
             )
+
+        return flag_values
+
+    @staticmethod
+    def __set_favour_size_or_speed(context, flag_name, node):
+        """
+        Set FavorSizeOrSpeed: /Os, /Ot
+
+        """
+        del context, flag_name, node
+        flag_values = {
+            'Size': {cl_flags: '/Os'},
+            'Speed': {cl_flags: '/Ot'},
+            default_value: {}
+        }
 
         return flag_values
 

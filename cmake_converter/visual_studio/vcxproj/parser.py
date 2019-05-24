@@ -95,6 +95,7 @@ class VCXParser(Parser):
             'AssemblerListingLocation': context.flags.set_flag,
             'AssemblerOutput': context.flags.set_flag,
             'ObjectFileName': context.flags.set_flag,
+            'FavorSizeOrSpeed': context.flags.set_flag,
             'ProgramDatabaseFile': context.variables.set_program_database_file,
             'ProgramDataBaseFileName': self.do_nothing_node_stub,  # no support of GenEx in CMake
             'IntDir': self.do_nothing_node_stub,  # no analog at CMake
