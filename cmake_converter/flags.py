@@ -26,9 +26,7 @@
      Manage compilation flags of project
 """
 
-from collections import OrderedDict
-
-from cmake_converter.utils import message, write_comment, is_settings_has_data
+from cmake_converter.utils import message, write_comment
 from cmake_converter.utils import write_property_of_settings
 
 cl_flags = 'cl_flags'               # MSVC compile flags (Windows only)
@@ -53,7 +51,7 @@ class Flags:
                                   property_value,
                                   width,
                                   **kwargs):
-        del width
+        del width, kwargs
         config = config_condition_expr.replace('$<CONFIG:', '')
         config = config.replace('>', '')
         cmake_file.write(
