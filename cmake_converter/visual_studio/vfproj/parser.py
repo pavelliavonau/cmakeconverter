@@ -240,6 +240,7 @@ class VFParser(Parser):
             source_group=source_group
         )
         self._parse_nodes(file_context, file_node)
+        context.warnings_count += file_context.warnings_count
 
     def __parse_filter(self, context, filter_node):
         self._parse_nodes(context, filter_node)
