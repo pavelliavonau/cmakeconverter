@@ -22,6 +22,7 @@
 
 import re
 import os
+from collections import OrderedDict
 
 from cmake_converter.flags import Flags, defines, cl_flags, default_value, ln_flags
 from cmake_converter.utils import take_name_from_list_case_ignore, normalize_path, cleaning_output
@@ -44,75 +45,72 @@ class CPPFlags(Flags):
     def __init__(self):
         self.flags = {}
         self.unicode_defines = {}
-        self.flags_handlers = {
-            # from property_groups
-            #   compilation
-            'UseDebugLibraries': self.__set_use_debug_libraries,
-            'WholeProgramOptimization': self.__set_whole_program_optimization,
-            #   linking
-            'FixedBaseAddress': self.__set_fixed_base_address,
-            'StackReserveSize': self.__set_stack_reserve_size,
-            'GenerateDebugInformation': self.__set_generate_debug_information,
-            'TargetMachine': self.__set_target_machine,
-            'ImageHasSafeExceptionHandlers': self.__set_image_has_safe_exception_handlers,
-            'SubSystem': self.__set_sub_system,
-            'OptimizeReferences': self.__set_optimize_references,
-            'EnableCOMDATFolding': self.__set_enable_comdat_folding,
-            'Profile': self.__set_profile,
-            'DataExecutionPrevention': self.__set_data_execution_prevention,
-            'RandomizedBaseAddress': self.__set_randomized_base_address,
-            'IgnoreEmbeddedIDL': self.__set_ignore_embedded_idl,
-            'AssemblyDebug': self.__set_assembly_debug,
-            'LinkIncremental': self.__set_link_incremental,
-            # from definition_groups
-            #   compilation
-            'MinimalRebuild': self.__set_minimal_rebuild,
-            'Optimization': self.__set_optimization,
-            'InlineFunctionExpansion': self.__set_inline_function_expansion,
-            'IntrinsicFunctions': self.__set_intrinsic_functions,
-            'SDLCheck': self.__set_sdl_check,
-            'StringPooling': self.__set_string_pooling,
-            'EnableFiberSafeOptimizations': self.__set_enable_fiber_safe_optimizations,
-            'BasicRuntimeChecks': self.__set_basic_runtime_checks,
-            'ShowIncludes': self.__set_show_includes,
-            'CompileAsManaged': self.__set_compile_as_managed,
-            'EnableEnhancedInstructionSet': self.__set_enable_enhanced_instruction_set,
-            'OmitFramePointers': self.__set_omit_frame_pointers,
-            'CallingConvention': self.__set_calling_convention,
-            'RuntimeLibrary': self.__set_runtime_library,
-            'FunctionLevelLinking': self.__set_function_level_linking,
-            'WarningLevel': self.__set_warning_level,
-            'SuppressStartupBanner': self.__set_suppress_startup_banner,
-            'FloatingPointExceptions': self.__set_floating_point_exceptions,
-            'TreatWarningAsError': self.__set_warning_as_errors,
-            'DebugInformationFormat': self.__set_debug_information_format,
-            'AssemblerListingLocation': self.__set_assembler_listing_location,
-            'AssemblerOutput': self.__set_assembler_output,
-            'ObjectFileName': self.__set_output_file_name,
-            'FavorSizeOrSpeed': self.__set_favour_size_or_speed,
-            'CompileAs': self.__set_compile_as,
-            'FloatingPointModel': self.__set_floating_point_model,
-            'StructMemberAlignment': self.__set_struct_member_alignment,
-            'RuntimeTypeInfo': self.__set_runtime_type_info,
-            'CLRSupport': self.__set_compile_as_managed,
-            'DisableSpecificWarnings': self.__set_disable_specific_warnings,
-            'SupportJustMyCode': self.__set_support_just_my_code,
-            'ConformanceMode': self.__set_conformance_mode,
-            'LanguageStandard': self.__set_language_standard,
-            'CompileAdditionalOptions': self.__set_compile_additional_options,
-            'LinkAdditionalOptions': self.__set_link_additional_options,
-            'ExceptionHandling': self.__set_exception_handling,
-            'ControlFlowGuard': self.__set_control_flow_guard,
-            'BufferSecurityCheck': self.__set_buffer_security_check,
-            'DiagnosticsFormat': self.__set_diagnostics_format,
-            'DisableLanguageExtensions': self.__set_disable_language_extensions,
-            'TreatWChar_tAsBuiltInType': self.__set_treatwchar_t_as_built_in_type,
-            'ForceConformanceInForLoopScope': self.__set_force_conformance_in_for_loop_scope,
-            'RemoveUnreferencedCodeData': self.__set_remove_unreferenced_code_data,
-            'OpenMPSupport': self.__set_openmp_support,
-            'PrecompiledHeader': self.__set_precompiled_header,
-            'PrecompiledHeaderFile': self.__set_precompiled_header_file,
-        }
+        self.flags_handlers = OrderedDict([
+            # compilation cl_flags
+            ('ConformanceMode', self.__set_conformance_mode),
+            ('SupportJustMyCode', self.__set_support_just_my_code),
+            ('LanguageStandard', self.__set_language_standard),
+            ('UseDebugLibraries', self.__set_use_debug_libraries),
+            ('WholeProgramOptimization', self.__set_whole_program_optimization),
+            ('MinimalRebuild', self.__set_minimal_rebuild),
+            ('Optimization', self.__set_optimization),
+            ('InlineFunctionExpansion', self.__set_inline_function_expansion),
+            ('IntrinsicFunctions', self.__set_intrinsic_functions),
+            ('SDLCheck', self.__set_sdl_check),
+            ('StringPooling', self.__set_string_pooling),
+            ('EnableFiberSafeOptimizations', self.__set_enable_fiber_safe_optimizations),
+            ('BasicRuntimeChecks', self.__set_basic_runtime_checks),
+            ('ShowIncludes', self.__set_show_includes),
+            ('CompileAsManaged', self.__set_compile_as_managed),
+            ('EnableEnhancedInstructionSet', self.__set_enable_enhanced_instruction_set),
+            ('OmitFramePointers', self.__set_omit_frame_pointers),
+            ('CallingConvention', self.__set_calling_convention),
+            ('RuntimeLibrary', self.__set_runtime_library),
+            ('FunctionLevelLinking', self.__set_function_level_linking),
+            ('WarningLevel', self.__set_warning_level),
+            ('SuppressStartupBanner', self.__set_suppress_startup_banner),
+            ('FloatingPointExceptions', self.__set_floating_point_exceptions),
+            ('TreatWarningAsError', self.__set_warning_as_errors),
+            ('DebugInformationFormat', self.__set_debug_information_format),
+            ('AssemblerListingLocation', self.__set_assembler_listing_location),
+            ('AssemblerOutput', self.__set_assembler_output),
+            ('ObjectFileName', self.__set_output_file_name),
+            ('FavorSizeOrSpeed', self.__set_favour_size_or_speed),
+            ('CompileAs', self.__set_compile_as),
+            ('FloatingPointModel', self.__set_floating_point_model),
+            ('StructMemberAlignment', self.__set_struct_member_alignment),
+            ('RuntimeTypeInfo', self.__set_runtime_type_info),
+            ('CLRSupport', self.__set_compile_as_managed),
+            ('DisableSpecificWarnings', self.__set_disable_specific_warnings),
+            ('CompileAdditionalOptions', self.__set_compile_additional_options),
+            ('ExceptionHandling', self.__set_exception_handling),
+            ('BufferSecurityCheck', self.__set_buffer_security_check),
+            ('ControlFlowGuard', self.__set_control_flow_guard),
+            ('DiagnosticsFormat', self.__set_diagnostics_format),
+            ('DisableLanguageExtensions', self.__set_disable_language_extensions),
+            ('TreatWChar_tAsBuiltInType', self.__set_treatwchar_t_as_built_in_type),
+            ('ForceConformanceInForLoopScope', self.__set_force_conformance_in_for_loop_scope),
+            ('RemoveUnreferencedCodeData', self.__set_remove_unreferenced_code_data),
+            ('OpenMPSupport', self.__set_openmp_support),
+            ('PrecompiledHeader', self.__set_precompiled_header),
+            ('PrecompiledHeaderFile', self.__set_precompiled_header_file),
+            #   linking ln_flags
+            ('FixedBaseAddress', self.__set_fixed_base_address),
+            ('StackReserveSize', self.__set_stack_reserve_size),
+            ('GenerateDebugInformation', self.__set_generate_debug_information),
+            ('TargetMachine', self.__set_target_machine),
+            ('ImageHasSafeExceptionHandlers', self.__set_image_has_safe_exception_handlers),
+            ('SubSystem', self.__set_sub_system),
+            ('OptimizeReferences', self.__set_optimize_references),
+            ('EnableCOMDATFolding', self.__set_enable_comdat_folding),
+            ('Profile', self.__set_profile),
+            ('DataExecutionPrevention', self.__set_data_execution_prevention),
+            ('RandomizedBaseAddress', self.__set_randomized_base_address),
+            ('LinkIncremental', self.__set_link_incremental),
+            ('IgnoreEmbeddedIDL', self.__set_ignore_embedded_idl),
+            ('AssemblyDebug', self.__set_assembly_debug),
+            ('LinkAdditionalOptions', self.__set_link_additional_options),
+        ])
 
     def __set_default_flag(self, context, flag_name):
         self.flags[context.current_setting][flag_name] = {}
@@ -123,77 +121,9 @@ class CPPFlags(Flags):
         message(context, '== start making default flags ==', '')
         if context.current_setting not in self.flags:
             self.flags[context.current_setting] = {}
-        for flag_name in self.__get_result_order_of_flags():
+        for flag_name in self.flags_handlers:
             self.__set_default_flag(context, flag_name)
         message(context, '== end making default flags ==', '')
-
-    @staticmethod
-    def __get_result_order_of_flags():
-        flags_list = [
-            'ConformanceMode',
-            'SupportJustMyCode',
-            'LanguageStandard',
-            'UseDebugLibraries',
-            'WholeProgramOptimization',
-            'FixedBaseAddress',
-            'StackReserveSize',
-            'GenerateDebugInformation',
-            'TargetMachine',
-            'ImageHasSafeExceptionHandlers',
-            'SubSystem',
-            'OptimizeReferences',
-            'EnableCOMDATFolding',
-            'Profile',
-            'DataExecutionPrevention',
-            'RandomizedBaseAddress',
-            'LinkIncremental',
-            'IgnoreEmbeddedIDL',
-            'AssemblyDebug',
-            'MinimalRebuild',
-            'Optimization',
-            'InlineFunctionExpansion',
-            'IntrinsicFunctions',
-            'SDLCheck',
-            'StringPooling',
-            'EnableFiberSafeOptimizations',
-            'BasicRuntimeChecks',
-            'ShowIncludes',
-            'CompileAsManaged',
-            'EnableEnhancedInstructionSet',
-            'OmitFramePointers',
-            'CallingConvention',
-            'RuntimeLibrary',
-            'FunctionLevelLinking',
-            'WarningLevel',
-            'SuppressStartupBanner',
-            'FloatingPointExceptions',
-            'TreatWarningAsError',
-            'DebugInformationFormat',
-            'AssemblerListingLocation',
-            'AssemblerOutput',
-            'ObjectFileName',
-            'FavorSizeOrSpeed',
-            'CompileAs',
-            'FloatingPointModel',
-            'StructMemberAlignment',
-            'RuntimeTypeInfo',
-            'CLRSupport',
-            'DisableSpecificWarnings',
-            'CompileAdditionalOptions',
-            'LinkAdditionalOptions',
-            'ExceptionHandling',
-            'BufferSecurityCheck',
-            'ControlFlowGuard',
-            'DiagnosticsFormat',
-            'DisableLanguageExtensions',
-            'TreatWChar_tAsBuiltInType',
-            'ForceConformanceInForLoopScope',
-            'RemoveUnreferencedCodeData',
-            'OpenMPSupport',
-            'PrecompiledHeader',
-            'PrecompiledHeaderFile'
-        ]
-        return flags_list
 
     def set_defines(self, context, defines_node):
         """
@@ -370,7 +300,7 @@ class CPPFlags(Flags):
         for setting in context.settings:
             self.__apply_generate_debug_information(context, setting)
             self.__apply_link_incremental(context, setting)
-            for flag_name in self.__get_result_order_of_flags():
+            for flag_name in self.flags_handlers:
                 for context_flags_data_key in context_flags_data_keys:
                     if context_flags_data_key in self.flags[setting][flag_name]:
                         for value in self.flags[setting][flag_name][context_flags_data_key]:

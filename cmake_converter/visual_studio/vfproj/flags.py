@@ -21,6 +21,7 @@
 # along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
 import os
+from collections import OrderedDict
 
 from cmake_converter.flags import Flags, default_value, ifort_cl_unix, ifort_cl_win, ifort_ln_win, \
     ifort_ln_unix
@@ -34,115 +35,61 @@ class FortranFlags(Flags):
 
     def __init__(self):
         self.flags = {}
-        self.flags_handlers = {
-            'SuppressStartupBanner': self.__set_suppress_startup_banner,
-            'DebugInformationFormat': self.__set_debug_information_format,
-            'Optimization': self.__set_optimization,
-            'InterproceduralOptimizations': self.__set_interprocedural_optimizations,
-            'EnableEnhancedInstructionSet': self.__set_enable_enhanced_instruction_set,
-            'EnableRecursion': self.__set_enable_recursion,
-            'ReentrantCode': self.__set_reentrant_code,
-            'Preprocess': self.__set_preprocess_source_file,
-            'SourceFileFormat': self.__set_source_file_format,
-            'DebugParameter': self.__set_debug_parameter,
-            'DefaultIncAndUsePath': self.__set_default_inc_and_use_path,
-            'FixedFormLineLength': self.__set_fixed_form_line_length,
-            'OpenMP': self.__set_open_mp,
-            'DisableSpecificDiagnostics': self.__set_disable_specific_diagnostics,
-            'Diagnostics': self.__set_diagnostics,
-            'WarnDeclarations': self.__set_warn_declarations,
-            'WarnUnusedVariables': self.__set_warn_unused_variables,
-            'WarnIgnoreLOC': self.__set_warn_ignore_loc,
-            'WarnTruncateSource': self.__set_warn_truncate_source,
-            'WarnInterfaces': self.__set_warn_interfaces,
-            'WarnUnalignedData': self.__set_warn_unaligned_data,
-            'WarnUncalled': self.__set_warn_uncalled,
-            'SuppressUsageMessages': self.__set_suppress_usage_messages,
-            'RealKIND': self.__set_real_kind,
-            'LocalVariableStorage': self.__set_local_variable_storage,
-            'InitLocalVarToNAN': self.__set_init_local_var_to_nan,
-            'FloatingPointExceptionHandling': self.__set_floating_point_exception_handling,
-            'ExtendSinglePrecisionConstants': self.__set_extend_single_precision_constants,
-            'FloatingPointModel': self.__set_floating_point_model,
-            'FloatingPointSpeculation': self.__set_floating_point_speculation,
-            'FloatingPointStackCheck': self.__set_floating_point_stack_check,
-            'ExternalNameInterpretation': self.__set_external_name_interpretation,
-            'CallingConvention': self.__set_calling_convention,
-            'StringLengthArgPassing': self.__set_string_length_arg_passing,
-            'ExternalNameUnderscore': self.__set_external_name_underscore,
-            'Traceback': self.__set_traceback,
-            'RuntimeChecks': self.__set_runtime_checks,
-            'NullPointerCheck': self.__set_null_pointer_check,
-            'BoundsCheck': self.__set_bounds_check,
-            'UninitializedVariablesCheck': self.__set_uninitialized_variables_check,
-            'DescriptorDataTypeCheck': self.__set_descriptor_data_type_check,
-            'DescriptorDataSizeCheck': self.__set_descriptor_data_size_check,
-            'ArgTempCreatedCheck': self.__set_arg_temp_created_check,
-            'StackFrameCheck': self.__set_stack_frame_check,
-            'RuntimeLibrary': self.__set_runtime_library,
-            'DisableDefaultLibSearch': self.__set_disable_default_lib_search,
-            'AdditionalOptions': self.__set_additional_options,
-            'GenerateDebugInformation': self.__generate_debug_information,
-        }
+        self.flags_handlers = OrderedDict([
+            ('SuppressStartupBanner', self.__set_suppress_startup_banner),
+            ('DebugInformationFormat', self.__set_debug_information_format),
+            ('Optimization', self.__set_optimization),
+            ('InterproceduralOptimizations', self.__set_interprocedural_optimizations),
+            ('EnableEnhancedInstructionSet', self.__set_enable_enhanced_instruction_set),
+            ('EnableRecursion', self.__set_enable_recursion),
+            ('ReentrantCode', self.__set_reentrant_code),
+            ('Preprocess', self.__set_preprocess_source_file),
+            ('SourceFileFormat', self.__set_source_file_format),
+            ('DebugParameter', self.__set_debug_parameter),
+            ('DefaultIncAndUsePath', self.__set_default_inc_and_use_path),
+            ('FixedFormLineLength', self.__set_fixed_form_line_length),
+            ('OpenMP', self.__set_open_mp),
+            ('DisableSpecificDiagnostics', self.__set_disable_specific_diagnostics),
+            ('Diagnostics', self.__set_diagnostics),
+            ('WarnDeclarations', self.__set_warn_declarations),
+            ('WarnUnusedVariables', self.__set_warn_unused_variables),
+            ('WarnIgnoreLOC', self.__set_warn_ignore_loc),
+            ('WarnTruncateSource', self.__set_warn_truncate_source),
+            ('WarnInterfaces', self.__set_warn_interfaces),
+            ('WarnUnalignedData', self.__set_warn_unaligned_data),
+            ('WarnUncalled', self.__set_warn_uncalled),
+            ('SuppressUsageMessages', self.__set_suppress_usage_messages),
+            ('RealKIND', self.__set_real_kind),
+            ('LocalVariableStorage', self.__set_local_variable_storage),
+            ('InitLocalVarToNAN', self.__set_init_local_var_to_nan),
+            ('FloatingPointExceptionHandling', self.__set_floating_point_exception_handling),
+            ('ExtendSinglePrecisionConstants', self.__set_extend_single_precision_constants),
+            ('FloatingPointModel', self.__set_floating_point_model),
+            ('FloatingPointSpeculation', self.__set_floating_point_speculation),
+            ('FloatingPointStackCheck', self.__set_floating_point_stack_check),
+            ('ExternalNameInterpretation', self.__set_external_name_interpretation),
+            ('CallingConvention', self.__set_calling_convention),
+            ('StringLengthArgPassing', self.__set_string_length_arg_passing),
+            ('ExternalNameUnderscore', self.__set_external_name_underscore),
+            ('Traceback', self.__set_traceback),
+            ('RuntimeChecks', self.__set_runtime_checks),
+            ('NullPointerCheck', self.__set_null_pointer_check),
+            ('BoundsCheck', self.__set_bounds_check),
+            ('UninitializedVariablesCheck', self.__set_uninitialized_variables_check),
+            ('DescriptorDataTypeCheck', self.__set_descriptor_data_type_check),
+            ('DescriptorDataSizeCheck', self.__set_descriptor_data_size_check),
+            ('ArgTempCreatedCheck', self.__set_arg_temp_created_check),
+            ('StackFrameCheck', self.__set_stack_frame_check),
+            ('RuntimeLibrary', self.__set_runtime_library),
+            ('DisableDefaultLibSearch', self.__set_disable_default_lib_search),
+            ('AdditionalOptions', self.__set_additional_options),
+            ('GenerateDebugInformation', self.__generate_debug_information),
+        ])
 
     def __set_default_flags(self, context):
-        for flag_name in self.__get_result_order_of_flags():
+        for flag_name in self.flags_handlers:
             self.flags[flag_name] = {}
             self.set_flag(context, flag_name, '', None)
-
-    @staticmethod
-    def __get_result_order_of_flags():
-        flags_list = [
-            'SuppressStartupBanner',
-            'DebugInformationFormat',
-            'Optimization',
-            'InterproceduralOptimizations',
-            'EnableEnhancedInstructionSet',
-            'EnableRecursion',
-            'ReentrantCode',
-            'Preprocess',
-            'SourceFileFormat',
-            'DebugParameter',
-            'DefaultIncAndUsePath',
-            'FixedFormLineLength',
-            'OpenMP',
-            'DisableSpecificDiagnostics',
-            'Diagnostics',
-            'WarnDeclarations',
-            'WarnUnusedVariables',
-            'WarnIgnoreLOC',
-            'WarnTruncateSource',
-            'WarnInterfaces',
-            'WarnUnalignedData',
-            'WarnUncalled',
-            'SuppressUsageMessages',
-            'RealKIND',
-            'LocalVariableStorage',
-            'InitLocalVarToNAN',
-            'FloatingPointExceptionHandling',
-            'ExtendSinglePrecisionConstants',
-            'FloatingPointModel',
-            'FloatingPointSpeculation',
-            'FloatingPointStackCheck',
-            'ExternalNameInterpretation',
-            'CallingConvention',
-            'StringLengthArgPassing',
-            'ExternalNameUnderscore',
-            'Traceback',
-            'RuntimeChecks',
-            'NullPointerCheck',
-            'BoundsCheck',
-            'UninitializedVariablesCheck',
-            'DescriptorDataTypeCheck',
-            'DescriptorDataSizeCheck',
-            'ArgTempCreatedCheck',
-            'StackFrameCheck',
-            'RuntimeLibrary',
-            'DisableDefaultLibSearch',
-            'AdditionalOptions',
-            'GenerateDebugInformation',
-        ]
-        return flags_list
 
     def set_flag(self, context, flag_name, flag_value, node):
         """
@@ -201,7 +148,7 @@ class FortranFlags(Flags):
             'check_args'
         ]
 
-        for flag_name in self.__get_result_order_of_flags():
+        for flag_name in self.flags_handlers:
             for context_flags_data_key in context_flags_data_keys:
                 if flag_name not in self.flags:
                     continue
