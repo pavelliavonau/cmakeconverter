@@ -100,6 +100,7 @@ class FortranFlags(Flags):
             ('VFLinkerTool_SuppressStartupBanner', self.__set_link_suppress_startup_banner),
             ('VFLinkerTool_SubSystem', self.__set_sub_system),
             ('VFLinkerTool_LinkDLL', self.__set_link_dll),
+            ('VFLinkerTool_AdditionalOptions', self.__set_additional_link_options),
         ])
 
     def __set_default_flags(self, context):
@@ -939,6 +940,24 @@ class FortranFlags(Flags):
             'true': {ifort_ln_win: '/DLL'},
             default_value: {}
         }
+        return flag_values
+
+    @staticmethod
+    def __set_additional_link_options(context, flag_name, flag_value):
+        """
+        Set LinkDLL flag
+
+        """
+        del context, flag_name
+
+        flag_values = {}
+        if flag_value:
+            flag_values.update(
+                {
+                    flag_value: {ifort_ln_win: flag_value},
+                    default_value: {}
+                }
+            )
         return flag_values
 
     @staticmethod
