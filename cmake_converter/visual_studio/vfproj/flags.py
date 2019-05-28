@@ -96,6 +96,7 @@ class FortranFlags(Flags):
              self.__set_disable_default_lib_search),
             ('VFFortranCompilerTool_AdditionalOptions', self.__set_additional_options),
             ('VFLinkerTool_GenerateDebugInformation', self.__generate_debug_information),
+            ('VFLinkerTool_SuppressStartupBanner', self.__set_link_suppress_startup_banner),
         ])
 
     def __set_default_flags(self, context):
@@ -759,7 +760,7 @@ class FortranFlags(Flags):
     @staticmethod
     def __set_suppress_startup_banner(context, flag_name, flag_value):
         """
-        Set supress banner flag
+        Set suppress banner flag for compiler
 
         """
         del context, flag_name, flag_value
@@ -877,6 +878,19 @@ class FortranFlags(Flags):
         del context, flag_name, flag_value
         flag_values = {
             'true': {ifort_ln_win: '/DEBUG'},
+            default_value: {}
+        }
+        return flag_values
+
+    @staticmethod
+    def __set_link_suppress_startup_banner(context, flag_name, flag_value):
+        """
+        Set suppress banner flag for linker
+
+        """
+        del context, flag_name, flag_value
+        flag_values = {
+            'true': {ifort_ln_win: '/NOLOGO'},
             default_value: {}
         }
         return flag_values
