@@ -46,7 +46,13 @@ class VFParser(Parser):
         return node_handlers
 
     def get_attribute_handlers_dict(self, context):
-        attributes_handlers = {
+        attributes_handlers = {}
+
+        attributes_handlers.update(
+            dict.fromkeys(context.flags.flags_handlers.keys(), context.flags.set_flag)
+        )
+
+        attributes_handlers.update({
             'Configuration_Name': self.__parse_configuration_name,
             'FileConfiguration_Name': self.__parse_configuration_name,
             'Configuration_TargetName': self.__parse_target_name,
@@ -58,20 +64,6 @@ class VFParser(Parser):
             'VFFortranCompilerTool_PreprocessorDefinitions': self.__parse_preprocessor_definitions,
             'VFFortranCompilerTool_AdditionalIncludeDirectories':
                 self.__parse_additional_include_directories,
-            'VFFortranCompilerTool_SuppressStartupBanner': context.flags.set_flag,
-            'VFFortranCompilerTool_DebugInformationFormat': context.flags.set_flag,
-            'VFFortranCompilerTool_Optimization': context.flags.set_flag,
-            'VFFortranCompilerTool_InterproceduralOptimizations': context.flags.set_flag,
-            'VFFortranCompilerTool_EnableEnhancedInstructionSet': context.flags.set_flag,
-            'VFFortranCompilerTool_EnableRecursion': context.flags.set_flag,
-            'VFFortranCompilerTool_ReentrantCode': context.flags.set_flag,
-            'VFFortranCompilerTool_Preprocess': context.flags.set_flag,
-            'VFFortranCompilerTool_SourceFileFormat': context.flags.set_flag,
-            'VFFortranCompilerTool_DebugParameter': context.flags.set_flag,
-            'VFFortranCompilerTool_DefaultIncAndUsePath': context.flags.set_flag,
-            'VFFortranCompilerTool_FixedFormLineLength': context.flags.set_flag,
-            'VFFortranCompilerTool_OpenMP': context.flags.set_flag,
-            'VFFortranCompilerTool_DisableSpecificDiagnostics': context.flags.set_flag,
             'VFFortranCompilerTool_Diagnostics': self.__parse_diagnostics,
             'VFFortranCompilerTool_WarnDeclarations': self.__parse_concrete_diagnostics,
             'VFFortranCompilerTool_WarnUnusedVariables': self.__parse_concrete_diagnostics,
@@ -81,19 +73,6 @@ class VFParser(Parser):
             'VFFortranCompilerTool_WarnUnalignedData': self.__parse_concrete_diagnostics,
             'VFFortranCompilerTool_WarnUncalled': self.__parse_concrete_diagnostics,
             'VFFortranCompilerTool_SuppressUsageMessages': self.__parse_concrete_diagnostics,
-            'VFFortranCompilerTool_RealKIND': context.flags.set_flag,
-            'VFFortranCompilerTool_LocalVariableStorage': context.flags.set_flag,
-            'VFFortranCompilerTool_InitLocalVarToNAN': context.flags.set_flag,
-            'VFFortranCompilerTool_FloatingPointExceptionHandling': context.flags.set_flag,
-            'VFFortranCompilerTool_ExtendSinglePrecisionConstants': context.flags.set_flag,
-            'VFFortranCompilerTool_FloatingPointModel': context.flags.set_flag,
-            'VFFortranCompilerTool_FloatingPointSpeculation': context.flags.set_flag,
-            'VFFortranCompilerTool_FloatingPointStackCheck': context.flags.set_flag,
-            'VFFortranCompilerTool_ExternalNameInterpretation': context.flags.set_flag,
-            'VFFortranCompilerTool_CallingConvention': context.flags.set_flag,
-            'VFFortranCompilerTool_StringLengthArgPassing': context.flags.set_flag,
-            'VFFortranCompilerTool_ExternalNameUnderscore': context.flags.set_flag,
-            'VFFortranCompilerTool_Traceback': context.flags.set_flag,
             'VFFortranCompilerTool_RuntimeChecks': self.__parse_runtime_checks,
             'VFFortranCompilerTool_NullPointerCheck': self.__parse_concrete_runtime_checks,
             'VFFortranCompilerTool_BoundsCheck': self.__parse_concrete_runtime_checks,
@@ -103,16 +82,12 @@ class VFParser(Parser):
             'VFFortranCompilerTool_DescriptorDataSizeCheck': self.__parse_concrete_runtime_checks,
             'VFFortranCompilerTool_ArgTempCreatedCheck': self.__parse_concrete_runtime_checks,
             'VFFortranCompilerTool_StackFrameCheck': self.__parse_concrete_runtime_checks,
-            'VFFortranCompilerTool_RuntimeLibrary': context.flags.set_flag,
-            'VFFortranCompilerTool_DisableDefaultLibSearch': context.flags.set_flag,
-            'VFFortranCompilerTool_AdditionalOptions': context.flags.set_flag,
             'VFFortranCompilerTool_ModulePath': self.do_nothing_attr_stub,  # TODO?
             'VFFortranCompilerTool_ObjectFile': self.do_nothing_attr_stub,  # TODO?
             'VFFortranCompilerTool_AssemblerListingLocation': self.do_nothing_attr_stub,  # TODO?
             'VFFortranCompilerTool_PdbFile': self.do_nothing_attr_stub,  # TODO?
             'VFFortranCompilerTool_ParallelizerDiagLevel': self.do_nothing_attr_stub,  # obsolete?
             'VFFortranCompilerTool_VectorizerDiagLevel': self.do_nothing_attr_stub,  # obsolete?
-            'VFLinkerTool_GenerateDebugInformation': context.flags.set_flag,
             'VFLinkerTool_OutputFile': context.variables.set_output_file,
             'VFLibrarianTool_OutputFile': context.variables.set_output_file,
             'VFLinkerTool_ImportLibrary': context.variables.set_import_library,
@@ -148,7 +123,7 @@ class VFParser(Parser):
             'File_RelativePath': self.__parse_file_relative_path,
             'Filter_Name': self.do_nothing_attr_stub,
             'Filter_Filter': self.do_nothing_attr_stub,  # TODO?
-        }
+        })
         return attributes_handlers
 
     def parse(self, context):

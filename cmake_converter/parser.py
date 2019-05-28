@@ -86,7 +86,7 @@ class Parser:
             node_key = '{}_{}'.format(node_tag, attr)
             attributes_handlers = self.get_attribute_handlers_dict(context)
             if node_key in attributes_handlers:    # node specified handler
-                attributes_handlers[node_key](context, attr, node.get(attr), node)
+                attributes_handlers[node_key](context, node_key, node.get(attr), node)
             elif attr in attributes_handlers:      # common attribute handler
                 attributes_handlers[attr](context, attr, node.get(attr), node)
             else:

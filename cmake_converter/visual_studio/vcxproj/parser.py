@@ -34,13 +34,18 @@ class VCXParser(Parser):
         self.filters = None
 
     def get_node_handlers_dict(self, context):
-        node_handlers = {
+        node_handlers = {}
+
+        node_handlers.update(
+            dict.fromkeys(context.flags.flags_handlers.keys(), context.flags.set_flag)
+        )
+
+        node_handlers.update({
             'ItemGroup': self.__parse_item_group,
             'Target': self._parse_nodes,
             'ProjectConfiguration': self.do_nothing_node_stub,
             'ConfigurationType': self.__parse_configuration_type,
             'CharacterSet': context.flags.set_character_set,
-            'CLRSupport': context.flags.set_flag,
             'PlatformToolset': self.do_nothing_node_stub,
             'PropertyGroup': self.__parse_property_group,
             'ProjectName': self.do_nothing_node_stub,  # handled globally, ignore here
@@ -83,8 +88,6 @@ class VCXParser(Parser):
             'IgnoreSpecificDefaultLibraries':
                 context.dependencies.set_target_ignore_specific_default_libraries,
             'PreprocessorDefinitions': context.flags.set_defines,
-            'PrecompiledHeader': context.flags.set_flag,
-            'PrecompiledHeaderFile': context.flags.set_flag,
             'PrecompiledHeaderOutputFile': self.do_nothing_node_stub,  # no GenEx at OBJECT_OUTPUTS
             'Link': self._parse_nodes,
             'Lib': self._parse_nodes,
@@ -92,71 +95,14 @@ class VCXParser(Parser):
             'ProjectExtensions': self.do_nothing_node_stub,  # no support in CMake
             'OutputFile': context.variables.set_output_file,
             'ImportLibrary': context.variables.set_import_library,
-            'AssemblerListingLocation': context.flags.set_flag,
-            'AssemblerOutput': context.flags.set_flag,
-            'ObjectFileName': context.flags.set_flag,
-            'FavorSizeOrSpeed': context.flags.set_flag,
             'ProgramDatabaseFile': context.variables.set_program_database_file,
             'ProgramDataBaseFileName': self.do_nothing_node_stub,  # no support of GenEx in CMake
             'IntDir': self.do_nothing_node_stub,  # no analog at CMake
             'OutDir': context.variables.set_output_dir,
             'TargetName': self.__parse_target_name_node,
-            'UseDebugLibraries': context.flags.set_flag,
-            'WholeProgramOptimization': context.flags.set_flag,
-            'ImageHasSafeExceptionHandlers': context.flags.set_flag,
-            'SubSystem': context.flags.set_flag,
-            'OptimizeReferences': context.flags.set_flag,
-            'EnableCOMDATFolding': context.flags.set_flag,
-            'FixedBaseAddress': context.flags.set_flag,
-            'StackReserveSize': context.flags.set_flag,
-            'GenerateDebugInformation': context.flags.set_flag,
-            'TargetMachine': context.flags.set_flag,
-            'LinkIncremental': context.flags.set_flag,
-            'Profile': context.flags.set_flag,
-            'DataExecutionPrevention': context.flags.set_flag,
-            'RandomizedBaseAddress': context.flags.set_flag,
-            'IgnoreEmbeddedIDL': context.flags.set_flag,
-            'AssemblyDebug': context.flags.set_flag,
-            'MinimalRebuild': context.flags.set_flag,
-            'Optimization': context.flags.set_flag,
-            'InlineFunctionExpansion': context.flags.set_flag,
-            'IntrinsicFunctions': context.flags.set_flag,
-            'SDLCheck': context.flags.set_flag,
-            'StringPooling': context.flags.set_flag,
-            'EnableFiberSafeOptimizations': context.flags.set_flag,
-            'BasicRuntimeChecks': context.flags.set_flag,
-            'ShowIncludes': context.flags.set_flag,
-            'CompileAsManaged': context.flags.set_flag,
-            'EnableEnhancedInstructionSet': context.flags.set_flag,
-            'OmitFramePointers': context.flags.set_flag,
-            'CallingConvention': context.flags.set_flag,
-            'RuntimeLibrary': context.flags.set_flag,
-            'FunctionLevelLinking': context.flags.set_flag,
-            'WarningLevel': context.flags.set_flag,
-            'SuppressStartupBanner': context.flags.set_flag,
-            'FloatingPointExceptions': context.flags.set_flag,
-            'TreatWarningAsError': context.flags.set_flag,
-            'DebugInformationFormat': context.flags.set_flag,
-            'CompileAs': context.flags.set_flag,
-            'FloatingPointModel': context.flags.set_flag,
-            'StructMemberAlignment': context.flags.set_flag,
-            'RuntimeTypeInfo': context.flags.set_flag,
-            'DisableSpecificWarnings': context.flags.set_flag,
             'EnablePREfast': self.do_nothing_node_stub,     # no support from CMake
-            'SupportJustMyCode': context.flags.set_flag,
-            'ConformanceMode': context.flags.set_flag,
-            'LanguageStandard': context.flags.set_flag,
             'AdditionalOptions': self.__parse_additional_options,
-            'ExceptionHandling': context.flags.set_flag,
-            'ControlFlowGuard': context.flags.set_flag,
-            'BufferSecurityCheck': context.flags.set_flag,
-            'DiagnosticsFormat': context.flags.set_flag,
-            'DisableLanguageExtensions': context.flags.set_flag,
-            'TreatWChar_tAsBuiltInType': context.flags.set_flag,
-            'ForceConformanceInForLoopScope': context.flags.set_flag,
-            'RemoveUnreferencedCodeData': context.flags.set_flag,
-            'OpenMPSupport': context.flags.set_flag,
-        }
+        })
         return node_handlers
 
     def get_attribute_handlers_dict(self, context):
