@@ -40,8 +40,6 @@ class CPPFlags(Flags):
         Class who check and create compilation flags
     """
 
-    available_std = ['c++11', 'c++14', 'c++17']
-
     def __init__(self):
         self.flags = {}
         self.unicode_defines = {}
