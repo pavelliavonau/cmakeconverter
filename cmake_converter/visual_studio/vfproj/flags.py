@@ -96,6 +96,7 @@ class FortranFlags(Flags):
              self.__set_disable_default_lib_search),
             ('VFFortranCompilerTool_AdditionalOptions', self.__set_additional_options),
             ('VFLinkerTool_GenerateDebugInformation', self.__generate_debug_information),
+            ('VFLinkerTool_LinkIncremental', self.__set_link_incremental),
             ('VFLinkerTool_SuppressStartupBanner', self.__set_link_suppress_startup_banner),
         ])
 
@@ -878,6 +879,20 @@ class FortranFlags(Flags):
         del context, flag_name, flag_value
         flag_values = {
             'true': {ifort_ln_win: '/DEBUG'},
+            default_value: {}
+        }
+        return flag_values
+
+    @staticmethod
+    def __set_link_incremental(context, flag_name, flag_value):
+        """
+        Set LinkIncremental flag
+
+        """
+        del context, flag_name, flag_value
+        flag_values = {
+            'linkIncrementalYes': {ifort_ln_win: '/INCREMENTAL'},
+            'linkIncrementalNo': {ifort_ln_win: '/INCREMENTAL:NO'},
             default_value: {}
         }
         return flag_values
