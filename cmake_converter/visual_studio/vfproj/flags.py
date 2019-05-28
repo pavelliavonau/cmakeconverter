@@ -98,6 +98,8 @@ class FortranFlags(Flags):
             ('VFLinkerTool_GenerateDebugInformation', self.__generate_debug_information),
             ('VFLinkerTool_LinkIncremental', self.__set_link_incremental),
             ('VFLinkerTool_SuppressStartupBanner', self.__set_link_suppress_startup_banner),
+            ('VFLinkerTool_SubSystem', self.__set_sub_system),
+            ('VFLinkerTool_LinkDLL', self.__set_link_dll),
         ])
 
     def __set_default_flags(self, context):
@@ -906,6 +908,35 @@ class FortranFlags(Flags):
         del context, flag_name, flag_value
         flag_values = {
             'true': {ifort_ln_win: '/NOLOGO'},
+            default_value: {}
+        }
+        return flag_values
+
+    @staticmethod
+    def __set_sub_system(context, flag_name, flag_value):
+        """
+        Set SubSystem flag
+
+        """
+        del context, flag_name, flag_value
+        flag_values = {
+            'subSystemWindows': {ifort_ln_win: '/SUBSYSTEM:WINDOWS'},
+            'subSystemConsole': {ifort_ln_win: '/SUBSYSTEM:CONSOLE'},
+            'subSystemConsoleXP': {ifort_ln_win: '/SUBSYSTEM:CONSOLE,"5.x"'},
+            'subSystemWindowsXP': {ifort_ln_win: '/SUBSYSTEM:WINDOWS,"5.x"'},
+            default_value: {}
+        }
+        return flag_values
+
+    @staticmethod
+    def __set_link_dll(context, flag_name, flag_value):
+        """
+        Set LinkDLL flag
+
+        """
+        del context, flag_name, flag_value
+        flag_values = {
+            'true': {ifort_ln_win: '/DLL'},
             default_value: {}
         }
         return flag_values
