@@ -91,6 +91,7 @@ class VFParser(Parser):
             'VFLinkerTool_OutputFile': context.variables.set_output_file,
             'VFLibrarianTool_OutputFile': context.variables.set_output_file,
             'VFLinkerTool_ImportLibrary': context.variables.set_import_library,
+            'VFLinkerTool_ProgramDatabaseFile': context.variables.set_program_database_file,
             'VFLibrarianTool_ImportLibrary': context.variables.set_import_library,
             'VFLinkerTool_AdditionalDependencies':
                 context.dependencies.set_target_additional_dependencies,

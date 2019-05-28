@@ -48,3 +48,13 @@ class VFProjectVariables(ProjectVariables):
             'ARCHIVE_OUTPUT_DIRECTORY',
             'ARCHIVE_OUTPUT_NAME'
         )
+
+    def set_program_database_file(self, context, flag_name, program_database_file, node):
+        del flag_name, node
+        self.set_path_and_name_from_node(
+            context,
+            'Program database',
+            program_database_file,
+            'PDB_OUTPUT_DIRECTORY',
+            'PDB_NAME'
+        )
