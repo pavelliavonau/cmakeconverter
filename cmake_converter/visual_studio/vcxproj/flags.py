@@ -850,11 +850,15 @@ class CPPFlags(Flags):
         Set DebugInformationFormat flag: /Zi
 
         """
+
+        if context.file_contexts is None and node.text == '':  # if file context ignore default
+            return {}
+
         del context, flag_name, node
         flag_values = {
             'ProgramDatabase': {cl_flags: '/Zi'},
             'EditAndContinue': {cl_flags: '/ZI'},
-            default_value: {}
+            default_value: {cl_flags: '${DEFAULT_CXX_DEBUG_INFORMATION_FORMAT}'}
         }
 
         return flag_values
