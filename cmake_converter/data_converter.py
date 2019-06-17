@@ -135,6 +135,10 @@ class DataConverter:
 
             context.sln_configurations_map[(None, arch)] = (None, mapped_arch)
 
+        if context.file_contexts is not None:
+            for file in context.file_contexts:
+                DataConverter.merge_data_settings(context.file_contexts[file])
+
     @staticmethod
     def write_data(context, cmake_file):
         """

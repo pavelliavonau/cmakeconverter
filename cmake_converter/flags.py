@@ -52,10 +52,13 @@ class Flags:
                                   width,
                                   **kwargs):
         del width, kwargs
-        config = config_condition_expr.replace('$<CONFIG:', '')
-        config = config.replace('>', '')
+        config = ''
+        if config_condition_expr:
+            config = config_condition_expr.replace('$<CONFIG:', '_')
+            config = config.replace('>', '')
+
         cmake_file.write(
-            '{0}    COMPILE_DEFINITIONS_{1} "{2}"\n'
+            '{0}    COMPILE_DEFINITIONS{1} "{2}"\n'
             .format(property_indent, config.upper(), ';'.join(property_value))
         )
 
