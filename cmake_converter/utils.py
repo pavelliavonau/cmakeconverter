@@ -716,3 +716,12 @@ def write_use_package_stub(cmake):
     cmake.write('function(use_package TARGET PACKAGE VERSION)\n')
     cmake.write('    message(WARNING "No implementation of use_package. Create yours.")\n')
     cmake.write('endfunction()\n\n')
+
+
+def make_cmake_literal(context, input_str):
+
+    output_str = re.sub(r'[^0-9a-zA-Z_./\-+]', '', input_str)
+
+    if input_str != output_str:
+        message(context, 'check conversion "{}" -> "{}"'.format(input_str, output_str), 'warn')
+    return output_str

@@ -30,7 +30,7 @@ import os
 import copy
 
 from cmake_converter.utils import take_name_from_list_case_ignore, normalize_path
-from cmake_converter.utils import message, write_comment
+from cmake_converter.utils import message, write_comment, make_cmake_literal
 
 
 class ProjectFiles:
@@ -192,22 +192,24 @@ class ProjectFiles:
                 'Check it!!',
                 'error'
             )
-        cmake_file.write('project({0}{1})\n\n'.format(context.project_name, lang))
+        cmake_file.write(
+            'project({0}{1})\n\n'.format(make_cmake_literal(context, context.project_name), lang)
+        )
 
     @staticmethod
-    def get_source_group_var(source_group_name):
+    def get_source_group_var(context, source_group_name):
         if not source_group_name:
             return 'no_group_source_files'
 
         source_group_name = source_group_name.replace(' ', '_')
-        return source_group_name.replace('\\\\', '__')
+        return make_cmake_literal(context, source_group_name.replace('\\\\', '__'))
 
     def write_source_groups(self, context, cmake_file):
         write_comment(cmake_file, 'Source groups')
 
         source_group_list = sorted(context.source_groups)
         for source_group in source_group_list:
-            source_group_var = self.get_source_group_var(source_group)
+            source_group_var = self.get_source_group_var(context, source_group)
             cmake_file.write('set({}\n'.format(source_group_var))
             for src_file in context.source_groups[source_group]:
                 cmake_file.write('    {0}\n'.format(src_file))
@@ -220,7 +222,7 @@ class ProjectFiles:
         cmake_file.write('set(ALL_FILES\n')
         for source_group in source_group_list:
             cmake_file.write(
-                '    ${{{}}}\n'.format(context.files.get_source_group_var(source_group))
+                '    ${{{}}}\n'.format(context.files.get_source_group_var(context, source_group))
             )
         cmake_file.write(')\n\n')
 
