@@ -163,7 +163,14 @@ def __parse_configurations_of_solution(initial_context, sln_text, solution_data)
         configurations = sln_configuration_re.findall(solution_configuration_match)
         for configuration in configurations:
             solution_data['sln_configurations'].append(configuration[0])
-            initial_context.supported_architectures.add(configuration[0].split('|')[1])
+            arch = configuration[0].split('|')[1]
+            if arch == 'x86':
+                message(
+                    initial_context,
+                    'Solution architecture is x86 and may be mapped onto Win32 at projects.'
+                    'To avoid problems rename x86 -> Win32.',
+                    'warn')
+            initial_context.supported_architectures.add(arch)
 
 
 def __parse_project_configuration_platforms(sln_text, projects_data):
