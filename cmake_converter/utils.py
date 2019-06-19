@@ -164,7 +164,9 @@ def write_property_of_setting_f(cmake_file,
     property_list_str = property_value_str.split('\n')
 
     if config_condition_expr:
-        cmake_file.write('{0}{1}{2}\n'.format(config_indent, quotes + config_condition_expr_str, quotes))
+        cmake_file.write(
+            '{0}{1}{2}\n'.format(config_indent, quotes + config_condition_expr_str, quotes)
+        )
         prop_value_indent = config_indent + '    '
 
     for prop in property_list_str:
@@ -614,11 +616,17 @@ def normalize_path(context, working_path, path_to_normalize, remove_relative=Tru
     :rtype: str
     """
 
-    joined_path = set_native_slash(os.path.join(working_path, ntpath.normpath(path_to_normalize.strip())))
+    joined_path = set_native_slash(
+        os.path.join(working_path, ntpath.normpath(path_to_normalize.strip()))
+    )
     normal_path = os.path.normpath(joined_path)
     actual_path_name = get_actual_filename(context, normal_path)
     if actual_path_name is None:
-        message(context, 'getting actual filesystem name failed : "{}"'.format(normal_path), 'warn1')
+        message(
+            context,
+            'getting actual filesystem name failed : "{}"'.format(normal_path),
+            'warn1'
+        )
         actual_path_name = normal_path
     normal_path = set_unix_slash(os.path.relpath(actual_path_name, working_path))
     normal_path = check_for_relative_in_path(context, normal_path, remove_relative)

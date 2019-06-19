@@ -289,7 +289,7 @@ def copy_cmake_utils(cmake_lists_path):
     shutil.copyfile(os.path.join(src_dir, '../Default.cmake'), utils_path + '/Default.cmake')
     shutil.copyfile(os.path.join(src_dir, '../DefaultCXX.cmake'), utils_path + '/DefaultCXX.cmake')
     shutil.copyfile(os.path.join(src_dir, '../DefaultFortran.cmake'),
-                                 utils_path + '/DefaultFortran.cmake')
+                    utils_path + '/DefaultFortran.cmake')
 
 
 def convert_solution(initial_context, sln_path):
@@ -440,8 +440,8 @@ def __get_info_from_results(
                     project_result['target_windows_ver'] and \
                     initial_context.target_windows_version != project_result['target_windows_ver']:
                 message(
-                   initial_context,
-                   'CMake does not support more than 1 version of windows SDK', 'warn'
+                    initial_context,
+                    'CMake does not support more than 1 version of windows SDK', 'warn'
                 )
             if project_result['target_windows_ver']:
                 initial_context.target_windows_version = project_result['target_windows_ver']

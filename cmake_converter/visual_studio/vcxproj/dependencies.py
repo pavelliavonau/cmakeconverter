@@ -149,11 +149,11 @@ class VCXDependencies(Dependencies):
         # props_path = os.path.join(os.path.dirname(context.vcxproj_path), filename)
         working_path = os.path.dirname(context.vcxproj_path)
         props_cmake_path = normalize_path(
-                context,
-                working_path,
-                filename,
-                False
-            ).replace('.props', '.cmake')
+            context,
+            working_path,
+            filename,
+            False
+        ).replace('.props', '.cmake')
         message(context, 'cmake from property sheet: {}'.format(props_cmake_path), '')
         context.settings[context.current_setting]['property_sheets'].append(props_cmake_path)
         # properties_xml = get_xml_data(context, props_path)
