@@ -30,9 +30,9 @@ try:
     python_version = sys.version_info
 except Exception:
     python_version = (1, 5)
-if python_version < (3, 5):
+if python_version < (3, 4):
     sys.exit(
-        "This application requires a minimum of Python 3.5 !"
+        "This application requires a minimum of Python 3.4 !"
         " Please update your Python version."
     )
 
