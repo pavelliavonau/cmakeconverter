@@ -213,6 +213,7 @@ class Dependencies:
     @staticmethod
     def write_property_sheets(cmake_file, property_indent, config_condition_expr,
                               property_value, width, **kwargs):
+        del kwargs
         config = '"${CMAKE_CONFIGURATION_TYPES}" '
         width_diff = 0
         if config_condition_expr is not None:
@@ -302,6 +303,7 @@ class Dependencies:
     @staticmethod
     def write_target_build_event_of_setting(cmake_file, property_indent, config_condition_expr,
                                             property_value, width, **kwargs):
+        del kwargs
         for command in property_value:
             cmake_file.write('{0}    COMMAND {1:>{width}} {2}\n'
                              .format(property_indent, config_condition_expr, command,
@@ -329,6 +331,7 @@ class Dependencies:
     @staticmethod
     def write_file_build_event_of_setting(cmake_file, property_indent, config_condition_expr,
                                           property_value, width, **kwargs):
+        del kwargs
         # for command in property_value:
         if config_condition_expr is None:
             return

@@ -445,11 +445,11 @@ class CPPFlags(Flags):
                 'true': {cl_flags: '/nologo'},
                 default_value: {}
             }
-        else:
-            return {
-                'true': {ln_flags: '/NOLOGO'},
-                default_value: {}
-            }
+
+        return {
+            'true': {ln_flags: '/NOLOGO'},
+            default_value: {}
+        }
 
     @staticmethod
     def __set_floating_point_exceptions(context, flag_name, node):

@@ -106,21 +106,9 @@ class DataConverter:
                             result_settings_list.append(element)
                     context.settings[setting][key] = result_settings_list
 
-                # get order of common settings pass
-                merged_order_list = []
-                i = 0
-                while True:
-                    out_of_bounds = 0
-                    for setting in lists_of_items_to_merge:
-                        settings_list = lists_of_items_to_merge[setting]
-                        if i < len(settings_list):
-                            merged_order_list.append(settings_list[i])
-                        else:
-                            out_of_bounds += 1
-
-                    if out_of_bounds == len(lists_of_items_to_merge):
-                        break
-                    i += 1
+                merged_order_list = DataConverter.__get_order_of_common_settings(
+                    lists_of_items_to_merge
+                )
 
                 # getting ordered common settings
                 common_ordered_list = []
@@ -138,6 +126,24 @@ class DataConverter:
         if context.file_contexts is not None:
             for file in context.file_contexts:
                 DataConverter.merge_data_settings(context.file_contexts[file])
+
+    @staticmethod
+    def __get_order_of_common_settings(lists_of_items_to_merge):
+        merged_order_list = []
+        i = 0
+        while True:
+            out_of_bounds = 0
+            for setting in lists_of_items_to_merge:
+                settings_list = lists_of_items_to_merge[setting]
+                if i < len(settings_list):
+                    merged_order_list.append(settings_list[i])
+                else:
+                    out_of_bounds += 1
+
+            if out_of_bounds == len(lists_of_items_to_merge):
+                break
+            i += 1
+        return merged_order_list
 
     @staticmethod
     def write_data(context, cmake_file):

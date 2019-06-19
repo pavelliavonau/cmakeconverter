@@ -30,9 +30,10 @@ import os
 import glob
 import re
 import time
-import colorama
 import ntpath
 from collections import OrderedDict
+
+import colorama
 
 
 def init_colorama():
