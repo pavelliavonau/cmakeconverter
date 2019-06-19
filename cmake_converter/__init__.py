@@ -37,8 +37,8 @@ __copyright__ = u"2016-2017 - %s" % __author__
 __license__ = u"GNU Affero General Public License, version 3"
 __description__ = u"CMake converter for Visual Studio projects"
 __releasenotes__ = u"CMake converter for Visual Studio projects"
-__project_url__ = "https://github.com/algorys/cmakeconverter"
-__doc_url__ = "https://github.com/algorys/cmakeconverter"
+__project_url__ = "https://github.com/pavelliavonau/cmakeconverter"
+__doc_url__ = "https://github.com/pavelliavonau/cmakeconverter"
 
 # Application Manifest
 manifest = {

@@ -1,13 +1,13 @@
 CMake Converter
 ===============
 
-.. image:: https://travis-ci.org/algorys/cmakeconverter.svg?branch=develop
-    :target: https://travis-ci.org/algorys/cmakeconverter
-.. image:: https://landscape.io/github/algorys/cmakeconverter/develop/landscape.svg?style=flat
-    :target: https://landscape.io/github/algorys/cmakeconverter/develop
+.. image:: https://travis-ci.org/pavelliavonau/cmakeconverter.svg?branch=develop
+    :target: https://travis-ci.org/pavelliavonau/cmakeconverter
+.. image:: https://landscape.io/github/pavelliavonau/cmakeconverter/develop/landscape.svg?style=flat
+    :target: https://landscape.io/github/pavelliavonau/cmakeconverter/develop
     :alt: Code Health
-.. image:: https://coveralls.io/repos/github/algorys/cmakeconverter/badge.svg?branch=develop
-    :target: https://coveralls.io/github/algorys/cmakeconverter?branch=develop
+.. image:: https://coveralls.io/repos/github/pavelliavonau/cmakeconverter/badge.svg?branch=develop
+    :target: https://coveralls.io/github/pavelliavonau/cmakeconverter?branch=develop
 .. image:: http://readthedocs.org/projects/cmakeconverter/badge/?version=develop
     :target: http://cmakeconverter.readthedocs.io/en/develop/?badge=develop
     :alt: Documentation Status
