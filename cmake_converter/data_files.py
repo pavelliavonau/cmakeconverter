@@ -162,7 +162,7 @@ def get_propertygroup(target_platform, attributes=''):
     Return "property_groups" value for wanted platform and target
 
     :param target_platform: wanted target: debug | release
-    :type target_platform: str
+    :type target_platform: tuple[str,str]
     :param attributes: attributes to add to namespace
     :type attributes: str
     :return: "property_groups" value
@@ -181,7 +181,7 @@ def get_definitiongroup(target_platform):
     Return ItemDefinitionGroup namespace depends on platform and target
 
     :param target_platform: wanted target: debug | release
-    :type target_platform: str
+    :type target_platform: tuple[str,str]
     :return: wanted ItemDefinitionGroup namespace
     :rtype: str
     """

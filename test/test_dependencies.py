@@ -24,7 +24,7 @@ import os
 import unittest
 
 from cmake_converter.context import Context
-from cmake_converter.data_converter import DataConverter
+from cmake_converter.visual_studio.solution import convert_solution
 
 
 class TestDependencies(unittest.TestCase):
@@ -32,20 +32,18 @@ class TestDependencies(unittest.TestCase):
         This file test methods of Dependencies class.
     """
 
+    cur_dir = os.path.dirname(os.path.realpath(__file__))
+
     def setUp(self):
-        cur_dir = os.path.dirname(os.path.realpath(__file__))
         context = Context()
         context.verbose = False
-        vs_project = '{}/datatest/foo.vcxproj'.format(cur_dir)
-        context.init(vs_project, cur_dir)
-        context.cmake = './'
-        converter = DataConverter()
-        converter.convert(context)
+        solution_file = '{}/datatest/sln/cpp.sln'.format(self.cur_dir)
+        convert_solution(context, os.path.abspath(solution_file))
 
     def test_write_include_dir(self):
         """Write Include Dirs"""
 
-        with open('CMakeLists.txt') as cmake_lists_test:
+        with open(self.cur_dir + '/datatest/CMakeLists.txt') as cmake_lists_test:
             cmake_content = cmake_lists_test.read()
             self.assertTrue(
                 '${CMAKE_CURRENT_SOURCE_DIR}/external' in cmake_content
@@ -54,14 +52,20 @@ class TestDependencies(unittest.TestCase):
     def test_write_dependencies(self):
         """Write Dependencies"""
 
-        with open('CMakeLists.txt') as cmake_lists_test:
+        with open(self.cur_dir + '/datatest/CMakeLists.txt') as cmake_lists_test:
             content_test = cmake_lists_test.read()
-            self.assertTrue('add_dependencies(${PROJECT_NAME} g3log zlib)' in content_test)
+            self.assertTrue('''add_dependencies(${PROJECT_NAME}
+    g3log
+    zlib
+)''' in content_test)
             # self.assertTrue('link_directories(${DEPENDENCIES_DIR}/g3log)' in content_test)
 
     def test_link_dependencies(self):
         """Link Dependencies"""
 
-        with open('CMakeLists.txt') as cmake_lists_test:
-            self.assertTrue('target_link_libraries(${PROJECT_NAME} g3log zlib)'
+        with open(self.cur_dir + '/datatest/CMakeLists.txt') as cmake_lists_test:
+            self.assertTrue('''target_link_libraries(${PROJECT_NAME} PUBLIC
+    g3log
+    zlib
+)'''
                             in cmake_lists_test.read())
