@@ -122,6 +122,9 @@ class VCXDependencies(Dependencies):
         :param node:
         :return:
         """
+        if node.text is None:
+            return
+
         list_ingore_spec_libs = node.text.replace('%(IgnoreSpecificDefaultLibraries)', '')
         if list_ingore_spec_libs != '':
             ignore_libs = []
