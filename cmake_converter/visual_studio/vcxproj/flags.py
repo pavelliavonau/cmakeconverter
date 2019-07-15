@@ -869,19 +869,29 @@ class CPPFlags(Flags):
         Set AssemblerListingLocation flag: /Fa
 
         """
-        del flag_name
+        del flag_name, node
         flag_values = {
             default_value: {}
         }
 
-        if node.text:
-            flag_values.update(
-                {
-                    node.text: {
-                        cl_flags: '/Fa{}'.format(cleaning_output(context, node.text))
-                    }
-                }
-            )
+        # /Fa breaks non Visual Studio CMake generators.
+        # In visual studio MSBuild target MakeDirsForCl creates dir before compiling but
+        # other generators (Ninja, NMake Makefiles) don't.
+        # Then missing target asm directory error occurs.
+        # if node.text:
+        #     flag_values.update(
+        #         {
+        #             node.text: {
+        #                 cl_flags: '/Fa{}'.format(cleaning_output(context, node.text))
+        #             }
+        #         }
+        #     )
+
+        message(
+            context,
+            '/Fa option is ignored. Too hard to handle for different CMake generators.',
+            'warn4'
+        )
 
         return flag_values
 
