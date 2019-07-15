@@ -72,7 +72,7 @@ class CPPFlags(Flags):
             ('DebugInformationFormat', self.__set_debug_information_format),
             ('AssemblerListingLocation', self.__set_assembler_listing_location),
             ('AssemblerOutput', self.__set_assembler_output),
-            ('ObjectFileName', self.__set_output_file_name),
+            ('ObjectFileName', self.__set_object_file_name),
             ('FavorSizeOrSpeed', self.__set_favour_size_or_speed),
             ('CompileAs', self.__set_compile_as),
             ('FloatingPointModel', self.__set_floating_point_model),
@@ -903,24 +903,25 @@ class CPPFlags(Flags):
         return flag_values
 
     @staticmethod
-    def __set_output_file_name(context, flag_name, node):
+    def __set_object_file_name(context, flag_name, node):
         """
         Set ObjectFileName flag: /Fo
 
         """
-        del flag_name
+        del context, flag_name, node
         flag_values = {
             default_value: {}
         }
 
-        if node.text:
-            flag_values.update(
-                {
-                    node.text: {
-                        cl_flags: '/Fo{}'.format(cleaning_output(context, node.text))
-                    }
-                }
-            )
+        # /Fo is hardcoded inside CMake. No way to control this.
+        # if node.text:
+        #     flag_values.update(
+        #         {
+        #             node.text: {
+        #                 cl_flags: '/Fo{}'.format(cleaning_output(context, node.text))
+        #             }
+        #         }
+        #     )
 
         return flag_values
 
