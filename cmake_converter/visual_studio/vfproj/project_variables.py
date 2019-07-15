@@ -21,6 +21,7 @@
 # along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
 from cmake_converter.project_variables import ProjectVariables
+from cmake_converter.utils import write_property_of_settings, message
 
 
 class VFProjectVariables(ProjectVariables):
@@ -37,6 +38,23 @@ class VFProjectVariables(ProjectVariables):
         del flag_name, node
 
         self.set_output_file_impl(context, output_file)
+
+    def set_module_dir(self, context, flag_name, output_file, node):
+        del flag_name, node
+
+        self.set_path_and_name_from_node(
+            context,
+            'Fortran module directory',
+            output_file,
+            'Fortran_MODULE_DIRECTORY',
+            'Fortran_MODULE_NAME'   # no support in CMake
+        )
+
+        message(
+            context,
+            'Fortran Module Directory will be ignored due lack of regex support at CMake\n'
+            'See walk-around at CMake/DefaultFortran.cmake', 'warn3'
+        )
 
     def set_import_library(self, context, flag_name, import_library, node):
         del flag_name, node
@@ -58,3 +76,17 @@ class VFProjectVariables(ProjectVariables):
             'PDB_OUTPUT_DIRECTORY',
             'PDB_NAME'
         )
+
+    @staticmethod
+    def write_target_outputs(context, cmake_file):
+        ProjectVariables.write_target_outputs(context, cmake_file)
+
+        # No support of Regex for Fortran_MODULE_DIRECTORY at CMake 3.13
+        # write_property_of_settings(
+        #     cmake_file, context.settings,
+        #     context.sln_configurations_map,
+        #     begin_text='set_target_properties(${PROJECT_NAME} PROPERTIES',
+        #     end_text=')',
+        #     property_name='Fortran_MODULE_DIRECTORY',
+        #     write_setting_property_func=ProjectVariables.write_target_property
+        # )

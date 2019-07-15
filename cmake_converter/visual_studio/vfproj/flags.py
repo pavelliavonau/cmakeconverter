@@ -959,11 +959,3 @@ class FortranFlags(Flags):
                 }
             )
         return flag_values
-
-    @staticmethod
-    def write_target_artifact(context, cmake_file):
-        Flags.write_target_artifact(context, cmake_file)
-        cmake_file.write('set_target_properties(${PROJECT_NAME} '
-                         'PROPERTIES '
-                         'Fortran_MODULE_DIRECTORY '
-                         '"${${PROJECT_NAME}_BINARY_DIR}/${PROJECT_NAME}.dir")\n\n')

@@ -82,7 +82,7 @@ class VFParser(Parser):
             'VFFortranCompilerTool_DescriptorDataSizeCheck': self.__parse_concrete_runtime_checks,
             'VFFortranCompilerTool_ArgTempCreatedCheck': self.__parse_concrete_runtime_checks,
             'VFFortranCompilerTool_StackFrameCheck': self.__parse_concrete_runtime_checks,
-            'VFFortranCompilerTool_ModulePath': self.do_nothing_attr_stub,  # TODO?
+            'VFFortranCompilerTool_ModulePath': context.variables.set_module_dir,
             'VFFortranCompilerTool_ObjectFile': self.do_nothing_attr_stub,  # TODO?
             'VFFortranCompilerTool_AssemblerListingLocation': self.do_nothing_attr_stub,  # TODO?
             'VFFortranCompilerTool_PdbFile': self.do_nothing_attr_stub,  # TODO?
