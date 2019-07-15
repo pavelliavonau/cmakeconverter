@@ -22,7 +22,7 @@ Introduction
 ------------
 
 This project aims to facilitate the conversion of Visual Studio solution to CMake projects.
-The goal is to give to a Python script, a **\*.sln** file, and output a set of **CMakeLists.txt** that may be used for generating visual studio solution backward as perfect as possible. Project is useful for porting VS projects into crossplatform CMake build system.
+The goal is to give to a Python script, a **\*.sln** file, and output a set of **CMakeLists.txt** that may be used for generating visual studio solution backward as perfect as possible. Project is useful for porting VS projects into CMake build system.
 
 **Note :** Actually, it's **only works** with  ``C/C++`` (\*.vcxproj) and ``Fortran`` (\*.vfproj) projects.
 
@@ -34,18 +34,21 @@ Quick Install & Run
 Install from Pip
 ~~~~~~~~~~~~~~~~
 
-Install last release of cmake-converter::
+Install last stable release of cmake-converter::
 
-    # If you're under Windows, use "pip" instead "pip3"
-    pip3 install cmake_converter
+    pip install cmake_converter
+
+Install last pre-release or development version of cmake-converter::
+
+    pip install --pre cmake_converter
 
 Install from Source(the most fresh version)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Simply clone this repository and type the following command to install it::
 
-    # Inside repository folder. If you're under Windows, use "pip" instead "pip3"
-    pip3 install .
+    # Inside repository folder.
+    pip install .
 
 Run & Convert
 ~~~~~~~~~~~~~
