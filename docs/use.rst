@@ -6,9 +6,9 @@ Use CMake Converter
 Quick Use
 =========
 
-To use CMake Converter, simply give your ``vcxproj`` file to cmake-converter command::
+To use cmake converter, simply give your ``*.sln`` file to cmake-converter command::
 
-    cmake-converter -p /path/to/your/project.vcxproj
+    cmake-converter -s <path/to/file.sln>
 
 Advance Usage
 =============
@@ -17,50 +17,17 @@ The ``cmake-converter`` command accepts a lot of parameters to try to suit the m
 
 .. automodule:: cmake_converter.main
 
-Project Conversion
-==================
-
-With the following project structure::
-
-    project/
-    ├── cmake
-    │   ├── additional_code.txt
-    │   └── File.cmake
-    └── msvc
-        ├── myexec.sln
-        └── myexec.vcxproj
-
-You can use cmake-converter as follows:
-
-.. code-block:: bash
-
-    cmake-converter \
-    --project=../project/msvc/myexec.vcxproj \
-    --cmake=../project/cmake/ \
-    --cmakeoutput=../project/cmake \
-    --additional=../project/cmake/additional_code.txt \
-    --includecmake=../cmake/File.cmake \
-    --std=c++17 \
-    --include
-
 Solution Conversion
 ===================
 
-With CMake-Converter, you can also convert full Visual Studio solutions.
-For the moment, this feature is still in BETA, but remains functional.
+With cmake-converter, you can convert full Visual Studio solutions.
 
-The script will extract data from all vcxproj and create the corresponding **CMakeLists.txt**.
+The script will extract data from all supported \*proj files and create the corresponding **CMakeLists.txt**.
 
-**IMPORTANT:** Each ``vcxproj`` included in the solution must be in a **dedicated** directory, to ensure the smooth conversion.
-
-**Note:** the ``--dependencies`` and ``--cmake`` parameters **can not** be used (and will not be used) during solution conversion !
 
 With the following project structure::
 
     project/
-    ├── externals
-    │   └── cmake
-    │       └── File.cmake
     └── msvc
         ├── libone
         │   └── libone.vcxproj
@@ -76,38 +43,34 @@ Then you'll run cmake-converter as follow:
 
     cmake-converter \
     --solution=project/msvc/myexec/myexec.sln \
-    --cmakeoutput=project/build/x64/ \
-    --includecmake=../../externals/cmake/File.cmake \
-    --std=c++17 \
-    --include
+    --verbose-mode \
+    --private-include-directories \
+    --warning-level=3
 
 And you'll have the following CMakeLists.txt generated::
 
     project/
-    ├── externals
-    │   └── cmake
-    │       └── File.cmake
     └── msvc
         ├── libone
-        │   ├── CMakeLists.txt *
+        │   ├── CMakeLists.txt     *
         │   └── libone.vcxproj
         ├── libtwo
-        │   ├── CMakeLists.txt *
+        │   ├── CMakeLists.txt     *
         │   └── libtwo.vcxproj
         └── myexec
-            ├── CMakeLists.txt *
+            │  
+            └── CMake              *
+            │   ├── Default*.cmake *
+            │   └── Utils.cmake    *
+            ├── CMakeLists.txt     *
             ├── myexec.sln
             └── myexec.vcxproj
 
 Hints
 =====
 
-If you use **---cmake** parameter, ensure that given path has same directory level than your **.vcxproj**.
+You can add CMake/GlobalSettingsInclude.cmake file for global custom CMake settings.
 
-If you use **---includecmake** parameter, you have to give path relative to project itself, and not for script !
+Pay attention on warnings and do proposed fixes.
 
-You can use CMake variables in parameters, by escaping ``$`` with a backslash. Example: ``--cmake=../\${CMAKE_BINARY_DIR}/x64``.
-
-If you use variables defined by yourself, make sure that they are defined in a **.cmake** file or the code you are importing !
-
-
+Run cmake-converter --help for more info.

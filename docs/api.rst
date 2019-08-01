@@ -7,6 +7,10 @@ API Documentation
     :members:
     :inherited-members:
     :show-inheritance:
+.. automodule:: cmake_converter.context
+    :members:
+    :inherited-members:
+    :show-inheritance:
 .. automodule:: cmake_converter.data_files
     :members:
     :inherited-members:

@@ -13,10 +13,13 @@ You must have **Python 3** installed to make this library work.
 Installation (from Pip)
 =======================
 
-You can install CMake-Converter as a standard python library, with ``pip3``::
+You can install cmake-converter as a standard python library, with ``pip``::
 
-    # If you're under Windows, use "pip" instead "pip3"
-    pip3 install cmake_converter
+    pip install cmake_converter
+
+Install last pre-release or development version of cmake-converter::
+
+    pip install --pre cmake_converter
 
 Installation (from Sources)
 ===========================
@@ -28,8 +31,7 @@ To install from sources, you've to clone this repository and make a pip install:
 
     git clone https://github.com/algorys/cmakeconverter.git
     cd cmakeconverter
-    # If you're under Windows, use "pip" instead "pip3"
-    pip3 install .
+    pip install .
 
 External Libraries
 ------------------

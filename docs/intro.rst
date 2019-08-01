@@ -8,13 +8,13 @@ About CMake Converter
 
 CMake Converter is an open source software written in Python under the terms of the `GNU Affero General Public License <http://www.gnu.org/licenses/agpl.txt>`_ .
 
-This application is for developers and integrators who want to automate the creation of ``CMakeLists.txt`` for their compilations, from Visual Studio's ``vcxproj`` files.
+This application is for developers and integrators who want to automate the creation of ``CMakeLists.txt`` for their build systems from Visual Studio solution files.
 
 Features
 ========
 
-CMake Converter converts your ``vcxproj`` file into ``CMakeLists.txt``.
-He adds all the contained data such as compilation Flags, project targets, project dependencies, outputs of the produced binaries and more.
+CMake Converter converts your ``*.sln`` file (``vcxproj`` and ``vfproj`` are supported only) into corresponding tree of ``CMakeLists.txt``.
+It tries to translate data such as compile and link flags, project files, project dependencies, outputs of the produced binaries and more into CMake language.
 
 Release cycle
 =============
