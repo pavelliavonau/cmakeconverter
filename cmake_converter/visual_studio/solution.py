@@ -334,7 +334,10 @@ def convert_solution(initial_context, sln_path):
         .format(initial_context.target_windows_version)
     )
     sln_cmake.write(
-        'project({0})\n\n'.format(os.path.splitext(os.path.basename(sln_path))[0])
+        'project({} {})\n\n'.format(
+            os.path.splitext(os.path.basename(sln_path))[0],
+            ' '.join(sorted(initial_context.solution_languages))
+        )
     )
 
     write_arch_types(sln_cmake)
@@ -488,14 +491,26 @@ def __write_global_compile_options(initial_context, sln_cmake, configuration_typ
     write_comment(sln_cmake, 'Global compiler options')
     sln_cmake.write('if(MSVC)\n')
     sln_cmake.write('    # remove default flags provided with CMake for MSVC\n')
-    solution_languages = list(initial_context.solution_languages)
-    solution_languages.sort(key=str.lower)
-    for lang in solution_languages:
-        sln_cmake.write('    set(CMAKE_{0}_FLAGS "")\n'.format(lang))
-        for configuration_type in configuration_types_list:
-            sln_cmake.write('    set(CMAKE_{0}_FLAGS_{1} "")\n'
-                            .format(lang, configuration_type.upper()))
+    have_fortran = False
+    for lang in sorted(initial_context.solution_languages):
+        if lang == 'Fortran':
+            have_fortran = True
+            continue
+        __write_global_compile_options_language(sln_cmake, configuration_types_list, lang)
     sln_cmake.write('endif()\n\n')
+
+    if have_fortran:
+        sln_cmake.write('if(${CMAKE_Fortran_COMPILER_ID} STREQUAL "Intel")\n')
+        sln_cmake.write('    # remove default flags provided with CMake for ifort\n')
+        __write_global_compile_options_language(sln_cmake, configuration_types_list, 'Fortran')
+        sln_cmake.write('endif()\n\n')
+
+
+def __write_global_compile_options_language(sln_cmake, configuration_types_list, lang):
+    sln_cmake.write('    set(CMAKE_{}_FLAGS "")\n'.format(lang))
+    for configuration_type in configuration_types_list:
+        sln_cmake.write('    set(CMAKE_{}_FLAGS_{} "")\n'
+                        .format(lang, configuration_type.upper()))
 
 
 def __write_global_link_options(sln_cmake, configuration_types_list):
