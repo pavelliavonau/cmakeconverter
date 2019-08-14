@@ -25,7 +25,7 @@ import os
 from collections import OrderedDict
 
 from cmake_converter.flags import Flags, defines, cl_flags, default_value, ln_flags
-from cmake_converter.utils import take_name_from_list_case_ignore, normalize_path, cleaning_output
+from cmake_converter.utils import take_name_from_list_case_ignore, normalize_path
 from cmake_converter.utils import set_unix_slash, message, replace_vs_vars_with_cmake_vars
 
 
@@ -49,7 +49,7 @@ class CPPFlags(Flags):
             ('SupportJustMyCode', self.__set_support_just_my_code),
             ('LanguageStandard', self.__set_language_standard),
             ('UseDebugLibraries', self.__set_use_debug_libraries),
-            ('WholeProgramOptimization', self.__set_whole_program_optimization),
+            ('CompileWholeProgramOptimization', self.__set_compile_whole_program_optimization),
             ('MinimalRebuild', self.__set_minimal_rebuild),
             ('Optimization', self.__set_optimization),
             ('InlineFunctionExpansion', self.__set_inline_function_expansion),
@@ -100,6 +100,7 @@ class CPPFlags(Flags):
             ('ImageHasSafeExceptionHandlers', self.__set_image_has_safe_exception_handlers),
             ('SubSystem', self.__set_sub_system),
             ('OptimizeReferences', self.__set_optimize_references),
+            ('LinkTimeCodeGeneration', self.__set_link_time_code_generation),
             ('EnableCOMDATFolding', self.__set_enable_comdat_folding),
             ('Profile', self.__set_profile),
             ('DataExecutionPrevention', self.__set_data_execution_prevention),
@@ -329,13 +330,18 @@ class CPPFlags(Flags):
             self.flags[setting]['LinkIncremental'][ln_flags] = ''
 
     @staticmethod
-    def __set_whole_program_optimization(context, flag_name, node):
+    def __set_compile_whole_program_optimization(context, flag_name, node):
         """
-        Set Whole Program Optimization flag: /GL and /LTCG
+        Set Whole Program Optimization compile flag: /GL
 
         """
         del context, flag_name, node
-        flag_values = {'true': {ln_flags: '/LTCG', cl_flags: '/GL'}}
+
+        flag_values = {
+            'true': {cl_flags: '/GL'},
+            'false': {cl_flags: '/GL-'},
+            default_value: {}
+        }
 
         return flag_values
 
@@ -1011,6 +1017,25 @@ class CPPFlags(Flags):
         flag_values = {
             'true': {ln_flags: '/OPT:REF'},
             'false': {ln_flags: '/OPT:NOREF'},
+            default_value: {}
+        }
+
+        return flag_values
+
+    @staticmethod
+    def __set_link_time_code_generation(context, flag_name, node):
+        """
+        Set Link Time Code Generation flag: /LTCG
+
+        """
+        del context, flag_name, node
+
+        flag_values = {
+            'UseLinkTimeCodeGeneration': {ln_flags: '/LTCG'},
+            'UseFastLinkTimeCodeGeneration': {ln_flags: '/LTCG:incremental'},
+            'PGInstrument': {ln_flags: '/LTCG:PGInstrument'},
+            'PGOptimization': {ln_flags: '/LTCG:PGOptimize'},
+            'PGUpdate': {ln_flags: '/LTCG:PGUpdate'},
             default_value: {}
         }
 

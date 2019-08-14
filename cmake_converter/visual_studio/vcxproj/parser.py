@@ -45,6 +45,7 @@ class VCXParser(Parser):
             'Target': self._parse_nodes,
             'ProjectConfiguration': self.do_nothing_node_stub,
             'ConfigurationType': self.__parse_configuration_type,
+            'WholeProgramOptimization': self.__parse_whole_program_optimization,
             'CharacterSet': context.flags.set_character_set,
             'PlatformToolset': self.do_nothing_node_stub,
             'PropertyGroup': self.__parse_property_group,
@@ -235,6 +236,25 @@ class VCXParser(Parser):
         if parent_tag == 'Link':
             node.tag = 'LinkAdditionalOptions'
             context.flags.set_flag(context, node)
+
+    @staticmethod
+    def __parse_whole_program_optimization(context, node):
+        """
+        Set Whole Program Optimization: /GL and /LTCG and INTERPROCEDURAL_OPTIMIZATION
+
+        """
+
+        parent = node.getparent()
+        parent_tag = Parser.strip_namespace(parent.tag)
+        if parent_tag == 'ClCompile':
+            node.tag = 'CompileWholeProgramOptimization'
+            context.flags.set_flag(context, node)
+
+        if parent_tag == 'PropertyGroup':
+            if node.text in ('true', 'PGInstrument', 'PGOptimize', 'PGUpdate'):
+                context.settings[context.current_setting]['INTERPROCEDURAL_OPTIMIZATION'] = ['TRUE']
+            else:
+                context.settings[context.current_setting]['INTERPROCEDURAL_OPTIMIZATION'] = ['FALSE']
 
     @staticmethod
     def __parse_target_name_node(context, node):

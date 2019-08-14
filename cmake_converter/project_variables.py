@@ -227,3 +227,12 @@ class ProjectVariables:
         #     property_name='PDB_NAME',
         #     write_setting_property_func=ProjectVariables.write_target_property
         # )
+
+        write_property_of_settings(
+            cmake_file, context.settings,
+            context.sln_configurations_map,
+            begin_text='set_target_properties(${PROJECT_NAME} PROPERTIES',
+            end_text=')',
+            property_name='INTERPROCEDURAL_OPTIMIZATION',
+            write_setting_property_func=ProjectVariables.write_target_property
+        )

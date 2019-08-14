@@ -65,7 +65,8 @@ class Utils:
             'inc_dirs',
             'target_link_dirs',
             'PDB_OUTPUT_DIRECTORY',
-            'PDB_NAME'
+            'PDB_NAME',
+            'INTERPROCEDURAL_OPTIMIZATION'
         ]
 
     def init_context_current_setting(self, context):
@@ -91,6 +92,7 @@ class Utils:
             'ARCHIVE_OUTPUT_DIRECTORY': [],
             'ARCHIVE_OUTPUT_NAME': [],
             'VS_GLOBAL_KEYWORD': [],
+            'INTERPROCEDURAL_OPTIMIZATION': [],
             'pre_build_events': [],
             'pre_link_events': [],
             'post_build_events': [],
