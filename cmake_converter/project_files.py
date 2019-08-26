@@ -212,7 +212,7 @@ class ProjectFiles:
             source_group_var = self.get_source_group_var(context, source_group)
             cmake_file.write('set({}\n'.format(source_group_var))
             for src_file in context.source_groups[source_group]:
-                cmake_file.write('    {0}\n'.format(src_file))
+                cmake_file.write('    "{0}"\n'.format(src_file))
 
             cmake_file.write(')\n')
             cmake_file.write(
