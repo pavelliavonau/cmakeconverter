@@ -124,7 +124,8 @@ class CPPFlags(Flags):
             self.__set_default_flag(context, flag_name)
         message(context, '== end making default flags ==', '')
 
-    def set_defines(self, context, defines_node):
+    @staticmethod
+    def set_defines(context, defines_node):
         """
         Defines preprocessor definitions in current settings
 
@@ -136,18 +137,18 @@ class CPPFlags(Flags):
                 define = define.replace('\\', '\\\\')
                 define = define.replace('"', '\\"')
                 context.settings[context.current_setting][defines].append(define)
-        if context.current_setting in self.unicode_defines:
-            for define in self.unicode_defines[context.current_setting]:
-                context.settings[context.current_setting][defines].append(define)
         message(context, 'PreprocessorDefinitions : {}'.format(
             context.settings[context.current_setting][defines]
         ), '')
 
     def set_character_set(self, context, character_set_node):
+        unicode_defines = []
         if 'Unicode' in character_set_node.text:
-            self.unicode_defines[context.current_setting] = ['UNICODE', '_UNICODE']
+            unicode_defines += ['UNICODE', '_UNICODE']
         if 'MultiByte' in character_set_node.text:
-            self.unicode_defines[context.current_setting] = ['_MBCS']
+            unicode_defines += ['_MBCS']
+        self.unicode_defines[context.current_setting] = unicode_defines
+        message(context, 'Unicode Definitions : {}'.format(unicode_defines), '')
 
     @staticmethod
     def __set_precompiled_header(context, flag_name, node):
@@ -318,6 +319,10 @@ class CPPFlags(Flags):
                                 file_context.settings[setting][context_flags_data_key].append(
                                     value
                                 )
+
+            if setting in self.unicode_defines:
+                for define in self.unicode_defines[setting]:
+                    context.settings[setting][defines].append(define)
 
     def __apply_generate_debug_information(self, context, setting):
         conf_type = context.settings[setting]['target_type']
