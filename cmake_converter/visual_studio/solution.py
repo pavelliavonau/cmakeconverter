@@ -329,10 +329,11 @@ def convert_solution(initial_context, sln_path):
 
     sln_cmake = get_cmake_lists(initial_context, initial_context.solution_path)
     DataConverter.add_cmake_version_required(sln_cmake)
-    sln_cmake.write(
-        'set(CMAKE_SYSTEM_VERSION {} CACHE TYPE INTERNAL FORCE)\n\n'
-        .format(initial_context.target_windows_version)
-    )
+    if initial_context.target_windows_version:
+        sln_cmake.write(
+            'set(CMAKE_SYSTEM_VERSION {} CACHE TYPE INTERNAL FORCE)\n\n'
+            .format(initial_context.target_windows_version)
+        )
     sln_cmake.write(
         'project({} {})\n\n'.format(
             os.path.splitext(os.path.basename(sln_path))[0],
