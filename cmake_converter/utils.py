@@ -64,6 +64,7 @@ class Utils:
             'defines',
             'inc_dirs',
             'target_link_dirs',
+            'add_lib_deps',
             'PDB_OUTPUT_DIRECTORY',
             'PDB_NAME',
             'INTERPROCEDURAL_OPTIMIZATION'
@@ -88,7 +89,6 @@ class Utils:
             'target_type': '',
             'OUTPUT_DIRECTORY': [],
             'inc_dirs_list': [],
-            'add_lib_deps': [],
             'ARCHIVE_OUTPUT_DIRECTORY': [],
             'ARCHIVE_OUTPUT_NAME': [],
             'VS_GLOBAL_KEYWORD': [],
