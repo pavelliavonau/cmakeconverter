@@ -206,6 +206,7 @@ class Dependencies:
                 begin_text='target_link_directories(${PROJECT_NAME} PUBLIC',
                 end_text=')',
                 property_name='target_link_dirs',
+                separator=';\n',
                 in_quotes=True
             )
             cmake_file.write('\n')
