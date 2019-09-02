@@ -24,7 +24,7 @@ import os
 import unittest
 
 from cmake_converter.context import Context
-from cmake_converter.visual_studio.solution import convert_solution
+from cmake_converter.visual_studio.solution import VSSolutionConverter
 
 
 class TestDependencies(unittest.TestCase):
@@ -38,7 +38,8 @@ class TestDependencies(unittest.TestCase):
         context = Context()
         context.verbose = False
         solution_file = '{}/datatest/sln/cpp.sln'.format(self.cur_dir)
-        convert_solution(context, os.path.abspath(solution_file))
+        converter = VSSolutionConverter()
+        converter.convert_solution(context, os.path.abspath(solution_file))
 
     def test_write_include_dir(self):
         """Write Include Dirs"""

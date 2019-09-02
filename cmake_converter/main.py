@@ -30,7 +30,7 @@ import argparse
 import os
 
 from cmake_converter.context import Context
-from cmake_converter.visual_studio.solution import convert_solution
+from cmake_converter.visual_studio.solution import VSSolutionConverter
 from cmake_converter.utils import message
 
 
@@ -95,34 +95,35 @@ def main():  # pragma: no cover
 
     args = parser.parse_args()
 
-    initial_context = Context()
+    root_context = Context()
     # Prepare context
-    initial_context.additional_code = args.additional
+    root_context.additional_code = args.additional
 
     if args.projects_regexp:
-        initial_context.projects_regexp = args.projects_regexp
+        root_context.projects_regexp = args.projects_regexp
 
     if args.dry:
-        initial_context.dry = True
-        message(initial_context, 'Converter runs in dry mode', 'done')
+        root_context.dry = True
+        message(root_context, 'Converter runs in dry mode', 'done')
 
     if args.verbose:
-        initial_context.verbose = True
-        message(initial_context, 'Converter runs in verbose mode', 'done')
+        root_context.verbose = True
+        message(root_context, 'Converter runs in verbose mode', 'done')
 
     if args.jobs:
-        initial_context.jobs = int(args.jobs)
-    message(initial_context, 'processes count = {}'. format(initial_context.jobs), 'done')
+        root_context.jobs = int(args.jobs)
+    message(root_context, 'processes count = {}'. format(root_context.jobs), 'done')
 
     if args.warn:
-        initial_context.warn_level = int(args.warn)
-    message(initial_context, 'warnings level = {}'. format(initial_context.warn_level), 'done')
+        root_context.warn_level = int(args.warn)
+    message(root_context, 'warnings level = {}'. format(root_context.warn_level), 'done')
 
     if args.private_includes:
-        message(initial_context, 'include directories will be PRIVATE', 'done')
-        initial_context.private_include_directories = True
+        message(root_context, 'include directories will be PRIVATE', 'done')
+        root_context.private_include_directories = True
 
-    convert_solution(initial_context, os.path.abspath(args.solution))
+    converter = VSSolutionConverter()
+    converter.convert_solution(root_context, os.path.abspath(args.solution))
 
 
 if __name__ == "__main__":  # pragma: no cover

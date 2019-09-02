@@ -37,8 +37,7 @@ class TestFlags(unittest.TestCase):
         context = Context()
         context.verbose = False
         vs_project = '{}/datatest/foo.vcxproj'.format(cur_dir)
-        context.init(vs_project, cur_dir)
         context.cmake = './'
         converter = DataConverter()
-        converter.convert(context)
+        converter.convert_project(context, vs_project, cur_dir)
 

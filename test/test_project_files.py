@@ -24,7 +24,7 @@ import os
 import unittest
 
 from cmake_converter.context import Context
-from cmake_converter.visual_studio.solution import convert_solution
+from cmake_converter.visual_studio.solution import VSSolutionConverter
 from cmake_converter.project_files import ProjectFiles
 from cmake_converter.data_files import get_cmake_lists
 
@@ -40,7 +40,8 @@ class TestProjectFiles(unittest.TestCase):
     def setUp(self):
         self.context.verbose = False
         solution_file = '{}/datatest/sln/cpp.sln'.format(self.cur_dir)
-        convert_solution(self.context, os.path.abspath(solution_file))
+        converter = VSSolutionConverter()
+        converter.convert_solution(self.context, os.path.abspath(solution_file))
 
     @unittest.skip("how to test sources from project context?")
     def test_collects_source_files(self):
