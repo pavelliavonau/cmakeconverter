@@ -75,6 +75,7 @@ class VCXParser(Parser):
             'PreBuildEvent': context.dependencies.set_target_pre_build_events,
             'PreLinkEvent': context.dependencies.set_target_pre_link_events,
             'PostBuildEvent': context.dependencies.set_target_post_build_events,
+            'ExcludedFromBuild': self.__parse_excluded_from_build,
             'ProjectReference': self._parse_nodes,
             'Project': self.do_nothing_node_stub,  # just GUID at <ProjectReference>
             'Private': self.do_nothing_node_stub,                       # no support in CMake
@@ -225,6 +226,11 @@ class VCXParser(Parser):
         )
         self._parse_nodes(file_context, file_node)
         context.warnings_count += file_context.warnings_count
+
+    @staticmethod
+    def __parse_excluded_from_build(context, node):
+        del node
+        context.excluded_from_build = True
 
     @staticmethod
     def __parse_additional_options(context, node):

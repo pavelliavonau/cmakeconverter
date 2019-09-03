@@ -69,6 +69,7 @@ class Context:
         self.headers = {}
         self.other_project_files = {}
         self.source_groups = {}
+        self.excluded_from_build = False
         self.file_contexts = OrderedDict()
         self.supported_architectures = set()
         self.settings = OrderedDict()
