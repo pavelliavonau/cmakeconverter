@@ -89,6 +89,7 @@ class VCXParser(Parser):
                 context.dependencies.set_target_additional_library_directories,
             'IgnoreSpecificDefaultLibraries':
                 context.dependencies.set_target_ignore_specific_default_libraries,
+            'DelayLoadDLLs': context.dependencies.set_delay_load_dlls,
             'PreprocessorDefinitions': context.flags.set_defines,
             'PrecompiledHeaderOutputFile': self.do_nothing_node_stub,  # no GenEx at OBJECT_OUTPUTS
             'Link': self._parse_nodes,

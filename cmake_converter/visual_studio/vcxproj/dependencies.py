@@ -136,6 +136,27 @@ class VCXDependencies(Dependencies):
             context.settings[context.current_setting][ln_flags] += ignore_libs
 
     @staticmethod
+    def set_delay_load_dlls(context, node):
+        """
+        DelayLoadDLLs node handler
+
+        :param context:
+        :param node:
+        :return:
+        """
+        if node.text is None:
+            return
+
+        if node.text != '':
+            libs_list = []
+            for spec_lib in node.text.split(';'):
+                spec_lib = spec_lib.strip()
+                if spec_lib:
+                    libs_list.append('/DELAYLOAD:' + spec_lib)
+            message(context, 'Delay Load Libraries : {}'.format(libs_list), '')
+            context.settings[context.current_setting][ln_flags] += libs_list
+
+    @staticmethod
     def add_target_property_sheet(context, attr_name, filename, node):
         """
         Find and set in current context property sheets
