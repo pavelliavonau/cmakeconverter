@@ -1129,11 +1129,12 @@ class CPPFlags(Flags):
             default_value: {}
         }
 
-        if node.text:
+        stack_value = node.text.strip()
+        if stack_value:
             flag_values.update(
                 {
-                    node.text: {
-                        ln_flags: '/STACK:{}'.format(node.text)
+                    stack_value: {
+                        ln_flags: '/STACK:{}'.format(stack_value)
                     }
                 }
             )
