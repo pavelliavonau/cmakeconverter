@@ -291,7 +291,7 @@ class DataConverter:
         root_cmake.write('cmake_minimum_required(VERSION 3.13.0 FATAL_ERROR)\n\n')
         if root_context.target_windows_version:
             root_cmake.write(
-                'set(CMAKE_SYSTEM_VERSION {} CACHE TYPE INTERNAL FORCE)\n\n'
+                'set(CMAKE_SYSTEM_VERSION {} CACHE STRING "" FORCE)\n\n'
                 .format(root_context.target_windows_version)
             )
         root_cmake.write(
