@@ -187,7 +187,7 @@ class Dependencies:
             write_property_of_settings(
                 cmake_file, context.settings,
                 context.sln_configurations_map,
-                begin_text='string(CONCAT ADDITIONAL_LIBRARY_DEPENDENCIES',
+                begin_text='set(ADDITIONAL_LIBRARY_DEPENDENCIES',
                 end_text=')',
                 property_name='add_lib_deps',
                 separator=';\n',
