@@ -228,7 +228,7 @@ function(add_precompiled_header TARGET PRECOMPILED_HEADER PRECOMPILED_SOURCE)
         set_source_files_properties(
             ${SOURCES}
             PROPERTIES
-            COMPILE_OPTIONS "/Yu${PRECOMPILED_HEADER};/Fp${PRECOMPILED_BINARY}"
+            COMPILE_OPTIONS "$<$<OR:$<COMPILE_LANGUAGE:C>,$<COMPILE_LANGUAGE:CXX>>:/Yu${PRECOMPILED_HEADER};/Fp${PRECOMPILED_BINARY}>"
             OBJECT_DEPENDS "${PRECOMPILED_BINARY}")
     endif()
 
