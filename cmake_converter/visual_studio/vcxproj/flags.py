@@ -93,6 +93,7 @@ class CPPFlags(Flags):
             ('PrecompiledHeader', self.__set_precompiled_header),
             ('PrecompiledHeaderFile', self.__set_precompiled_header_file),
             #   linking ln_flags
+            ('GenerateManifest', self.__set_generate_manifest),
             ('FixedBaseAddress', self.__set_fixed_base_address),
             ('StackReserveSize', self.__set_stack_reserve_size),
             ('GenerateDebugInformation', self.__set_generate_debug_information),
@@ -1098,6 +1099,26 @@ class CPPFlags(Flags):
             'MachineX64': {ln_flags: '/MACHINE:X64'},
             'MachineX86': {ln_flags: '/MACHINE:X86'},
             'false': {},
+            default_value: {}
+        }
+
+        return flag_values
+
+    @staticmethod
+    def __set_generate_manifest(context, flag_name, node):
+        """
+        Set GenerateManifest flag: /MANIFEST
+
+        :param context:
+        :param flag_name:
+        :param node:
+        :return:
+        """
+
+        del context, flag_name, node
+        flag_values = {
+            'true': {ln_flags: '/MANIFEST'},
+            'false': {ln_flags: '/MANIFEST:NO'},
             default_value: {}
         }
 
