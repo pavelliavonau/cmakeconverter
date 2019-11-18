@@ -261,7 +261,8 @@ class VCXParser(Parser):
             if node.text in ('true', 'PGInstrument', 'PGOptimize', 'PGUpdate'):
                 context.settings[context.current_setting]['INTERPROCEDURAL_OPTIMIZATION'] = ['TRUE']
             else:
-                context.settings[context.current_setting]['INTERPROCEDURAL_OPTIMIZATION'] = ['FALSE']
+                context.settings[context.current_setting]['INTERPROCEDURAL_OPTIMIZATION'] =\
+                    ['FALSE']
 
     @staticmethod
     def __parse_target_name_node(context, node):

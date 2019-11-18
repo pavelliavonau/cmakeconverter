@@ -33,8 +33,8 @@ import shutil
 
 from cmake_converter.data_files import get_cmake_lists
 from cmake_converter.flags import Flags
-from cmake_converter.utils import write_comment, message, get_mapped_arch, write_arch_types\
-    , write_use_package_stub, set_unix_slash
+from cmake_converter.utils import write_comment, message, get_mapped_arch, write_arch_types,\
+    write_use_package_stub, set_unix_slash
 from cmake_converter.context import Context
 
 
@@ -339,8 +339,8 @@ class DataConverter:
             warnings = ' ({} warnings)'.format(root_context.warnings_count)
         message(
             root_context,
-            'Conversion of {} finished{}'.format(input_root_project_path, warnings)
-            , 'done'
+            'Conversion of {} finished{}'.format(input_root_project_path, warnings),
+            'done'
         )
 
     @staticmethod
