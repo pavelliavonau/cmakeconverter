@@ -21,6 +21,7 @@
 # along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
 import os
+import re
 
 from cmake_converter.dependencies import Dependencies
 from cmake_converter.utils import message, prepare_build_event_cmd_line_for_cmake,\
@@ -41,7 +42,7 @@ class VFDependencies(Dependencies):
 
         if ad_libs:
             add_libs = []
-            for d in ad_libs.split(';'):
+            for d in re.split(r"[; ]", ad_libs):
                 if d != '%(AdditionalDependencies)':
                     if os.path.splitext(d)[1] == '.lib':
                         add_libs.append(d.replace('.lib', ''))
