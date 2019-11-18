@@ -1,2 +1,2 @@
 colorama
-lxml
+lxml==4.3.5   # for python 3.4
