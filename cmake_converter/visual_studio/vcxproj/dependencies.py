@@ -268,7 +268,7 @@ class VCXDependencies(Dependencies):
                                            namespaces=xml_schema_file['ns'])
                                 for ext_property_node in ext_property_nodes:
                                     ext_properties.append(ext_property_node.get('Name'))
-                    # TODO: remove next if due specific hack
+                    # next is just additional ugly trick for nuget
                     if not ext_properties:
                         ext_property_nodes = targets_file['tree']\
                             .xpath('//ns:PropertyGroup'
