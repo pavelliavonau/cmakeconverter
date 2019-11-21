@@ -186,21 +186,6 @@ class VCXDependencies(Dependencies):
         context.settings[context.current_setting]['property_sheets'].append(props_cmake_path)
 
     @staticmethod
-    def __get_info_from_packages_config(context):
-        packages_xml = get_xml_data(context, os.path.join(os.path.dirname(context.vcxproj_path),
-                                                          context.packages_config_path))
-        if not packages_xml:
-            return None
-        extension = packages_xml['tree'].xpath('/packages/package')
-        packages_xml_data = {}
-        for ref in extension:
-            package_id = ref.get('id')
-            package_version = ref.get('version')
-            id_version = '{0}.{1}'.format(package_id, package_version)
-            packages_xml_data[id_version] = [package_id, package_version]
-        return packages_xml_data
-
-    @staticmethod
     def set_target_dependency_packages(context, attr_name, attr_value, ext_targets):
         del attr_name, attr_value
         for import_project_node in ext_targets:
@@ -217,6 +202,12 @@ class VCXDependencies(Dependencies):
             context.import_projects.append(targets_file_path)
 
     def apply_target_dependency_packages(self, context):
+        """
+        Trying to apply settings and use Nuget Packages
+
+        :param context:
+        :return:
+        """
         if not context.packages_config_path:
             return
 
@@ -246,45 +237,8 @@ class VCXDependencies(Dependencies):
                 )
                 continue
 
-            ext_properties = []
-            if targets_file_path:
-                targets_file = get_xml_data(context, targets_file_path)
-                if targets_file:
-                    property_page_schema_nodes = targets_file['tree']\
-                        .xpath('//ns:ItemGroup/ns:PropertyPageSchema',
-                               namespaces=targets_file['ns'])
-
-                    if property_page_schema_nodes:
-                        for property_page_schema_node in property_page_schema_nodes:
-                            xml_schema_path = property_page_schema_node.get('Include')
-                            xml_schema_path = xml_schema_path.replace(
-                                '$(MSBuildThisFileDirectory)',
-                                os.path.dirname(targets_file_path) + '/'
-                            )
-                            xml_schema_file = get_xml_data(context, xml_schema_path)
-                            if xml_schema_file:
-                                ext_property_nodes = xml_schema_file['tree'] \
-                                    .xpath('//ns:EnumProperty',
-                                           namespaces=xml_schema_file['ns'])
-                                for ext_property_node in ext_property_nodes:
-                                    ext_properties.append(ext_property_node.get('Name'))
-                    # next is just additional ugly trick for nuget
-                    if not ext_properties:
-                        ext_property_nodes = targets_file['tree']\
-                            .xpath('//ns:PropertyGroup'
-                                   '[@Label="Default initializers for properties"]/*',
-                                   namespaces=targets_file['ns'])
-                        for ext_property_node in ext_property_nodes:
-                            ext_properties.append(re.sub(r'{.*\}', '', ext_property_node.tag))
-                else:
-                    message(
-                        context,
-                        "Can't open {} file for package properties searching. Download nupkg "
-                        "and rerun converter again".format(targets_file_path), 'warn1')
-
+            ext_properties = self.__parse_targets_file_of_nuget_package(context, targets_file_path)
             context.packages.append([package_id, package_version, ext_properties])
-            message(context, 'Used package {0} {1}.'
-                    .format(package_id, package_version), '')
 
             for ext_property in ext_properties:
                 for setting in context.settings:
@@ -300,12 +254,91 @@ class VCXDependencies(Dependencies):
                             context.settings[setting]['packages'][id_version] = {}
                         context.settings[setting]['packages'][id_version][ext_property] = \
                             [ext_property_node[0].text]
-                        message(context, '{0} property of {1} {2} for {3} is {4}'
-                                .format(ext_property,
-                                        package_id,
-                                        package_version,
-                                        setting,
-                                        ext_property_node[0].text), '')
+                        message(
+                            context,
+                            '{} property of {} {} for {} is {}'.format(
+                                ext_property,
+                                package_id,
+                                package_version,
+                                setting,
+                                ext_property_node[0].text),
+                            '')
+
+            message(context, 'Used package {} {}.'.format(package_id, package_version), '')
+
+    @staticmethod
+    def __get_info_from_packages_config(context):
+        """
+        Parse packages.config file
+
+        :param context:
+        :return:
+        """
+        packages_xml = get_xml_data(
+            context,
+            os.path.join(os.path.dirname(context.vcxproj_path), context.packages_config_path)
+        )
+        if not packages_xml:
+            return None
+        extension = packages_xml['tree'].xpath('/packages/package')
+        packages_xml_data = {}
+        for ref in extension:
+            package_id = ref.get('id')
+            package_version = ref.get('version')
+            id_version = '{}.{}'.format(package_id, package_version)
+            packages_xml_data[id_version] = [package_id, package_version]
+        return packages_xml_data
+
+    @staticmethod
+    def __parse_targets_file_of_nuget_package(context, targets_file_path):
+        """
+        Parse *.targets files
+
+        :param context:
+        :param targets_file_path:
+        :return:
+        """
+        ext_properties = []
+        if not targets_file_path:
+            return ext_properties
+
+        targets_file = get_xml_data(context, targets_file_path)
+        if targets_file is None:
+            message(
+                context,
+                "Can't open {} file for package properties searching. Download nupkg "
+                "and rerun converter again".format(targets_file_path), 'warn1')
+            return ext_properties
+
+        property_page_schema_nodes = targets_file['tree'] \
+            .xpath('//ns:ItemGroup/ns:PropertyPageSchema',
+                   namespaces=targets_file['ns'])
+
+        if property_page_schema_nodes:
+            for property_page_schema_node in property_page_schema_nodes:
+                xml_schema_path = property_page_schema_node.get('Include')
+                xml_schema_path = xml_schema_path.replace(
+                    '$(MSBuildThisFileDirectory)',
+                    os.path.dirname(targets_file_path) + '/'
+                )
+                xml_schema_file = get_xml_data(context, xml_schema_path)
+                if xml_schema_file:
+                    ext_property_nodes = xml_schema_file['tree'] \
+                        .xpath('//ns:EnumProperty',
+                               namespaces=xml_schema_file['ns'])
+                    for ext_property_node in ext_property_nodes:
+                        ext_properties.append(ext_property_node.get('Name'))
+
+        # next is just additional ugly trick for nuget
+        if not ext_properties:
+            ext_property_nodes = targets_file['tree'] \
+                .xpath('//ns:PropertyGroup'
+                       '[@Label="Default initializers for properties"]/*',
+                       namespaces=targets_file['ns'])
+            for ext_property_node in ext_property_nodes:
+                ext_properties.append(re.sub(r'{.*\}', '', ext_property_node.tag))
+
+        return ext_properties
 
     @staticmethod
     def __set_target_build_events(context, build_event_node, value_name, event_type):
