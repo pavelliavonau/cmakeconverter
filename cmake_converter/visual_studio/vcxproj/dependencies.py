@@ -161,6 +161,11 @@ class VCXDependencies(Dependencies):
         """
         Find and set in current context property sheets
 
+        :param context:
+        :param attr_name:
+        :param filename:
+        :param node:
+        :return:
         """
 
         del attr_name, node
@@ -170,7 +175,6 @@ class VCXDependencies(Dependencies):
         if filename[-8:] == '.targets':  # ignore targets files
             return
 
-        # props_path = os.path.join(os.path.dirname(context.vcxproj_path), filename)
         working_path = os.path.dirname(context.vcxproj_path)
         props_cmake_path = normalize_path(
             context,
@@ -180,9 +184,6 @@ class VCXDependencies(Dependencies):
         ).replace('.props', '.cmake')
         message(context, 'cmake from property sheet: {}'.format(props_cmake_path), '')
         context.settings[context.current_setting]['property_sheets'].append(props_cmake_path)
-        # properties_xml = get_xml_data(context, props_path)
-        # if properties_xml:
-        #     properties_xml.close()  # TODO collect data from props
 
     @staticmethod
     def __get_info_from_packages_config(context):
