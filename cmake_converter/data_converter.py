@@ -71,6 +71,7 @@ class DataConverter:
 
     def merge_data_settings(self, context):
         """
+        Merge common settings found among configuration settings (reduce copy-paste)
 
         :param context:
         :return:
@@ -101,9 +102,8 @@ class DataConverter:
 
                 # removing common settings from configurations
                 for setting in lists_of_items_to_merge:
-                    settings_list = lists_of_items_to_merge[setting]
                     result_settings_list = []
-                    for element in settings_list:
+                    for element in lists_of_items_to_merge[setting]:
                         if element not in set_of_items:
                             result_settings_list.append(element)
                     context.settings[setting][key] = result_settings_list
@@ -112,16 +112,10 @@ class DataConverter:
                     lists_of_items_to_merge
                 )
 
-                # getting ordered common settings
-                common_ordered_list = []
-                for element in merged_order_list:
-                    if element in set_of_items:
-                        common_ordered_list.append(element)
-                        set_of_items.remove(element)
-                        if not set_of_items:
-                            break
-
-                merged_settings[key] = common_ordered_list
+                merged_settings[key] = self.__get_common_ordered_settings(
+                    merged_order_list,
+                    set_of_items
+                )
 
             context.sln_configurations_map[(None, arch)] = (None, mapped_arch)
 
@@ -146,6 +140,18 @@ class DataConverter:
                 break
             i += 1
         return merged_order_list
+
+    @staticmethod
+    def __get_common_ordered_settings(merged_order_list, set_of_items):
+        common_ordered_list = []
+        for element in merged_order_list:
+            if element in set_of_items:
+                common_ordered_list.append(element)
+                set_of_items.remove(element)
+                if not set_of_items:
+                    break
+
+        return common_ordered_list
 
     @staticmethod
     def write_data(context, cmake_file):

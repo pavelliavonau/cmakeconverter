@@ -29,10 +29,14 @@ from cmake_converter.utils import take_name_from_list_case_ignore, normalize_pat
 from cmake_converter.utils import set_unix_slash, message, replace_vs_vars_with_cmake_vars
 
 
+# pylint: disable=R0903
+
 class NodeStub:
     def __init__(self, flag_name):
         self.text = ''
         self.tag = flag_name
+
+# pylint: enable=R0903
 
 
 class CPPFlags(Flags):
@@ -291,6 +295,8 @@ class CPPFlags(Flags):
             context.flags.flags[context.current_setting] = {}
             self.__set_default_flags(context)
 
+    # pylint: disable=R1702
+
     def apply_flags_to_context(self, context):
         context_flags_data_keys = [
             cl_flags,
@@ -324,6 +330,8 @@ class CPPFlags(Flags):
             if setting in self.unicode_defines:
                 for define in self.unicode_defines[setting]:
                     context.settings[setting][defines].append(define)
+
+    # pylint: enable=R1702
 
     def __apply_generate_debug_information(self, context, setting):
         conf_type = context.settings[setting]['target_type']

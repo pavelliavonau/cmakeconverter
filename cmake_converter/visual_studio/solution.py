@@ -91,6 +91,14 @@ class VSSolutionConverter(DataConverter):
 
     @staticmethod
     def __parse_projects_data(sln_text, solution_folders, projects_data):
+        """
+        Parse section with information about project at *.sln file
+
+        :param sln_text:
+        :param solution_folders:
+        :param projects_data:
+        :return:
+        """
         p = re.compile(
             r'(Project.*\s=\s\"(.*)\",\s\"(.*)\",.*({.*\})(?:.|\n)*?EndProject(?!Section))'
         )
@@ -105,21 +113,32 @@ class VSSolutionConverter(DataConverter):
                 solution_folders[guid] = path
                 continue
 
-            project = dict()
-            project['name'] = project_data_match[1]
-            project['path'] = path
-            if 'ProjectDependencies' in project_data_match[0]:
-                project['sln_deps'] = []
-                dependencies_section = re.compile(
-                    r'ProjectSection\(ProjectDependencies\) = '
-                    r'postProject(?:.|\n)*?EndProjectSection'
-                )
-                dep_data = dependencies_section.findall(project_data_match[0])
-                dependencies_guids = re.compile(r'(({.*\}) = ({.*\}))')
-                guids_deps_matches = dependencies_guids.findall(dep_data[0])
-                for guids_deps_match in guids_deps_matches:
-                    project['sln_deps'].append(guids_deps_match[2])
-            projects_data[guid] = project
+            projects_data[guid] = VSSolutionConverter.__parse_project_data(project_data_match, path)
+
+    @staticmethod
+    def __parse_project_data(project_data_match, path):
+        """
+        Parse project section at *.sln file
+
+        :param project_data_match:
+        :param path:
+        :return:
+        """
+        project = dict()
+        project['name'] = project_data_match[1]
+        project['path'] = path
+        if 'ProjectDependencies' in project_data_match[0]:
+            project['sln_deps'] = []
+            dependencies_section = re.compile(
+                r'ProjectSection\(ProjectDependencies\) = '
+                r'postProject(?:.|\n)*?EndProjectSection'
+            )
+            dep_data = dependencies_section.findall(project_data_match[0])
+            dependencies_guids = re.compile(r'(({.*\}) = ({.*\}))')
+            guids_deps_matches = dependencies_guids.findall(dep_data[0])
+            for guids_deps_match in guids_deps_matches:
+                project['sln_deps'].append(guids_deps_match[2])
+        return project
 
     @staticmethod
     def __parse_configurations_of_solution(root_context, sln_text, solution_data):

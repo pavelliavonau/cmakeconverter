@@ -194,6 +194,9 @@ def get_mapped_arch(sln_setting_2_project_setting, arch):
             return sln_setting_2_project_setting[setting][1]
     return None
 
+# pylint: disable=R0914
+# pylint: disable=R0913
+
 
 def write_selected_sln_setting(cmake_file,
                                settings,
@@ -253,10 +256,6 @@ def write_footer_of_settings(cmake_file,
         end_text = end_text.replace('\n', '\n' + indent + command_indent)
         if end_text:
             cmake_file.write('{0}{1}\n'.format(indent + command_indent, end_text))
-
-
-# pylint: disable=R0914
-# pylint: disable=R0913
 
 
 def write_property_of_settings(cmake_file, settings, sln_setting_2_project_setting, **kwargs):
