@@ -275,8 +275,8 @@ class DataConverter:
 
         return results
 
+    @staticmethod
     def write_root_cmake_file(
-            self,
             root_context,
             input_root_project_path,
             configuration_types_list,
@@ -309,20 +309,20 @@ class DataConverter:
 
         write_arch_types(root_cmake)
 
-        self.__write_supported_architectures_check(root_context, root_cmake)
-        self.__write_global_configuration_types(root_cmake, configuration_types_list)
+        DataConverter.__write_supported_architectures_check(root_context, root_cmake)
+        DataConverter.__write_global_configuration_types(root_cmake, configuration_types_list)
 
-        self.__write_global_compile_options(
+        DataConverter.__write_global_compile_options(
             root_context, root_cmake, configuration_types_list
         )
 
-        self.__write_global_link_options(root_cmake, configuration_types_list)
+        DataConverter.__write_global_link_options(root_cmake, configuration_types_list)
 
         write_use_package_stub(root_cmake)
 
         write_comment(root_cmake, 'Common utils')
         root_cmake.write('include(CMake/Utils.cmake)\n\n')
-        self.copy_cmake_utils(root_context.solution_path)
+        DataConverter.copy_cmake_utils(root_context.solution_path)
 
         write_comment(root_cmake, 'Additional Global Settings(add specific info there)')
         root_cmake.write('include(CMake/GlobalSettingsInclude.cmake OPTIONAL)\n\n')
@@ -330,7 +330,7 @@ class DataConverter:
         write_comment(root_cmake, 'Use solution folders feature')
         root_cmake.write('set_property(GLOBAL PROPERTY USE_FOLDERS ON)\n\n')
 
-        self.__write_subdirectories(
+        DataConverter.__write_subdirectories(
             root_cmake, subdirectories_set, subdirectories_to_project_name
         )
 
@@ -384,7 +384,8 @@ class DataConverter:
             root_cmake.write('    \"{0}\"\n'.format(configuration_type))
         root_cmake.write('    CACHE STRING "" FORCE\n)\n\n')
 
-    def __write_global_compile_options(self, root_context, root_cmake, configuration_types_list):
+    @staticmethod
+    def __write_global_compile_options(root_context, root_cmake, configuration_types_list):
         write_comment(root_cmake, 'Global compiler options')
         root_cmake.write('if(MSVC)\n')
         root_cmake.write('    # remove default flags provided with CMake for MSVC\n')
@@ -393,7 +394,7 @@ class DataConverter:
             if lang == 'Fortran':
                 have_fortran = True
                 continue
-            self.__write_global_compile_options_language(
+            DataConverter.__write_global_compile_options_language(
                 root_cmake, configuration_types_list, lang
             )
         root_cmake.write('endif()\n\n')
@@ -401,7 +402,7 @@ class DataConverter:
         if have_fortran:
             root_cmake.write('if(${CMAKE_Fortran_COMPILER_ID} STREQUAL "Intel")\n')
             root_cmake.write('    # remove default flags provided with CMake for ifort\n')
-            self.__write_global_compile_options_language(
+            DataConverter.__write_global_compile_options_language(
                 root_cmake, configuration_types_list, 'Fortran'
             )
             root_cmake.write('endif()\n\n')
