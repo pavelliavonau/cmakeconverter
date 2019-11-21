@@ -342,6 +342,15 @@ class VCXDependencies(Dependencies):
 
     @staticmethod
     def __set_target_build_events(context, build_event_node, value_name, event_type):
+        """
+        General routine for setting build events
+
+        :param context:
+        :param build_event_node:
+        :param value_name:
+        :param event_type:
+        :return:
+        """
         for command in build_event_node:
             if 'Command' not in command.tag:
                 continue
@@ -360,6 +369,13 @@ class VCXDependencies(Dependencies):
                             .format(event_type, cmake_build_event), 'info')
 
     def set_target_pre_build_events(self, context, node):
+        """
+        Setting of pre build event to context
+
+        :param context:
+        :param node:
+        :return:
+        """
         self.__set_target_build_events(
             context,
             node,
@@ -368,6 +384,13 @@ class VCXDependencies(Dependencies):
         )
 
     def set_target_pre_link_events(self, context, node):
+        """
+        Setting of pre link build event to context
+
+        :param context:
+        :param node:
+        :return:
+        """
         self.__set_target_build_events(
             context,
             node,
@@ -376,6 +399,13 @@ class VCXDependencies(Dependencies):
         )
 
     def set_target_post_build_events(self, context, node):
+        """
+        Setting of post build event to context
+
+        :param context:
+        :param node:
+        :return:
+        """
         self.__set_target_build_events(
             context,
             node,
@@ -383,7 +413,8 @@ class VCXDependencies(Dependencies):
             'Post build'
         )
 
-    # TODO: implement
+    # pylint: disable=W0511
+    # TODO: perhaps implement in future
     # def set_custom_build_step(self, context, node):
     #     self.__set_target_build_events(
     #         context,
@@ -391,6 +422,7 @@ class VCXDependencies(Dependencies):
     #         'custom_build_step',
     #         'Custom build'
     #     )
+    # pylint: enable=W0511
 
     def write_target_property_sheets(self, context, cmake_file):
         """

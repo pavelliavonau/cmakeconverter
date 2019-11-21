@@ -80,6 +80,15 @@ class VFDependencies(Dependencies):
 
     @staticmethod
     def __set_custom_build_events_of_files(context, name, command_value, node):
+        """
+        Setting custom build event instructions for files
+
+        :param context:
+        :param name:
+        :param command_value:
+        :param node:
+        :return:
+        """
         del name, command_value
 
         if 'file_custom_build_events' not in context.settings[context.current_setting]:
@@ -96,6 +105,15 @@ class VFDependencies(Dependencies):
 
     @staticmethod
     def __set_target_build_events(context, value_name, event_type, command_value):
+        """
+        General routine for setting build events
+
+        :param context:
+        :param value_name:
+        :param event_type:
+        :param command_value:
+        :return:
+        """
         context.settings[context.current_setting][value_name] = []
         for build_event in command_value.split('\n'):
             build_event = build_event.strip()
@@ -106,16 +124,31 @@ class VFDependencies(Dependencies):
                 )
                 context.settings[context.current_setting][value_name] \
                     .append(cmake_build_event)
-                message(context, '{0} event for {1}: {2}'
+                message(context, '{} event for {}: {}'
                         .format(event_type, context.current_setting, cmake_build_event), 'info')
 
     @staticmethod
     def __is_excluded_from_build(node):
+        """
+        Check weather node content is excluded from build
+
+        :param node:
+        :return:
+        """
         if 'ExcludedFromBuild' in node.attrib:
             return node.attrib['ExcludedFromBuild'] == 'true'
         return False
 
     def set_target_pre_build_events(self, context, name, command_value, node):
+        """
+        Setting of pre build event to context
+
+        :param context:
+        :param name:
+        :param command_value:
+        :param node:
+        :return:
+        """
         del name
 
         if self.__is_excluded_from_build(node):
@@ -128,6 +161,15 @@ class VFDependencies(Dependencies):
         )
 
     def set_target_pre_link_events(self, context, name, command_value, node):
+        """
+        Setting of pre link event to context
+
+        :param context:
+        :param name:
+        :param command_value:
+        :param node:
+        :return:
+        """
         del name
 
         if self.__is_excluded_from_build(node):
@@ -140,6 +182,15 @@ class VFDependencies(Dependencies):
         )
 
     def set_target_post_build_events(self, context, name, command_value, node):
+        """
+        Setting of post build event to context
+
+        :param context:
+        :param name:
+        :param command_value:
+        :param node:
+        :return:
+        """
         del name
 
         if self.__is_excluded_from_build(node):
@@ -151,17 +202,27 @@ class VFDependencies(Dependencies):
             command_value
         )
 
-    # TODO: implement
+    # pylint: disable=W0511
     def set_custom_build_step(self, context, name, command_value, node):
+        """
+        Setting of custom build event to context
+        :param context:
+        :param name:
+        :param command_value:
+        :param node:
+        :return:
+        """
         if self.__is_excluded_from_build(node):
             return
         self.__set_custom_build_events_of_files(context, name, command_value, node)
+    # TODO: perhaps implement in future (common project custom build step)
     #     self.__find_target_build_events(
     #         context,
     #         'VFCustomBuildTool',
     #         'custom_build_step',
     #         'Custom build'
     #     )
+    # pylint: enable=W0511
 
     def write_target_property_sheets(self, context, cmake_file):
         """
