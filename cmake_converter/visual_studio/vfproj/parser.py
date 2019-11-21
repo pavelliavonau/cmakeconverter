@@ -83,9 +83,9 @@ class VFParser(Parser):
             'VFFortranCompilerTool_ArgTempCreatedCheck': self.__parse_concrete_runtime_checks,
             'VFFortranCompilerTool_StackFrameCheck': self.__parse_concrete_runtime_checks,
             'VFFortranCompilerTool_ModulePath': context.variables.set_module_dir,
-            'VFFortranCompilerTool_ObjectFile': self.do_nothing_attr_stub,  # TODO?
-            'VFFortranCompilerTool_AssemblerListingLocation': self.do_nothing_attr_stub,  # TODO?
-            'VFFortranCompilerTool_PdbFile': self.do_nothing_attr_stub,  # TODO?
+            # 'VFFortranCompilerTool_ObjectFile': self.do_nothing_attr_stub,
+            # 'VFFortranCompilerTool_AssemblerListingLocation': self.do_nothing_attr_stub,
+            # 'VFFortranCompilerTool_PdbFile': self.do_nothing_attr_stub,
             'VFFortranCompilerTool_ParallelizerDiagLevel': self.do_nothing_attr_stub,  # obsolete?
             'VFFortranCompilerTool_VectorizerDiagLevel': self.do_nothing_attr_stub,  # obsolete?
             'VFLinkerTool_OutputFile': context.variables.set_output_file,
@@ -105,8 +105,8 @@ class VFParser(Parser):
                 self.__parse_preprocessor_definitions,
             'VFResourceCompilerTool_Culture':
                 self.do_nothing_attr_stub,
-            'VFResourceCompilerTool_ResourceOutputFileName':
-                self.do_nothing_attr_stub,  # TODO?
+            # 'VFResourceCompilerTool_ResourceOutputFileName':
+            #     self.do_nothing_attr_stub,
             'VFPreBuildEventTool_ExcludedFromBuild': self.do_nothing_attr_stub,
             'VFPreBuildEventTool_CommandLine':
                 context.dependencies.set_target_pre_build_events,
@@ -123,7 +123,7 @@ class VFParser(Parser):
             'VFCustomBuildTool_Outputs': self.do_nothing_attr_stub,
             'File_RelativePath': self.__parse_file_relative_path,
             'Filter_Name': self.do_nothing_attr_stub,
-            'Filter_Filter': self.do_nothing_attr_stub,  # TODO?
+            'Filter_Filter': self.do_nothing_attr_stub,
         })
         return attributes_handlers
 
