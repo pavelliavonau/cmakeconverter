@@ -135,10 +135,10 @@ class ProjectFiles:
         for setting in context.settings:
             for include_path in context.settings[setting]['inc_dirs_list']:
                 if include_path not in self.file_lists_for_include_paths:
-                    abs_include_path = os.path.join(vcxproj_dir, include_path)
+                    abs_include_path = os.path.normpath(os.path.join(vcxproj_dir, include_path))
                     if os.path.exists(abs_include_path):
-                        self.file_lists_for_include_paths[include_path]\
-                            = os.listdir(abs_include_path)
+                        self.file_lists_for_include_paths[abs_include_path]\
+                            = set(os.listdir(abs_include_path))
 
     def apply_files_to_context(self, context):
         has_headers = True if context.headers else False

@@ -30,14 +30,22 @@ from cmake_converter.utils import message
 class VFProjectFiles(ProjectFiles):
 
     def include_directive_case_check(self, context, file_path_name, file_lists_for_include_paths):
+        """
+        Check for absence of files at include directives (case sensitive)
+
+        :param context:
+        :param file_path_name:
+        :param file_lists_for_include_paths:
+        :return:
+        """
         includes_re = re.compile(
             r'include \'(.*)\'', re.IGNORECASE
         )
-        working_path = os.path.dirname(context.vcxproj_path)
-        file_abs_path = os.path.join(working_path, file_path_name)
-        file = open(file_abs_path, 'r', errors='replace')
-        file_text = file.read()
-        file.close()
+        file_abs_path = os.path.join(os.path.dirname(context.vcxproj_path), file_path_name)
+
+        file_text = ''
+        with open(file_abs_path, 'r', errors='replace') as file:
+            file_text = file.read()
         includes = includes_re.findall(file_text)
 
         checked_includes = set()
@@ -45,38 +53,47 @@ class VFProjectFiles(ProjectFiles):
             if include_name_in_file in checked_includes:
                 continue
             checked_includes.add(include_name_in_file)
+
             include_file_path, include_file_name = os.path.split(include_name_in_file)
 
-            abs_source_path = os.path.dirname(file_abs_path)
-            if os.path.exists(abs_source_path):
-                file_lists_for_include_paths[abs_source_path] \
-                    = os.listdir(abs_source_path)
+            # add current file path to search list helper
+            current_file_path = os.path.normpath(os.path.dirname(file_abs_path))
+            if os.path.exists(current_file_path):
+                file_lists_for_include_paths[current_file_path] = set(os.listdir(current_file_path))
 
-            found = False
-            for include_path in file_lists_for_include_paths:
-                files = file_lists_for_include_paths[include_path]
-                if include_name_in_file in files:
-                    found = True
-                    break
-
-            # try to search in relative path
-            if not found:
-                file_lists_for_relative_include_paths = {}
-                for setting in context.settings:
-                    for include_path in context.settings[setting]['inc_dirs_list']:
-                        if include_path not in file_lists_for_relative_include_paths:
-                            abs_include_path = os.path.join(working_path, include_path)
-                            abs_include_path_relative = os.path.join(abs_include_path,
-                                                                     include_file_path)
-                            if os.path.exists(abs_include_path_relative):
-                                file_lists_for_relative_include_paths[include_path] = os.listdir(
-                                    abs_include_path_relative)
-                for include_path in file_lists_for_relative_include_paths:
-                    files = file_lists_for_relative_include_paths[include_path]
-                    if include_file_name in files:
-                        found = True
-                        break
-            if not found:
-                message(context, 'include {0} in file {1} not found'
+            if not self.search_file_in_paths(
+                    file_lists_for_include_paths,
+                    include_file_path,
+                    include_file_name):
+                message(context, 'include {} from file {} not found'
                         .format(include_name_in_file, file_path_name), 'error')
-            file_lists_for_include_paths.pop(abs_source_path)
+
+    @staticmethod
+    def search_file_in_paths(file_lists_for_include_paths, include_file_path, include_file_name):
+        """
+        Search of file at filesystem(cached) case sensitive
+
+        :param file_lists_for_include_paths:
+        :param include_file_path:
+        :param include_file_name:
+        :return:
+        """
+        found = False
+        file_lists_for_includes_with_paths = {}
+        for include_path in file_lists_for_include_paths:
+            joined_include_path = os.path.normpath(os.path.join(include_path, include_file_path))
+            files = {}
+            if joined_include_path in file_lists_for_include_paths:
+                files = file_lists_for_include_paths[joined_include_path]
+            else:
+                if os.path.exists(joined_include_path):
+                    files = set(os.listdir(joined_include_path))
+                    file_lists_for_includes_with_paths[joined_include_path] = files
+
+            if include_file_name in files:
+                found = True
+                break
+
+        file_lists_for_include_paths.update(file_lists_for_includes_with_paths)
+
+        return found
