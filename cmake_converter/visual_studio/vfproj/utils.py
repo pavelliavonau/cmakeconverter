@@ -20,10 +20,17 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+    Utils for fortran projects (*.vfproj)
+"""
+
 from cmake_converter.utils import Utils
 
 
 class VFUtils(Utils):
+    """
+        CLass of utils for fortran projects (*.vfproj)
+    """
 
     def lists_of_settings_to_merge(self):
         lists = super(VFUtils, self).lists_of_settings_to_merge()

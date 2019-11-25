@@ -20,10 +20,15 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+    Parser for *.vfproj xml
+"""
+
 from cmake_converter.parser import Parser, StopParseException
 
 
 class VFParser(Parser):
+    """ Class for parser of *.vfproj files. """
 
     def __init__(self):
         Parser.__init__(self)

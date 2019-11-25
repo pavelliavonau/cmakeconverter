@@ -20,6 +20,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+    Module for project files properties for Fortran projects
+"""
+
 import re
 import os
 
@@ -28,6 +32,9 @@ from cmake_converter.utils import message
 
 
 class VFProjectFiles(ProjectFiles):
+    """
+        Class project files properties for Fortran projects
+    """
 
     def include_directive_case_check(self, context, file_path_name, file_lists_for_include_paths):
         """

@@ -20,6 +20,13 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+    Context object descriptor
+    =========================
+
+"""
+
+
 import time
 from multiprocessing import cpu_count
 from collections import OrderedDict
@@ -84,9 +91,21 @@ class Context:
         self.utils = None
 
     def clone(self):
+        """
+        Deep clone of Context
+
+        :return:
+        """
         return copy.deepcopy(self)
 
     def init(self, xml_project_path, cmake_lists_destination_path):
+        """
+        Initialize instance of Context with Initializer
+
+        :param xml_project_path:
+        :param cmake_lists_destination_path:
+        :return:
+        """
         context_initializer_map = {
             'vcxproj': VCXContextInitializer,
             'vfproj': VFContextInitializer

@@ -20,6 +20,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+    Module that translates info from *.vfproj nodes into flags for compiler/linker.
+"""
+
 import os
 from collections import OrderedDict
 
@@ -151,10 +155,12 @@ class FortranFlags(Flags):
             )
 
     def prepare_context_for_flags(self, context):
+        """ Initialize context with default state of flags """
         context.flags.flags[context.current_setting] = {}
         self.__set_default_flags(context)
 
     def apply_flags_to_context(self, context):
+        """ Applying flags that are determined only after full pass through xml. """
         context_flags_data_keys = [
             ifort_cl_win,
             ifort_cl_unix,
