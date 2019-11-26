@@ -128,20 +128,21 @@ def take_name_from_list_case_ignore(context, search_list, name_to_search):
     return real_name
 
 
-def is_settings_has_data(sln_configurations_map, settings, settings_key, arch=None, conf=None):
-    if arch:
-        arch = get_mapped_arch(sln_configurations_map, arch)
+def is_settings_has_data(sln_configurations_map, settings, settings_key, sln_arch=None, conf=None):
+    if sln_arch:
+        mapped_archs = get_mapped_architectures(sln_configurations_map, sln_arch)
 
     for sln_setting in sln_configurations_map:
-        mapped_setting_name = sln_configurations_map[sln_setting]
-        if mapped_setting_name not in settings:
+        mapped_setting_key = sln_configurations_map[sln_setting]
+        if mapped_setting_key not in settings:
             continue
-        mapped_setting = settings[mapped_setting_name]
+        mapped_setting = settings[mapped_setting_key]
+        if sln_arch and (mapped_setting_key[1] not in mapped_archs):
+            continue
+        if conf and (mapped_setting_key[0] != conf):
+            continue
+
         if settings_key in mapped_setting:
-            if arch and mapped_setting['arch'] != arch:
-                continue
-            if conf and mapped_setting['conf'] != conf:
-                continue
             if mapped_setting[settings_key]:
                 return True
     return False
@@ -188,11 +189,12 @@ def get_str_value_from_property_value(property_value, separator):
     raise str('property value must be a list')
 
 
-def get_mapped_arch(sln_setting_2_project_setting, arch):
+def get_mapped_architectures(sln_setting_2_project_setting, arch):
+    archs = set()
     for setting in sln_setting_2_project_setting:
         if setting[1] == arch:
-            return sln_setting_2_project_setting[setting][1]
-    return None
+            archs.add(sln_setting_2_project_setting[setting][1])
+    return archs
 
 # pylint: disable=R0914
 # pylint: disable=R0913

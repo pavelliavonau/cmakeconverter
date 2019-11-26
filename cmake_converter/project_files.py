@@ -52,6 +52,7 @@ class ProjectFiles:
         file_context.settings = {}
         file_context.flags = copy.copy(context.flags)
         file_context.flags.__init__()
+        file_context.sln_configurations_map = copy.copy(context.sln_configurations_map)
         file_context.file_contexts = None
         file_context.warnings_count = 0
         for setting in context.settings:       # copy settings

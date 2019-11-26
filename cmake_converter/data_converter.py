@@ -30,10 +30,11 @@ import os
 from collections import OrderedDict
 from multiprocessing import Pool
 import shutil
+import copy
 
 from cmake_converter.data_files import get_cmake_lists
 from cmake_converter.flags import Flags
-from cmake_converter.utils import write_comment, message, get_mapped_arch, write_arch_types,\
+from cmake_converter.utils import write_comment, message, write_arch_types,\
     write_use_package_stub, set_unix_slash
 from cmake_converter.context import Context
 
@@ -76,82 +77,104 @@ class DataConverter:
         :param context:
         :return:
         """
-        for arch in context.supported_architectures:
-            mapped_arch = get_mapped_arch(context.sln_configurations_map, arch)
-            context.settings[(None, mapped_arch)] = {}
-            context.current_setting = (None, mapped_arch)
-            context.utils.init_context_current_setting(context)
-            merged_settings = context.settings[(None, mapped_arch)]
 
-            for key in context.utils.lists_of_settings_to_merge():
-                lists_of_items_to_merge = OrderedDict()
-                set_of_items = set()
+        for key in context.utils.lists_of_settings_to_merge():
+            lists_of_items_to_merge = {}
+            set_of_items = {}
 
-                # get intersection pass
-                for setting in context.settings:
-                    if key not in context.settings[setting] \
-                            or setting[1] != mapped_arch \
-                            or setting[0] is None:
-                        continue
-                    settings_list = context.settings[setting][key]
-                    if not lists_of_items_to_merge:  # first pass
-                        set_of_items = set(settings_list)
+            # get intersection pass
+            for sln_setting in context.sln_configurations_map:
+                mapped_setting = context.sln_configurations_map[sln_setting]
+                mapped_arch = sln_setting[1]
+                if mapped_arch is not None and mapped_arch not in lists_of_items_to_merge:
+                    lists_of_items_to_merge[mapped_arch] = OrderedDict()
+                if (None, mapped_arch) not in context.settings:
+                    context.current_setting = (None, mapped_arch)
+                    context.utils.init_context_current_setting(context)
 
-                    lists_of_items_to_merge[setting] = settings_list
-                    set_of_items = set_of_items.intersection(set(context.settings[setting][key]))
+                if key not in context.settings[mapped_setting] \
+                        or mapped_setting[0] is None:
+                    continue
+                settings_list = context.settings[mapped_setting][key]
+                if not lists_of_items_to_merge[mapped_arch]:  # first pass
+                    set_of_items[mapped_arch] = set(settings_list)
 
-                # removing common settings from configurations
-                for setting in lists_of_items_to_merge:
+                lists_of_items_to_merge[mapped_arch][sln_setting] = settings_list
+                set_of_items[mapped_arch] = set_of_items[mapped_arch].intersection(
+                    set(context.settings[mapped_setting][key])
+                )
+
+            # removing common settings from configurations
+            for arch in lists_of_items_to_merge:
+                for sln_setting in lists_of_items_to_merge[arch]:
                     result_settings_list = []
-                    for element in lists_of_items_to_merge[setting]:
-                        if element not in set_of_items:
+                    for element in lists_of_items_to_merge[arch][sln_setting]:
+                        if element not in set_of_items[arch]:
                             result_settings_list.append(element)
-                    context.settings[setting][key] = result_settings_list
+                    self.__update_settings_at_context(
+                        context, sln_setting, key, result_settings_list
+                    )
 
-                merged_order_list = self.__get_order_of_common_settings(
-                    lists_of_items_to_merge
-                )
+            merged_order_lists = self.__get_order_of_common_settings(lists_of_items_to_merge)
 
-                merged_settings[key] = self.__get_common_ordered_settings(
-                    merged_order_list,
-                    set_of_items
-                )
+            merged_settings = self.__get_common_ordered_settings(
+                merged_order_lists,
+                set_of_items
+            )
 
-            context.sln_configurations_map[(None, arch)] = (None, mapped_arch)
+            for arch in merged_settings:
+                merged_setting = merged_settings[arch]
+                context.settings[(None, arch)][key] = merged_setting
+                context.sln_configurations_map[(None, arch)] = (None, arch)
 
         if context.file_contexts is not None:
             for file in context.file_contexts:
                 self.merge_data_settings(context.file_contexts[file])
 
     @staticmethod
-    def __get_order_of_common_settings(lists_of_items_to_merge):
-        merged_order_list = []
-        i = 0
-        while True:
-            out_of_bounds = 0
-            for setting in lists_of_items_to_merge:
-                settings_list = lists_of_items_to_merge[setting]
-                if i < len(settings_list):
-                    merged_order_list.append(settings_list[i])
-                else:
-                    out_of_bounds += 1
-
-            if out_of_bounds == len(lists_of_items_to_merge):
-                break
-            i += 1
-        return merged_order_list
+    def __update_settings_at_context(context, sln_setting, key, settings_to_set):
+        if sln_setting not in context.settings:
+            context.settings[sln_setting] = \
+                copy.deepcopy(context.settings[context.sln_configurations_map[sln_setting]])
+        context.sln_configurations_map[sln_setting] = sln_setting
+        context.settings[sln_setting][key] = settings_to_set
 
     @staticmethod
-    def __get_common_ordered_settings(merged_order_list, set_of_items):
-        common_ordered_list = []
-        for element in merged_order_list:
-            if element in set_of_items:
-                common_ordered_list.append(element)
-                set_of_items.remove(element)
-                if not set_of_items:
-                    break
+    def __get_order_of_common_settings(lists_of_items_to_merge_arch):
+        merged_order_lists = {}
+        for arch in lists_of_items_to_merge_arch:
+            lists_of_items_to_merge = lists_of_items_to_merge_arch[arch]
+            merged_order_lists[arch] = []
+            i = 0
+            while True:
+                out_of_bounds = 0
+                for setting in lists_of_items_to_merge:
+                    settings_list = lists_of_items_to_merge[setting]
+                    if i < len(settings_list):
+                        merged_order_lists[arch].append(settings_list[i])
+                    else:
+                        out_of_bounds += 1
 
-        return common_ordered_list
+                if out_of_bounds == len(lists_of_items_to_merge):
+                    break
+                i += 1
+
+        return merged_order_lists
+
+    @staticmethod
+    def __get_common_ordered_settings(merged_order_list_arch, set_of_items):
+        common_ordered_lists = {}
+        for arch in merged_order_list_arch:
+            merged_order_list = merged_order_list_arch[arch]
+            common_ordered_lists[arch] = []
+            for element in merged_order_list:
+                if element in set_of_items[arch]:
+                    common_ordered_lists[arch].append(element)
+                    set_of_items[arch].remove(element)
+                    if not set_of_items:
+                        break
+
+        return common_ordered_lists
 
     @staticmethod
     def write_data(context, cmake_file):
