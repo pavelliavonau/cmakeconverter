@@ -42,6 +42,8 @@ Install last pre-release or development version of cmake-converter::
 
     pip install --pre cmake_converter
 
+**Note :** If you found an issue in the package installed from pip, please, **do not create github issue at once** and check last source from develop first. It might be has fixed already and ready to release.
+
 Install from Source(the most fresh version)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
