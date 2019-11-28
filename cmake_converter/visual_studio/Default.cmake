@@ -60,7 +60,6 @@ set_config_specific_property("ARCHIVE_OUTPUT_NAME" "${TARGET_NAME}")
 set_config_specific_property("LIBRARY_OUTPUT_NAME" "${TARGET_NAME}")
 set_config_specific_property("RUNTIME_OUTPUT_NAME" "${TARGET_NAME}")
 
-set_config_specific_property("OUTPUT_DIRECTORY" "${CMAKE_SOURCE_DIR}/${CMAKE_VS_PLATFORM_NAME}/${PROPS_CONFIG}")
 set_config_specific_property("ARCHIVE_OUTPUT_DIRECTORY" "${OUTPUT_DIRECTORY}")
 set_config_specific_property("LIBRARY_OUTPUT_DIRECTORY" "${OUTPUT_DIRECTORY}")
 set_config_specific_property("RUNTIME_OUTPUT_DIRECTORY" "${OUTPUT_DIRECTORY}")
