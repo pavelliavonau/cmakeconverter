@@ -64,12 +64,12 @@ class ProjectVariables:
     @staticmethod
     def set_output_file_impl(context, output_file_node_text):
         if output_file_node_text:
+            # next 2 properties are special. check Default.cmake for understanding
             if not context.settings[context.current_setting]['OUTPUT_DIRECTORY']:
                 context.settings[context.current_setting]['OUTPUT_DIRECTORY'] = \
                     ['${OUTPUT_DIRECTORY}']
-            # TODO: set default target name properly
             if not context.settings[context.current_setting]['TARGET_NAME']:
-                context.settings[context.current_setting]['TARGET_NAME'] = ['']
+                context.settings[context.current_setting]['TARGET_NAME'] = ['${TARGET_NAME}']
 
             output_path = context.settings[context.current_setting]['OUTPUT_DIRECTORY'][0]
             output_file = cleaning_output(context, output_file_node_text)
