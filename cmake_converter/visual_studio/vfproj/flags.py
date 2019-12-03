@@ -41,6 +41,8 @@ class FortranFlags(Flags):
         self.flags = {}
         self.flags_handlers = OrderedDict([
             ('VFFortranCompilerTool_SuppressStartupBanner', self.__set_suppress_startup_banner),
+            ('VFFortranCompilerTool_MultiProcessorCompilation',
+             self.__set_multi_processor_compilation),
             ('VFFortranCompilerTool_DebugInformationFormat', self.__set_debug_information_format),
             ('VFFortranCompilerTool_Optimization', self.__set_optimization),
             ('VFFortranCompilerTool_InterproceduralOptimizations',
@@ -776,6 +778,20 @@ class FortranFlags(Flags):
         del context, flag_name, flag_value
         flag_values = {
             'true': {ifort_cl_win: '-nologo'},
+            default_value: {}
+        }
+        return flag_values
+
+    @staticmethod
+    def __set_multi_processor_compilation(context, flag_name, flag_value):
+        """
+        Set MultiProcessorCompilation /MP
+
+        """
+        del context, flag_name, flag_value
+        flag_values = {
+            'true': {ifort_cl_win: '/MP',
+                     ifort_cl_unix: '-multiple-processes'},
             default_value: {}
         }
         return flag_values
