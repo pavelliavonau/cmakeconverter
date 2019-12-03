@@ -881,6 +881,8 @@ class FortranFlags(Flags):
                     pass
                 elif 'Qprof-dir' in unix_option:
                     unix_option = unix_option.replace('Qprof-dir', 'prof-dir')
+                elif 'Qprof-gen' in unix_option:
+                    unix_option = unix_option.replace('Qprof-gen', 'prof-gen')
                 elif 'Qprof-use' in unix_option:
                     unix_option = unix_option.replace('Qprof-use', 'prof-use')
                 elif 'Qprec-sqrt' in unix_option:
