@@ -29,7 +29,7 @@ from collections import OrderedDict
 
 from cmake_converter.flags import Flags, default_value, ifort_cl_unix, ifort_cl_win, ifort_ln_win, \
     ifort_ln_unix
-from cmake_converter.utils import normalize_path, set_unix_slash, message
+from cmake_converter.utils import normalize_path, set_unix_slash, message, cleaning_output
 
 
 class FortranFlags(Flags):
@@ -847,10 +847,12 @@ class FortranFlags(Flags):
                 add_opt = add_opt.strip()
                 if '/Qprof-dir' in add_opt:
                     name_value = add_opt.split(':')
-                    add_opt = name_value[0] + ':' + normalize_path(
+                    prof_dir = normalize_path(
                         context,
                         os.path.dirname(context.vcxproj_path), name_value[1]
                     )
+                    prof_dir = cleaning_output(context, prof_dir)
+                    add_opt = name_value[0] + ':' + prof_dir
 
                 add_opt = '-' + add_opt[1:]
                 ready_add_opts.append(add_opt)
