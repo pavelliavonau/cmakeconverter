@@ -1,2 +1,2 @@
-colorama
-lxml==4.3.5   # for python 3.4
+colorama==0.4.1  # for python 3.4
+lxml==4.3.5      # for python 3.4
