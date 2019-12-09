@@ -105,16 +105,12 @@ class DataConverter:
                     set(context.settings[mapped_setting][key])
                 )
 
-            # removing common settings from configurations
-            for arch in lists_of_items_to_merge:
-                for sln_setting in lists_of_items_to_merge[arch]:
-                    result_settings_list = []
-                    for element in lists_of_items_to_merge[arch][sln_setting]:
-                        if element not in set_of_items[arch]:
-                            result_settings_list.append(element)
-                    self.__update_settings_at_context(
-                        context, sln_setting, key, result_settings_list
-                    )
+            self.__remove_common_settings_from_context(
+                context,
+                lists_of_items_to_merge,
+                set_of_items,
+                key
+            )
 
             merged_order_lists = self.__get_order_of_common_settings(lists_of_items_to_merge)
 
@@ -131,6 +127,20 @@ class DataConverter:
         if context.file_contexts is not None:
             for file in context.file_contexts:
                 self.merge_data_settings(context.file_contexts[file])
+
+    def __remove_common_settings_from_context(
+            self, context, lists_of_items_to_merge, set_of_items, key
+    ):
+        """ Removing common settings from configurations """
+        for arch in lists_of_items_to_merge:
+            for sln_setting in lists_of_items_to_merge[arch]:
+                result_settings_list = []
+                for element in lists_of_items_to_merge[arch][sln_setting]:
+                    if element not in set_of_items[arch]:
+                        result_settings_list.append(element)
+                self.__update_settings_at_context(
+                    context, sln_setting, key, result_settings_list
+                )
 
     @staticmethod
     def __update_settings_at_context(context, sln_setting, key, settings_to_set):
