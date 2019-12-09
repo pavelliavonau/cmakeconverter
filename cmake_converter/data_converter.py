@@ -314,7 +314,6 @@ class DataConverter:
     def write_root_cmake_file(
             self,
             root_context,
-            input_root_project_path,
             configuration_types_list,
             subdirectories_set,
             subdirectories_to_project_name
@@ -339,7 +338,7 @@ class DataConverter:
             )
         root_cmake.write(
             'project({} {})\n\n'.format(
-                os.path.splitext(os.path.basename(input_root_project_path))[0],
+                os.path.splitext(os.path.basename(root_context.solution_path))[0],
                 ' '.join(sorted(root_context.solution_languages))
             )
         )
@@ -382,7 +381,7 @@ class DataConverter:
             warnings = ' ({} warnings)'.format(root_context.warnings_count)
         message(
             root_context,
-            'Conversion of {} finished{}'.format(input_root_project_path, warnings),
+            'Conversion of {} finished{}'.format(root_context.solution_path, warnings),
             'done'
         )
 

@@ -258,14 +258,14 @@ class VSSolutionConverter(DataConverter):
         self.clean_cmake_lists_file(context, context.solution_path, cmake_lists_set)
         print('\n')
 
-    def convert_solution(self, root_context, sln_path):
+    def convert_solution(self, root_context, sln_file_path):
         """
         Routine converts Visual studio solution into set of CMakeLists.txt scripts
         """
-        with open(sln_path, encoding='utf8') as sln:
+        with open(sln_file_path, encoding='utf8') as sln:
             solution_data = self.parse_solution(root_context, sln.read())
 
-        root_context.solution_path = os.path.dirname(sln_path)
+        root_context.solution_path = os.path.dirname(sln_file_path)
         subdirectories_set = set()
         subdirectories_to_project_name = {}
         projects_data = solution_data['projects_data']
@@ -290,7 +290,6 @@ class VSSolutionConverter(DataConverter):
 
         self.write_root_cmake_file(
             root_context,
-            sln_path,
             configuration_types_list,
             subdirectories_set,
             subdirectories_to_project_name
