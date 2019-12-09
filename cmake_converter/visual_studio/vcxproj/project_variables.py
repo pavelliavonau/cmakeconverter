@@ -20,34 +20,44 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+    Module that defines all the CMake variables to be used by the C/C++ project
+"""
+
 from cmake_converter.project_variables import ProjectVariables
 
 
 class VCXProjectVariables(ProjectVariables):
     """
-        Class who defines all the CMake variables to be used by the C/C++ project
+        Class that defines all the CMake variables to be used by the C/C++ project
     """
 
     @staticmethod
     def set_root_namespace(context, node):
+        """ Sets root namespace into context from node text"""
         context.root_namespace = node.text
 
     @staticmethod
     def set_keyword(context, node):
+        """ Sets keyword of project type into context from node text """
         context.settings[context.current_setting]['VS_GLOBAL_KEYWORD'] = [node.text]
 
     @staticmethod
     def set_windows_target_version(context, node):
+        """ Sets windows target version(SDK version) into context from node text """
         context.target_windows_version = node.text
 
     def set_output_dir(self, context, node):
+        """ Sets output dir into context from node text """
         self.set_output_dir_impl(context, node.text)
 
     def set_output_file(self, context, output_file_node):
+        """ Sets output file into context from node text """
         if output_file_node is not None:
             self.set_output_file_impl(context, output_file_node.text)
 
     def set_import_library(self, context, node):
+        """ Sets import library into context from node text """
         self.set_path_and_name_from_node(
             context,
             'Import library',
@@ -57,6 +67,7 @@ class VCXProjectVariables(ProjectVariables):
         )
 
     def set_program_database_file(self, context, node):
+        """ Sets program database file into context from node text """
         self.set_path_and_name_from_node(
             context,
             'Program database',

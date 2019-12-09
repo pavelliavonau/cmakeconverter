@@ -20,12 +20,19 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+Module that is responsible for common context initialization.
+"""
+
 import os
 
 from cmake_converter.utils import message
 
 
 class ContextInitializer:
+    """
+    Module that holds common stuff for context initialization.
+    """
     def __init__(self, context, vs_project, cmake_lists_destination_path):
         self.init_files(context, vs_project, cmake_lists_destination_path)
         message(

@@ -20,6 +20,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+Module that handles dependencies information for C/C++ projects.
+"""
+
 import os
 import re
 
@@ -31,7 +35,9 @@ from cmake_converter.flags import ln_flags
 
 
 class VCXDependencies(Dependencies):
-
+    """
+    Class that handles dependencies information for C/C++ projects.
+    """
     def set_include_dirs(self, context, incl_dir):
         """
         Write on "CMakeLists.txt" include directories required for compilation.
@@ -101,6 +107,7 @@ class VCXDependencies(Dependencies):
 
     @staticmethod
     def set_link_library_dependencies(context, node):
+        """ Handler for link library dependencies. No support of CMake. Just warning. """
         if None in context.current_setting:
             configuration_type = context.settings[context.current_setting]['target_type']
             if node.text.strip() == 'true' and configuration_type == 'StaticLibrary':
@@ -187,6 +194,7 @@ class VCXDependencies(Dependencies):
 
     @staticmethod
     def set_target_dependency_packages(context, attr_name, attr_value, ext_targets):
+        """ Collects paths of mentioned *.targets files at context.import_projects """
         del attr_name, attr_value
         for import_project_node in ext_targets:
             targets_file_path = import_project_node.get('Project')

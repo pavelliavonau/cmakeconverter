@@ -36,11 +36,12 @@ from cmake_converter.utils import set_native_slash, get_dir_name_with_vars
 
 class ProjectVariables:
     """
-        Class who manage project variables
+        Class that manages project variables
     """
 
     @staticmethod
     def set_target_name(context, target_name_value):
+        """ Evaluates target name and sets it into project context """
         context.settings[context.current_setting]['TARGET_NAME'] = [replace_vs_vars_with_cmake_vars(
             context,
             target_name_value
@@ -63,6 +64,7 @@ class ProjectVariables:
 
     @staticmethod
     def set_output_file_impl(context, output_file_node_text):
+        """ Common routine for evaluating path and name of output file """
         if output_file_node_text:
             # next 2 properties are special. check Default.cmake for understanding
             if not context.settings[context.current_setting]['OUTPUT_DIRECTORY']:
@@ -95,6 +97,7 @@ class ProjectVariables:
 
     @staticmethod
     def set_path_and_name_from_node(context, node_name, value, path_property, name_property):
+        """ Common routine for evaluating path and name from node text """
         file_path_value = value.strip()
         if not file_path_value:
             return
@@ -119,7 +122,7 @@ class ProjectVariables:
                               property_value,
                               width,
                               **kwargs):
-        width_diff = 0
+        """ Method for writing CMake target property """
         property_name = kwargs['property_name']
 
         config = ''

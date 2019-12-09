@@ -35,7 +35,7 @@ from cmake_converter.utils import message, write_comment, make_cmake_literal
 
 class ProjectFiles:
     """
-        Class who collect and store project files
+        Class that collects and store project files
     """
 
     def __init__(self):
@@ -44,6 +44,7 @@ class ProjectFiles:
         self.file_lists_for_include_paths = {}
 
     def include_directive_case_check(self, context, file_path_name, file_lists_for_include_paths):
+        """ Dummy to fix crash """
         pass
 
     @staticmethod
@@ -97,7 +98,9 @@ class ProjectFiles:
         return context.file_contexts[file_path_name]
 
     def add_file_from_node(self, context, **kwargs):
-
+        """
+        Adds file into source group and creates file context using into from xml node
+        """
         files_container = kwargs['files_container']
         file_node = kwargs['file_node']
         file_node_attr = kwargs['file_node_attr']
@@ -142,6 +145,7 @@ class ProjectFiles:
                             = set(os.listdir(abs_include_path))
 
     def apply_files_to_context(self, context):
+        """ Analyzes collected set of files and initializes necessary variables """
         has_headers = True if context.headers else False
         context.has_headers = has_headers
         context.has_only_headers = True if has_headers and not context.sources else False
@@ -199,6 +203,7 @@ class ProjectFiles:
 
     @staticmethod
     def get_source_group_var(context, source_group_name):
+        """ Evaluates variable from source group name """
         if not source_group_name:
             return 'no_group_source_files'
 
@@ -206,6 +211,7 @@ class ProjectFiles:
         return make_cmake_literal(context, source_group_name.replace('\\\\', '__'))
 
     def write_source_groups(self, context, cmake_file):
+        """ Writes source groups of project files into CMakwLists.txt """
         write_comment(cmake_file, 'Source groups')
 
         source_group_list = sorted(context.source_groups)

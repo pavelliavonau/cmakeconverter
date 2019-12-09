@@ -20,8 +20,15 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+    Module for project files properties for C/C++ projects
+"""
+
 from cmake_converter.project_files import ProjectFiles
 
 
 class VCXProjectFiles(ProjectFiles):
+    """
+        Class project files properties for C/C++ projects
+    """
     pass

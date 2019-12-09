@@ -20,6 +20,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+Module that handles dependencies information for fortran projects.
+"""
+
 import os
 import re
 
@@ -29,15 +33,20 @@ from cmake_converter.utils import message, prepare_build_event_cmd_line_for_cmak
 
 
 class VFDependencies(Dependencies):
+    """
+    Class that handles dependencies information for fortran projects.
+    """
 
     @staticmethod
     def set_target_references(context):
+        """ Sets target references to context """
         if context.sln_deps:
             context.target_references = context.target_references + context.sln_deps
             message(context, 'References : {}'.format(context.target_references), '')
 
     @staticmethod
     def set_target_additional_dependencies(context, flag_name, ad_libs, node):
+        """ Handles additional link dependencies """
         del flag_name, node
 
         if ad_libs:

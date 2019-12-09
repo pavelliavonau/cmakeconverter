@@ -37,6 +37,7 @@ import colorama
 
 
 def init_colorama():
+    """ Initialization of colorful console output """
     if 'PYCHARM_HOSTED' in os.environ:
         convert = False  # in PyCharm, we should disable convert
         strip = False
@@ -57,9 +58,10 @@ ENDC = colorama.Fore.RESET + colorama.Style.RESET_ALL
 
 
 class Utils:
-
+    """ Basic Class for holding util functions needed by converter """
     @staticmethod
     def lists_of_settings_to_merge():
+        """ Lists of keys of settings at context that will be merged """
         return [
             'defines',
             'inc_dirs',
@@ -129,6 +131,7 @@ def take_name_from_list_case_ignore(context, search_list, name_to_search):
 
 
 def is_settings_has_data(sln_configurations_map, settings, settings_key, sln_arch=None, conf=None):
+    """ Checker of available settings in context """
     if sln_arch:
         mapped_archs = get_mapped_architectures(sln_configurations_map, sln_arch)
 
@@ -154,6 +157,7 @@ def write_property_of_setting_f(cmake_file,
                                 property_value,
                                 width,
                                 **kwargs):
+    """ Default write property functor """
     del width
 
     separator = kwargs['separator']
@@ -183,6 +187,7 @@ def write_property_of_setting_f(cmake_file,
 
 
 def get_str_value_from_property_value(property_value, separator):
+    """ Evaluate string value of property """
     if isinstance(property_value, list):
         return separator.join(property_value)
 
@@ -190,6 +195,7 @@ def get_str_value_from_property_value(property_value, separator):
 
 
 def get_mapped_architectures(sln_setting_2_project_setting, arch):
+    """ Get all projects architectures that mapped onto given solution one """
     archs = set()
     for setting in sln_setting_2_project_setting:
         if setting[1] == arch:
@@ -211,7 +217,7 @@ def write_selected_sln_setting(cmake_file,
                                max_config_condition_width,
                                **kwargs
                                ):
-
+    """ Routine that writes main info of setting block """
     begin_text = kwargs['begin_text']
     property_name = kwargs['property_name']
     indent = kwargs['indent']
@@ -245,7 +251,7 @@ def write_footer_of_settings(cmake_file,
                              config_expressions,
                              has_property_value,
                              **kwargs):
-
+    """ Writes footer of settings block (default value and closes block) """
     default = kwargs['default']
     end_text = kwargs['end_text']
     indent = kwargs['indent']
@@ -439,6 +445,7 @@ def set_native_slash(raw_path):
 
 
 def get_mount_point(path):
+    """ Returns mount point of given path """
     folders = path.split(os.path.sep)
     mount_point = ''
     for folder in folders:
@@ -479,6 +486,7 @@ def check_for_relative_in_path(context, path, remove_relative=True):
 
 
 def make_os_specific_shell_path(output):
+    """ Tries to make path readable with CMake """
     variables_to_replace = {
         '$(SolutionDir)': '${CMAKE_SOURCE_DIR}/',
         '$(ProjectDir)': '${CMAKE_CURRENT_SOURCE_DIR}/',
@@ -493,12 +501,14 @@ def make_os_specific_shell_path(output):
 
 
 def resolve_path_variables_of_vs(context, path_with_vars):
+    """ Evaluates paths with visual studio variables """
     path_with_vars = path_with_vars.replace('$(ProjectDir)', './')
     path_with_vars = path_with_vars.replace('$(SolutionDir)', context.solution_path)
     return path_with_vars
 
 
 def get_dir_name_with_vars(context, path):
+    """ Tries to split directory and filename from given path """
     del context
     dirname = os.path.dirname(path)
     file_name = os.path.basename(path)
@@ -516,6 +526,7 @@ def get_dir_name_with_vars(context, path):
 
 
 def replace_vs_var_with_cmake_var(context, var):
+    """ Translate Visual studio variable into CMake variable """
     variables_to_replace = {
         '$(SolutionDir)': '${CMAKE_SOURCE_DIR}\\',
         '$(Platform)': '${CMAKE_VS_PLATFORM_NAME}',
@@ -545,7 +556,7 @@ def replace_vs_var_with_cmake_var(context, var):
 
 
 def replace_vs_vars_with_cmake_vars(context, output):
-
+    """ Translates variables at given string to corresponding CMake ones """
     var_ex = re.compile(r'(\$\(.*?\))')
 
     vars_list = var_ex.findall(output)
@@ -576,6 +587,7 @@ def cleaning_output(context, output):
 
 
 def insensitive_glob(path):
+    """ Searches given path case insensitive """
     drive, path = os.path.splitdrive(path)
 
     def either(c):
@@ -640,6 +652,7 @@ def normalize_path(context, working_path, path_to_normalize, remove_relative=Tru
 
 
 def prepare_build_event_cmd_line_for_cmake(context, build_event):
+    """ Tries to fit build event command to be compliant CMake language """
     cmake_build_event = make_os_specific_shell_path(build_event)
     cmake_build_event = replace_vs_vars_with_cmake_vars(context, cmake_build_event)
     cmake_build_event = cmake_build_event.replace('\\', '\\\\')
@@ -688,6 +701,7 @@ def message(context, text, status):  # pragma: no cover
 
 
 def get_comment(text):
+    """ Get comment block for given text """
     line_length = 80
     title_line = ''
 
@@ -714,6 +728,7 @@ def write_comment(cmake_file, text):
 
 
 def write_arch_types(cmake):
+    """ Writes setting default architecture """
     write_comment(
         cmake,
         'Set target arch type if empty. Visual studio solution generator provides it.'
@@ -725,6 +740,7 @@ def write_arch_types(cmake):
 
 
 def write_use_package_stub(cmake):
+    """ Write use_package CMake routine default implementation """
     write_comment(cmake, 'Nuget packages function stub.')
     cmake.write('function(use_package TARGET PACKAGE VERSION)\n')
     cmake.write('    message(WARNING "No implementation of use_package. Create yours. "\n'
@@ -734,7 +750,7 @@ def write_use_package_stub(cmake):
 
 
 def make_cmake_literal(context, input_str):
-
+    """ Tries to make cmake literal from input string """
     output_str = re.sub(r'[^0-9a-zA-Z_./\-+]', '', input_str)
 
     if input_str != output_str:

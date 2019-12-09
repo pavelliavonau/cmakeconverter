@@ -20,10 +20,17 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+Module for special utils for C/C++ projects
+"""
+
 from cmake_converter.utils import Utils
 
 
 class VCXUtils(Utils):
+    """
+    Class for special utils for C/C++ projects
+    """
 
     def lists_of_settings_to_merge(self):
         lists = super(VCXUtils, self).lists_of_settings_to_merge()

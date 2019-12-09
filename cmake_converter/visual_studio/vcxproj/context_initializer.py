@@ -20,6 +20,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+Module that is responsible for context initialization for C/C++ projects.
+"""
+
 from cmake_converter.context_initializer import ContextInitializer
 from cmake_converter.data_files import get_vcxproj_data
 from cmake_converter.utils import get_global_project_name_from_vcxproj_file
@@ -33,6 +37,9 @@ from .parser import VCXParser
 
 
 class VCXContextInitializer(ContextInitializer):
+    """
+    Module that makes initialization for C/C++ projects.
+    """
     def __init__(self, context, xml_project_path, cmake_lists_destination_path):
         ContextInitializer.__init__(self, context, xml_project_path, cmake_lists_destination_path)
         context.variables = VCXProjectVariables()

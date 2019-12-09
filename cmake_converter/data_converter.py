@@ -57,6 +57,7 @@ class DataConverter:
 
     @staticmethod
     def verify_data(context):
+        """ Verify procedure after gathering information from source project """
         target_types = set()
         for setting in context.settings:
             if None in setting:
@@ -255,6 +256,7 @@ class DataConverter:
         return True
 
     def run_conversion(self, subdirectory_projects_data):
+        """ Routine that converts projects located at the same directory """
         results = []
         for project_data in subdirectory_projects_data:
             project_context = project_data['project_context']
@@ -284,6 +286,7 @@ class DataConverter:
         return results
 
     def do_conversion(self, root_context, input_data_for_converter):
+        """ Executes conversion with given projects input data """
         input_converter_data_list = []
         for subdirectory in input_data_for_converter:
             input_converter_data_list.append(input_data_for_converter[subdirectory])
@@ -306,6 +309,7 @@ class DataConverter:
             subdirectories_set,
             subdirectories_to_project_name
     ):
+        """ Routine that writes entry point of converted solution for CMake """
 
         if root_context.dry:
             return
@@ -393,6 +397,7 @@ class DataConverter:
 
     @staticmethod
     def copy_cmake_utils(cmake_lists_path):
+        """ Copy necessary util files into CMake folder """
         utils_path = os.path.join(cmake_lists_path, 'CMake')
         if not os.path.exists(utils_path):
             os.makedirs(utils_path)

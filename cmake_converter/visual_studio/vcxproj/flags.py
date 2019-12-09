@@ -20,6 +20,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+Module that handles flags information of C/C++ projects.
+"""
+
 import re
 import os
 from collections import OrderedDict
@@ -32,6 +36,7 @@ from cmake_converter.utils import set_unix_slash, message, replace_vs_vars_with_
 # pylint: disable=R0903
 
 class NodeStub:
+    """ Dummy class for Node replacement """
     def __init__(self, flag_name):
         self.text = ''
         self.tag = flag_name
@@ -41,7 +46,7 @@ class NodeStub:
 
 class CPPFlags(Flags):
     """
-        Class who check and create compilation flags
+        Class that checks and creates compilation flags
     """
 
     def __init__(self):
@@ -147,6 +152,7 @@ class CPPFlags(Flags):
         ), '')
 
     def set_character_set(self, context, character_set_node):
+        """ Set defines related to selected character set """
         unicode_defines = []
         if 'Unicode' in character_set_node.text:
             unicode_defines += ['UNICODE', '_UNICODE']
@@ -234,6 +240,9 @@ class CPPFlags(Flags):
         return pch_header_path, pch_source_path
 
     def define_pch_cpp_file(self, context):
+        """
+        Routine that evaluates PCH related stuff using project data after parsing
+        """
         pch_header_path = ''
         pch_source_path = ''
         for setting in context.settings:
@@ -291,6 +300,7 @@ class CPPFlags(Flags):
             )
 
     def prepare_context_for_flags(self, context):
+        """ Initialization of context of current setting with default flags """
         if context.current_setting not in context.flags.flags:
             context.flags.flags[context.current_setting] = {}
             self.__set_default_flags(context)
@@ -298,6 +308,9 @@ class CPPFlags(Flags):
     # pylint: disable=R1702
 
     def apply_flags_to_context(self, context):
+        """
+        Routine that applies collected flags from different places to context object
+        """
         context_flags_data_keys = [
             cl_flags,
             ln_flags,

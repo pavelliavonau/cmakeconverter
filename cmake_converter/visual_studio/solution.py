@@ -20,6 +20,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+Module of Visual Studio solution related logic for converting.
+"""
+
 import re
 import os
 import shutil
@@ -31,7 +35,9 @@ from cmake_converter.utils import message
 
 
 class VSSolutionConverter(DataConverter):
-
+    """
+    Implementation of Converter for Visual Studio solution
+    """
     def parse_solution(self, root_context, sln_text):
         """
         Parse given solution
@@ -194,6 +200,7 @@ class VSSolutionConverter(DataConverter):
 
     @staticmethod
     def set_solution_dirs_to_projects(projects_data, solution_folders_map, solution_folders):
+        """ Evaluate locations of projects in Solution explorer tree of Visual Studio UI """
         for project_guid in projects_data:
             project_solution_dir = ''
 
@@ -210,6 +217,7 @@ class VSSolutionConverter(DataConverter):
 
     @staticmethod
     def set_dependencies_for_project(context, project_data):
+        """ Copy dependencies on other solution projects into project context """
         if 'sln_deps' not in project_data:
             return
 
@@ -217,6 +225,7 @@ class VSSolutionConverter(DataConverter):
 
     @staticmethod
     def clean_cmake_lists_file(context, subdirectory, cmake_lists_set):
+        """ Clean previous CMake script before converting """
         cmake_path_to_clean = \
             ContextInitializer.set_cmake_lists_path(context, subdirectory) + '/CMakeLists.txt'
         if context.dry:
@@ -233,6 +242,7 @@ class VSSolutionConverter(DataConverter):
             message(context, 'not found {}'.format(cmake_path_to_clean), 'warn')
 
     def clean_cmake_lists_of_solution(self, context, projects_data):
+        """ Clean previous set of CMake scripts before converting """
         if not os.path.exists(os.path.join(context.solution_path, 'CMake')):
             return  # first run
 
@@ -249,7 +259,9 @@ class VSSolutionConverter(DataConverter):
         print('\n')
 
     def convert_solution(self, root_context, sln_path):
-
+        """
+        Routine converts Visual studio solution into set of CMakeLists.txt scripts
+        """
         with open(sln_path, encoding='utf8') as sln:
             solution_data = self.parse_solution(root_context, sln.read())
 

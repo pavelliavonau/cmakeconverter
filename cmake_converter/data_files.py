@@ -33,6 +33,7 @@ from cmake_converter.utils import message, get_actual_filename, set_unix_slash
 
 
 def search_file_path(context, xml_file):
+    """ Util function for checking file in path. """
     xml_file = set_unix_slash(xml_file)
 
     found_xml_file = get_actual_filename(context, xml_file)

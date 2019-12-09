@@ -63,6 +63,7 @@ class Flags:
         )
 
     def write_defines(self, context, cmake_file):
+        """ Routine that writes compile definitions into CMake file """
         write_comment(cmake_file, 'Compile definitions')
         write_property_of_settings(
             cmake_file, context.settings, context.sln_configurations_map,
@@ -209,6 +210,7 @@ class Flags:
         cmake_file.write('add_custom_target(${PROJECT_NAME} SOURCES ${ALL_FILES})\n\n')
 
     def write_use_pch_function(self, context, cmake_file):
+        """ Dummy to fix crash """
         pass
 
     @staticmethod

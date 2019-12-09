@@ -20,43 +20,57 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+Module of Basic logic of parsers for Visual Solution projects
+"""
+
 import re
 
 from cmake_converter.utils import message
 
 
 class StopParseException(Exception):
+    """ Just another well-named exception class for interrupting parsing """
     pass
 
 
 class Parser:
-
+    """
+    Basic class of parsers for Visual Solution projects
+    """
     def __init__(self):
         self.reset_setting_after_nodes = set()
 
     @staticmethod
     def parse(context):
+        """ Basic implementation main parser entry point """
         message(context, 'Parser is not implemented yet!', 'error')
 
     @staticmethod
     def do_nothing_node_stub(context, node):
+        """ Just stub for do nothing on handling node attempt """
         pass
 
     @staticmethod
     def do_nothing_attr_stub(context, attr_name, param, node):
+        """ Just stub for do nothing on handling attribute attempt """
         pass
 
     def get_node_handlers_dict(self, context):
+        """ Basic implementation of getting node handlers dict """
         raise NotImplementedError('You need to define a get_node_handlers_dict method!')
 
     def get_attribute_handlers_dict(self, context):
+        """ Basic implementation of getting attribute handlers dict """
         raise NotImplementedError('You need to define a get_attribute_handlers_dict method!')
 
     def reset_current_setting_after_parsing_node(self, node):
+        """ Remember node after parsing that current setting must be reset """
         self.reset_setting_after_nodes.add(node)
 
     @staticmethod
     def strip_namespace(tag):
+        """ Removes namespace from xml tag """
         return re.sub(r'{.*\}', '', tag)
 
     def _parse_nodes(self, context, parent):

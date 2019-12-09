@@ -20,6 +20,10 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with (CMakeConverter).  If not, see <http://www.gnu.org/licenses/>.
 
+"""
+    Parser for *.vcxproj xml
+"""
+
 import re
 
 from cmake_converter.parser import Parser, StopParseException
@@ -28,6 +32,7 @@ from cmake_converter.utils import get_actual_filename
 
 
 class VCXParser(Parser):
+    """ Class for parser of *.vcxproj files. """
 
     def __init__(self):
         Parser.__init__(self)

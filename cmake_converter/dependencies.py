@@ -214,6 +214,7 @@ class Dependencies:
     @staticmethod
     def write_property_sheets(cmake_file, property_indent, config_condition_expr,
                               property_value, width, **kwargs):
+        """ Write property sheets functor (helper) """
         del kwargs
         config = '"${CMAKE_CONFIGURATION_TYPES}" '
         width_diff = 0
@@ -304,6 +305,7 @@ class Dependencies:
     @staticmethod
     def write_target_build_event_of_setting(cmake_file, property_indent, config_condition_expr,
                                             property_value, width, **kwargs):
+        """ Write target build event functor (helper) """
         del kwargs
         for command in property_value:
             cmake_file.write('{0}    COMMAND {1:>{width}} {2}\n'
@@ -332,6 +334,7 @@ class Dependencies:
     @staticmethod
     def write_file_build_event_of_setting(cmake_file, property_indent, config_condition_expr,
                                           property_value, width, **kwargs):
+        """ Write file build event functor (helper) """
         del kwargs
         # for command in property_value:
         if config_condition_expr is None:
@@ -379,6 +382,7 @@ class Dependencies:
                     cmake_file.write('\n')
 
     def write_target_pre_build_events(self, context, cmake_file):
+        """ Writes target pre build events into CMakeLists.txt """
         self.__write_target_build_events(
             context,
             cmake_file,
@@ -388,6 +392,7 @@ class Dependencies:
         )
 
     def write_target_pre_link_events(self, context, cmake_file):
+        """ Writes target pre link events into CMakeLists.txt """
         self.__write_target_build_events(
             context,
             cmake_file,
@@ -397,6 +402,7 @@ class Dependencies:
         )
 
     def write_target_post_build_events(self, context, cmake_file):
+        """ Writes target post build events into CMakeLists.txt """
         self.__write_target_build_events(
             context,
             cmake_file,
@@ -406,6 +412,7 @@ class Dependencies:
         )
 
     def write_custom_build_events_of_files(self, context, cmake_file):
+        """ Writes custom build events of files into CMakeLists.txt """
         self.__write_file_custom_build_events(
             context,
             cmake_file,
