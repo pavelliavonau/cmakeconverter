@@ -14,6 +14,9 @@ CMake Converter
 .. image:: https://badge.fury.io/py/cmake-converter.svg
     :target: https://badge.fury.io/py/cmake-converter
     :alt: Most recent PyPi version
+.. image:: https://img.shields.io/pypi/pyversions/cmake_converter.svg
+    :target: https://pypi.org/project/cmake_converter/
+    :alt: Supported Python versions
 .. image:: https://img.shields.io/badge/License-AGPL%20v3-blue.svg
     :target: http://www.gnu.org/licenses/agpl-3.0
     :alt: License AGPL v3

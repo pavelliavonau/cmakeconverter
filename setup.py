@@ -54,8 +54,8 @@ setup(
 
     # metadata for upload to PyPI
     author=__author__,
-    author_email="liavonlida@gmail.com ,ttamalfor@gmail.com",
-    keywords="cmake vcxproj vfproj visual cpp fortran CMakeLists",
+    author_email="liavonlida@gmail.com",
+    keywords="cmake sln vcxproj vfproj visual cpp fortran CMakeLists",
     url=__project_url__,
     description=__description__,
     long_description=open('README.rst').read(),
@@ -63,6 +63,7 @@ setup(
     zip_safe=False,
 
     packages=find_packages(),
+    python_requires='>=3.4',
     include_package_data=True,
 
     install_requires=install_requires,
@@ -75,7 +76,13 @@ setup(
         'Intended Audience :: System Administrators',
         'License :: OSI Approved :: GNU General Public License v3 (GPLv3)',
         'Natural Language :: English',
+        'Operating System :: OS Independent',
         'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
         'Topic :: Software Development :: Build Tools',
         'Topic :: Software Development :: Code Generators',
         'Topic :: Software Development :: Compilers',
