@@ -48,7 +48,6 @@ class ContextInitializer:
         Initialize context
 
         """
-        pass
 
     def init_files(self, context, vs_project, cmake_lists):
         """

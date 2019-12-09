@@ -45,7 +45,6 @@ class ProjectFiles:
 
     def include_directive_case_check(self, context, file_path_name, file_lists_for_include_paths):
         """ Dummy to fix crash """
-        pass
 
     @staticmethod
     def __create_file_context(context):
@@ -146,9 +145,9 @@ class ProjectFiles:
 
     def apply_files_to_context(self, context):
         """ Analyzes collected set of files and initializes necessary variables """
-        has_headers = True if context.headers else False
+        has_headers = bool(context.headers)
         context.has_headers = has_headers
-        context.has_only_headers = True if has_headers and not context.sources else False
+        context.has_only_headers = bool(has_headers and not context.sources)
         message(context, "Source files extensions found: {0}".format(self.languages), 'INFO')
 
     def find_cmake_project_languages(self, context):

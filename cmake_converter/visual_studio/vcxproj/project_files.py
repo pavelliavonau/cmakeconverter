@@ -31,4 +31,3 @@ class VCXProjectFiles(ProjectFiles):
     """
         Class project files properties for C/C++ projects
     """
-    pass

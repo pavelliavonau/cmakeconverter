@@ -31,7 +31,6 @@ from cmake_converter.utils import message
 
 class StopParseException(Exception):
     """ Just another well-named exception class for interrupting parsing """
-    pass
 
 
 class Parser:
@@ -49,12 +48,10 @@ class Parser:
     @staticmethod
     def do_nothing_node_stub(context, node):
         """ Just stub for do nothing on handling node attempt """
-        pass
 
     @staticmethod
     def do_nothing_attr_stub(context, attr_name, param, node):
         """ Just stub for do nothing on handling attribute attempt """
-        pass
 
     def get_node_handlers_dict(self, context):
         """ Basic implementation of getting node handlers dict """

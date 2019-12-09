@@ -211,7 +211,6 @@ class Flags:
 
     def write_use_pch_function(self, context, cmake_file):
         """ Dummy to fix crash """
-        pass
 
     @staticmethod
     def write_target_artifact(context, cmake_file):
