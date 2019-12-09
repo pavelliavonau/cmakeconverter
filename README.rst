@@ -17,6 +17,8 @@ CMake Converter
 .. image:: https://img.shields.io/badge/License-AGPL%20v3-blue.svg
     :target: http://www.gnu.org/licenses/agpl-3.0
     :alt: License AGPL v3
+.. image:: https://img.shields.io/badge/Donate-PayPal-green.svg
+    :target: https://www.paypal.me/pavelliavonau
 
 Introduction
 ------------
@@ -58,6 +60,8 @@ Run & Convert
 After install library, just run the script as below. Your ``*.sln`` file is of course required::
 
     cmake-converter -s <path/to/file.sln>
+
+**Note :** If you satisfied with conversion, give a star to the project and consider to donate, please.
 
 Documentation
 -------------
