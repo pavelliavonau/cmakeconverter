@@ -31,34 +31,28 @@ The goal is to give to a Python script, a **\*.sln** file, and output a set of *
 
 **Note :** Actually, it's **only works** with  ``C/C++`` (\*.vcxproj) and ``Fortran`` (\*.vfproj) projects.
 
-Quick Install & Run
--------------------
+Install & Run
+-------------
 
-**Python3** is required!
-
-Install from Pip
-~~~~~~~~~~~~~~~~
+Install package from PyPI
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Install last stable release of cmake-converter::
 
-    pip install cmake_converter
+    pip install cmake-converter
 
-Install last pre-release or development version of cmake-converter::
+**Note :** **If you found an issue** in the package installed from pip, please, **do not create github issue at once** and check for pre-release version (pip -pre) or last source from develop first. It might be has fixed already and ready to release.
 
-    pip install --pre cmake_converter
+Install package from source code
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-**Note :** If you found an issue in the package installed from pip, please, **do not create github issue at once** and check last source from develop first. It might be has fixed already and ready to release.
-
-Install from Source(the most fresh version)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Simply clone this repository and type the following command to install it::
+Simply clone or download  the repository and type the following command to install it::
 
     # Inside repository folder.
     pip install .
 
-Run & Convert
-~~~~~~~~~~~~~
+Run
+~~~
 
 After install library, just run the script as below. Your ``*.sln`` file is of course required::
 
