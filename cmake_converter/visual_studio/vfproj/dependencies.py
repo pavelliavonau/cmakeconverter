@@ -56,7 +56,7 @@ class VFDependencies(Dependencies):
                     if os.path.splitext(d)[1] == '.lib':
                         add_libs.append(d.replace('.lib', ''))
             context.add_lib_deps = True
-            message(context, 'Additional Dependencies = {0}'.format(add_libs), '')
+            message(context, 'Additional Dependencies = {}'.format(add_libs), '')
             context.settings[context.current_setting]['add_lib_deps'] = add_libs
 
     @staticmethod
@@ -84,7 +84,7 @@ class VFDependencies(Dependencies):
                             )
                         )
                 message(context,
-                        'Additional Library Directories = {0}'.format(add_lib_dirs), '')
+                        'Additional Library Directories = {}'.format(add_lib_dirs), '')
                 context.settings[context.current_setting]['target_link_dirs'] = add_lib_dirs
 
     @staticmethod

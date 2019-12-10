@@ -37,7 +37,7 @@ class ContextInitializer:
         self.init_files(context, vs_project, cmake_lists_destination_path)
         message(
             context,
-            'Initialization data for conversion of project {0}'.format(context.vcxproj_path),
+            'Initialization data for conversion of project {}'.format(context.vcxproj_path),
             ''
         )
         for sln_config in context.sln_configurations_map:

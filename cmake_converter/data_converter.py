@@ -237,11 +237,11 @@ class DataConverter:
         """
         # Initialize Context of DataConverter
         if not context.init(xml_project_path, cmake_lists_destination_path):
-            message(context, 'Unknown project type at {0}'.format(xml_project_path), 'error')
+            message(context, 'Unknown project type at {}'.format(xml_project_path), 'error')
             return False
 
-        message(context, 'Conversion started: Project {0}'.format(context.project_name), 'done')
-        message(context, 'Collecting data for project {0}'.format(context.vcxproj_path), '')
+        message(context, 'Conversion started: Project {}'.format(context.project_name), 'done')
+        message(context, 'Collecting data for project {}'.format(context.vcxproj_path), '')
         self.collect_data(context)
         self.verify_data(context)
         self.merge_data_settings(context)
@@ -252,7 +252,7 @@ class DataConverter:
             cmake_file.write('\n' * 26)
         else:
             cmake_file = get_cmake_lists(context, context.cmake)
-        message(context, 'Writing data for project {0}'.format(context.vcxproj_path), '')
+        message(context, 'Writing data for project {}'.format(context.vcxproj_path), '')
         self.write_data(context, cmake_file)
         cmake_file.close()
         warnings = ''
@@ -393,11 +393,11 @@ class DataConverter:
         first = True
         for arch in arch_list:
             if first:
-                cmake_file.write('\"${{CMAKE_VS_PLATFORM_NAME}}\" STREQUAL \"{0}\"'
+                cmake_file.write('\"${{CMAKE_VS_PLATFORM_NAME}}\" STREQUAL \"{}\"'
                                  .format(arch))
                 first = False
             else:
-                cmake_file.write('\n     OR \"${{CMAKE_VS_PLATFORM_NAME}}\" STREQUAL \"{0}\"'
+                cmake_file.write('\n     OR \"${{CMAKE_VS_PLATFORM_NAME}}\" STREQUAL \"{}\"'
                                  .format(arch))
         cmake_file.write('))\n')
         cmake_file.write(
@@ -418,7 +418,7 @@ class DataConverter:
         write_comment(root_cmake, 'Global configuration types')
         root_cmake.write('set(CMAKE_CONFIGURATION_TYPES\n')
         for configuration_type in configuration_types_list:
-            root_cmake.write('    \"{0}\"\n'.format(configuration_type))
+            root_cmake.write('    \"{}\"\n'.format(configuration_type))
         root_cmake.write('    CACHE STRING "" FORCE\n)\n\n')
 
     def __write_global_compile_options(self, root_context, root_cmake, configuration_types_list):
@@ -462,16 +462,16 @@ class DataConverter:
         for configuration_type in configuration_types_list:
             ct_upper = configuration_type.upper()
             root_cmake.write(
-                '    set(CMAKE_EXE_LINKER_FLAGS_{0} \"${{CMAKE_EXE_LINKER_FLAGS}}\")\n'
+                '    set(CMAKE_EXE_LINKER_FLAGS_{} \"${{CMAKE_EXE_LINKER_FLAGS}}\")\n'
                 .format(ct_upper))
             root_cmake.write(
-                '    set(CMAKE_MODULE_LINKER_FLAGS_{0} \"${{CMAKE_MODULE_LINKER_FLAGS}}\")\n'
+                '    set(CMAKE_MODULE_LINKER_FLAGS_{} \"${{CMAKE_MODULE_LINKER_FLAGS}}\")\n'
                 .format(ct_upper))
             root_cmake.write(
-                '    set(CMAKE_SHARED_LINKER_FLAGS_{0} \"${{CMAKE_SHARED_LINKER_FLAGS}}\")\n'
+                '    set(CMAKE_SHARED_LINKER_FLAGS_{} \"${{CMAKE_SHARED_LINKER_FLAGS}}\")\n'
                 .format(ct_upper))
             root_cmake.write(
-                '    set(CMAKE_STATIC_LINKER_FLAGS_{0} \"${{CMAKE_STATIC_LINKER_FLAGS}}\")\n'
+                '    set(CMAKE_STATIC_LINKER_FLAGS_{} \"${{CMAKE_STATIC_LINKER_FLAGS}}\")\n'
                 .format(ct_upper))
         root_cmake.write('endif()\n\n')
 
@@ -483,8 +483,8 @@ class DataConverter:
         for subdirectory in subdirectories:
             binary_dir = ''
             if '.' in subdirectory[:1]:
-                binary_dir = ' ${{CMAKE_BINARY_DIR}}/{0}'.format(
+                binary_dir = ' ${{CMAKE_BINARY_DIR}}/{}'.format(
                     subdirectories_to_project_name[subdirectory])
-            root_cmake.write('add_subdirectory({0}{1})\n'.format(
+            root_cmake.write('add_subdirectory({}{})\n'.format(
                 set_unix_slash(subdirectory), binary_dir))
         root_cmake.write('\n')

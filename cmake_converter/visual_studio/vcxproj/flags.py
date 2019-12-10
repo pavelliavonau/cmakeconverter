@@ -295,7 +295,7 @@ class CPPFlags(Flags):
         if flags_message:
             message(
                 context,
-                '{0} is {1} '.format(flag_name, flags_message),
+                '{} is {} '.format(flag_name, flags_message),
                 ''
             )
 
@@ -526,7 +526,7 @@ class CPPFlags(Flags):
         for sw in specific_warnings_node.text.strip().split(";"):
             sw = sw.strip()
             if sw not in ('%(DisableSpecificWarnings)', ''):
-                flag = '/wd{0}'.format(sw)
+                flag = '/wd{}'.format(sw)
                 flags.append(flag)
         self.flags[context.current_setting][flag_name][cl_flags] = flags
         message(context, 'DisableSpecificWarnings : {}'.format(';'.join(flags)), '')
@@ -1418,7 +1418,7 @@ class CPPFlags(Flags):
         pch_source = context.settings[setting]['PrecompiledSourceFile']
         working_path = os.path.dirname(context.vcxproj_path)
         cmake_file.write(
-            'add_precompiled_header(${{PROJECT_NAME}} "{0}" "{1}")\n\n'.format(
+            'add_precompiled_header(${{PROJECT_NAME}} "{}" "{}")\n\n'.format(
                 os.path.basename(pch_header),
                 normalize_path(context, working_path, pch_source, False)
             )

@@ -41,7 +41,7 @@ def search_file_path(context, xml_file):
     if found_xml_file is None:
         message(
             context,
-            '{0} file not exists. '.format(xml_file),
+            '{} file not exists. '.format(xml_file),
             'error'
         )
         return None
@@ -49,7 +49,7 @@ def search_file_path(context, xml_file):
     if found_xml_file != xml_file:
         message(
             context,
-            'file reference probably has wrong case {0}'.format(xml_file),
+            'file reference probably has wrong case {}'.format(xml_file),
             'warn4'
         )
 
@@ -171,7 +171,7 @@ def get_propertygroup(target_platform, attributes=''):
     """
 
     prop = \
-        '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'{0}\'"{1}]'.format(
+        '//ns:PropertyGroup[@Condition="\'$(Configuration)|$(Platform)\'==\'{}\'"{}]'.format(
             '|'.join(target_platform), attributes)
 
     return prop
@@ -189,7 +189,7 @@ def get_definitiongroup(target_platform):
 
     item = \
         '//ns:ItemDefinitionGroup[@Condition="\'$(Configuration)|' \
-        '$(Platform)\'==\'{0}\'"]'.format('|'.join(target_platform))
+        '$(Platform)\'==\'{}\'"]'.format('|'.join(target_platform))
 
     return item
 

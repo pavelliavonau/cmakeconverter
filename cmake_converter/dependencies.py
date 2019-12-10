@@ -110,7 +110,7 @@ class Dependencies:
         if inc_dirs:
             message(
                 context,
-                'Include Directories : {0}'.format(context.settings[setting]['inc_dirs']),
+                'Include Directories : {}'.format(context.settings[setting]['inc_dirs']),
                 '')
 
     @staticmethod
@@ -158,7 +158,7 @@ class Dependencies:
         if deps_to_write:
             cmake_file.write('add_dependencies(${PROJECT_NAME}\n')
             for dep in deps_to_write:
-                cmake_file.write('    {0}\n'.format(dep))
+                cmake_file.write('    {}\n'.format(dep))
             cmake_file.write(')\n\n')
 
     @staticmethod
@@ -177,7 +177,7 @@ class Dependencies:
             cmake_file.write('target_link_libraries(${PROJECT_NAME} PUBLIC\n')
             for reference in context.target_references:
                 cmake_file.write('    {}\n'.format(reference))
-                msg = 'External library found : {0}'.format(reference)
+                msg = 'External library found : {}'.format(reference)
                 message(context, msg, '')
             cmake_file.write(')\n\n')
 
@@ -274,7 +274,7 @@ class Dependencies:
 
         for package in context.packages:
             for package_property in package[2]:
-                id_version = '{0}.{1}'.format(package[0], package[1])
+                id_version = '{}.{}'.format(package[0], package[1])
                 for setting in context.settings:
                     if 'packages' not in context.settings[setting]:
                         continue
@@ -289,17 +289,17 @@ class Dependencies:
                 has_written = write_property_of_settings(
                     cmake_file, context.settings,
                     context.sln_configurations_map,
-                    begin_text='string(CONCAT "{0}"'.format(package_property_variable),
+                    begin_text='string(CONCAT "{}"'.format(package_property_variable),
                     end_text=')',
                     property_name=id_version + package_property,
                 )
                 if has_written:
                     cmake_file.write(
-                        'set_target_properties(${{PROJECT_NAME}} PROPERTIES "{0}" ${{{1}}})\n'
+                        'set_target_properties(${{PROJECT_NAME}} PROPERTIES "{}" ${{{}}})\n'
                         .format(package_property, package_property_variable)
                     )
             cmake_file.write(
-                'use_package(${{PROJECT_NAME}} {0} {1})\n'.format(package[0], package[1])
+                'use_package(${{PROJECT_NAME}} {} {})\n'.format(package[0], package[1])
             )
 
     @staticmethod
@@ -323,7 +323,7 @@ class Dependencies:
                 cmake_file, context.settings, context.sln_configurations_map,
                 begin_text='add_custom_command_if(\n'
                 '    TARGET ${{PROJECT_NAME}}\n'
-                '    {0}\n'
+                '    {}\n'
                 '    COMMANDS'.format(event_type),
                 end_text=')',
                 property_name=value_name,
@@ -371,10 +371,10 @@ class Dependencies:
                 text = write_property_of_settings(
                     cmake_file, file_context.settings, context.sln_configurations_map,
                     begin_text='add_custom_command_if(\n'
-                    '    OUTPUT "{0}"\n'
+                    '    OUTPUT "{}"\n'
                     '    COMMANDS'.format(outputs),
-                    end_text='    DEPENDS "{0}"\n'
-                    '    COMMENT "{1}"\n)'.format(file, description),
+                    end_text='    DEPENDS "{}"\n'
+                    '    COMMENT "{}"\n)'.format(file, description),
                     property_name='file_custom_build_events',
                     write_setting_property_func=Dependencies.write_file_build_event_of_setting
                 )

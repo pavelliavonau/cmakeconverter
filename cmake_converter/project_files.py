@@ -148,7 +148,7 @@ class ProjectFiles:
         has_headers = bool(context.headers)
         context.has_headers = has_headers
         context.has_only_headers = bool(has_headers and not context.sources)
-        message(context, "Source files extensions found: {0}".format(self.languages), 'INFO')
+        message(context, "Source files extensions found: {}".format(self.languages), 'INFO')
 
     def find_cmake_project_languages(self, context):
         """
@@ -197,7 +197,7 @@ class ProjectFiles:
                 'error'
             )
         cmake_file.write(
-            'project({0}{1})\n\n'.format(make_cmake_literal(context, context.project_name), lang)
+            'project({}{})\n\n'.format(make_cmake_literal(context, context.project_name), lang)
         )
 
     @staticmethod

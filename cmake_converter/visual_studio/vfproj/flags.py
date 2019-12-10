@@ -152,7 +152,7 @@ class FortranFlags(Flags):
         if flags_message:
             message(
                 context,
-                '{0} is {1} '.format(flag_name, flags_message),
+                '{} is {} '.format(flag_name, flags_message),
                 ''
             )
 
@@ -486,8 +486,8 @@ class FortranFlags(Flags):
         # value must be a list with ',' separator
         opt = flag_value
         if opt:
-            self.flags[flag_name][ifort_cl_win] = ['-Qdiag-disable:{0}'.format(opt)]
-            self.flags[flag_name][ifort_cl_unix] = ['-diag-disable={0}'.format(opt)]
+            self.flags[flag_name][ifort_cl_win] = ['-Qdiag-disable:{}'.format(opt)]
+            self.flags[flag_name][ifort_cl_unix] = ['-diag-disable={}'.format(opt)]
 
     @staticmethod
     def __set_string_length_arg_passing(context, flag_name, flag_value):
@@ -891,7 +891,7 @@ class FortranFlags(Flags):
                     unix_option = unix_option.replace('Qopenmp-lib', 'qopenmp-lib')
                     unix_option = unix_option.replace('lib ', 'lib=')
                 else:
-                    message(context, 'Unix ifort option "{0}" may be incorrect. '
+                    message(context, 'Unix ifort option "{}" may be incorrect. '
                             'Check it and set it with visual studio UI if possible.'
                             .format(unix_option), 'warn')
                 if ifort_cl_win not in self.flags[flag_name]:
@@ -901,7 +901,7 @@ class FortranFlags(Flags):
                     self.flags[flag_name][ifort_cl_unix] = []
                 self.flags[flag_name][ifort_cl_unix].append(unix_option)
             message(context,
-                    'Additional Options : {0}'.format(str(ready_add_opts)), '')
+                    'Additional Options : {}'.format(str(ready_add_opts)), '')
 
     @staticmethod
     def __generate_debug_information(context, flag_name, flag_value):

@@ -122,7 +122,7 @@ def take_name_from_list_case_ignore(context, search_list, name_to_search):
             break
 
     if real_name == '':
-        message(context, '{0} file is absent at filesystem. Ignoring but check it!!'
+        message(context, '{} file is absent at filesystem. Ignoring but check it!!'
                 .format(name_to_search), 'warn')
         return ''
 
@@ -173,17 +173,17 @@ def write_property_of_setting_f(cmake_file,
 
     if config_condition_expr:
         cmake_file.write(
-            '{0}{1}{2}\n'.format(config_indent, quotes + config_condition_expr_str, quotes)
+            '{}{}{}\n'.format(config_indent, quotes + config_condition_expr_str, quotes)
         )
         prop_value_indent = config_indent + '    '
 
     for prop in property_list_str:
         cmake_file.write(
-            '{0}{1}\n'.format(prop_value_indent, quotes + prop + quotes)
+            '{}{}\n'.format(prop_value_indent, quotes + prop + quotes)
         )
 
     if config_condition_expr:
-        cmake_file.write('{0}{1}\n'.format(config_indent, quotes + '>' + quotes))
+        cmake_file.write('{}{}\n'.format(config_indent, quotes + '>' + quotes))
 
 
 def get_str_value_from_property_value(property_value, separator):
@@ -229,12 +229,12 @@ def write_selected_sln_setting(cmake_file,
             if not has_property_value:
                 begin_text = begin_text.replace('\n', '\n' + indent + command_indent)
                 if begin_text:
-                    cmake_file.write('{0}{1}\n'.format(indent + command_indent, begin_text))
+                    cmake_file.write('{}{}\n'.format(indent + command_indent, begin_text))
                 has_property_value = True
 
             config_condition_expr = None
             if sln_conf is not None:
-                config_condition_expr = '$<CONFIG:{0}>'.format(sln_conf)
+                config_condition_expr = '$<CONFIG:{}>'.format(sln_conf)
                 config_expressions.append(config_condition_expr)
             write_setting_property_func(cmake_file,
                                         indent + command_indent,
@@ -258,12 +258,12 @@ def write_footer_of_settings(cmake_file,
 
     if has_property_value:
         if default:
-            cmake_file.write('{0}    $<$<NOT:$<OR:{1}>>:{2}>\n'
+            cmake_file.write('{}    $<$<NOT:$<OR:{}>>:{}>\n'
                              .format(indent + command_indent, ','.join(config_expressions),
                                      default))
         end_text = end_text.replace('\n', '\n' + indent + command_indent)
         if end_text:
-            cmake_file.write('{0}{1}\n'.format(indent + command_indent, end_text))
+            cmake_file.write('{}{}\n'.format(indent + command_indent, end_text))
 
 
 def write_property_of_settings(cmake_file, settings, sln_setting_2_project_setting, **kwargs):
@@ -336,7 +336,7 @@ def write_property_of_settings(cmake_file, settings, sln_setting_2_project_setti
             continue
         conf = sln_setting[0]
         if conf is not None:
-            length = len('$<CONFIG:{0}>'.format(conf))
+            length = len('$<CONFIG:{}>'.format(conf))
             if length > max_config_condition_width:
                 max_config_condition_width = length
         if arch not in settings_of_arch:
@@ -355,10 +355,10 @@ def write_property_of_settings(cmake_file, settings, sln_setting_2_project_setti
         if not single_arch:
             command_indent = '    '
             if first_arch:
-                cmake_file.write('{0}if(\"${{CMAKE_VS_PLATFORM_NAME}}\" STREQUAL \"{1}\")\n'
+                cmake_file.write('{}if(\"${{CMAKE_VS_PLATFORM_NAME}}\" STREQUAL \"{}\")\n'
                                  .format(indent, arch))
             else:
-                cmake_file.write('{0}elseif(\"${{CMAKE_VS_PLATFORM_NAME}}\" STREQUAL \"{1}\")\n'
+                cmake_file.write('{}elseif(\"${{CMAKE_VS_PLATFORM_NAME}}\" STREQUAL \"{}\")\n'
                                  .format(indent, arch))
         first_arch = False
         has_property_value = False
@@ -383,7 +383,7 @@ def write_property_of_settings(cmake_file, settings, sln_setting_2_project_setti
                                  has_property_value,
                                  **kwargs)
     if not first_arch and not single_arch:
-        cmake_file.write('{0}endif()\n'.format(indent))
+        cmake_file.write('{}endif()\n'.format(indent))
 
     return not first_arch
 
@@ -495,7 +495,7 @@ def make_os_specific_shell_path(output):
     }
     for var in variables_to_replace:
         if var in output:
-            output = output.replace(var, '$<SHELL_PATH:{0}>'.format(variables_to_replace[var]))
+            output = output.replace(var, '$<SHELL_PATH:{}>'.format(variables_to_replace[var]))
 
     return output
 
@@ -611,7 +611,7 @@ def get_actual_filename(context, name):
     res = insensitive_glob(name)
     if not res:
         # File not found
-        message(context, 'file or path "{0}" not found.'.format(name), 'warn')
+        message(context, 'file or path "{}" not found.'.format(name), 'warn')
         return None
 
     return res[0]
@@ -677,10 +677,10 @@ def message(context, text, status):  # pragma: no cover
 
     message_begin = dt
     if context.project_number:
-        message_begin = message_begin + '{0}> '.format(context.project_number)
+        message_begin = message_begin + '{}> '.format(context.project_number)
 
     if None not in context.current_setting:
-        text = '{0} : {1}'.format(context.current_setting, text)
+        text = '{} : {}'.format(context.current_setting, text)
 
     if status == 'error':
         print(message_begin + 'ERR  : ' + FAIL + text + ENDC)
@@ -706,10 +706,10 @@ def get_comment(text):
     title_line = ''
 
     for _ in range(0, line_length):
-        title_line = '{0}{1}'.format(title_line, '#')
+        title_line = '{}{}'.format(title_line, '#')
 
     comment = title_line + '\n'
-    comment += '# {0}\n'.format(text)
+    comment += '# {}\n'.format(text)
     comment += title_line + '\n'
     return comment
 

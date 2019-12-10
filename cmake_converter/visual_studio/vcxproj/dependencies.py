@@ -255,7 +255,7 @@ class VCXDependencies(Dependencies):
                     if 'packages' not in context.settings[setting]:
                         context.settings[setting]['packages'] = {}
                     ext_property_node = context.vcxproj['tree'].xpath(
-                        '{0}/ns:{1}'.format(get_propertygroup(setting), ext_property),
+                        '{}/ns:{}'.format(get_propertygroup(setting), ext_property),
                         namespaces=context.vcxproj['ns'])
                     if ext_property_node:
                         if id_version not in context.settings[setting]['packages']:
@@ -426,7 +426,7 @@ class VCXDependencies(Dependencies):
     # def set_custom_build_step(self, context, node):
     #     self.__set_target_build_events(
     #         context,
-    #         '{0}/ns:CustomBuildStep/ns:Command',
+    #         '{}/ns:CustomBuildStep/ns:Command',
     #         'custom_build_step',
     #         'Custom build'
     #     )

@@ -58,7 +58,7 @@ class Flags:
             config = config.replace('>', '')
 
         cmake_file.write(
-            '{0}    COMPILE_DEFINITIONS{1} "{2}"\n'
+            '{}    COMPILE_DEFINITIONS{} "{}"\n'
             .format(property_indent, config.upper(), ';'.join(property_value))
         )
 
@@ -78,7 +78,7 @@ class Flags:
                 cmake_file,
                 context.file_contexts[file].settings,
                 context.sln_configurations_map,
-                begin_text='set_source_files_properties({0} PROPERTIES'.format(file),
+                begin_text='set_source_files_properties({} PROPERTIES'.format(file),
                 end_text=')',
                 property_name=defines,
                 write_setting_property_func=self.__write_defines_for_files
@@ -100,7 +100,7 @@ class Flags:
             text = write_property_of_settings(
                 cmake_file, context.file_contexts[file].settings,
                 context.sln_configurations_map,
-                begin_text='string(CONCAT {0}'.format(file_cl_var),
+                begin_text='string(CONCAT {}'.format(file_cl_var),
                 end_text=')',
                 property_name=compiler_flags_key,
                 indent='    ',
@@ -108,7 +108,7 @@ class Flags:
             )
             if text:
                 cmake_file.write(
-                    '    source_file_compile_options({0} ${{{1}}})\n'
+                    '    source_file_compile_options({} ${{{}}})\n'
                     .format(file, file_cl_var))
 
     @staticmethod
@@ -138,8 +138,8 @@ class Flags:
 
         and_os_str = ''
         if os_check_str:
-            and_os_str = ' AND {0}'.format(os_check_str)
-        cmake_file.write('if({0}{1})\n'.format(compiler_check_str, and_os_str))
+            and_os_str = ' AND {}'.format(os_check_str)
+        cmake_file.write('if({}{})\n'.format(compiler_check_str, and_os_str))
 
         Flags.__write_compile_flags(context, cmake_file, compiler_flags_key)
         Flags.__write_link_flags(context, cmake_file, linker_flags_key)

@@ -60,7 +60,7 @@ class ProjectVariables:
         output_path = output_path.strip().replace('\n', '')
         output_path = check_for_relative_in_path(context, output_path)
         context.settings[context.current_setting]['OUTPUT_DIRECTORY'] = [output_path]
-        message(context, 'Output Dir = {0}'.format(output_path), '')
+        message(context, 'Output Dir = {}'.format(output_path), '')
 
     @staticmethod
     def set_output_file_impl(context, output_file_node_text):
