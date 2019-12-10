@@ -338,7 +338,7 @@ class DataConverter:
             )
         root_cmake.write(
             'project({} {})\n\n'.format(
-                os.path.splitext(os.path.basename(root_context.solution_path))[0],
+                root_context.project_name,
                 ' '.join(sorted(root_context.solution_languages))
             )
         )
