@@ -25,7 +25,6 @@ Module that handles dependencies information for fortran projects.
 """
 
 import os
-import re
 
 from cmake_converter.dependencies import Dependencies
 from cmake_converter.utils import message, prepare_build_event_cmd_line_for_cmake,\
@@ -44,20 +43,10 @@ class VFDependencies(Dependencies):
             context.target_references = context.target_references + context.sln_deps
             message(context, 'References : {}'.format(context.target_references), '')
 
-    @staticmethod
-    def set_target_additional_dependencies(context, flag_name, ad_libs, node):
+    def set_target_additional_dependencies(self, context, flag_name, ad_libs, node):
         """ Handles additional link dependencies """
         del flag_name, node
-
-        if ad_libs:
-            add_libs = []
-            for d in re.split(r"[; ]", ad_libs):
-                if d != '%(AdditionalDependencies)':
-                    if os.path.splitext(d)[1] == '.lib':
-                        add_libs.append(d.replace('.lib', ''))
-            context.add_lib_deps = True
-            message(context, 'Additional Dependencies = {}'.format(add_libs), '')
-            context.settings[context.current_setting]['add_lib_deps'] = add_libs
+        self.set_target_additional_dependencies_impl(context, ad_libs, r'[; ]+')
 
     @staticmethod
     def set_target_additional_library_directories(context, flag_name,

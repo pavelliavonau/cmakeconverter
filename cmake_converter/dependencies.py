@@ -28,6 +28,7 @@
 
 import ntpath
 import os
+import re
 
 from cmake_converter.data_files import get_vcxproj_data
 from cmake_converter.utils import get_global_project_name_from_vcxproj_file, normalize_path, message
@@ -38,7 +39,7 @@ from cmake_converter.utils import is_settings_has_data, replace_vs_vars_with_cma
 
 class Dependencies:
     """
-        Class who find and write dependencies of project, additionnal directories...
+        Class who find and write dependencies of project, additional directories...
     """
 
     @staticmethod
@@ -112,6 +113,21 @@ class Dependencies:
                 context,
                 'Include Directories : {}'.format(context.settings[setting]['inc_dirs']),
                 '')
+
+    @staticmethod
+    def set_target_additional_dependencies_impl(context, dependencies_text, splitter):
+        """ Implementation of Handler for additional link dependencies """
+        dependencies_text = dependencies_text.replace('%(AdditionalDependencies)', '')
+        add_libs = []
+        for d in re.split(splitter, dependencies_text):
+            if d:
+                d = re.sub(r'\.lib$', '', d, 0, re.IGNORECASE)  # strip lib extension
+                add_libs.append(d)
+
+        if add_libs:
+            context.add_lib_deps = True
+            message(context, 'Additional Dependencies : {}'.format(add_libs), '')
+            context.settings[context.current_setting]['add_lib_deps'] = add_libs
 
     @staticmethod
     def get_dependency_target_name(context, vs_project):

@@ -64,22 +64,9 @@ class VCXDependencies(Dependencies):
         context.target_references.append(ref)
         message(context, 'Added reference : {}'.format(ref), '')
 
-    @staticmethod
-    def set_target_additional_dependencies(context, dependencies):
-        """
-        Find and set additional dependencies of current project in context
-
-        """
-        list_depends = dependencies.text.replace('%(AdditionalDependencies)', '')
-        if list_depends != '':
-            add_libs = []
-            for d in list_depends.split(';'):
-                if d != '%(AdditionalDependencies)':
-                    if os.path.splitext(d)[1] == '.lib':
-                        add_libs.append(d.replace('.lib', ''))
-            message(context, 'Additional Dependencies : {}'.format(add_libs), '')
-            context.add_lib_deps = True
-            context.settings[context.current_setting]['add_lib_deps'] = add_libs
+    def set_target_additional_dependencies(self, context, dependencies):
+        """ Find and set additional dependencies of current project in context """
+        self.set_target_additional_dependencies_impl(context, dependencies.text, r'[;]')
 
     @staticmethod
     def set_target_additional_library_directories(context, additional_library_directories):
