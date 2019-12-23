@@ -57,7 +57,7 @@ class ProjectVariables:
         :return:
         """
         output_path = cleaning_output(context, output_node_text)
-        output_path = output_path.strip().replace('\n', '')
+        output_path = output_path.replace('\n', '')
         output_path = check_for_relative_in_path(context, output_path)
         context.settings[context.current_setting]['OUTPUT_DIRECTORY'] = [output_path]
         message(context, 'Output Dir = {}'.format(output_path), '')
@@ -96,15 +96,14 @@ class ProjectVariables:
                 '')
 
     @staticmethod
-    def set_path_and_name_from_node(context, node_name, value, path_property, name_property):
+    def set_path_and_name_from_node(context, node_name, file_path, path_property, name_property):
         """ Common routine for evaluating path and name from node text """
-        file_path_value = value.strip()
-        if not file_path_value:
+        if not file_path:
             return
 
-        file_path_value = replace_vs_vars_with_cmake_vars(context, file_path_value)
-        file_path_value = set_native_slash(file_path_value)
-        path, name = get_dir_name_with_vars(context, file_path_value)
+        file_path = replace_vs_vars_with_cmake_vars(context, file_path)
+        file_path = set_native_slash(file_path)
+        path, name = get_dir_name_with_vars(context, file_path)
         result_name = replace_vs_vars_with_cmake_vars(context, name)
         result_path = cleaning_output(context, path)
         result_path = check_for_relative_in_path(context, result_path)

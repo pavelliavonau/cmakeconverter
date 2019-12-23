@@ -523,7 +523,7 @@ class CPPFlags(Flags):
             return
 
         flags = []
-        for sw in specific_warnings_node.text.strip().split(";"):
+        for sw in specific_warnings_node.text.split(";"):
             sw = sw.strip()
             if sw not in ('%(DisableSpecificWarnings)', ''):
                 flag = '/wd{}'.format(sw)
@@ -1171,7 +1171,7 @@ class CPPFlags(Flags):
             default_value: {}
         }
 
-        stack_value = node.text.strip()
+        stack_value = node.text
         if stack_value:
             flag_values.update(
                 {

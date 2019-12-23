@@ -97,7 +97,7 @@ class VCXDependencies(Dependencies):
         """ Handler for link library dependencies. No support of CMake. Just warning. """
         if None in context.current_setting:
             configuration_type = context.settings[context.current_setting]['target_type']
-            if node.text.strip() == 'true' and configuration_type == 'StaticLibrary':
+            if node.text == 'true' and configuration_type == 'StaticLibrary':
                 message(
                     context,
                     'LinkLibraryDependencies is true that is not supported with cmake. '
