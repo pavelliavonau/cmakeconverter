@@ -7,4 +7,4 @@ coveralls
 pycodestyle
 pep257
 future
-pylint==2.3.1   # for python 3.4
+pylint
