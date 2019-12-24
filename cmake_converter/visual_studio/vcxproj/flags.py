@@ -923,7 +923,7 @@ class CPPFlags(Flags):
         message(
             context,
             '/Fa option is ignored. Too hard to handle for different CMake generators.',
-            'warn4'
+            'warn4',
         )
 
         return flag_values

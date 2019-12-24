@@ -87,7 +87,9 @@ class Parser:
                     child_node.text = child_node.text.strip()
                 node_handlers[child_node_tag](context, child_node)
             else:
-                message(context, 'No handler for <{}> node.'.format(child_node_tag), 'warn3')
+                message(
+                    context, 'No handler for <{}> node.'.format(child_node_tag), 'warn3', child_node
+                )
 
             if child_node in self.reset_setting_after_nodes:
                 context.current_setting = (None, None)
@@ -106,5 +108,6 @@ class Parser:
                 message(
                     context,
                     'No handler for "{}" attribute of <{}> node.'.format(attr, node_tag),
-                    'warn3'
+                    'warn3',
+                    node
                 )

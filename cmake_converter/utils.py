@@ -659,7 +659,7 @@ def prepare_build_event_cmd_line_for_cmake(context, build_event):
     return cmake_build_event
 
 
-def message(context, text, status):  # pragma: no cover
+def message(context, text, status, node=None):  # pragma: no cover
     """
     Displays a message while the script is running
 
@@ -681,6 +681,9 @@ def message(context, text, status):  # pragma: no cover
 
     if None not in context.current_setting:
         text = '{} : {}'.format(context.current_setting, text)
+
+    if node is not None:
+        text = '{}({}): {}'.format(node.base, node.sourceline, text)
 
     if status == 'error':
         print(message_begin + 'ERR  : ' + FAIL + text + ENDC)
