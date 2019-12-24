@@ -26,6 +26,7 @@ Module of Visual Studio solution related logic for converting.
 
 import re
 import os
+import sys
 import shutil
 from collections import OrderedDict
 
@@ -91,7 +92,7 @@ class VSSolutionConverter(DataConverter):
             message(root_context, 'Solution files with versions below 9.00 are not supported.'
                                   ' Version {} found. Upgrade you solution and try again, please'
                     .format(version_match[0]), 'error')
-            exit(1)
+            sys.exit(1)
 
         message(root_context, 'Version of solution is {}'.format(version_match[0]), '')
 

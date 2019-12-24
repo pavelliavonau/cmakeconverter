@@ -27,6 +27,7 @@
 """
 
 import os
+import sys
 from lxml import etree
 
 from cmake_converter.utils import message, get_actual_filename, set_unix_slash
@@ -87,7 +88,7 @@ def get_vcxproj_data(context, vs_project):
             ' Microsoft xml data !'.format(vs_project),
             'error'
         )
-        exit(1)
+        sys.exit(1)
     except (OSError, IOError):  # pragma: no cover
         message(
             context,
@@ -95,14 +96,14 @@ def get_vcxproj_data(context, vs_project):
             'Please, verify you have rights to this directory or file exists !'.format(vs_project),
             'error'
         )
-        exit(1)
+        sys.exit(1)
     except etree.XMLSyntaxError:  # pragma: no cover
         message(
             context,
             'File {} is not a ".vcxproj" file or XML is broken !'.format(vs_project),
             'error'
         )
-        exit(1)
+        sys.exit(1)
 
     return vcxproj
 
@@ -138,7 +139,7 @@ def get_xml_data(context, xml_file):
             ' Microsoft xml data !'.format(xml_file),
             'error'
         )
-        exit(1)
+        sys.exit(1)
     except (OSError, IOError):  # pragma: no cover
         message(
             context,
@@ -146,14 +147,14 @@ def get_xml_data(context, xml_file):
             'Please, verify you have rights to this directory or file exists !'.format(xml_file),
             'error'
         )
-        exit(1)
+        sys.exit(1)
     except etree.XMLSyntaxError:  # pragma: no cover
         message(
             context,
             'File {} is not a ".xml" file or XML is broken !'.format(xml_file),
             'error'
         )
-        exit(1)
+        sys.exit(1)
 
     return xml
 
