@@ -69,38 +69,13 @@ def get_vcxproj_data(context, vs_project):
     :rtype: dict
     """
 
-    vcxproj = {}
-    vs_project = search_file_path(context, vs_project)
-    if vs_project is None:
-        return None
+    vcxproj = get_xml_data(context, vs_project)
 
-    try:
-        tree = etree.parse(vs_project)
-        namespace = str(tree.getroot().nsmap)
-        ns = {'ns': namespace.partition('\'')[-1].rpartition('\'')[0]}
-        vcxproj['tree'] = tree
-        vcxproj['ns'] = ns
-        assert 'http://schemas.microsoft.com' in ns['ns']
-    except AssertionError:  # pragma: no cover
+    if 'http://schemas.microsoft.com' not in vcxproj['ns']['ns']:
         message(
             context,
             '{} file cannot be import, because this file does not seem to comply with'
             ' Microsoft xml data !'.format(vs_project),
-            'error'
-        )
-        sys.exit(1)
-    except (OSError, IOError):  # pragma: no cover
-        message(
-            context,
-            '{} file cannot be import. '
-            'Please, verify you have rights to this directory or file exists !'.format(vs_project),
-            'error'
-        )
-        sys.exit(1)
-    except etree.XMLSyntaxError:  # pragma: no cover
-        message(
-            context,
-            'File {} is not a ".vcxproj" file or XML is broken !'.format(vs_project),
             'error'
         )
         sys.exit(1)
@@ -131,15 +106,6 @@ def get_xml_data(context, xml_file):
         ns = {'ns': namespace.partition('\'')[-1].rpartition('\'')[0]}
         xml['tree'] = tree
         xml['ns'] = ns
-        # assert 'http://schemas.microsoft.com' in ns['ns']
-    except AssertionError:  # pragma: no cover
-        message(
-            context,
-            '.xml file {} cannot be import, because this file does not seem to comply with'
-            ' Microsoft xml data !'.format(xml_file),
-            'error'
-        )
-        sys.exit(1)
     except (OSError, IOError):  # pragma: no cover
         message(
             context,
