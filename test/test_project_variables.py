@@ -23,7 +23,7 @@
 import os
 import unittest
 
-from cmake_converter.context import Context
+from cmake_converter.visual_studio.context import VSContext
 from cmake_converter.data_files import get_vcxproj_data, get_cmake_lists
 
 
@@ -34,7 +34,7 @@ class TestProjectVariables(unittest.TestCase):
     """
 
     cur_dir = os.path.dirname(os.path.realpath(__file__))
-    context = Context()
+    context = VSContext()
     vcxproj_data_test = get_vcxproj_data(context, '%s/datatest/foo.vcxproj' % cur_dir)
     cmake_lists_test = get_cmake_lists(context, cur_dir)
 

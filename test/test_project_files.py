@@ -23,7 +23,7 @@
 import os
 import unittest
 
-from cmake_converter.context import Context
+from cmake_converter.visual_studio.context import VSContext
 from cmake_converter.visual_studio.solution import VSSolutionConverter
 from cmake_converter.project_files import ProjectFiles
 from cmake_converter.data_files import get_cmake_lists
@@ -34,7 +34,7 @@ class TestProjectFiles(unittest.TestCase):
         This file test methods of ProjectFiles class.
     """
 
-    context = Context()
+    context = VSContext()
     cur_dir = os.path.dirname(os.path.realpath(__file__))
 
     def setUp(self):

@@ -25,6 +25,7 @@
 """
 
 from cmake_converter.parser import Parser, StopParseException
+from cmake_converter.data_files import get_xml_data
 
 
 class VFParser(Parser):
@@ -133,6 +134,7 @@ class VFParser(Parser):
         return attributes_handlers
 
     def parse(self, context):
+        context.vcxproj = get_xml_data(context, context.vcxproj_path)
         tree = context.vcxproj['tree']
         root = tree.getroot()
         self._parse_nodes(context, root)

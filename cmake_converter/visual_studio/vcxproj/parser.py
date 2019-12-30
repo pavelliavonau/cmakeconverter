@@ -27,7 +27,7 @@
 import re
 
 from cmake_converter.parser import Parser, StopParseException
-from cmake_converter.data_files import get_xml_data
+from cmake_converter.data_files import get_xml_data, get_vcxproj_data
 from cmake_converter.utils import get_actual_filename
 
 
@@ -54,7 +54,7 @@ class VCXParser(Parser):
             'CharacterSet': context.flags.set_character_set,
             'PlatformToolset': self.do_nothing_node_stub,
             'PropertyGroup': self.__parse_property_group,
-            'ProjectName': self.do_nothing_node_stub,  # handled globally, ignore here
+            'ProjectName': context.variables.set_project_name,
             'ProjectGuid': self.do_nothing_node_stub,
             'RootNamespace': context.variables.set_root_namespace,
             'Keyword': context.variables.set_keyword,
@@ -132,6 +132,7 @@ class VCXParser(Parser):
         return attributes_handlers
 
     def parse(self, context):
+        context.vcxproj = get_vcxproj_data(context, context.vcxproj_path)
         filters_file = get_actual_filename(context, context.vcxproj_path + '.filters')
         if filters_file is not None:
             self.filters = get_xml_data(context, filters_file)

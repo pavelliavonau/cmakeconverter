@@ -25,6 +25,7 @@
 """
 
 from cmake_converter.project_variables import ProjectVariables
+from cmake_converter.utils import message
 
 
 class VCXProjectVariables(ProjectVariables):
@@ -36,6 +37,16 @@ class VCXProjectVariables(ProjectVariables):
     def set_root_namespace(context, node):
         """ Sets root namespace into context from node text"""
         context.root_namespace = node.text
+
+    @staticmethod
+    def set_project_name(context, node):
+        """ Sets root namespace into context from node text"""
+        context.project_name = node.text
+        message(
+            context,
+            'Project name is "{}"'.format(context.project_name),
+            ''
+        )
 
     @staticmethod
     def set_keyword(context, node):

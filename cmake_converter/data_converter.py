@@ -51,6 +51,7 @@ class DataConverter:
 
         """
 
+        message(context, 'Collecting data for project {}'.format(context.vcxproj_path), '')
         context.parser.parse(context)
 
         context.files.find_cmake_project_languages(context)
@@ -241,7 +242,6 @@ class DataConverter:
             return False
 
         message(context, 'Conversion started: Project {}'.format(context.project_name), 'done')
-        message(context, 'Collecting data for project {}'.format(context.vcxproj_path), '')
         self.collect_data(context)
         self.verify_data(context)
         self.merge_data_settings(context)

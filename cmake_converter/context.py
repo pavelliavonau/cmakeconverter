@@ -26,14 +26,13 @@
 
 """
 
-
+import os
 import time
 from multiprocessing import cpu_count
 from collections import OrderedDict
 import copy
 
-from cmake_converter.visual_studio.vcxproj.context_initializer import VCXContextInitializer
-from cmake_converter.visual_studio.vfproj.context_initializer import VFContextInitializer
+from cmake_converter.utils import message
 
 
 class Context:
@@ -98,23 +97,63 @@ class Context:
         """
         return copy.deepcopy(self)
 
-    def init(self, xml_project_path, cmake_lists_destination_path):
-        """
-        Initialize instance of Context with Initializer
+    @staticmethod
+    def get_project_initialization_dict():
+        """ Get initializer functors mapped to path keys """
+        return {}
 
-        :param xml_project_path:
-        :param cmake_lists_destination_path:
-        :return:
+    def init(self, source_project_path, cmake_lists_destination_dir):
         """
-        context_initializer_map = {
-            'vcxproj': VCXContextInitializer,
-            'vfproj': VFContextInitializer
-        }
+           Initialize instance of Context with Initializer
+
+           :param source_project_path:
+           :param cmake_lists_destination_dir:
+           :return:
+           """
+
+        message(
+            self,
+            'Initialization data for conversion of project {}'.format(self.vcxproj_path),
+            ''
+        )
+
+        for sln_config in self.sln_configurations_map:
+            self.configurations_to_parse.add(self.sln_configurations_map[sln_config])
+
+        context_initializer_map = self.get_project_initialization_dict()
 
         for key in context_initializer_map:
-            if key in xml_project_path:
-                context_initializer_map[key](self, xml_project_path, cmake_lists_destination_path)
+            if key in source_project_path:
+                context_initializer_map[key]()
+                self.project_name = os.path.basename(os.path.splitext(source_project_path)[0])
+                self.vcxproj_path = source_project_path
+                self.set_cmake_lists_path(cmake_lists_destination_dir)
                 self.utils.init_context_current_setting(self)  # None - global settings
                 self.flags.prepare_context_for_flags(self)
                 return True
         return False
+
+    def set_cmake_lists_path(self, cmake_lists):
+        """
+        Set CMakeLists.txt path in context, for given project
+
+        :param cmake_lists: path of CMakeLists related to project name
+        :type cmake_lists: str
+        """
+
+        self.cmake = None
+
+        if cmake_lists:
+            if os.path.exists(cmake_lists):
+                self.cmake = cmake_lists
+
+        if self.cmake is None:
+            message(
+                self,
+                'Path "{}" for CMakeLists.txt is wrong. '
+                'It will be created in working directory.'.format(cmake_lists),
+                'warn'
+            )
+            self.cmake = 'CMakeLists.txt'
+
+        return self.cmake

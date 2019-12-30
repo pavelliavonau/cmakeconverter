@@ -31,7 +31,6 @@ import shutil
 from collections import OrderedDict
 
 from cmake_converter.data_converter import DataConverter
-from cmake_converter.context_initializer import ContextInitializer
 from cmake_converter.utils import message, set_native_slash
 
 
@@ -229,7 +228,7 @@ class VSSolutionConverter(DataConverter):
         """ Clean previous CMake script before converting """
         cmake_path_to_clean = \
             os.path.join(
-                ContextInitializer.set_cmake_lists_path(context, subdirectory),
+                context.set_cmake_lists_path(subdirectory),
                 'CMakeLists.txt'
             )
         if context.dry:

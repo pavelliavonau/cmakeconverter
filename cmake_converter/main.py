@@ -29,7 +29,7 @@
 import argparse
 import os
 
-from cmake_converter.context import Context
+from cmake_converter.visual_studio.context import VSContext
 from cmake_converter.visual_studio.solution import VSSolutionConverter
 from cmake_converter.utils import message
 
@@ -95,7 +95,7 @@ def main():  # pragma: no cover
 
     args = parser.parse_args()
 
-    root_context = Context()
+    root_context = VSContext()
     # Prepare context
     root_context.additional_code = args.additional
 

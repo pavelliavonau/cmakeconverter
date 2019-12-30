@@ -23,7 +23,7 @@
 import os
 import unittest
 
-from cmake_converter.context import Context
+from cmake_converter.visual_studio.context import VSContext
 from cmake_converter.visual_studio.solution import VSSolutionConverter
 
 
@@ -35,7 +35,7 @@ class TestDependencies(unittest.TestCase):
     cur_dir = os.path.dirname(os.path.realpath(__file__))
 
     def setUp(self):
-        context = Context()
+        context = VSContext()
         context.verbose = False
         solution_file = '{}/datatest/sln/cpp.sln'.format(self.cur_dir)
         converter = VSSolutionConverter()

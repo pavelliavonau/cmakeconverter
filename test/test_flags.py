@@ -23,7 +23,7 @@
 import os
 import unittest
 
-from cmake_converter.context import Context
+from cmake_converter.visual_studio.context import VSContext
 from cmake_converter.data_converter import DataConverter
 
 
@@ -34,7 +34,7 @@ class TestFlags(unittest.TestCase):
 
     def setUp(self):
         cur_dir = os.path.dirname(os.path.realpath(__file__))
-        context = Context()
+        context = VSContext()
         context.verbose = False
         vs_project = '{}/datatest/foo.vcxproj'.format(cur_dir)
         context.cmake = './'

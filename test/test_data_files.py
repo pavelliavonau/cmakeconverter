@@ -27,7 +27,7 @@ import _io
 
 from cmake_converter.data_files import get_vcxproj_data, get_cmake_lists
 from cmake_converter.data_files import get_propertygroup, get_definitiongroup
-from cmake_converter.context import Context
+from cmake_converter.visual_studio.context import VSContext
 
 
 class TestDataFiles(unittest.TestCase):
@@ -41,7 +41,7 @@ class TestDataFiles(unittest.TestCase):
     def test_get_vcxproj_data(self):
         """Get VS Project Data"""
 
-        context = Context()
+        context = VSContext()
         under_test = get_vcxproj_data(context, self.vs_project)
 
         self.assertTrue('ns' in under_test)
@@ -71,7 +71,7 @@ class TestDataFiles(unittest.TestCase):
     def test_get_cmakelists(self):
         """Get CMakeLists.txt"""
 
-        context = Context()
+        context = VSContext()
         under_test = get_cmake_lists(context, './')
 
         self.assertTrue(under_test)
