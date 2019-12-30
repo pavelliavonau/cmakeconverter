@@ -107,7 +107,6 @@ class ProjectFiles:
 
         if file_node.get(file_node_attr) is not None:
             node_text = str(file_node.get(file_node_attr))
-            node_text = '/'.join(node_text.split('\\'))
             if not node_text.rpartition('.')[-1] in self.languages:
                 self.languages.append(node_text.rpartition('.')[-1])
             file_path, file_name = os.path.split(node_text)

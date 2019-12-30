@@ -32,7 +32,7 @@ from collections import OrderedDict
 
 from cmake_converter.data_converter import DataConverter
 from cmake_converter.context_initializer import ContextInitializer
-from cmake_converter.utils import message
+from cmake_converter.utils import message, set_native_slash
 
 
 class VSSolutionConverter(DataConverter):
@@ -111,7 +111,7 @@ class VSSolutionConverter(DataConverter):
         )
 
         for project_data_match in p.findall(sln_text):
-            path = project_data_match[2]
+            path = set_native_slash(project_data_match[2])
             guid = project_data_match[3]
 
             _, ext = os.path.splitext(os.path.basename(path))
@@ -228,7 +228,10 @@ class VSSolutionConverter(DataConverter):
     def clean_cmake_lists_file(context, subdirectory, cmake_lists_set):
         """ Clean previous CMake script before converting """
         cmake_path_to_clean = \
-            ContextInitializer.set_cmake_lists_path(context, subdirectory) + '/CMakeLists.txt'
+            os.path.join(
+                ContextInitializer.set_cmake_lists_path(context, subdirectory),
+                'CMakeLists.txt'
+            )
         if context.dry:
             return
 
@@ -251,7 +254,6 @@ class VSSolutionConverter(DataConverter):
         cmake_lists_set = set()
         for guid in projects_data:
             project_path = projects_data[guid]['path']
-            project_path = '/'.join(project_path.split('\\'))
             project_abs = os.path.join(context.solution_path, project_path)
             subdirectory = os.path.dirname(project_abs)
             self.clean_cmake_lists_file(context, subdirectory, cmake_lists_set)
@@ -312,7 +314,6 @@ class VSSolutionConverter(DataConverter):
             if m is None:
                 continue
 
-            project_path = '/'.join(project_path.split('\\'))
             project_abs = os.path.join(root_context.solution_path, project_path)
             subdirectory = os.path.dirname(project_abs)
             self.set_dependencies_for_project(project_context, projects_data[guid])
