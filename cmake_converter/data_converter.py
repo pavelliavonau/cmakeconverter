@@ -381,7 +381,7 @@ class DataConverter:
             warnings = ' ({} warnings)'.format(root_context.warnings_count)
         message(
             root_context,
-            'Conversion of {} finished{}'.format(root_context.solution_path, warnings),
+            'Conversion of {} finished{}'.format(root_context.vcxproj_path, warnings),
             'done'
         )
 

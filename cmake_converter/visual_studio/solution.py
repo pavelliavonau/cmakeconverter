@@ -268,6 +268,7 @@ class VSSolutionConverter(DataConverter):
 
         root_context.solution_path = os.path.dirname(sln_file_path)
         root_context.project_name = os.path.splitext(os.path.basename(sln_file_path))[0]
+        root_context.vcxproj_path = sln_file_path
         subdirectories_set = set()
         subdirectories_to_project_name = {}
         projects_data = solution_data['projects_data']
