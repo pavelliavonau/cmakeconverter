@@ -35,11 +35,11 @@ class TestDependencies(unittest.TestCase):
     cur_dir = os.path.dirname(os.path.realpath(__file__))
 
     def setUp(self):
-        context = VSContext()
-        context.verbose = False
+        self.context = VSContext()
+        self.context.verbose = False
         solution_file = '{}/datatest/sln/cpp.sln'.format(self.cur_dir)
         converter = VSSolutionConverter()
-        converter.convert_solution(context, os.path.abspath(solution_file))
+        converter.convert_solution(self.context, os.path.abspath(solution_file))
 
     def test_write_include_dir(self):
         """Write Include Dirs"""
@@ -55,18 +55,17 @@ class TestDependencies(unittest.TestCase):
 
         with open(self.cur_dir + '/datatest/CMakeLists.txt') as cmake_lists_test:
             content_test = cmake_lists_test.read()
-            self.assertTrue('''add_dependencies(${PROJECT_NAME}
-    g3log
-    zlib
-)''' in content_test)
+            self.assertTrue('''add_dependencies(${{PROJECT_NAME}}
+{0}g3log
+{0}zlib
+)'''.format(self.context.indent) in content_test)
             # self.assertTrue('link_directories(${DEPENDENCIES_DIR}/g3log)' in content_test)
 
     def test_link_dependencies(self):
         """Link Dependencies"""
 
         with open(self.cur_dir + '/datatest/CMakeLists.txt') as cmake_lists_test:
-            self.assertTrue('''target_link_libraries(${PROJECT_NAME} PUBLIC
-    g3log
-    zlib
-)'''
-                            in cmake_lists_test.read())
+            self.assertTrue('''target_link_libraries(${{PROJECT_NAME}} PUBLIC
+{0}g3log
+{0}zlib
+)'''.format(self.context.indent) in cmake_lists_test.read())

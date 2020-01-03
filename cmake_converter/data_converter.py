@@ -343,18 +343,18 @@ class DataConverter:
             )
         )
 
-        write_arch_types(root_cmake)
+        write_arch_types(root_context, root_cmake)
 
         self.__write_supported_architectures_check(root_context, root_cmake)
-        self.__write_global_configuration_types(root_cmake, configuration_types_list)
+        self.__write_global_configuration_types(root_context, root_cmake, configuration_types_list)
 
         self.__write_global_compile_options(
             root_context, root_cmake, configuration_types_list
         )
 
-        self.__write_global_link_options(root_cmake, configuration_types_list)
+        self.__write_global_link_options(root_context, root_cmake, configuration_types_list)
 
-        write_use_package_stub(root_cmake)
+        write_use_package_stub(root_context, root_cmake)
 
         write_comment(root_cmake, 'Common utils')
         root_cmake.write('include(CMake/Utils.cmake)\n\n')
@@ -397,11 +397,13 @@ class DataConverter:
                                  .format(arch))
                 first = False
             else:
-                cmake_file.write('\n     OR \"${{CMAKE_VS_PLATFORM_NAME}}\" STREQUAL \"{}\"'
-                                 .format(arch))
+                cmake_file.write('\n{} OR \"${{CMAKE_VS_PLATFORM_NAME}}\" STREQUAL \"{}\"'
+                                 .format(context.indent, arch))
         cmake_file.write('))\n')
         cmake_file.write(
-            '    message(FATAL_ERROR "${CMAKE_VS_PLATFORM_NAME} arch is not supported!")\n')
+            '{}message(FATAL_ERROR "${{CMAKE_VS_PLATFORM_NAME}} arch is not supported!")\n'
+            .format(context.indent)
+        )
         cmake_file.write('endif()\n\n')
 
     @staticmethod
@@ -414,65 +416,74 @@ class DataConverter:
         shutil.copyfile(os.path.join(src_dir, 'utils.cmake'), utils_path + '/Utils.cmake')
 
     @staticmethod
-    def __write_global_configuration_types(root_cmake, configuration_types_list):
+    def __write_global_configuration_types(context, root_cmake, configuration_types_list):
         write_comment(root_cmake, 'Global configuration types')
         root_cmake.write('set(CMAKE_CONFIGURATION_TYPES\n')
         for configuration_type in configuration_types_list:
-            root_cmake.write('    \"{}\"\n'.format(configuration_type))
-        root_cmake.write('    CACHE STRING "" FORCE\n)\n\n')
+            root_cmake.write('{}\"{}\"\n'.format(context.indent, configuration_type))
+        root_cmake.write('{}CACHE STRING "" FORCE\n)\n\n'.format(context.indent))
 
     def __write_global_compile_options(self, root_context, root_cmake, configuration_types_list):
         write_comment(root_cmake, 'Global compiler options')
         root_cmake.write('if(MSVC)\n')
-        root_cmake.write('    # remove default flags provided with CMake for MSVC\n')
+        root_cmake.write(
+            '{}# remove default flags provided with CMake for MSVC\n'.format(root_context.indent)
+        )
         have_fortran = False
         for lang in sorted(root_context.solution_languages):
             if lang == 'Fortran':
                 have_fortran = True
                 continue
             self.__write_global_compile_options_language(
-                root_cmake, configuration_types_list, lang
+                root_context, root_cmake, configuration_types_list, lang
             )
         root_cmake.write('endif()\n\n')
 
         if have_fortran:
             root_cmake.write('if(${CMAKE_Fortran_COMPILER_ID} STREQUAL "Intel")\n')
-            root_cmake.write('    # remove default flags provided with CMake for ifort\n')
+            root_cmake.write(
+                '{}# remove default flags provided with CMake for ifort\n'
+                .format(root_context.indent)
+            )
             self.__write_global_compile_options_language(
-                root_cmake, configuration_types_list, 'Fortran'
+                root_context, root_cmake, configuration_types_list, 'Fortran'
             )
             root_cmake.write('endif()\n\n')
 
     @staticmethod
-    def __write_global_compile_options_language(root_cmake, configuration_types_list, lang):
-        root_cmake.write('    set(CMAKE_{}_FLAGS "")\n'.format(lang))
+    def __write_global_compile_options_language(
+            context, root_cmake, configuration_types_list, lang
+    ):
+        root_cmake.write('{}set(CMAKE_{}_FLAGS "")\n'.format(context.indent, lang))
         for configuration_type in configuration_types_list:
-            root_cmake.write('    set(CMAKE_{}_FLAGS_{} "")\n'
-                             .format(lang, configuration_type.upper()))
+            root_cmake.write('{}set(CMAKE_{}_FLAGS_{} "")\n'
+                             .format(context.indent, lang, configuration_type.upper()))
 
     @staticmethod
-    def __write_global_link_options(root_cmake, configuration_types_list):
+    def __write_global_link_options(context, root_cmake, configuration_types_list):
         write_comment(root_cmake, 'Global linker options')
         root_cmake.write('if(MSVC)\n')
-        root_cmake.write('    # remove default flags provided with CMake for MSVC\n')
-        root_cmake.write('    set(CMAKE_EXE_LINKER_FLAGS "")\n')
-        root_cmake.write('    set(CMAKE_MODULE_LINKER_FLAGS "")\n')
-        root_cmake.write('    set(CMAKE_SHARED_LINKER_FLAGS "")\n')
-        root_cmake.write('    set(CMAKE_STATIC_LINKER_FLAGS "")\n')
+        root_cmake.write(
+            '{}# remove default flags provided with CMake for MSVC\n'.format(context.indent)
+        )
+        root_cmake.write('{}set(CMAKE_EXE_LINKER_FLAGS "")\n'.format(context.indent))
+        root_cmake.write('{}set(CMAKE_MODULE_LINKER_FLAGS "")\n'.format(context.indent))
+        root_cmake.write('{}set(CMAKE_SHARED_LINKER_FLAGS "")\n'.format(context.indent))
+        root_cmake.write('{}set(CMAKE_STATIC_LINKER_FLAGS "")\n'.format(context.indent))
         for configuration_type in configuration_types_list:
             ct_upper = configuration_type.upper()
             root_cmake.write(
-                '    set(CMAKE_EXE_LINKER_FLAGS_{} \"${{CMAKE_EXE_LINKER_FLAGS}}\")\n'
-                .format(ct_upper))
+                '{}set(CMAKE_EXE_LINKER_FLAGS_{} \"${{CMAKE_EXE_LINKER_FLAGS}}\")\n'
+                .format(context.indent, ct_upper))
             root_cmake.write(
-                '    set(CMAKE_MODULE_LINKER_FLAGS_{} \"${{CMAKE_MODULE_LINKER_FLAGS}}\")\n'
-                .format(ct_upper))
+                '{}set(CMAKE_MODULE_LINKER_FLAGS_{} \"${{CMAKE_MODULE_LINKER_FLAGS}}\")\n'
+                .format(context.indent, ct_upper))
             root_cmake.write(
-                '    set(CMAKE_SHARED_LINKER_FLAGS_{} \"${{CMAKE_SHARED_LINKER_FLAGS}}\")\n'
-                .format(ct_upper))
+                '{}set(CMAKE_SHARED_LINKER_FLAGS_{} \"${{CMAKE_SHARED_LINKER_FLAGS}}\")\n'
+                .format(context.indent, ct_upper))
             root_cmake.write(
-                '    set(CMAKE_STATIC_LINKER_FLAGS_{} \"${{CMAKE_STATIC_LINKER_FLAGS}}\")\n'
-                .format(ct_upper))
+                '{}set(CMAKE_STATIC_LINKER_FLAGS_{} \"${{CMAKE_STATIC_LINKER_FLAGS}}\")\n'
+                .format(context.indent, ct_upper))
         root_cmake.write('endif()\n\n')
 
     @staticmethod

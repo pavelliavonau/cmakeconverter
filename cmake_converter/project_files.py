@@ -217,7 +217,7 @@ class ProjectFiles:
             source_group_var = self.get_source_group_var(context, source_group)
             cmake_file.write('set({}\n'.format(source_group_var))
             for src_file in context.source_groups[source_group]:
-                fmt = '    "{}"\n'
+                fmt = '{}"{}"\n'
                 if context.file_contexts[src_file].excluded_from_build:
                     fmt = '#' + fmt
                     message(
@@ -226,7 +226,7 @@ class ProjectFiles:
                         "No support in CMake yet.".format(src_file),
                         'warn4'
                     )
-                cmake_file.write(fmt.format(src_file))
+                cmake_file.write(fmt.format(context.indent, src_file))
 
             cmake_file.write(')\n')
             cmake_file.write(
@@ -236,7 +236,10 @@ class ProjectFiles:
         cmake_file.write('set(ALL_FILES\n')
         for source_group in source_group_list:
             cmake_file.write(
-                '    ${{{}}}\n'.format(context.files.get_source_group_var(context, source_group))
+                '{}${{{}}}\n'.format(
+                    context.indent,
+                    context.files.get_source_group_var(context, source_group)
+                )
             )
         cmake_file.write(')\n\n')
 

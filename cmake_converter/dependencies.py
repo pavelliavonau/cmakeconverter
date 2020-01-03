@@ -64,7 +64,7 @@ class Dependencies:
             include_directories_specifier = 'PRIVATE'
 
         write_property_of_settings(
-            cmake_file, context.settings, context.sln_configurations_map,
+            context, cmake_file,
             begin_text='target_include_directories(${{PROJECT_NAME}} {}'.format(
                 include_directories_specifier
             ),
@@ -174,7 +174,7 @@ class Dependencies:
         if deps_to_write:
             cmake_file.write('add_dependencies(${PROJECT_NAME}\n')
             for dep in deps_to_write:
-                cmake_file.write('    {}\n'.format(dep))
+                cmake_file.write('{}{}\n'.format(context.indent, dep))
             cmake_file.write(')\n\n')
 
     @staticmethod
@@ -192,7 +192,7 @@ class Dependencies:
             cmake_file.write('# Link with other targets.\n')
             cmake_file.write('target_link_libraries(${PROJECT_NAME} PUBLIC\n')
             for reference in context.target_references:
-                cmake_file.write('    {}\n'.format(reference))
+                cmake_file.write('{}{}\n'.format(context.indent, reference))
                 msg = 'External library found : {}'.format(reference)
                 message(context, msg, '')
             cmake_file.write(')\n\n')
@@ -201,8 +201,7 @@ class Dependencies:
                                 context.settings,
                                 'add_lib_deps'):
             write_property_of_settings(
-                cmake_file, context.settings,
-                context.sln_configurations_map,
+                context, cmake_file,
                 begin_text='set(ADDITIONAL_LIBRARY_DEPENDENCIES',
                 end_text=')',
                 property_name='add_lib_deps',
@@ -217,8 +216,7 @@ class Dependencies:
                                 context.settings,
                                 'target_link_dirs'):
             write_property_of_settings(
-                cmake_file, context.settings,
-                context.sln_configurations_map,
+                context, cmake_file,
                 begin_text='target_link_directories(${PROJECT_NAME} PUBLIC',
                 end_text=')',
                 property_name='target_link_dirs',
@@ -268,8 +266,7 @@ class Dependencies:
                                 'property_sheets'):
             write_comment(cmake_file, 'Includes for CMake from *.props')
             write_property_of_settings(
-                cmake_file, context.settings,
-                context.sln_configurations_map,
+                context, cmake_file,
                 begin_text='',
                 end_text='',
                 property_name='property_sheets',
@@ -303,8 +300,7 @@ class Dependencies:
 
                 package_property_variable = package_property + '_VAR'
                 has_written = write_property_of_settings(
-                    cmake_file, context.settings,
-                    context.sln_configurations_map,
+                    context, cmake_file,
                     begin_text='string(CONCAT "{}"'.format(package_property_variable),
                     end_text=')',
                     property_name=id_version + package_property,
@@ -322,10 +318,10 @@ class Dependencies:
     def write_target_build_event_of_setting(cmake_file, property_indent, config_condition_expr,
                                             property_value, width, **kwargs):
         """ Write target build event functor (helper) """
-        del kwargs
         for command in property_value:
-            cmake_file.write('{0}    COMMAND {1:>{width}} {2}\n'
-                             .format(property_indent, config_condition_expr, command,
+            cmake_file.write('{0}{1}COMMAND {2:>{width}} {3}\n'
+                             .format(property_indent, kwargs['main_indent'], config_condition_expr,
+                                     command,
                                      width=width))
 
     @staticmethod
@@ -336,11 +332,11 @@ class Dependencies:
         if has_build_events:
             write_comment(cmake_file, comment)
             write_property_of_settings(
-                cmake_file, context.settings, context.sln_configurations_map,
+                context, cmake_file,
                 begin_text='add_custom_command_if(\n'
-                '    TARGET ${{PROJECT_NAME}}\n'
-                '    {}\n'
-                '    COMMANDS'.format(event_type),
+                '{0}TARGET ${{PROJECT_NAME}}\n'
+                '{0}{1}\n'
+                '{0}COMMANDS'.format(context.indent, event_type),
                 end_text=')',
                 property_name=value_name,
                 write_setting_property_func=Dependencies.write_target_build_event_of_setting
@@ -351,12 +347,11 @@ class Dependencies:
     def write_file_build_event_of_setting(cmake_file, property_indent, config_condition_expr,
                                           property_value, width, **kwargs):
         """ Write file build event functor (helper) """
-        del kwargs
         # for command in property_value:
         if config_condition_expr is None:
             return
-        cmake_file.write('{0}    COMMAND {1:>{width}} {2}\n'
-                         .format(property_indent, config_condition_expr,
+        cmake_file.write('{0}{1}COMMAND {2:>{width}} {3}\n'
+                         .format(property_indent, kwargs['main_indent'], config_condition_expr,
                                  property_value['command_line'],
                                  width=width))
 
@@ -385,12 +380,12 @@ class Dependencies:
                         outputs = file_setting['file_custom_build_events']['outputs']
                         description = file_setting['file_custom_build_events']['description']
                 text = write_property_of_settings(
-                    cmake_file, file_context.settings, context.sln_configurations_map,
+                    file_context, cmake_file,
                     begin_text='add_custom_command_if(\n'
-                    '    OUTPUT "{}"\n'
-                    '    COMMANDS'.format(outputs),
-                    end_text='    DEPENDS "{}"\n'
-                    '    COMMENT "{}"\n)'.format(file, description),
+                    '{0}OUTPUT "{1}"\n'
+                    '{0}COMMANDS'.format(context.indent, outputs),
+                    end_text='{0}DEPENDS "{1}"\n'
+                    '{0}COMMENT "{2}"\n)'.format(context.indent, file, description),
                     property_name='file_custom_build_events',
                     write_setting_property_func=Dependencies.write_file_build_event_of_setting
                 )

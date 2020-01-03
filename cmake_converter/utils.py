@@ -163,7 +163,7 @@ def write_property_of_setting_f(cmake_file,
     separator = kwargs['separator']
     quotes = '"' if kwargs['in_quotes'] else ''
 
-    prop_value_indent = config_indent = property_indent + '    '
+    prop_value_indent = config_indent = property_indent + kwargs['main_indent']
     config_condition_expr_str = ''
     if config_condition_expr is not None:
         config_condition_expr_str = '$<' + config_condition_expr + ':'
@@ -175,7 +175,7 @@ def write_property_of_setting_f(cmake_file,
         cmake_file.write(
             '{}{}{}\n'.format(config_indent, quotes + config_condition_expr_str, quotes)
         )
-        prop_value_indent = config_indent + '    '
+        prop_value_indent = config_indent + kwargs['main_indent']
 
     for prop in property_list_str:
         cmake_file.write(
@@ -258,26 +258,24 @@ def write_footer_of_settings(cmake_file,
 
     if has_property_value:
         if default:
-            cmake_file.write('{}    $<$<NOT:$<OR:{}>>:{}>\n'
-                             .format(indent + command_indent, ','.join(config_expressions),
+            cmake_file.write('{}{}$<$<NOT:$<OR:{}>>:{}>\n'
+                             .format(indent + command_indent, kwargs['main_indent'],
+                                     ','.join(config_expressions),
                                      default))
         end_text = end_text.replace('\n', '\n' + indent + command_indent)
         if end_text:
             cmake_file.write('{}{}\n'.format(indent + command_indent, end_text))
 
 
-def write_property_of_settings(cmake_file, settings, sln_setting_2_project_setting, **kwargs):
+def write_property_of_settings(context, cmake_file, **kwargs):
     """
     Write property of given settings.
 
+    :param context: Converter context
+    :type context: Context
     :param cmake_file: CMakeLists.txt IO wrapper
     :type cmake_file: _io.TextIOWrapper
-    :param settings: global settings
-    :type settings: dict
-    :param sln_setting_2_project_setting: solution settings attached to project
-    :type sln_setting_2_project_setting: dict
     :param kwargs: begin of text
-
     kwargs:
     indent: indent to use when writing
     indent: str
@@ -291,6 +289,11 @@ def write_property_of_settings(cmake_file, settings, sln_setting_2_project_setti
     write_setting_property_func: write_property_of_setting | lambda
 
     """
+
+    kwargs['main_indent'] = context.indent
+
+    settings = context.settings
+    sln_setting_2_project_setting = context.sln_configurations_map
 
     property_name = kwargs['property_name']
 
@@ -353,7 +356,7 @@ def write_property_of_settings(cmake_file, settings, sln_setting_2_project_setti
             continue
 
         if not single_arch:
-            command_indent = '    '
+            command_indent = context.indent
             if first_arch:
                 cmake_file.write('{}if(\"${{CMAKE_VS_PLATFORM_NAME}}\" STREQUAL \"{}\")\n'
                                  .format(indent, arch))
@@ -730,25 +733,26 @@ def write_comment(cmake_file, text):
     cmake_file.write(get_comment(text))
 
 
-def write_arch_types(cmake):
+def write_arch_types(context, cmake):
     """ Writes setting default architecture """
     write_comment(
         cmake,
         'Set target arch type if empty. Visual studio solution generator provides it.'
     )
     cmake.write('if(NOT CMAKE_VS_PLATFORM_NAME)\n')
-    cmake.write('    set(CMAKE_VS_PLATFORM_NAME "x64")\n')
+    cmake.write('{}set(CMAKE_VS_PLATFORM_NAME "x64")\n'.format(context.indent))
     cmake.write('endif()\n')
     cmake.write('message(\"${CMAKE_VS_PLATFORM_NAME} architecture in use\")\n\n')
 
 
-def write_use_package_stub(cmake):
+def write_use_package_stub(context, cmake):
     """ Write use_package CMake routine default implementation """
     write_comment(cmake, 'Nuget packages function stub.')
     cmake.write('function(use_package TARGET PACKAGE VERSION)\n')
-    cmake.write('    message(WARNING "No implementation of use_package. Create yours. "\n'
-                '                    "Package \\"${PACKAGE}\\" with version \\"${VERSION}\\" "\n'
-                '                    "for target \\"${TARGET}\\" is ignored!")\n')
+    cmake.write('{0}message(WARNING "No implementation of use_package. Create yours. "\n'
+                '{0}                "Package \\"${{PACKAGE}}\\" with version \\"${{VERSION}}\\" "\n'
+                '{0}                "for target \\"${{TARGET}}\\" is ignored!")\n'
+                .format(context.indent))
     cmake.write('endfunction()\n\n')
 
 

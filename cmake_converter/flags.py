@@ -51,22 +51,23 @@ class Flags:
                                   property_value,
                                   width,
                                   **kwargs):
-        del width, kwargs
+        del width
         config = ''
         if config_condition_expr:
             config = config_condition_expr.replace('$<CONFIG:', '_')
             config = config.replace('>', '')
 
         cmake_file.write(
-            '{}    COMPILE_DEFINITIONS{} "{}"\n'
-            .format(property_indent, config.upper(), ';'.join(property_value))
+            '{}{}COMPILE_DEFINITIONS{} "{}"\n'
+            .format(property_indent, kwargs['main_indent'],
+                    config.upper(), ';'.join(property_value))
         )
 
     def write_defines(self, context, cmake_file):
         """ Routine that writes compile definitions into CMake file """
         write_comment(cmake_file, 'Compile definitions')
         write_property_of_settings(
-            cmake_file, context.settings, context.sln_configurations_map,
+            context, cmake_file,
             begin_text='target_compile_definitions(${PROJECT_NAME} PRIVATE',
             end_text=')',
             property_name=defines,
@@ -75,9 +76,8 @@ class Flags:
         )
         for file in context.file_contexts:
             write_property_of_settings(
+                context.file_contexts[file],
                 cmake_file,
-                context.file_contexts[file].settings,
-                context.sln_configurations_map,
                 begin_text='set_source_files_properties({} PROPERTIES'.format(file),
                 end_text=')',
                 property_name=defines,
@@ -88,38 +88,37 @@ class Flags:
     @staticmethod
     def __write_compile_flags(context, cmake_file, compiler_flags_key):
         write_property_of_settings(
-            cmake_file, context.settings, context.sln_configurations_map,
+            context, cmake_file,
             begin_text='target_compile_options(${PROJECT_NAME} PRIVATE',
             end_text=')',
             property_name=compiler_flags_key,
             separator=';\n',
-            indent='    '
+            indent=context.indent
         )
         for file in context.file_contexts:
             file_cl_var = 'FILE_CL_OPTIONS'
             text = write_property_of_settings(
-                cmake_file, context.file_contexts[file].settings,
-                context.sln_configurations_map,
+                context.file_contexts[file], cmake_file,
                 begin_text='string(CONCAT {}'.format(file_cl_var),
                 end_text=')',
                 property_name=compiler_flags_key,
-                indent='    ',
+                indent=context.indent,
                 in_quotes=True
             )
             if text:
                 cmake_file.write(
-                    '    source_file_compile_options({} ${{{}}})\n'
-                    .format(file, file_cl_var))
+                    '{}source_file_compile_options({} ${{{}}})\n'
+                    .format(context.indent, file, file_cl_var))
 
     @staticmethod
     def __write_link_flags(context, cmake_file, linker_flags_key):
         write_property_of_settings(
-            cmake_file, context.settings, context.sln_configurations_map,
+            context, cmake_file,
             begin_text='target_link_options(${PROJECT_NAME} PRIVATE',
             end_text=')',
             property_name=linker_flags_key,
             separator=';\n',
-            indent='    '
+            indent=context.indent
         )
 
     @staticmethod

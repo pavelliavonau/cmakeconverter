@@ -135,8 +135,9 @@ class ProjectVariables:
                 if result_width < 0:
                     result_width = 0
                 cmake_file.write(
-                    '{}    {}{:<{width}} "{}"\n'.format(
+                    '{}{}{}{:<{width}} "{}"\n'.format(
                         property_indent,
+                        kwargs['main_indent'],
                         property_name,
                         config.upper(),
                         property_sheet_cmake,
@@ -161,8 +162,8 @@ class ProjectVariables:
             cmake_file.write('set(ROOT_NAMESPACE {})\n\n'.format(context.root_namespace))
 
         write_property_of_settings(
-            cmake_file, context.settings,
-            context.sln_configurations_map,
+            context,
+            cmake_file,
             begin_text='set_target_properties(${PROJECT_NAME} PROPERTIES',
             end_text=')',
             property_name='VS_GLOBAL_KEYWORD',
@@ -174,8 +175,8 @@ class ProjectVariables:
                                 'TARGET_NAME'):
             write_comment(cmake_file, 'Target name')
             write_property_of_settings(
-                cmake_file, context.settings,
-                context.sln_configurations_map,
+                context,
+                cmake_file,
                 begin_text='set_target_properties(${PROJECT_NAME} PROPERTIES',
                 end_text=')',
                 property_name='TARGET_NAME',
@@ -187,8 +188,8 @@ class ProjectVariables:
                                 'OUTPUT_DIRECTORY'):
             write_comment(cmake_file, 'Output directory')
             write_property_of_settings(
-                cmake_file, context.settings,
-                context.sln_configurations_map,
+                context,
+                cmake_file,
                 begin_text='set_target_properties(${PROJECT_NAME} PROPERTIES',
                 end_text=')',
                 property_name='OUTPUT_DIRECTORY',
@@ -196,8 +197,8 @@ class ProjectVariables:
             )
 
         write_property_of_settings(
-            cmake_file, context.settings,
-            context.sln_configurations_map,
+            context,
+            cmake_file,
             begin_text='set_target_properties(${PROJECT_NAME} PROPERTIES',
             end_text=')',
             property_name='ARCHIVE_OUTPUT_DIRECTORY',
@@ -205,8 +206,8 @@ class ProjectVariables:
         )
 
         write_property_of_settings(
-            cmake_file, context.settings,
-            context.sln_configurations_map,
+            context,
+            cmake_file,
             begin_text='set_target_properties(${PROJECT_NAME} PROPERTIES',
             end_text=')',
             property_name='ARCHIVE_OUTPUT_NAME',
@@ -214,8 +215,8 @@ class ProjectVariables:
         )
 
         write_property_of_settings(
-            cmake_file, context.settings,
-            context.sln_configurations_map,
+            context,
+            cmake_file,
             begin_text='set_target_properties(${PROJECT_NAME} PROPERTIES',
             end_text=')',
             property_name='PDB_OUTPUT_DIRECTORY',
@@ -223,8 +224,8 @@ class ProjectVariables:
         )
         # PDB_NAME doesn't support generator expressions yet (CMake 3.13)
         # write_property_of_settings(
-        #     cmake_file, context.settings,
-        #     context.sln_configurations_map,
+        #     context,
+        #     cmake_file,
         #     begin_text='set_target_properties(${PROJECT_NAME} PROPERTIES',
         #     end_text=')',
         #     property_name='PDB_NAME',
@@ -232,8 +233,8 @@ class ProjectVariables:
         # )
 
         write_property_of_settings(
-            cmake_file, context.settings,
-            context.sln_configurations_map,
+            context,
+            cmake_file,
             begin_text='set_target_properties(${PROJECT_NAME} PROPERTIES',
             end_text=')',
             property_name='INTERPROCEDURAL_OPTIMIZATION',

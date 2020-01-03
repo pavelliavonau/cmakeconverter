@@ -58,6 +58,11 @@ def main():  # pragma: no cover
         dest='projects_regexp'
     )
     parser.add_argument(
+        '-i', '--indent',
+        help='indentation for formatting of out CMakeLists.txt',
+        dest='indent'
+    )
+    parser.add_argument(
         '-d', '--dry-run',
         help='run converter without touching files.',
         dest='dry',
@@ -101,6 +106,9 @@ def main():  # pragma: no cover
 
     if args.projects_regexp:
         root_context.projects_regexp = args.projects_regexp
+
+    if args.indent:
+        root_context.indent = args.indent
 
     if args.dry:
         root_context.dry = True
