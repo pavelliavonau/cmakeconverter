@@ -138,7 +138,9 @@ class VCXParser(Parser):
             self.filters = get_xml_data(context, filters_file)
         tree = context.vcxproj['tree']
         root = tree.getroot()
+        context.current_node = root
         self._parse_nodes(context, root)
+        context.current_node = None
         context.flags.apply_flags_to_context(context)
         context.files.apply_files_to_context(context)
         context.dependencies.apply_target_dependency_packages(context)

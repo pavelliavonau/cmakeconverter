@@ -137,7 +137,9 @@ class VFParser(Parser):
         context.vcxproj = get_xml_data(context, context.vcxproj_path)
         tree = context.vcxproj['tree']
         root = tree.getroot()
+        context.current_node = root
         self._parse_nodes(context, root)
+        context.current_node = None
         context.files.apply_files_to_context(context)
         context.dependencies.set_target_references(context)
 

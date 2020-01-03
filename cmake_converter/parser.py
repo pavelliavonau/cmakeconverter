@@ -76,9 +76,12 @@ class Parser:
                 continue
             child_node_tag = Parser.strip_namespace(child_node.tag)
 
+            context.current_node = child_node
+
             try:
                 self._parse_attributes(context, child_node)
             except StopParseException:
+                context.current_node = parent
                 continue
 
             node_handlers = self.get_node_handlers_dict(context)
@@ -87,13 +90,13 @@ class Parser:
                     child_node.text = child_node.text.strip()
                 node_handlers[child_node_tag](context, child_node)
             else:
-                message(
-                    context, 'No handler for <{}> node.'.format(child_node_tag), 'warn3', child_node
-                )
+                message(context, 'No handler for <{}> node.'.format(child_node_tag), 'warn3')
 
             if child_node in self.reset_setting_after_nodes:
                 context.current_setting = (None, None)
                 self.reset_setting_after_nodes.remove(child_node)
+
+            context.current_node = parent
 
     def _parse_attributes(self, context, node):
         for attr in node.attrib:
@@ -108,6 +111,5 @@ class Parser:
                 message(
                     context,
                     'No handler for "{}" attribute of <{}> node.'.format(attr, node_tag),
-                    'warn3',
-                    node
+                    'warn3'
                 )

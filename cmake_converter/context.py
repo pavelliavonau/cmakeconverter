@@ -80,6 +80,7 @@ class Context:
         self.supported_architectures = set()
         self.settings = OrderedDict()
         self.current_setting = (None, None)  # (conf, arch)
+        self.current_node = None
         self.warnings_count = 0
         # helpers
         self.parser = None
