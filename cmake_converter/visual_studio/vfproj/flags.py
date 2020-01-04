@@ -105,6 +105,8 @@ class FortranFlags(Flags):
             ('VFLinkerTool_LinkIncremental', self.__set_link_incremental),
             ('VFLinkerTool_SuppressStartupBanner', self.__set_link_suppress_startup_banner),
             ('VFLinkerTool_IgnoreDefaultLibraryNames', self.__set_ignore_default_library_names),
+            ('VFLinkerTool_OptimizeReferences', self.__set_optimize_references),
+            ('VFLinkerTool_EnableCOMDATFolding', self.__set_enable_comdat_folding),
             ('VFLinkerTool_SubSystem', self.__set_sub_system),
             ('VFLinkerTool_LinkDLL', self.__set_link_dll),
             ('VFLinkerTool_AdditionalOptions', self.__set_additional_link_options),
@@ -950,6 +952,36 @@ class FortranFlags(Flags):
         if ignore_libs:
             context.settings[context.current_setting][ifort_ln_win] += ignore_libs
             message(context, 'Ignore Default Library Names : {}'.format(ignore_libs), '')
+
+    @staticmethod
+    def __set_optimize_references(context, flag_name, flag_value):
+        """
+        Set OptimizeReferences flag: /OPT:REF
+
+        """
+        del context, flag_name, flag_value
+        flag_values = {
+            'optReferences': {ifort_ln_win: '/OPT:REF'},
+            'optNoReferences': {ifort_ln_win: '/OPT:NOREF'},
+            default_value: {}
+        }
+
+        return flag_values
+
+    @staticmethod
+    def __set_enable_comdat_folding(context, flag_name, flag_value):
+        """
+        Set EnableCOMDATFolding flag: /OPT:ICF
+
+        """
+        del context, flag_name, flag_value
+        flag_values = {
+            'optFolding': {ifort_ln_win: '/OPT:ICF'},
+            'optNoFolding': {ifort_ln_win: '/OPT:NOICF'},
+            default_value: {}
+        }
+
+        return flag_values
 
     @staticmethod
     def __set_sub_system(context, flag_name, flag_value):
