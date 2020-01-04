@@ -47,13 +47,13 @@ class Flags:
     @staticmethod
     def get_no_default_lib_link_flags(flag_value):
         """Helper to get list of /NODEFAULTLIB flags"""
+        ignore_libs = []
         if flag_value != '':
-            ignore_libs = []
             for spec_lib in flag_value.split(';'):
                 spec_lib = spec_lib.strip()
                 if spec_lib:
                     ignore_libs.append('/NODEFAULTLIB:' + spec_lib)
-            return ignore_libs
+        return ignore_libs
 
     @staticmethod
     def __write_defines_for_files(cmake_file,

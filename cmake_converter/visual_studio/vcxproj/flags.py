@@ -1023,6 +1023,7 @@ class CPPFlags(Flags):
         :param node:
         :return:
         """
+        del flag_name
         if node.text is None:
             return
 
