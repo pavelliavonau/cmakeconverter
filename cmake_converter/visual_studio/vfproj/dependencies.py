@@ -24,8 +24,6 @@
 Module that handles dependencies information for fortran projects.
 """
 
-import os
-
 from cmake_converter.dependencies import Dependencies
 from cmake_converter.utils import message, prepare_build_event_cmd_line_for_cmake,\
     check_for_relative_in_path, cleaning_output

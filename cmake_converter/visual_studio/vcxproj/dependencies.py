@@ -108,28 +108,6 @@ class VCXDependencies(Dependencies):
                 )
 
     @staticmethod
-    def set_target_ignore_specific_default_libraries(context, node):
-        """
-        IgnoreSpecificDefaultLibraries node handler
-
-        :param context:
-        :param node:
-        :return:
-        """
-        if node.text is None:
-            return
-
-        list_ingore_spec_libs = node.text.replace('%(IgnoreSpecificDefaultLibraries)', '')
-        if list_ingore_spec_libs != '':
-            ignore_libs = []
-            for spec_lib in list_ingore_spec_libs.split(';'):
-                spec_lib = spec_lib.strip()
-                if spec_lib:
-                    ignore_libs.append('/NODEFAULTLIB:' + spec_lib)
-            message(context, 'Ignore Specific Default Libraries : {}'.format(ignore_libs), '')
-            context.settings[context.current_setting][ln_flags] += ignore_libs
-
-    @staticmethod
     def set_delay_load_dlls(context, node):
         """
         DelayLoadDLLs node handler

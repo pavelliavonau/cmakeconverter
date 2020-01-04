@@ -104,6 +104,7 @@ class FortranFlags(Flags):
             ('VFLinkerTool_GenerateDebugInformation', self.__generate_debug_information),
             ('VFLinkerTool_LinkIncremental', self.__set_link_incremental),
             ('VFLinkerTool_SuppressStartupBanner', self.__set_link_suppress_startup_banner),
+            ('VFLinkerTool_IgnoreDefaultLibraryNames', self.__set_ignore_default_library_names),
             ('VFLinkerTool_SubSystem', self.__set_sub_system),
             ('VFLinkerTool_LinkDLL', self.__set_link_dll),
             ('VFLinkerTool_AdditionalOptions', self.__set_additional_link_options),
@@ -938,6 +939,17 @@ class FortranFlags(Flags):
             default_value: {}
         }
         return flag_values
+
+    def __set_ignore_default_library_names(self, context, flag_name, flag_value):
+        """
+        Set IgnoreDefaultLibraryNames for linker
+
+        """
+        del flag_name
+        ignore_libs = self.get_no_default_lib_link_flags(flag_value)
+        if ignore_libs:
+            context.settings[context.current_setting][ifort_ln_win] += ignore_libs
+            message(context, 'Ignore Default Library Names : {}'.format(ignore_libs), '')
 
     @staticmethod
     def __set_sub_system(context, flag_name, flag_value):

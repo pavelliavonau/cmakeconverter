@@ -108,6 +108,8 @@ class CPPFlags(Flags):
             ('GenerateDebugInformation', self.__set_generate_debug_information),
             ('TargetMachine', self.__set_target_machine),
             ('ImageHasSafeExceptionHandlers', self.__set_image_has_safe_exception_handlers),
+            ('IgnoreSpecificDefaultLibraries',
+             self.__set_target_ignore_specific_default_libraries),
             ('SubSystem', self.__set_sub_system),
             ('OptimizeReferences', self.__set_optimize_references),
             ('LinkTimeCodeGeneration', self.__set_link_time_code_generation),
@@ -1012,6 +1014,25 @@ class CPPFlags(Flags):
         }
 
         return flag_values
+
+    def __set_target_ignore_specific_default_libraries(self, context, flag_name, node):
+        """
+        IgnoreSpecificDefaultLibraries node handler
+
+        :param context:
+        :param node:
+        :return:
+        """
+        if node.text is None:
+            return
+
+        list_ingore_spec_libs = node.text.replace('%(IgnoreSpecificDefaultLibraries)', '')
+
+        ignore_libs = self.get_no_default_lib_link_flags(list_ingore_spec_libs)
+
+        if ignore_libs:
+            context.settings[context.current_setting][ln_flags] += ignore_libs
+            message(context, 'Ignore Specific Default Libraries : {}'.format(ignore_libs), '')
 
     @staticmethod
     def __set_sub_system(context, flag_name, node):
