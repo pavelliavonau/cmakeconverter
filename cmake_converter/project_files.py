@@ -27,6 +27,7 @@
 """
 
 import os
+import ntpath
 import copy
 
 from cmake_converter.utils import take_name_from_list_case_ignore, normalize_path
@@ -109,7 +110,7 @@ class ProjectFiles:
             node_text = str(file_node.get(file_node_attr))
             if not node_text.rpartition('.')[-1] in self.languages:
                 self.languages.append(node_text.rpartition('.')[-1])
-            file_path, file_name = os.path.split(node_text)
+            file_path, file_name = ntpath.split(node_text)
             if file_path not in self.file_lists:
                 vcxproj_dir = os.path.dirname(context.vcxproj_path)
                 self.file_lists[file_path] = []
