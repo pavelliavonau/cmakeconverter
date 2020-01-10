@@ -336,9 +336,15 @@ class DataConverter:
                 'set(CMAKE_SYSTEM_VERSION {} CACHE STRING "" FORCE)\n\n'
                 .format(root_context.target_windows_version)
             )
+        language_command = 'project'
+        project_name_var = root_context.project_name + ' '
+        if root_cmake_projects_text:
+            language_command = 'enable_language'
+            project_name_var = ''
         root_cmake.write(
-            'project({} {})\n\n'.format(
-                root_context.project_name,
+            '{}({}{})\n\n'.format(
+                language_command,
+                project_name_var,
                 ' '.join(sorted(root_context.solution_languages))
             )
         )
@@ -370,9 +376,10 @@ class DataConverter:
             root_cmake, subdirectories_set, subdirectories_to_project_name
         )
 
-        if root_cmake_projects_text != '':
+        if root_cmake_projects_text:
             root_cmake.write('\n' * 26)
             root_cmake.write(root_cmake_projects_text)
+            root_cmake.write('project({})\n'.format(root_context.project_name))
 
         root_cmake.close()
 
