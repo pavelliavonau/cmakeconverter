@@ -107,6 +107,7 @@ class FortranFlags(Flags):
             ('VFLinkerTool_IgnoreDefaultLibraryNames', self.__set_ignore_default_library_names),
             ('VFLinkerTool_OptimizeReferences', self.__set_optimize_references),
             ('VFLinkerTool_EnableCOMDATFolding', self.__set_enable_comdat_folding),
+            ('VFLinkerTool_TargetMachine', self.__set_target_machine),
             ('VFLinkerTool_SubSystem', self.__set_sub_system),
             ('VFLinkerTool_LinkDLL', self.__set_link_dll),
             ('VFLinkerTool_AdditionalOptions', self.__set_additional_link_options),
@@ -981,6 +982,19 @@ class FortranFlags(Flags):
             default_value: {}
         }
 
+        return flag_values
+
+    @staticmethod
+    def __set_target_machine(context, flag_name, flag_value):
+        """
+        Set TargetMachine flag
+
+        """
+        del context, flag_name, flag_value
+        flag_values = {
+            'machineX86': {ifort_ln_win: '/MACHINE:IX86'},
+            default_value: {}
+        }
         return flag_values
 
     @staticmethod
