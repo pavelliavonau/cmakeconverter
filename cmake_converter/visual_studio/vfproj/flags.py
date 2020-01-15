@@ -101,6 +101,7 @@ class FortranFlags(Flags):
             ('VFFortranCompilerTool_DisableDefaultLibSearch',
              self.__set_disable_default_lib_search),
             ('VFFortranCompilerTool_AdditionalOptions', self.__set_additional_options),
+            ('VFLinkerTool_GenerateManifest', self.__set_generate_manifest),
             ('VFLinkerTool_GenerateDebugInformation', self.__generate_debug_information),
             ('VFLinkerTool_LinkIncremental', self.__set_link_incremental),
             ('VFLinkerTool_SuppressStartupBanner', self.__set_link_suppress_startup_banner),
@@ -906,6 +907,18 @@ class FortranFlags(Flags):
                 self.flags[flag_name][ifort_cl_unix].append(unix_option)
             message(context,
                     'Additional Options : {}'.format(str(ready_add_opts)), '')
+
+    @staticmethod
+    def __set_generate_manifest(context, flag_name, flag_value):
+        """ Set GenerateManifest flag: /MANIFEST """
+        del context, flag_name, flag_value
+        flag_values = {
+            'true': {ifort_ln_win: '/MANIFEST'},
+            'false': {ifort_ln_win: '/MANIFEST:NO'},
+            default_value: {}
+        }
+
+        return flag_values
 
     @staticmethod
     def __generate_debug_information(context, flag_name, flag_value):
