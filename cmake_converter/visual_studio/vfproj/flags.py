@@ -103,6 +103,7 @@ class FortranFlags(Flags):
             ('VFFortranCompilerTool_AdditionalOptions', self.__set_additional_options),
             ('VFLinkerTool_GenerateManifest', self.__set_generate_manifest),
             ('VFLinkerTool_GenerateDebugInformation', self.__generate_debug_information),
+            ('VFLinkerTool_ShowProgress', self.__show_progress),
             ('VFLinkerTool_LinkIncremental', self.__set_link_incremental),
             ('VFLinkerTool_SuppressStartupBanner', self.__set_link_suppress_startup_banner),
             ('VFLinkerTool_IgnoreDefaultLibraryNames', self.__set_ignore_default_library_names),
@@ -925,6 +926,16 @@ class FortranFlags(Flags):
         del context, flag_name, flag_value
         flag_values = {
             'true': {ifort_ln_win: '/DEBUG'},
+            default_value: {}
+        }
+        return flag_values
+
+    @staticmethod
+    def __show_progress(context, flag_name, flag_value):
+        del context, flag_name, flag_value
+        flag_values = {
+            'linkProgressLibs': {ifort_ln_win: '/VERBOSE:LIB'},
+            'linkProgressAll': {ifort_ln_win: '/VERBOSE'},
             default_value: {}
         }
         return flag_values
