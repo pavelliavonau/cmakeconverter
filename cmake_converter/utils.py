@@ -545,7 +545,7 @@ def replace_vs_var_with_cmake_var(context, var):
         '$(INTDIR)': '${CMAKE_CURRENT_BINARY_DIR}\\${CMAKE_CFG_INTDIR}\\',
         '$(TargetDir)': '${OUTPUT_DIRECTORY}',
         '$(TargetName)': '${TARGET_NAME}',
-        '$(TargetFileName)': '$<TARGET_FILE_NAME:${TARGET_NAME}>',
+        '$(TargetFileName)': '$<TARGET_FILE_NAME:${PROJECT_NAME}>',
         '$(TargetPath)': '$<TARGET_FILE:${PROJECT_NAME}>',
     }
     if var in variables_to_replace:
