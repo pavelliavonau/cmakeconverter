@@ -324,22 +324,37 @@ class VCXDependencies(Dependencies):
         :param event_type:
         :return:
         """
-        for command in build_event_node:
-            if 'Command' not in command.tag:
+        commands = []
+        comment = ''
+        output = ''
+        for node in build_event_node:
+            if 'Message' in node.tag:
+                comment = node.text
                 continue
-            if command.text is None:
+            if 'Outputs' in node.tag:
+                output = node.text
                 continue
-            for build_event in command.text.split('\n'):
-                build_event = build_event.strip()
-                if build_event:
-                    cmake_build_event = prepare_build_event_cmd_line_for_cmake(
+            if 'Command' not in node.tag:
+                continue
+            if node.text is None:
+                continue
+            for build_event_command in node.text.split('\n'):
+                build_event_command = build_event_command.strip()
+                if build_event_command:
+                    cmake_build_event_command = prepare_build_event_cmd_line_for_cmake(
                         context,
-                        build_event
+                        build_event_command
                     )
-                    context.settings[context.current_setting][value_name] \
-                        .append(cmake_build_event)
-                    message(context, '{} event : {}'
-                            .format(event_type, cmake_build_event), 'info')
+                    commands.append(cmake_build_event_command)
+
+        if commands:
+            context.settings[context.current_setting][value_name]['commands'] = commands
+            message(context, '{} event commands : {}'
+                    .format(event_type, commands), 'info')
+        if comment:
+            context.settings[context.current_setting][value_name]['comment'] = comment
+        if output:
+            context.settings[context.current_setting][value_name]['output'] = output
 
     def set_target_pre_build_events(self, context, node):
         """
@@ -386,16 +401,14 @@ class VCXDependencies(Dependencies):
             'Post build'
         )
 
-    # pylint: disable=W0511
-    # TODO: perhaps implement in future
-    # def set_custom_build_step(self, context, node):
-    #     self.__set_target_build_events(
-    #         context,
-    #         '{}/ns:CustomBuildStep/ns:Command',
-    #         'custom_build_step',
-    #         'Custom build'
-    #     )
-    # pylint: enable=W0511
+    def set_custom_build_events(self, context, node):
+        """ Setting of custom build event to context """
+        self.__set_target_build_events(
+            context,
+            node,
+            'custom_build_events',
+            'Custom build'
+        )
 
     def write_target_property_sheets(self, context, cmake_file):
         """

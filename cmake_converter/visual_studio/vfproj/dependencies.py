@@ -75,32 +75,7 @@ class VFDependencies(Dependencies):
                 context.settings[context.current_setting]['target_link_dirs'] = add_lib_dirs
 
     @staticmethod
-    def __set_custom_build_events_of_files(context, name, command_value, node):
-        """
-        Setting custom build event instructions for files
-
-        :param context:
-        :param name:
-        :param command_value:
-        :param node:
-        :return:
-        """
-        del name, command_value
-
-        if 'file_custom_build_events' not in context.settings[context.current_setting]:
-            context.settings[context.current_setting]['file_custom_build_events'] = {}
-        custom_event_data = {
-            'command_line': prepare_build_event_cmd_line_for_cmake(
-                context,
-                node.attrib['CommandLine']
-            ),
-            'description': node.attrib['Description'],
-            'outputs': node.attrib['Outputs'],
-        }
-        context.settings[context.current_setting]['file_custom_build_events'] = custom_event_data
-
-    @staticmethod
-    def __set_target_build_events(context, value_name, event_type, command_value):
+    def __set_target_build_events(context, node, value_name, event_type, command_value):
         """
         General routine for setting build events
 
@@ -110,7 +85,7 @@ class VFDependencies(Dependencies):
         :param command_value:
         :return:
         """
-        context.settings[context.current_setting][value_name] = []
+        commands = []
         for build_event in command_value.split('\n'):
             build_event = build_event.strip()
             if build_event:
@@ -118,10 +93,23 @@ class VFDependencies(Dependencies):
                     context,
                     build_event
                 )
-                context.settings[context.current_setting][value_name] \
-                    .append(cmake_build_event)
-                message(context, '{} event for {}: {}'
-                        .format(event_type, context.current_setting, cmake_build_event), 'info')
+                commands.append(cmake_build_event)
+
+        comment = ''
+        if 'Description' in node.attrib:
+            comment = node.attrib['Description']
+        output = ''
+        if 'Outputs' in node.attrib:
+            output = node.attrib['Outputs']
+
+        event_data = {
+            'commands': commands,
+            'comment': comment,
+            'output': output,
+        }
+        context.settings[context.current_setting][value_name] = event_data
+        message(context, '{} events for {}: {}'
+                .format(event_type, context.current_setting, commands), 'info')
 
     @staticmethod
     def __is_excluded_from_build(node):
@@ -151,6 +139,7 @@ class VFDependencies(Dependencies):
             return
         self.__set_target_build_events(
             context,
+            node,
             'pre_build_events',
             'Pre build',
             command_value
@@ -172,6 +161,7 @@ class VFDependencies(Dependencies):
             return
         self.__set_target_build_events(
             context,
+            node,
             'pre_link_events',
             'Pre link',
             command_value
@@ -193,13 +183,13 @@ class VFDependencies(Dependencies):
             return
         self.__set_target_build_events(
             context,
+            node,
             'post_build_events',
             'Post build',
             command_value
         )
 
-    # pylint: disable=W0511
-    def set_custom_build_step(self, context, name, command_value, node):
+    def set_custom_build_event(self, context, name, command_value, node):
         """
         Setting of custom build event to context
         :param context:
@@ -208,17 +198,17 @@ class VFDependencies(Dependencies):
         :param node:
         :return:
         """
+        del name
+
         if self.__is_excluded_from_build(node):
             return
-        self.__set_custom_build_events_of_files(context, name, command_value, node)
-    # TODO: perhaps implement in future (common project custom build step)
-    #     self.__find_target_build_events(
-    #         context,
-    #         'VFCustomBuildTool',
-    #         'custom_build_step',
-    #         'Custom build'
-    #     )
-    # pylint: enable=W0511
+        self.__set_target_build_events(
+            context,
+            node,
+            'custom_build_events',
+            'Custom build',
+            command_value
+        )
 
     def write_target_property_sheets(self, context, cmake_file):
         """

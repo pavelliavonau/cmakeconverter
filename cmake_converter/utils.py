@@ -95,9 +95,10 @@ class Utils:
             'ARCHIVE_OUTPUT_NAME': [],
             'VS_GLOBAL_KEYWORD': [],
             'INTERPROCEDURAL_OPTIMIZATION': [],
-            'pre_build_events': [],
-            'pre_link_events': [],
-            'post_build_events': [],
+            'pre_build_events': {},
+            'pre_link_events': {},
+            'post_build_events': {},
+            'custom_build_events': {},
         }
 
 

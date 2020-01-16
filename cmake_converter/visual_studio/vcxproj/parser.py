@@ -80,6 +80,7 @@ class VCXParser(Parser):
             'PreBuildEvent': context.dependencies.set_target_pre_build_events,
             'PreLinkEvent': context.dependencies.set_target_pre_link_events,
             'PostBuildEvent': context.dependencies.set_target_post_build_events,
+            'CustomBuildStep': context.dependencies.set_custom_build_events,
             'ExcludedFromBuild': self.__parse_excluded_from_build,
             'ProjectReference': self._parse_nodes,
             'Project': self.do_nothing_node_stub,  # just GUID at <ProjectReference>

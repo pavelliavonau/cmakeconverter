@@ -116,15 +116,18 @@ class VFParser(Parser):
             'VFPreBuildEventTool_ExcludedFromBuild': self.do_nothing_attr_stub,
             'VFPreBuildEventTool_CommandLine':
                 context.dependencies.set_target_pre_build_events,
+            'VFPreBuildEventTool_Description': self.do_nothing_attr_stub,
             'VFPreLinkEventTool_ExcludedFromBuild': self.do_nothing_attr_stub,
             'VFPreLinkEventTool_CommandLine':
                 context.dependencies.set_target_pre_link_events,
+            'VFPreLinkEventTool_Description': self.do_nothing_attr_stub,
             'VFPostBuildEventTool_ExcludedFromBuild': self.do_nothing_attr_stub,
             'VFPostBuildEventTool_CommandLine':
                 context.dependencies.set_target_post_build_events,
+            'VFPostBuildEventTool_Description': self.do_nothing_attr_stub,
             'VFCustomBuildTool_ExcludedFromBuild': self.do_nothing_attr_stub,
             'VFCustomBuildTool_CommandLine':
-                context.dependencies.set_custom_build_step,
+                context.dependencies.set_custom_build_event,
             'VFCustomBuildTool_Description': self.do_nothing_attr_stub,
             'VFCustomBuildTool_Outputs': self.do_nothing_attr_stub,
             'File_RelativePath': self.__parse_file_relative_path,
