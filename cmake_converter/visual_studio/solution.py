@@ -155,7 +155,7 @@ class VSSolutionConverter(DataConverter):
 
         solution_configurations_matches = solution_configurations_re.findall(sln_text)
         solution_data['sln_configurations'] = []
-        sln_configuration_re = re.compile(r'([\w |]+) = ([\w |]+)')
+        sln_configuration_re = re.compile(r'([\w -|]+) = ([\w -|]+)')
         for solution_configuration_match in solution_configurations_matches:
             configurations = sln_configuration_re.findall(solution_configuration_match)
             for configuration in configurations:
@@ -176,7 +176,7 @@ class VSSolutionConverter(DataConverter):
             r'postSolution((?:.|\n)*?)EndGlobalSection'
         )
         projects_configurations_matches = projects_configurations_re.findall(sln_text)
-        projects_configuration_re = re.compile(r'({.+\})\.([\w |]+)\.ActiveCfg = ([\w |]+)')
+        projects_configuration_re = re.compile(r'({.+\})\.([\w -|]+)\.ActiveCfg = ([\w -|]+)')
         for projects_configuration_match in projects_configurations_matches:
             configurations = projects_configuration_re.findall(projects_configuration_match)
             for configuration in configurations:
