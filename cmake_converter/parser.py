@@ -86,9 +86,9 @@ class Parser:
 
             node_handlers = self.get_node_handlers_dict(context)
             if child_node_tag in node_handlers:
-                if child_node.text:
+                if child_node.text is not None:
                     child_node.text = child_node.text.strip()
-                node_handlers[child_node_tag](context, child_node)
+                    node_handlers[child_node_tag](context, child_node)
             else:
                 message(context, 'No handler for <{}> node.'.format(child_node_tag), 'warn3')
 
