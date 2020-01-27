@@ -235,7 +235,6 @@ class DataConverter:
         """
         # Initialize Context of DataConverter
         if not context.init(xml_project_path, cmake_lists_destination_path):
-            message(context, 'Unknown project type at {}'.format(xml_project_path), 'error')
             return False
 
         message(context, 'Conversion started: Project {}'.format(context.project_name), 'done')

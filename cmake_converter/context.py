@@ -119,6 +119,14 @@ class Context:
             ''
         )
 
+        if not os.path.exists(source_project_path):
+            message(
+                self,
+                "{} project file doesn't exist ... skipping ".format(source_project_path),
+                'error'
+            )
+            return False
+
         for sln_config in self.sln_configurations_map:
             self.configurations_to_parse.add(self.sln_configurations_map[sln_config])
 
@@ -133,6 +141,8 @@ class Context:
                 self.utils.init_context_current_setting(self)  # None - global settings
                 self.flags.prepare_context_for_flags(self)
                 return True
+
+        message(self, 'Unknown project type at {}'.format(source_project_path), 'error')
         return False
 
     def set_cmake_lists_path(self, cmake_lists):

@@ -71,7 +71,7 @@ def get_vcxproj_data(context, vs_project):
 
     vcxproj = get_xml_data(context, vs_project)
 
-    if 'http://schemas.microsoft.com' not in vcxproj['ns']['ns']:
+    if vcxproj is not None and 'http://schemas.microsoft.com' not in vcxproj['ns']['ns']:
         message(
             context,
             '{} file cannot be import, because this file does not seem to comply with'
