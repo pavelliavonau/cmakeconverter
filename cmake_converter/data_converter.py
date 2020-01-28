@@ -56,9 +56,13 @@ class DataConverter:
 
         context.files.find_cmake_project_languages(context)
 
-    @staticmethod
-    def verify_data(context):
+    def verify_data(self, context):
         """ Verify procedure after gathering information from source project """
+        self.__verify_target_types(context)
+        return self.__verify_configurations_to_parse(context)
+
+    @staticmethod
+    def __verify_target_types(context):
         target_types = set()
         for setting in context.settings:
             if None in setting:
@@ -71,6 +75,25 @@ class DataConverter:
                 'Target has more than one output binary type. CMake does not support it!',
                 'warn'
             )
+
+    @staticmethod
+    def __verify_configurations_to_parse(context):
+        absent_settings = set()
+        for setting in context.configurations_to_parse:
+            if setting not in context.settings:
+                absent_settings.add(setting)
+
+        if len(absent_settings) > 0:
+            context.configurations_to_parse -= absent_settings
+            message(
+                context,
+                'There are absent settings at {}: {}\n'
+                'skipping conversion. Add lost settings or fix mapping of settings at solution'
+                .format(context.vcxproj_path, absent_settings),
+                'error'
+            )
+            return False
+        return True
 
     def merge_data_settings(self, context):
         """
@@ -239,7 +262,8 @@ class DataConverter:
 
         message(context, 'Conversion started: Project {}'.format(context.project_name), 'done')
         self.collect_data(context)
-        self.verify_data(context)
+        if not self.verify_data(context):
+            return False
         self.merge_data_settings(context)
         if context.dry:
             return True
