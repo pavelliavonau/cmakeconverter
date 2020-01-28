@@ -146,6 +146,7 @@ class VSSolutionConverter(DataConverter):
         project = dict()
         project['name'] = project_data_match[1]
         project['path'] = path
+        project['sln_configs_2_project_configs'] = OrderedDict({(None, None): (None, None)})
         if 'ProjectDependencies' in project_data_match[0]:
             project['sln_deps'] = []
             dependencies_section = re.compile(
@@ -195,8 +196,6 @@ class VSSolutionConverter(DataConverter):
                 if not self.__check_project_guid(context, projects_data, configuration[0]):
                     continue
                 p = projects_data[configuration[0]]
-                if 'sln_configs_2_project_configs' not in p:
-                    p['sln_configs_2_project_configs'] = OrderedDict({(None, None): (None, None)})
                 p['sln_configs_2_project_configs'][tuple(configuration[1].split('|'))] = \
                     tuple(configuration[2].split('|'))
 
