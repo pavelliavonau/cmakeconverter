@@ -59,7 +59,7 @@ class VSSolutionConverter(DataConverter):
 
         self.__parse_configurations_of_solution(root_context, sln_text, solution_data)
 
-        self.__parse_project_configuration_platforms(sln_text, projects_data)
+        self.__parse_project_configuration_platforms(root_context, sln_text, projects_data)
 
         solution_folders_map = {}
 
@@ -74,12 +74,25 @@ class VSSolutionConverter(DataConverter):
                 target_deps = []
                 dependencies_list = project_data['sln_deps']
                 for dep_guid in dependencies_list:
+                    if not self.__check_project_guid(root_context, projects_data, dep_guid):
+                        continue
                     dep = projects_data[dep_guid]
                     target_deps.append(dep['name'])
                 project_data['sln_deps'] = target_deps
         solution_data['projects_data'] = projects_data
 
         return solution_data
+
+    @staticmethod
+    def __check_project_guid(context, projects_data, project_guid):
+        if project_guid not in projects_data:
+            message(
+                context,
+                'project with GUID {} is missing in solution file'.format(project_guid),
+                'error'
+            )
+            return False
+        return True
 
     @staticmethod
     def __check_solution_version(root_context, sln_text):
@@ -169,8 +182,7 @@ class VSSolutionConverter(DataConverter):
                         'warn')
                 root_context.supported_architectures.add(arch)
 
-    @staticmethod
-    def __parse_project_configuration_platforms(sln_text, projects_data):
+    def __parse_project_configuration_platforms(self, context, sln_text, projects_data):
         projects_configurations_re = re.compile(
             r'GlobalSection\(ProjectConfigurationPlatforms\) = '
             r'postSolution((?:.|\n)*?)EndGlobalSection'
@@ -180,6 +192,8 @@ class VSSolutionConverter(DataConverter):
         for projects_configuration_match in projects_configurations_matches:
             configurations = projects_configuration_re.findall(projects_configuration_match)
             for configuration in configurations:
+                if not self.__check_project_guid(context, projects_data, configuration[0]):
+                    continue
                 p = projects_data[configuration[0]]
                 if 'sln_configs_2_project_configs' not in p:
                     p['sln_configs_2_project_configs'] = OrderedDict({(None, None): (None, None)})
