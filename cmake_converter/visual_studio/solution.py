@@ -31,7 +31,7 @@ import shutil
 from collections import OrderedDict
 
 from cmake_converter.data_converter import DataConverter
-from cmake_converter.utils import message, set_native_slash
+from cmake_converter.utils import message, set_native_slash, make_cmake_configuration
 
 
 class VSSolutionConverter(DataConverter):
@@ -172,9 +172,10 @@ class VSSolutionConverter(DataConverter):
         sln_configuration_re = re.compile(r'([\w -|]+) = ([\w -|]+)')
         for solution_configuration_match in solution_configurations_matches:
             configurations = sln_configuration_re.findall(solution_configuration_match)
-            for configuration in configurations:
-                solution_data['sln_configurations'].append(configuration[0])
-                arch = configuration[0].split('|')[1]
+            for sln_configuration in configurations:
+                cmake_configuration = make_cmake_configuration(root_context, sln_configuration[0])
+                solution_data['sln_configurations'].append(cmake_configuration)
+                arch = cmake_configuration.split('|')[1]
                 if arch == 'x86':
                     message(
                         root_context,
@@ -191,13 +192,15 @@ class VSSolutionConverter(DataConverter):
         projects_configurations_matches = projects_configurations_re.findall(sln_text)
         projects_configuration_re = re.compile(r'({.+\})\.([\w -|]+)\.ActiveCfg = ([\w -|]+)')
         for projects_configuration_match in projects_configurations_matches:
-            configurations = projects_configuration_re.findall(projects_configuration_match)
-            for configuration in configurations:
-                if not self.__check_project_guid(context, projects_data, configuration[0]):
+            sln_config_groups = projects_configuration_re.findall(projects_configuration_match)
+            for sln_config_group in sln_config_groups:
+                if not self.__check_project_guid(context, projects_data, sln_config_group[0]):
                     continue
-                p = projects_data[configuration[0]]
-                p['sln_configs_2_project_configs'][tuple(configuration[1].split('|'))] = \
-                    tuple(configuration[2].split('|'))
+                p = projects_data[sln_config_group[0]]
+                sln_cmake_configuration = make_cmake_configuration(context, sln_config_group[1])
+                project_cmake_configuration = make_cmake_configuration(context, sln_config_group[2])
+                p['sln_configs_2_project_configs'][tuple(sln_cmake_configuration.split('|'))] = \
+                    tuple(project_cmake_configuration.split('|'))
 
     @staticmethod
     def __parse_nested_projects_in_solution_folders(sln_text, solution_folders_map):

@@ -757,10 +757,27 @@ def write_use_package_stub(context, cmake):
     cmake.write('endfunction()\n\n')
 
 
-def make_cmake_literal(context, input_str):
-    """ Tries to make cmake literal from input string """
-    output_str = re.sub(r'[^0-9a-zA-Z_./\-+]', '', input_str)
+def escape_string(context, wrong_chars_regex, input_str):
+    """ Removes wrong chars from input string """
+    output_str = re.sub(wrong_chars_regex, '', input_str)
 
     if input_str != output_str:
-        message(context, 'check conversion "{}" -> "{}"'.format(input_str, output_str), 'warn')
+        message(
+            context,
+            'string from solution fixed for CMake "{}" -> "{}"'.format(input_str, output_str),
+            'warn3'
+        )
     return output_str
+
+
+def make_cmake_literal(context, input_str):
+    """ Tries to make cmake literal from input string """
+    return escape_string(context, r'[^0-9a-zA-Z_./\-+]', input_str)
+
+
+def make_cmake_configuration(context, sln_configuration):
+    """ Tries to make cmake configuration name from sln_configuration """
+    sln_conf_arch = sln_configuration.split('|')
+    genex_invalid_regex = r'[^A-Za-z0-9_]'
+    sln_conf_arch[0] = escape_string(context, genex_invalid_regex, sln_conf_arch[0])
+    return "{}|{}".format(*sln_conf_arch)

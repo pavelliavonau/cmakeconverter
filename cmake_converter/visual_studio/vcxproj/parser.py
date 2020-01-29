@@ -28,7 +28,7 @@ import re
 
 from cmake_converter.parser import Parser, StopParseException
 from cmake_converter.data_files import get_xml_data, get_vcxproj_data
-from cmake_converter.utils import get_actual_filename
+from cmake_converter.utils import get_actual_filename, make_cmake_configuration
 
 
 class VCXParser(Parser):
@@ -164,7 +164,8 @@ class VCXParser(Parser):
                                               project_configuration_node):
         del attr_name, project_configuration_node
 
-        setting = tuple(setting.split('|'))
+        cmake_setting = make_cmake_configuration(context, setting)
+        setting = tuple(cmake_setting.split('|'))
 
         if setting not in context.configurations_to_parse:
             return
@@ -281,7 +282,9 @@ class VCXParser(Parser):
         found = re.search(r".*=='(.*)'", condition_value)
         if not found:
             return
-        setting = tuple(found.group(1).split('|'))
+
+        cmake_setting = make_cmake_configuration(context, found.group(1))
+        setting = tuple(cmake_setting.split('|'))
         if setting in context.settings:
             context.current_setting = setting
             context.flags.prepare_context_for_flags(context)

@@ -26,6 +26,7 @@
 
 from cmake_converter.parser import Parser, StopParseException
 from cmake_converter.data_files import get_xml_data
+from cmake_converter.utils import make_cmake_configuration
 
 
 class VFParser(Parser):
@@ -158,7 +159,8 @@ class VFParser(Parser):
     def __parse_configuration_name(self, context, attr_name, configuration_name, node):
         del attr_name
 
-        setting = tuple(configuration_name.split('|'))
+        cmake_setting = make_cmake_configuration(context, configuration_name)
+        setting = tuple(cmake_setting.split('|'))
 
         if setting not in context.configurations_to_parse:
             context.current_setting = (None, None)
