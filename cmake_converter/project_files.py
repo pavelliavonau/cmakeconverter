@@ -74,6 +74,8 @@ class ProjectFiles:
         if real_name:
             name_to_add = real_name
         else:
+            if context.ignore_absent_sources:
+                return None
             name_to_add = file_name
             message(context, 'Adding absent {} file into project files'
                     .format(file_name), 'warn')
@@ -126,7 +128,7 @@ class ProjectFiles:
                     file_name=file_name,
                     source_group=source_group
                 )
-        return ''
+        return None
 
     def init_file_lists_for_include_paths(self, context):
         """

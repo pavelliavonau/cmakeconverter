@@ -233,8 +233,9 @@ class VCXParser(Parser):
             file_node_attr='Include',
             source_group=source_group
         )
-        self._parse_nodes(file_context, file_node)
-        context.warnings_count += file_context.warnings_count
+        if file_context is not None:
+            self._parse_nodes(file_context, file_node)
+            context.warnings_count += file_context.warnings_count
 
     @staticmethod
     def __parse_excluded_from_build(context, node):

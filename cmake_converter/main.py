@@ -89,11 +89,17 @@ def main():  # pragma: no cover
         help='[experimental] import cmake code from file.cmake to your final CMakeLists.txt',
         dest='additional'
     )
-
     parser.add_argument(
         '-pi', '--private-include-directories',
         help='use PRIVATE specifier for target_include_directories',
         dest='private_includes',
+        default=False,
+        action='store_true'
+    )
+    parser.add_argument(
+        '-ias', '--ignore-absent-sources',
+        help='do not add absent source file to CMakeLists.txt',
+        dest='ignore_absent_sources',
         default=False,
         action='store_true'
     )
@@ -129,6 +135,10 @@ def main():  # pragma: no cover
     if args.private_includes:
         message(root_context, 'include directories will be PRIVATE', 'done')
         root_context.private_include_directories = True
+
+    if args.ignore_absent_sources:
+        message(root_context, 'absent source files will be ignored', 'done')
+        root_context.ignore_absent_sources = True
 
     converter = VSSolutionConverter()
     converter.convert_solution(root_context, os.path.abspath(args.solution))
