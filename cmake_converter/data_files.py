@@ -176,18 +176,14 @@ def get_cmake_lists(context, cmake_path=None, open_type='w'):
     """
 
     if not cmake_path:
-        if open_type == 'w':
-            message(context, 'CMakeLists will be written at current directory.', 'warn')
-        cmake = os.path.join(os.getcwd(), 'CMakeLists.txt')
-    else:
-        if open_type == 'w':
-            message(context, 'CMakeLists.txt will be written at : ' + str(cmake_path), '')
-        if cmake_path[-1:] == '/' or cmake_path[-1:] == '\\':
-            cmake = str(cmake_path) + 'CMakeLists.txt'
-        else:
-            cmake = str(cmake_path) + '/CMakeLists.txt'
+        cmake_path = os.getcwd()
+        message(context, 'CMakeLists dir is current directory.', 'warn')
+
+    cmake = os.path.join(cmake_path, 'CMakeLists.txt')
 
     if not os.path.exists(cmake) and open_type == 'r':
         return None
+
+    message(context, 'CMakeLists.txt will be written to : ' + cmake, '')
 
     return open(cmake, open_type, newline='\n', encoding='utf-8')
