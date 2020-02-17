@@ -408,7 +408,13 @@ class DataConverter:
             warnings = ' ({} warnings)'.format(root_context.warnings_count)
         message(
             root_context,
-            'Conversion of {} finished{}'.format(root_context.vcxproj_path, warnings),
+            'Conversion of {} finished{}\n\nNow you may run cmake like following sample:\n\n'
+            'cmake -S{} -B{} -G"Visual Studio 15 2017 Win64"'.format(
+                root_context.vcxproj_path,
+                warnings,
+                root_context.cmake,
+                os.path.join(root_context.cmake, 'build')
+            ),
             'done'
         )
 
