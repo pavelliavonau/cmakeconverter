@@ -188,9 +188,6 @@ class ProjectFiles:
         :type cmake_file: _io.TextIOWrapper
         """
 
-        lang = ''
-        if context.project_languages:
-            lang = ' ' + ' '.join(context.project_languages)
         if context.project_name == '':
             message(
                 context,
@@ -199,7 +196,7 @@ class ProjectFiles:
                 'error'
             )
         cmake_file.write(
-            'project({}{})\n\n'.format(make_cmake_literal(context, context.project_name), lang)
+            'set(PROJECT_NAME {})\n\n'.format(make_cmake_literal(context, context.project_name))
         )
 
     @staticmethod
