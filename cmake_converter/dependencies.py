@@ -188,9 +188,22 @@ class Dependencies:
         :type cmake_file: _io.TextIOWrapper
         """
 
+        target_link_specifier = 'PUBLIC'
+        configuration_type = None
+        for s in context.settings:
+            if None in s:
+                continue
+            configuration_type = context.settings[s]['target_type']
+            if configuration_type:
+                break
+
+        if configuration_type == 'Application':
+            target_link_specifier = 'PRIVATE'
+
         if context.target_references:
             cmake_file.write('# Link with other targets.\n')
-            cmake_file.write('target_link_libraries(${PROJECT_NAME} PUBLIC\n')
+            cmake_file.write('target_link_libraries(${{PROJECT_NAME}} {}\n'
+                             .format(target_link_specifier))
             for reference in context.target_references:
                 cmake_file.write('{}{}\n'.format(context.indent, reference))
                 msg = 'External library found : {}'.format(reference)
@@ -209,15 +222,19 @@ class Dependencies:
                 in_quotes=True,
             )
             cmake_file.write(
-                'target_link_libraries(${PROJECT_NAME} PUBLIC '
-                '"${ADDITIONAL_LIBRARY_DEPENDENCIES}")\n\n')
+                'target_link_libraries(${{PROJECT_NAME}} {} '
+                '"${{ADDITIONAL_LIBRARY_DEPENDENCIES}}")\n\n'.format(
+                    target_link_specifier
+                )
+            )
 
         if is_settings_has_data(context.sln_configurations_map,
                                 context.settings,
                                 'target_link_dirs'):
             write_property_of_settings(
                 context, cmake_file,
-                begin_text='target_link_directories(${PROJECT_NAME} PUBLIC',
+                begin_text='target_link_directories(${{PROJECT_NAME}} {}'
+                .format(target_link_specifier),
                 end_text=')',
                 property_name='target_link_dirs',
                 separator=';\n',

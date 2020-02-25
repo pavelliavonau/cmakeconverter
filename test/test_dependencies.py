@@ -65,7 +65,7 @@ class TestDependencies(unittest.TestCase):
         """Link Dependencies"""
 
         with open(self.cur_dir + '/datatest/CMakeLists.txt') as cmake_lists_test:
-            self.assertTrue('''target_link_libraries(${{PROJECT_NAME}} PUBLIC
+            self.assertTrue('''target_link_libraries(${{PROJECT_NAME}} PRIVATE
 {0}g3log
 {0}zlib
 )'''.format(self.context.indent) in cmake_lists_test.read())
