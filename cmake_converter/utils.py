@@ -689,7 +689,7 @@ def message(context, text, status):  # pragma: no cover
     if None not in context.current_setting:
         text = '{} : {}'.format(context.current_setting, text)
 
-    if context.current_node is not None:
+    if context.current_node is not None and status:
         text = '{}({}): {}'.format(context.current_node.base, context.current_node.sourceline, text)
 
     if status == 'error':
