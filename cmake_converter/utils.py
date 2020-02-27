@@ -620,7 +620,7 @@ def get_actual_filename(context, name):
     return res[0]
 
 
-def normalize_path(context, working_path, path_to_normalize, remove_relative=True):
+def normalize_path(context, working_path, path_to_normalize, remove_relative=True, unix_slash=True):
     """
     Normalize path from working path
 
@@ -632,6 +632,8 @@ def normalize_path(context, working_path, path_to_normalize, remove_relative=Tru
     :type path_to_normalize: str
     :param remove_relative: remove relative from path flag
     :type remove_relative: bool
+    :param unix_slash: apply UNIX slash
+    :type unix_slash: bool
     :return: normalized path
     :rtype: str
     """
@@ -648,7 +650,9 @@ def normalize_path(context, working_path, path_to_normalize, remove_relative=Tru
             'warn1'
         )
         actual_path_name = normal_path
-    normal_path = set_unix_slash(os.path.relpath(actual_path_name, working_path))
+    normal_path = os.path.relpath(actual_path_name, working_path)
+    if unix_slash:
+        normal_path = set_unix_slash(normal_path)
     normal_path = check_for_relative_in_path(context, normal_path, remove_relative)
 
     return normal_path

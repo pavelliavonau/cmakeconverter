@@ -290,11 +290,12 @@ class VCXDependencies(Dependencies):
         if property_page_schema_nodes:
             for property_page_schema_node in property_page_schema_nodes:
                 xml_schema_path = property_page_schema_node.get('Include')
+                xml_schema_path = set_native_slash(xml_schema_path)
                 xml_schema_path = xml_schema_path.replace(
                     '$(MSBuildThisFileDirectory)',
                     os.path.dirname(targets_file_path) + '/'
                 )
-                xml_schema_file = get_xml_data(context, xml_schema_path)
+                xml_schema_file = get_xml_data(context, os.path.normpath(xml_schema_path))
                 if xml_schema_file:
                     ext_property_nodes = xml_schema_file['tree'] \
                         .xpath('//ns:EnumProperty',

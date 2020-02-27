@@ -31,7 +31,7 @@ import ntpath
 import copy
 
 from cmake_converter.utils import take_name_from_list_case_ignore, normalize_path
-from cmake_converter.utils import message, write_comment, make_cmake_literal
+from cmake_converter.utils import message, write_comment, make_cmake_literal, set_unix_slash
 
 
 class ProjectFiles:
@@ -81,13 +81,8 @@ class ProjectFiles:
                     .format(file_name), 'warn')
 
         files_container[file_path].append(name_to_add)
-        if file_path:
-            file_path = file_path + '/'
-        file_path_name = file_path + name_to_add
-        working_path = os.path.dirname(context.vcxproj_path)
-        file_path_name = normalize_path(context, working_path,
-                                        file_path_name,
-                                        False)
+        file_path_name = os.path.normpath(os.path.join(file_path, name_to_add))
+        file_path_name = set_unix_slash(file_path_name)
         if source_group not in context.source_groups:
             context.source_groups[source_group] = []
         context.source_groups[source_group].append(file_path_name)
@@ -113,8 +108,9 @@ class ProjectFiles:
             if not node_text.rpartition('.')[-1] in self.languages:
                 self.languages.append(node_text.rpartition('.')[-1])
             file_path, file_name = ntpath.split(node_text)
+            vcxproj_dir = os.path.dirname(context.vcxproj_path)
+            file_path = normalize_path(context, vcxproj_dir, file_path, False, False)
             if file_path not in self.file_lists:
-                vcxproj_dir = os.path.dirname(context.vcxproj_path)
                 self.file_lists[file_path] = []
                 if os.path.exists(os.path.join(vcxproj_dir, file_path)):
                     self.file_lists[file_path] = os.listdir(os.path.join(vcxproj_dir, file_path))

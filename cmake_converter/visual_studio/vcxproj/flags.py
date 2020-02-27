@@ -213,9 +213,7 @@ class CPPFlags(Flags):
                     break
             if found:
                 break
-        if founded_pch_h_path:
-            founded_pch_h_path += '/'
-        pch_header_path = founded_pch_h_path + pch_header_name
+        pch_header_path = os.path.join(founded_pch_h_path, pch_header_name)
 
         pch_source_name = pch_header_name.replace('.h', '.cpp')
         real_pch_cpp = ''
@@ -235,9 +233,7 @@ class CPPFlags(Flags):
                             context.sources[src_path], src
                         )
                         real_pch_cpp_path = src_path
-        if real_pch_cpp_path:
-            real_pch_cpp_path += '/'
-        pch_source_path = real_pch_cpp_path + real_pch_cpp
+        pch_source_path = os.path.join(real_pch_cpp_path, real_pch_cpp)
 
         return pch_header_path, pch_source_path
 
