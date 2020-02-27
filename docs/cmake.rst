@@ -45,6 +45,23 @@ Library & Executable (target)
 After script get all information, he create your library (`STATIC` or `SHARED`) or your executable.
 Also here may be used add_precompiled_header if PCH is turned on.
 
+Property files (\*.props)
+-------------------------
+
+Converter does not support translation of property. It addes links to correspondent files at the same location.
+Example:
+if we have following link at source xml:
+
+    f1/f2/my-settings.props
+
+You'll get usage of similar cmake file that should be created manually:
+
+    use_props(${PROJECT_NAME} "${CMAKE_CONFIGURATION_TYPES}" "f1/f2/my-settings.cmake")
+
+In case of absence of cmake file CMake will throw warning:
+
+    Corresponding cmake file from props <cmake-file-name> doesn't exist
+
 Include directories
 ===================
 
