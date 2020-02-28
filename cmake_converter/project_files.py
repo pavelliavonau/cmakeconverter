@@ -31,7 +31,7 @@ import ntpath
 import copy
 
 from cmake_converter.utils import take_name_from_list_case_ignore, normalize_path
-from cmake_converter.utils import message, write_comment, make_cmake_literal, set_unix_slash
+from cmake_converter.utils import message, set_unix_slash
 
 
 class ProjectFiles:
@@ -172,99 +172,3 @@ class ProjectFiles:
         for project_language in project_languages:
             context.solution_languages.add(project_language)
         context.project_languages = project_languages
-
-    @staticmethod
-    def write_cmake_project(context, cmake_file):
-        """
-        Write cmake project for given CMake file
-
-        :param context: Converter context
-        :type context: Context
-        :param cmake_file: CMakeLists.txt IO wrapper
-        :type cmake_file: _io.TextIOWrapper
-        """
-
-        if context.project_name == '':
-            message(
-                context,
-                'No PROJECT NAME found or define. '
-                'Check it!!',
-                'error'
-            )
-        cmake_file.write(
-            'set(PROJECT_NAME {})\n\n'.format(make_cmake_literal(context, context.project_name))
-        )
-
-    @staticmethod
-    def get_source_group_var(context, source_group_name):
-        """ Evaluates variable from source group name """
-        if not source_group_name:
-            return 'no_group_source_files'
-
-        source_group_name = source_group_name.replace(' ', '_')
-        return make_cmake_literal(context, source_group_name.replace('\\\\', '__'))
-
-    def write_source_groups(self, context, cmake_file):
-        """ Writes source groups of project files into CMakwLists.txt """
-        write_comment(cmake_file, 'Source groups')
-
-        source_group_list = sorted(context.source_groups)
-        for source_group in source_group_list:
-            source_group_var = self.get_source_group_var(context, source_group)
-            cmake_file.write('set({}\n'.format(source_group_var))
-            for src_file in context.source_groups[source_group]:
-                fmt = '{}"{}"\n'
-                if context.file_contexts[src_file].excluded_from_build:
-                    fmt = '#' + fmt
-                    message(
-                        context,
-                        "file {} is excluded from build. Written but commented. "
-                        "No support in CMake yet.".format(src_file),
-                        'warn4'
-                    )
-                cmake_file.write(fmt.format(context.indent, src_file))
-
-            cmake_file.write(')\n')
-            cmake_file.write(
-                'source_group("{}" FILES ${{{}}})\n\n'.format(source_group, source_group_var)
-            )
-
-        cmake_file.write('set(ALL_FILES\n')
-        for source_group in source_group_list:
-            cmake_file.write(
-                '{}${{{}}}\n'.format(
-                    context.indent,
-                    context.files.get_source_group_var(context, source_group)
-                )
-            )
-        cmake_file.write(')\n\n')
-
-    @staticmethod
-    def add_additional_code(context, file_to_add, cmake_file):
-        """
-        Add additional file with CMake code inside
-
-        :param context: the context of converter
-        :type context: Context
-        :param cmake_file: CMakeLists.txt IO wrapper
-        :type cmake_file: _io.TextIOWrapper
-        :param file_to_add: the file who contains CMake code
-        :type file_to_add: str
-        """
-
-        if file_to_add != '':
-            try:
-                fc = open(file_to_add)
-                write_comment(cmake_file, 'Provides from external file.')
-                for line in fc:
-                    cmake_file.write(line)
-                fc.close()
-                cmake_file.write('\n')
-                message(context, 'File of Code is added = ' + file_to_add, 'warn')
-            except OSError as e:
-                message(context, str(e), 'error')
-                message(
-                    context,
-                    'Wrong data file ! Code was not added, please verify file name or path !',
-                    'error'
-                )

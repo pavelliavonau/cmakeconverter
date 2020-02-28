@@ -85,18 +85,3 @@ class VFProjectVariables(ProjectVariables):
             'PDB_OUTPUT_DIRECTORY',
             'PDB_NAME'
         )
-
-    @staticmethod
-    def write_target_outputs(context, cmake_file):
-        """ Set import library for Fortran projects """
-        ProjectVariables.write_target_outputs(context, cmake_file)
-
-        # No support of Regex for Fortran_MODULE_DIRECTORY at CMake 3.13
-        # write_property_of_settings(
-        #     cmake_file, context.settings,
-        #     context.sln_configurations_map,
-        #     begin_text='set_target_properties(${PROJECT_NAME} PROPERTIES',
-        #     end_text=')',
-        #     property_name='Fortran_MODULE_DIRECTORY',
-        #     write_setting_property_func=ProjectVariables.write_target_property
-        # )

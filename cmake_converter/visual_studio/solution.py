@@ -308,12 +308,14 @@ class VSSolutionConverter(DataConverter):
 
         configuration_types_list = self.__get_global_configuration_types(solution_data)
 
-        self.write_root_cmake_file(
+        root_context.writer.write_root_cmake_file(
             root_context,
             configuration_types_list,
             subdirectories_set,
             subdirectories_to_project_name
         )
+
+        self.copy_cmake_utils(root_context.solution_path)
 
     def __get_input_data_for_converter(self, root_context, projects_data):
         input_data_for_converter = {}

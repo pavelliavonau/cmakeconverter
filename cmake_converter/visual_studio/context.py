@@ -62,6 +62,7 @@ class VSContext(Context):
         self.dependencies = VCXDependencies()
         self.utils = VCXUtils()
         self.parser = VCXParser()
+        self.default_property_sheet = 'DEFAULT_CXX_PROPS'
 
     def init_context_for_vfproj(self):
         """Makes initialization of helpers for fortran projects."""
@@ -71,3 +72,4 @@ class VSContext(Context):
         self.dependencies = VFDependencies()
         self.utils = VFUtils()
         self.parser = VFParser()
+        self.default_property_sheet = 'DEFAULT_Fortran_PROPS'

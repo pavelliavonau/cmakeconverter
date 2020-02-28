@@ -22,7 +22,7 @@
 
 import unittest
 
-from cmake_converter.utils import get_comment
+from cmake_converter.writer import CMakeWriter
 
 
 class TestUtils(unittest.TestCase):
@@ -33,7 +33,7 @@ class TestUtils(unittest.TestCase):
     def test_get_title(self):
         """Get Comment"""
 
-        under_test = get_comment('text of comment')
+        under_test = CMakeWriter.get_comment('text of comment')
 
         self.assertEqual(
             '################################################################################\n'

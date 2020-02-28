@@ -33,6 +33,7 @@ from collections import OrderedDict
 import copy
 
 from cmake_converter.utils import message
+from cmake_converter.writer import CMakeWriter
 
 
 class Context:
@@ -73,6 +74,7 @@ class Context:
         self.project_name = ''
         self.root_namespace = ''
         self.target_windows_version = ''
+        self.default_property_sheet = ''
         self.sources = {}
         self.headers = {}
         self.other_project_files = {}
@@ -91,6 +93,7 @@ class Context:
         self.flags = None
         self.dependencies = None
         self.utils = None
+        self.writer = CMakeWriter()
 
     def clone(self):
         """

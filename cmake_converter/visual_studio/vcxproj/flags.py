@@ -29,7 +29,7 @@ import os
 from collections import OrderedDict
 
 from cmake_converter.flags import Flags, defines, cl_flags, default_value, ln_flags
-from cmake_converter.utils import take_name_from_list_case_ignore, normalize_path
+from cmake_converter.utils import take_name_from_list_case_ignore
 from cmake_converter.utils import set_unix_slash, message, replace_vs_vars_with_cmake_vars
 
 
@@ -1401,55 +1401,3 @@ class CPPFlags(Flags):
         }
 
         return flag_values
-
-    @staticmethod
-    def __setting_has_pch(context, setting):
-        """
-        Return if there is precompiled header or not for given setting
-
-        :param context: converter Context
-        :type context: Context
-        :param setting: related setting (Release|x64, Debug|Win32,...)
-        :type setting: str
-        :return: if use PCH or not
-        :rtype: bool
-        """
-
-        has_pch = context.settings[setting]['PrecompiledHeader']
-
-        return 'Use' in has_pch
-
-    @staticmethod
-    def write_precompiled_headers(context, setting, cmake_file):
-        """
-        Write precompiled headers, if needed, on given CMake file
-
-        :param context: converter Context
-        :type context: Context
-        :param setting: related setting (Release|x64, Debug|Win32,...)
-        :type setting: str
-        :param cmake_file: CMakeLIsts.txt IO wrapper
-        :type cmake_file: _io.TextIOWrapper
-        """
-
-        pch_header = context.settings[setting]['PrecompiledHeaderFile']
-        pch_source = context.settings[setting]['PrecompiledSourceFile']
-        working_path = os.path.dirname(context.vcxproj_path)
-        cmake_file.write(
-            'add_precompiled_header(${{PROJECT_NAME}} "{}" "{}")\n\n'.format(
-                os.path.basename(pch_header),
-                normalize_path(context, working_path, pch_source, False)
-            )
-        )
-
-    def write_use_pch_function(self, context, cmake_file):
-        need_pch = False
-        any_setting = None
-        for setting in context.settings:
-            if self.__setting_has_pch(context, setting):
-                need_pch = True
-                any_setting = setting
-                break
-
-        if need_pch:
-            self.write_precompiled_headers(context, any_setting, cmake_file)
