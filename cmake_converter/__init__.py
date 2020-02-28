@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# Copyright (c) 2016-2019:
+# Copyright (c) 2016-2020:
 #   Matthieu Estrada, ttamalfor@gmail.com
 #   Pavel Liavonau, liavonlida@gmail.com
 #
@@ -33,7 +33,7 @@ __application__ = u"CMake-Converter"
 __short_version__ = '.'.join((str(each) for each in VERSION[:2]))
 __version__ = '.'.join((str(each) for each in VERSION[:4]))
 __author__ = u"Liavonau Pavel"
-__copyright__ = u"2016-2019 - %s" % __author__
+__copyright__ = u"2016-2020 - %s" % __author__
 __license__ = u"GNU Affero General Public License, version 3"
 __description__ = u"CMake converter for Visual Studio projects"
 __releasenotes__ = u"CMake converter for Visual Studio projects"

@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-# Copyright (c) 2016-2019:
+# Copyright (c) 2016-2020:
 #   Pavel Liavonau, liavonlida@gmail.com
 #   Matthieu Estrada, ttamalfor@gmail.com
 #
