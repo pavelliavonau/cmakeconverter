@@ -154,6 +154,7 @@ class VCXDependencies(Dependencies):
             filename,
             False
         ).replace('.props', '.cmake')
+        props_cmake_path = cleaning_output(context, props_cmake_path)
         message(context, 'cmake from property sheet: {}'.format(props_cmake_path), '')
         context.settings[context.current_setting]['property_sheets'].append(props_cmake_path)
 
