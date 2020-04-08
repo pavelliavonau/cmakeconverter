@@ -284,6 +284,7 @@ class CPPFlags(Flags):
 
         flags_message = {}
         if values is not None:
+            self.prepare_context_for_flags(context)
             self.flags[context.current_setting][flag_name] = {}  # reset default values
             for key in values:
                 value = values[key]
