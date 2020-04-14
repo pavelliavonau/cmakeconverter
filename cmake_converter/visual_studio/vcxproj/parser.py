@@ -74,6 +74,7 @@ class VCXParser(Parser):
             'Import': self._parse_nodes,
             'ClInclude': self._parse_nodes,
             'ClCompile': self._parse_nodes,
+            'CustomBuild': self._parse_nodes,
             'None': self._parse_nodes,
             'Text': self._parse_nodes,
             'SubType': self.do_nothing_node_stub,  # no support in CMake
@@ -122,6 +123,7 @@ class VCXParser(Parser):
             'ProjectConfiguration_Include': self.__parse_project_configuration_include,
             'ClCompile_Include': self.__parse_cl_compile_include_attr,
             'ClInclude_Include': self.__parse_cl_include_include_attr,
+            'CustomBuild_Include': self.__parse_custom_build_include_attr,
             'None_Include': self.__parse_cl_none_include_attr,
             'Text_Include': self.__parse_cl_none_include_attr,
             'Condition': self.__parse_condition,
@@ -217,6 +219,12 @@ class VCXParser(Parser):
         else:
             self.__parse_file_nodes(context, context.other_project_files, none_node, '')
 
+        raise StopParseException()
+
+    def __parse_custom_build_include_attr(self, context, attr_name, value, custom_build_node):
+        del attr_name, value
+
+        self.__parse_file_nodes(context, context.headers, custom_build_node, '')
         raise StopParseException()
 
     def __parse_file_nodes(self, context, files_container, file_node, source_group):
