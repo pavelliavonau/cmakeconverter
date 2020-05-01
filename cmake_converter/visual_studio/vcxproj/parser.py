@@ -76,6 +76,8 @@ class VCXParser(Parser):
             'ClCompile': self._parse_nodes,
             'None': self._parse_nodes,
             'Text': self._parse_nodes,
+            'Xml': self._parse_nodes,
+            'CustomBuild': self._parse_nodes,
             'SubType': self.do_nothing_node_stub,  # no support in CMake
             'PreBuildEvent': context.dependencies.set_target_pre_build_events,
             'PreLinkEvent': context.dependencies.set_target_pre_link_events,
@@ -122,8 +124,10 @@ class VCXParser(Parser):
             'ProjectConfiguration_Include': self.__parse_project_configuration_include,
             'ClCompile_Include': self.__parse_cl_compile_include_attr,
             'ClInclude_Include': self.__parse_cl_include_include_attr,
-            'None_Include': self.__parse_cl_none_include_attr,
-            'Text_Include': self.__parse_cl_none_include_attr,
+            'None_Include': self.__parse_other_files_include_attr,
+            'Text_Include': self.__parse_other_files_include_attr,
+            'Xml_Include': self.__parse_other_files_include_attr,
+            'CustomBuild_Include': self.__parse_other_files_include_attr,
             'Condition': self.__parse_condition,
             'ProjectReference_Include': context.dependencies.add_target_reference,
             'Target_Name': self.__parse_target_name_attr,
@@ -209,7 +213,7 @@ class VCXParser(Parser):
         self.__parse_file_nodes(context, context.sources, cl_node, 'Sources')
         raise StopParseException()
 
-    def __parse_cl_none_include_attr(self, context, attr_name, value, none_node):
+    def __parse_other_files_include_attr(self, context, attr_name, value, none_node):
         del attr_name, value
 
         if 'packages.config' in none_node.attrib['Include']:
