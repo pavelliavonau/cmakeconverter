@@ -205,38 +205,6 @@ macro(use_props TARGET CONFIGS PROPS_FILE)
 endmacro()
 
 ################################################################################
-# Function for MSVC precompiled headers
-#     add_precompiled_header(<target> <precompiled_header> <precompiled_source>)
-# Input:
-#     target             - Target to which add precompiled header
-#     precompiled_header - Name of precompiled header
-#     precompiled_source - Name of precompiled source file
-################################################################################
-function(add_precompiled_header TARGET PRECOMPILED_HEADER PRECOMPILED_SOURCE)
-    get_target_property(SOURCES "${TARGET}" SOURCES)
-    list(REMOVE_ITEM SOURCES "${PRECOMPILED_SOURCE}")
-
-    if(MSVC)
-        set(PRECOMPILED_BINARY "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/${PROJECT_NAME}.pch")
-
-        set_source_files_properties(
-            "${PRECOMPILED_SOURCE}"
-            PROPERTIES
-            COMPILE_OPTIONS "/Yc${PRECOMPILED_HEADER};/Fp${PRECOMPILED_BINARY}"
-            OBJECT_OUTPUTS "${PRECOMPILED_BINARY}")
-
-        set_source_files_properties(
-            ${SOURCES}
-            PROPERTIES
-            COMPILE_OPTIONS "$<$<OR:$<COMPILE_LANGUAGE:C>,$<COMPILE_LANGUAGE:CXX>>:/Yu${PRECOMPILED_HEADER};/Fp${PRECOMPILED_BINARY}>"
-            OBJECT_DEPENDS "${PRECOMPILED_BINARY}")
-    endif()
-
-    list(INSERT SOURCES 0 "${PRECOMPILED_SOURCE}")
-    set_target_properties("${TARGET}" PROPERTIES SOURCES "${SOURCES}")
-endfunction()
-
-################################################################################
 # Add compile options to source file
 #     source_file_compile_options(<source_file> [compile_options...])
 # Input:

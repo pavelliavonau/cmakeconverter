@@ -255,12 +255,13 @@ class CMakeWriter:
         """
 
         pch_header = context.settings[setting]['PrecompiledHeaderFile']
-        pch_source = context.settings[setting]['PrecompiledSourceFile']
         working_path = os.path.dirname(context.vcxproj_path)
         cmake_file.write(
-            'add_precompiled_header(${{PROJECT_NAME}} "{}" "{}")\n\n'.format(
-                os.path.basename(pch_header),
-                normalize_path(context, working_path, pch_source, False)
+            'target_precompile_headers(${{PROJECT_NAME}} PRIVATE\n'
+            '{}"$<$<COMPILE_LANGUAGE:CXX>:${{CMAKE_CURRENT_SOURCE_DIR}}/{}>"\n'
+            ')\n\n'.format(
+                context.indent,
+                normalize_path(context, working_path, pch_header, False)
             )
         )
 
@@ -933,7 +934,7 @@ class CMakeWriter:
             project_cmake.close()
 
         project_cmake = get_cmake_lists(project_context, project_context.solution_path)
-        project_cmake.write('cmake_minimum_required(VERSION 3.15.0 FATAL_ERROR)\n\n')
+        project_cmake.write('cmake_minimum_required(VERSION 3.16.0 FATAL_ERROR)\n\n')
         if project_context.target_windows_version:
             project_cmake.write(
                 'set(CMAKE_SYSTEM_VERSION {} CACHE STRING "" FORCE)\n\n'
