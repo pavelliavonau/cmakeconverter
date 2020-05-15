@@ -430,20 +430,11 @@ class CPPFlags(Flags):
         """
         Set Use Debug Libraries flag: /MD
 
-        """
-        del flag_name
-        if isinstance(md, NodeStub):
-            md.text = 'false'
+        It's hard to handle this with generator expressions of CMake.
+        In case of issues - set flags explicitly
 
-        setting = context.current_setting
-        context.settings[setting]['use_debug_libs'] = 'true' in md.text
-        message(
-            context,
-            'UseDebugLibraries : {}'.format(context.settings[setting]['use_debug_libs']),
-            ''
-        )
-        # update default of RuntimeLibrary
-        self.__set_default_flag(context, 'RuntimeLibrary')
+        """
+        del context, flag_name, md
 
     @staticmethod
     def __set_warning_level(context, flag_name, node):
@@ -702,41 +693,19 @@ class CPPFlags(Flags):
 
         return flag_values
 
-    def __set_runtime_library(self, context, flag_name, runtime_library_node):
+    @staticmethod
+    def __set_runtime_library(context, flag_name, runtime_library_node):
         """
         Set RuntimeLibrary flag: /MDd
 
         """
+        del flag_name
 
-        mdd = '/MDd'
-        m_d = '/MD'
-        mtd = '/MTd'
-        m_t = '/MT'
+        node_text = runtime_library_node.text.strip()
 
-        cl_flag_value = ''
-        node_text = runtime_library_node.text
         if node_text:
-            if node_text == 'MultiThreadedDebugDLL':
-                cl_flag_value = mdd
-            if node_text == 'MultiThreadedDLL':
-                cl_flag_value = m_d
-            if node_text == 'MultiThreaded':
-                cl_flag_value = m_t
-            if node_text == 'MultiThreadedDebug':
-                cl_flag_value = mtd
-        else:
-            if context.file_contexts is not None:  # if not file context
-                if isinstance(runtime_library_node, NodeStub):  # if default pass
-                    setting = context.settings[context.current_setting]
-                    if setting['use_debug_libs']:
-                        cl_flag_value = '${DEFAULT_CXX_DEBUG_RUNTIME_LIBRARY}'
-                    else:
-                        cl_flag_value = '${DEFAULT_CXX_RUNTIME_LIBRARY}'
-                    message(context, 'RuntimeLibrary : updating default...', '')
-
-        if cl_flag_value:
-            self.flags[context.current_setting][flag_name][cl_flags] = [cl_flag_value]
-            message(context, 'RuntimeLibrary {}: {}'.format(node_text, cl_flag_value), '')
+            context.settings[context.current_setting]['MSVC_RUNTIME_LIBRARY'] = [node_text]
+            message(context, 'RuntimeLibrary : {}'.format(node_text), '')
 
     @staticmethod
     def __set_string_pooling(context, flag_name, node):

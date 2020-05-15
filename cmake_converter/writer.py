@@ -447,6 +447,23 @@ class CMakeWriter:
             write_setting_property_func=CMakeWriter.write_target_property
         )
 
+        if is_settings_has_data(context.sln_configurations_map,
+                                context.settings,
+                                'MSVC_RUNTIME_LIBRARY'):
+            CMakeWriter.write_comment(cmake_file, 'MSVC runtime library')
+            cmake_file.write('get_property(MSVC_RUNTIME_LIBRARY_DEFAULT TARGET ${PROJECT_NAME} '
+                             'PROPERTY MSVC_RUNTIME_LIBRARY)\n')
+            CMakeWriter.write_property_of_settings(
+                context,
+                cmake_file,
+                begin_text='string(CONCAT "MSVC_RUNTIME_LIBRARY_STR"',
+                end_text=')',
+                property_name='MSVC_RUNTIME_LIBRARY',
+                default='${MSVC_RUNTIME_LIBRARY_DEFAULT}'
+            )
+            cmake_file.write('set_target_properties(${PROJECT_NAME} PROPERTIES MSVC_RUNTIME_LIBRARY'
+                             ' ${MSVC_RUNTIME_LIBRARY_STR})\n\n')
+
         # No support of Regex for Fortran_MODULE_DIRECTORY at CMake 3.13
         # CMakeWriter.write_property_of_settings(
         #     cmake_file, context.settings,
@@ -916,7 +933,7 @@ class CMakeWriter:
             root_cmake.close()
 
         root_cmake = get_cmake_lists(root_context, root_context.solution_path)
-        root_cmake.write('cmake_minimum_required(VERSION 3.13.0 FATAL_ERROR)\n\n')
+        root_cmake.write('cmake_minimum_required(VERSION 3.15.0 FATAL_ERROR)\n\n')
         if root_context.target_windows_version:
             root_cmake.write(
                 'set(CMAKE_SYSTEM_VERSION {} CACHE STRING "" FORCE)\n\n'

@@ -55,4 +55,5 @@ class VCXUtils(Utils):
             context.settings[context.current_setting][l] = []
         context.settings[context.current_setting]['inc_dirs_list'] = []
         context.settings[context.current_setting]['PrecompiledHeader'] = []
+        context.settings[context.current_setting]['MSVC_RUNTIME_LIBRARY'] = []
         context.settings[context.current_setting]['property_sheets'] = []
