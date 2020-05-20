@@ -59,7 +59,7 @@ class ProjectFiles:
         for setting in context.settings:       # copy settings
             file_context.current_setting = setting
             file_context.utils.init_context_current_setting(file_context)
-        context.current_setting = (None, None)
+        file_context.current_setting = (None, None)
         return file_context
 
     def __add_file_into_container(self, context, **kwargs):
