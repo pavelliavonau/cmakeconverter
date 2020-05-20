@@ -55,10 +55,15 @@ class VSSolutionConverter(DataConverter):
 
         self.__check_solution_version(root_context, sln_text)
 
-        self.__parse_projects_data(sln_text, solution_folders, projects_data)
+        message(root_context, 'Start parsing projects info (Project .. EndProject)', '')
+        self.__parse_projects_data(root_context, sln_text, solution_folders, projects_data)
 
+        message(root_context, 'Start parsing GlobalSection(SolutionConfigurationPlatforms) = '
+                              'preSolution', '')
         self.__parse_configurations_of_solution(root_context, sln_text, solution_data)
 
+        message(root_context, 'Start parsing GlobalSection(ProjectConfigurationPlatforms) = '
+                              'postSolution (Mapping sln-setting -> project-settong)', '')
         self.__parse_project_configuration_platforms(root_context, sln_text, projects_data)
 
         solution_folders_map = {}
@@ -109,10 +114,12 @@ class VSSolutionConverter(DataConverter):
         message(root_context, 'Version of solution is {}'.format(version_match[0]), '')
 
     @staticmethod
-    def __parse_projects_data(sln_text, solution_folders, projects_data):
+    def __parse_projects_data(root_context, sln_text, solution_folders, projects_data):
         """
         Parse section with information about project at *.sln file
 
+        :param root_context: context from input file
+        :type root_context: Context
         :param sln_text:
         :param solution_folders:
         :param projects_data:
@@ -132,19 +139,26 @@ class VSSolutionConverter(DataConverter):
                 solution_folders[guid] = path
                 continue
 
-            projects_data[guid] = VSSolutionConverter.__parse_project_data(project_data_match, path)
+            projects_data[guid] = VSSolutionConverter.__parse_project_data(
+                root_context, project_data_match, path
+            )
 
     @staticmethod
-    def __parse_project_data(project_data_match, path):
+    def __parse_project_data(root_context, project_data_match, path):
         """
         Parse project section at *.sln file
 
+        :param root_context: context from input file
+        :type root_context: Context
         :param project_data_match:
         :param path:
         :return:
         """
         project = dict()
         project['name'] = project_data_match[1]
+        message(
+            root_context, '    Found project "{}" with {}'.format(path, project_data_match[3]), ''
+        )
         project['path'] = path
         project['sln_configs_2_project_configs'] = OrderedDict({(None, None): (None, None)})
         if 'ProjectDependencies' in project_data_match[0]:
@@ -175,6 +189,7 @@ class VSSolutionConverter(DataConverter):
             for sln_configuration in configurations:
                 cmake_configuration = make_cmake_configuration(root_context, sln_configuration[0])
                 solution_data['sln_configurations'].append(cmake_configuration)
+                message(root_context, '    Found sln setting "{}"'.format(cmake_configuration), '')
                 arch = cmake_configuration.split('|')[1]
                 if arch == 'x86':
                     message(
@@ -201,6 +216,15 @@ class VSSolutionConverter(DataConverter):
                 project_cmake_configuration = make_cmake_configuration(context, sln_config_group[2])
                 p['sln_configs_2_project_configs'][tuple(sln_cmake_configuration.split('|'))] = \
                     tuple(project_cmake_configuration.split('|'))
+                message(
+                    context,
+                    '    "{}" -> "{}" for {}'.format(
+                        sln_cmake_configuration,
+                        project_cmake_configuration,
+                        p['name']
+                    ),
+                    ''
+                )
 
     @staticmethod
     def __parse_nested_projects_in_solution_folders(sln_text, solution_folders_map):
@@ -280,8 +304,15 @@ class VSSolutionConverter(DataConverter):
         """
         Routine converts Visual studio solution into set of CMakeLists.txt scripts
         """
+
+        message(
+            root_context, '------- Started parsing solution {} -------'.format(sln_file_path), ''
+        )
         with open(sln_file_path, encoding='utf8') as sln:
             solution_data = self.parse_solution(root_context, sln.read())
+        message(
+            root_context, '------ Finished parsing solution {} -------'.format(sln_file_path), ''
+        )
 
         root_context.solution_path = os.path.dirname(sln_file_path)
         root_context.project_name = os.path.splitext(os.path.basename(sln_file_path))[0]
