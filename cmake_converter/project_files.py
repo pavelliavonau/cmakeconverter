@@ -163,9 +163,9 @@ class ProjectFiles:
         available_language.update(dict.fromkeys(fortran_extensions, 'Fortran'))
 
         project_languages_set = set()
-        for l in self.languages:
-            if l in available_language:
-                project_languages_set.add(available_language[l])
+        for lang in self.languages:
+            if lang in available_language:
+                project_languages_set.add(available_language[lang])
 
         project_languages = list(project_languages_set)
         project_languages.sort()

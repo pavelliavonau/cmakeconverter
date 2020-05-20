@@ -51,8 +51,8 @@ class VCXUtils(Utils):
         """
 
         super(VCXUtils, self).init_context_current_setting(context)
-        for l in self.lists_of_settings_to_merge():
-            context.settings[context.current_setting][l] = []
+        for list_to_merge in self.lists_of_settings_to_merge():
+            context.settings[context.current_setting][list_to_merge] = []
         context.settings[context.current_setting]['inc_dirs_list'] = []
         context.settings[context.current_setting]['PrecompiledHeader'] = []
         context.settings[context.current_setting]['MSVC_RUNTIME_LIBRARY'] = []

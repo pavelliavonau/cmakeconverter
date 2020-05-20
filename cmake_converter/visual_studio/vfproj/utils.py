@@ -53,8 +53,8 @@ class VFUtils(Utils):
         """
 
         super(VFUtils, self).init_context_current_setting(context)
-        for l in self.lists_of_settings_to_merge():
-            context.settings[context.current_setting][l] = []
+        for list_to_merge in self.lists_of_settings_to_merge():
+            context.settings[context.current_setting][list_to_merge] = []
         if None not in context.current_setting:
             context.settings[context.current_setting]['inc_dirs'] = ['${CMAKE_CURRENT_SOURCE_DIR}/']
         context.settings[context.current_setting]['inc_dirs_list'] = ['./']
