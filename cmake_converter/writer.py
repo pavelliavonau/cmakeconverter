@@ -914,82 +914,86 @@ class CMakeWriter:
         message(context, 'CMake will show fake custom Library.', '')
         cmake_file.write('add_custom_target(${PROJECT_NAME} SOURCES ${ALL_FILES})\n\n')
 
-    def write_root_cmake_file(
+    def write_project_cmake_file(
             self,
-            root_context,
+            project_context,
             configuration_types_list,
             subdirectories_set,
-            subdirectories_to_project_name
+            subdirectories_to_target_name
     ):
         """ Routine that writes entry point of converted solution for CMake """
 
-        if root_context.dry:
+        if project_context.dry:
             return
 
-        root_cmake = get_cmake_lists(root_context, root_context.solution_path, 'r')
-        root_cmake_projects_text = ''
-        if root_cmake is not None:
-            root_cmake_projects_text = root_cmake.read()
-            root_cmake.close()
+        project_cmake = get_cmake_lists(project_context, project_context.solution_path, 'r')
+        project_cmake_projects_text = ''
+        if project_cmake is not None:
+            project_cmake_projects_text = project_cmake.read()
+            project_cmake.close()
 
-        root_cmake = get_cmake_lists(root_context, root_context.solution_path)
-        root_cmake.write('cmake_minimum_required(VERSION 3.15.0 FATAL_ERROR)\n\n')
-        if root_context.target_windows_version:
-            root_cmake.write(
+        project_cmake = get_cmake_lists(project_context, project_context.solution_path)
+        project_cmake.write('cmake_minimum_required(VERSION 3.15.0 FATAL_ERROR)\n\n')
+        if project_context.target_windows_version:
+            project_cmake.write(
                 'set(CMAKE_SYSTEM_VERSION {} CACHE STRING "" FORCE)\n\n'
-                .format(root_context.target_windows_version)
+                .format(project_context.target_windows_version)
             )
 
-        root_cmake.write(
+        project_cmake.write(
             'project({} {})\n\n'.format(
-                root_context.project_name,
-                ' '.join(sorted(root_context.solution_languages))
+                project_context.project_name,
+                ' '.join(sorted(project_context.solution_languages))
             )
         )
 
-        self.write_arch_types(root_context, root_cmake)
+        self.write_arch_types(project_context, project_cmake)
 
-        self.__write_supported_architectures_check(root_context, root_cmake)
-        self.__write_global_configuration_types(root_context, root_cmake, configuration_types_list)
+        self.__write_supported_architectures_check(project_context, project_cmake)
+        self.__write_global_configuration_types(
+            project_context, project_cmake, configuration_types_list
+        )
 
         self.__write_global_compile_options(
-            root_context, root_cmake, configuration_types_list
+            project_context, project_cmake, configuration_types_list
         )
 
-        self.__write_global_link_options(root_context, root_cmake, configuration_types_list)
+        self.__write_global_link_options(project_context, project_cmake, configuration_types_list)
 
-        self.write_use_package_stub(root_context, root_cmake)
+        self.write_use_package_stub(project_context, project_cmake)
 
-        CMakeWriter.write_comment(root_cmake, 'Common utils')
-        root_cmake.write('include(CMake/Utils.cmake)\n\n')
+        CMakeWriter.write_comment(project_cmake, 'Common utils')
+        project_cmake.write('include(CMake/Utils.cmake)\n\n')
 
-        CMakeWriter.write_comment(root_cmake, 'Additional Global Settings(add specific info there)')
-        root_cmake.write('include(CMake/GlobalSettingsInclude.cmake OPTIONAL)\n\n')
+        CMakeWriter.write_comment(
+            project_cmake, 'Additional Global Settings(add specific info there)'
+        )
+        project_cmake.write('include(CMake/GlobalSettingsInclude.cmake OPTIONAL)\n\n')
 
-        CMakeWriter.write_comment(root_cmake, 'Use solution folders feature')
-        root_cmake.write('set_property(GLOBAL PROPERTY USE_FOLDERS ON)\n\n')
+        CMakeWriter.write_comment(project_cmake, 'Use solution folders feature')
+        project_cmake.write('set_property(GLOBAL PROPERTY USE_FOLDERS ON)\n\n')
 
         self.__write_subdirectories(
-            root_cmake, subdirectories_set, subdirectories_to_project_name
+            project_cmake, subdirectories_set, subdirectories_to_target_name
         )
 
-        if root_cmake_projects_text:
-            root_cmake.write('\n' * 26)
-            root_cmake.write(root_cmake_projects_text)
+        if project_cmake_projects_text:
+            project_cmake.write('\n' * 26)
+            project_cmake.write(project_cmake_projects_text)
 
-        root_cmake.close()
+        project_cmake.close()
 
         warnings = ''
-        if root_context.warnings_count > 0:
-            warnings = ' ({} warnings)'.format(root_context.warnings_count)
+        if project_context.warnings_count > 0:
+            warnings = ' ({} warnings)'.format(project_context.warnings_count)
         message(
-            root_context,
+            project_context,
             'Conversion of {} finished{}\n\nNow you may run cmake like following sample:\n\n'
             'cmake -S{} -B{} -G"Visual Studio 15 2017 Win64"'.format(
-                root_context.vcxproj_path,
+                project_context.vcxproj_path,
                 warnings,
-                root_context.cmake,
-                os.path.join(root_context.cmake, 'build')
+                project_context.cmake,
+                os.path.join(project_context.cmake, 'build')
             ),
             'done'
         )
@@ -1041,89 +1045,93 @@ class CMakeWriter:
         cmake_file.write('endif()\n\n')
 
     @staticmethod
-    def __write_global_configuration_types(context, root_cmake, configuration_types_list):
-        CMakeWriter.write_comment(root_cmake, 'Global configuration types')
-        root_cmake.write('set(CMAKE_CONFIGURATION_TYPES\n')
+    def __write_global_configuration_types(context, project_cmake, configuration_types_list):
+        CMakeWriter.write_comment(project_cmake, 'Global configuration types')
+        project_cmake.write('set(CMAKE_CONFIGURATION_TYPES\n')
         for configuration_type in configuration_types_list:
-            root_cmake.write('{}\"{}\"\n'.format(context.indent, configuration_type))
-        root_cmake.write('{}CACHE STRING "" FORCE\n)\n\n'.format(context.indent))
+            project_cmake.write('{}\"{}\"\n'.format(context.indent, configuration_type))
+        project_cmake.write('{}CACHE STRING "" FORCE\n)\n\n'.format(context.indent))
 
-    def __write_global_compile_options(self, root_context, root_cmake, configuration_types_list):
-        CMakeWriter.write_comment(root_cmake, 'Global compiler options')
-        root_cmake.write('if(MSVC)\n')
-        root_cmake.write(
-            '{}# remove default flags provided with CMake for MSVC\n'.format(root_context.indent)
+    def __write_global_compile_options(
+            self,
+            project_context, project_cmake,
+            configuration_types_list
+    ):
+        CMakeWriter.write_comment(project_cmake, 'Global compiler options')
+        project_cmake.write('if(MSVC)\n')
+        project_cmake.write(
+            '{}# remove default flags provided with CMake for MSVC\n'.format(project_context.indent)
         )
         have_fortran = False
-        for lang in sorted(root_context.solution_languages):
+        for lang in sorted(project_context.solution_languages):
             if lang == 'Fortran':
                 have_fortran = True
                 continue
             self.__write_global_compile_options_language(
-                root_context, root_cmake, configuration_types_list, lang
+                project_context, project_cmake, configuration_types_list, lang
             )
-        root_cmake.write('endif()\n\n')
+        project_cmake.write('endif()\n\n')
 
         if have_fortran:
-            root_cmake.write('if(${CMAKE_Fortran_COMPILER_ID} STREQUAL "Intel")\n')
-            root_cmake.write(
+            project_cmake.write('if(${CMAKE_Fortran_COMPILER_ID} STREQUAL "Intel")\n')
+            project_cmake.write(
                 '{}# remove default flags provided with CMake for ifort\n'
-                .format(root_context.indent)
+                .format(project_context.indent)
             )
             self.__write_global_compile_options_language(
-                root_context, root_cmake, configuration_types_list, 'Fortran'
+                project_context, project_cmake, configuration_types_list, 'Fortran'
             )
-            root_cmake.write('endif()\n\n')
+            project_cmake.write('endif()\n\n')
 
     @staticmethod
     def __write_global_compile_options_language(
-            context, root_cmake, configuration_types_list, lang
+            context, project_cmake, configuration_types_list, lang
     ):
-        root_cmake.write('{}set(CMAKE_{}_FLAGS "")\n'.format(context.indent, lang))
+        project_cmake.write('{}set(CMAKE_{}_FLAGS "")\n'.format(context.indent, lang))
         for configuration_type in configuration_types_list:
-            root_cmake.write('{}set(CMAKE_{}_FLAGS_{} "")\n'
-                             .format(context.indent, lang, configuration_type.upper()))
+            project_cmake.write('{}set(CMAKE_{}_FLAGS_{} "")\n'
+                                .format(context.indent, lang, configuration_type.upper()))
 
     @staticmethod
-    def __write_global_link_options(context, root_cmake, configuration_types_list):
-        CMakeWriter.write_comment(root_cmake, 'Global linker options')
-        root_cmake.write('if(MSVC)\n')
-        root_cmake.write(
+    def __write_global_link_options(context, project_cmake, configuration_types_list):
+        CMakeWriter.write_comment(project_cmake, 'Global linker options')
+        project_cmake.write('if(MSVC)\n')
+        project_cmake.write(
             '{}# remove default flags provided with CMake for MSVC\n'.format(context.indent)
         )
-        root_cmake.write('{}set(CMAKE_EXE_LINKER_FLAGS "")\n'.format(context.indent))
-        root_cmake.write('{}set(CMAKE_MODULE_LINKER_FLAGS "")\n'.format(context.indent))
-        root_cmake.write('{}set(CMAKE_SHARED_LINKER_FLAGS "")\n'.format(context.indent))
-        root_cmake.write('{}set(CMAKE_STATIC_LINKER_FLAGS "")\n'.format(context.indent))
+        project_cmake.write('{}set(CMAKE_EXE_LINKER_FLAGS "")\n'.format(context.indent))
+        project_cmake.write('{}set(CMAKE_MODULE_LINKER_FLAGS "")\n'.format(context.indent))
+        project_cmake.write('{}set(CMAKE_SHARED_LINKER_FLAGS "")\n'.format(context.indent))
+        project_cmake.write('{}set(CMAKE_STATIC_LINKER_FLAGS "")\n'.format(context.indent))
         for configuration_type in configuration_types_list:
             ct_upper = configuration_type.upper()
-            root_cmake.write(
+            project_cmake.write(
                 '{}set(CMAKE_EXE_LINKER_FLAGS_{} \"${{CMAKE_EXE_LINKER_FLAGS}}\")\n'
                 .format(context.indent, ct_upper))
-            root_cmake.write(
+            project_cmake.write(
                 '{}set(CMAKE_MODULE_LINKER_FLAGS_{} \"${{CMAKE_MODULE_LINKER_FLAGS}}\")\n'
                 .format(context.indent, ct_upper))
-            root_cmake.write(
+            project_cmake.write(
                 '{}set(CMAKE_SHARED_LINKER_FLAGS_{} \"${{CMAKE_SHARED_LINKER_FLAGS}}\")\n'
                 .format(context.indent, ct_upper))
-            root_cmake.write(
+            project_cmake.write(
                 '{}set(CMAKE_STATIC_LINKER_FLAGS_{} \"${{CMAKE_STATIC_LINKER_FLAGS}}\")\n'
                 .format(context.indent, ct_upper))
-        root_cmake.write('endif()\n\n')
+        project_cmake.write('endif()\n\n')
 
     @staticmethod
-    def __write_subdirectories(root_cmake, subdirectories_set, subdirectories_to_project_name):
-        CMakeWriter.write_comment(root_cmake, 'Sub-projects')
+    def __write_subdirectories(project_cmake, subdirectories_set, subdirectories_to_target_name):
+        CMakeWriter.write_comment(project_cmake, 'Sub-projects')
         subdirectories = list(subdirectories_set)
         subdirectories.sort(key=str.lower)
         for subdirectory in subdirectories:
             binary_dir = ''
             if '.' in subdirectory[:1]:
                 binary_dir = ' ${{CMAKE_BINARY_DIR}}/{}'.format(
-                    subdirectories_to_project_name[subdirectory])
-            root_cmake.write('add_subdirectory({}{})\n'.format(
+                    subdirectories_to_target_name[subdirectory])
+            project_cmake.write('add_subdirectory({}{})\n'.format(
                 set_unix_slash(subdirectory), binary_dir))
-        root_cmake.write('\n')
+        project_cmake.write('\n')
 
     @staticmethod
     def get_comment(text):

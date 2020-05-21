@@ -106,42 +106,42 @@ def main():  # pragma: no cover
 
     args = parser.parse_args()
 
-    root_context = VSContext()
+    project_context = VSContext()
     # Prepare context
-    root_context.additional_code = args.additional
+    project_context.additional_code = args.additional
 
     if args.projects_regexp:
-        root_context.projects_regexp = args.projects_regexp
+        project_context.projects_regexp = args.projects_regexp
 
     if args.indent:
-        root_context.indent = args.indent
+        project_context.indent = args.indent
 
     if args.dry:
-        root_context.dry = True
-        message(root_context, 'Converter runs in dry mode', 'done')
+        project_context.dry = True
+        message(project_context, 'Converter runs in dry mode', 'done')
 
     if args.verbose:
-        root_context.verbose = True
-        message(root_context, 'Converter runs in verbose mode', 'done')
+        project_context.verbose = True
+        message(project_context, 'Converter runs in verbose mode', 'done')
 
     if args.jobs:
-        root_context.jobs = int(args.jobs)
-    message(root_context, 'processes count = {}'. format(root_context.jobs), 'done')
+        project_context.jobs = int(args.jobs)
+    message(project_context, 'processes count = {}'. format(project_context.jobs), 'done')
 
     if args.warn:
-        root_context.warn_level = int(args.warn)
-    message(root_context, 'warnings level = {}'. format(root_context.warn_level), 'done')
+        project_context.warn_level = int(args.warn)
+    message(project_context, 'warnings level = {}'. format(project_context.warn_level), 'done')
 
     if args.private_includes:
-        message(root_context, 'include directories will be PRIVATE', 'done')
-        root_context.private_include_directories = True
+        message(project_context, 'include directories will be PRIVATE', 'done')
+        project_context.private_include_directories = True
 
     if args.ignore_absent_sources:
-        message(root_context, 'absent source files will be ignored', 'done')
-        root_context.ignore_absent_sources = True
+        message(project_context, 'absent source files will be ignored', 'done')
+        project_context.ignore_absent_sources = True
 
     converter = VSSolutionConverter()
-    converter.convert_solution(root_context, os.path.abspath(args.solution))
+    converter.convert_solution(project_context, os.path.abspath(args.solution))
 
 
 if __name__ == "__main__":  # pragma: no cover

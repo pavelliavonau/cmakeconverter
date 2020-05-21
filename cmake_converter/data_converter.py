@@ -256,45 +256,45 @@ class DataConverter:
 
         return True
 
-    def run_conversion(self, subdirectory_projects_data):
+    def run_conversion(self, subdirectory_targets_data):
         """ Routine that converts projects located at the same directory """
         results = []
-        for project_data in subdirectory_projects_data:
-            project_context = project_data['project_context']
-            name = project_context.project_number
-            message(project_context, '------ Starting {} -------'.format(name), '')
+        for target_data in subdirectory_targets_data:
+            target_context = target_data['target_context']
+            name = target_context.project_number
+            message(target_context, '------ Starting {} -------'.format(name), '')
             converted = self.convert_project(
-                project_context,
-                project_data['project_abs'],
-                project_data['subdirectory'],
+                target_context,
+                target_data['target_abs'],
+                target_data['subdirectory'],
             )
-            message(project_context, '------ Exiting  {} -------'.format(name), '')
+            message(target_context, '------ Exiting  {} -------'.format(name), '')
 
             if not converted:
                 continue
 
-            project_context = project_data['project_context']
+            target_context = target_data['target_context']
             # Can't return context as a result due PicklingError
             results.append(
                 {
-                    'cmake': project_context.cmake,
-                    'project_name': project_context.project_name,
-                    'solution_languages': project_context.solution_languages,
-                    'target_windows_ver': project_context.target_windows_version,
-                    'warnings_count': project_context.warnings_count
+                    'cmake': target_context.cmake,
+                    'target_name': target_context.project_name,
+                    'solution_languages': target_context.solution_languages,
+                    'target_windows_ver': target_context.target_windows_version,
+                    'warnings_count': target_context.warnings_count
                 }
             )
         return results
 
-    def do_conversion(self, root_context, input_data_for_converter):
+    def do_conversion(self, project_context, input_data_for_converter):
         """ Executes conversion with given projects input data """
         input_converter_data_list = []
         for subdirectory in input_data_for_converter:
             input_converter_data_list.append(input_data_for_converter[subdirectory])
 
         results = []
-        if root_context.jobs > 1:
-            pool = Pool(root_context.jobs)
+        if project_context.jobs > 1:
+            pool = Pool(project_context.jobs)
             results = pool.map(self.run_conversion, input_converter_data_list)
         else:   # do in main thread
             for data_for_converter in input_converter_data_list:

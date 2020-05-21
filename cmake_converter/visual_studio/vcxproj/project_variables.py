@@ -40,7 +40,7 @@ class VCXProjectVariables(ProjectVariables):
 
     @staticmethod
     def set_project_name(context, node):
-        """ Sets root namespace into context from node text"""
+        """ Sets project name into context from node text"""
         context.project_name = node.text
         message(
             context,
