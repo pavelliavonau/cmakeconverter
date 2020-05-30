@@ -271,7 +271,7 @@ def make_os_specific_shell_path(output):
 def resolve_path_variables_of_vs(context, path_with_vars):
     """ Evaluates paths with visual studio variables """
     path_with_vars = path_with_vars.replace('$(ProjectDir)', './')
-    path_with_vars = path_with_vars.replace('$(SolutionDir)', context.solution_path)
+    path_with_vars = path_with_vars.replace('$(SolutionDir)', context.solution_path + '/')
     return path_with_vars
 
 
