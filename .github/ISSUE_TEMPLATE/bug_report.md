@@ -7,6 +7,8 @@ assignees: ''
 
 ---
 
+**IMPORTANT**: always check already known open issues before creating new one. Your issue might be already reported.
+
 **Describe the bug**
 A clear and concise description of what the bug is. Which is version of converter. python?
 Attach verbose (-v) output log to help investigate what was happen. Also give a sample of input solution.
