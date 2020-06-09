@@ -55,6 +55,7 @@ class CPPFlags(Flags):
         self.flags_handlers = OrderedDict([
             # compilation cl_flags
             ('ConformanceMode', self.__set_conformance_mode),
+            ('MultiProcessorCompilation', self.__multi_processor_compilation),
             ('SupportJustMyCode', self.__set_support_just_my_code),
             ('LanguageStandard', self.__set_language_standard),
             ('UseDebugLibraries', self.__set_use_debug_libraries),
@@ -549,6 +550,19 @@ class CPPFlags(Flags):
         flag_values = {
             'true': {cl_flags: '/permissive-'},
             'false': {},
+            default_value: {}
+        }
+        return flag_values
+
+    @staticmethod
+    def __multi_processor_compilation(context, flag_name, flag_value):
+        """
+        Set MultiProcessorCompilation /MP
+
+        """
+        del context, flag_name, flag_value
+        flag_values = {
+            'true': {cl_flags: '/MP'},
             default_value: {}
         }
         return flag_values
