@@ -128,7 +128,7 @@ class VSSolutionConverter(DataConverter):
         :return:
         """
         p = re.compile(
-            r'(Project.*\s=\s\"(.*)\",\s\"(.*)\",.*({.*\})(?:.|\n)*?EndProject(?!Section))'
+            r'(Project.*\s=\s\"(.*)\",\s\"(.*)\",.*({.*})(?:.|\n)*?EndProject(?!Section))'
         )
 
         for project_data_match in p.findall(sln_text):
