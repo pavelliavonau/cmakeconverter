@@ -31,7 +31,8 @@ import os
 import re
 
 from cmake_converter.data_files import get_vcxproj_data
-from cmake_converter.utils import get_global_project_name_from_vcxproj_file, normalize_path, message
+from cmake_converter.utils import get_global_project_name_from_vcxproj_file, normalize_path, message, \
+    parse_env_vars_in_vs_fmt
 from cmake_converter.utils import replace_vs_vars_with_cmake_vars, resolve_path_variables_of_vs
 
 
@@ -66,6 +67,7 @@ class Dependencies:
         for i in inc_dir.split(';'):
             if i:
                 dirs_raw.append(i)
+                i = parse_env_vars_in_vs_fmt(i)
                 i = normalize_path(context, working_path, i)
                 i = replace_vs_vars_with_cmake_vars(context, i)
                 inc_dirs.append(i)

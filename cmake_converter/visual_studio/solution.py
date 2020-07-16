@@ -132,7 +132,7 @@ class VSSolutionConverter(DataConverter):
         )
 
         for project_data_match in p.findall(sln_text):
-            path = set_native_slash(project_data_match[2])
+            path = os.path.expanduser(os.path.expandvars(set_native_slash(project_data_match[2])))
             guid = project_data_match[3]
 
             _, ext = os.path.splitext(os.path.basename(path))

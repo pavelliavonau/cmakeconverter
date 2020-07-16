@@ -322,6 +322,16 @@ def replace_vs_var_with_cmake_var(context, var):
     return cmake_env_var
 
 
+def parse_env_vars_in_vs_fmt(path):
+    if '$(' in path:
+        matches = re.findall(r'\$\(.*?\)', path, flags=re.MULTILINE | re.DOTALL)
+        for match in matches:
+            var = os.path.expanduser(os.path.expandvars('$' + match[2:-1]))
+            if '$(' not in var:
+                path = path.replace(match, var)
+    return path
+
+
 def replace_vs_vars_with_cmake_vars(context, output):
     """ Translates variables at given string to corresponding CMake ones """
     var_ex = re.compile(r'(\$\(.*?\))')

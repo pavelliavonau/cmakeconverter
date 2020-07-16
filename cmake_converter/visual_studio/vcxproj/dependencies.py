@@ -30,7 +30,8 @@ import re
 from cmake_converter.dependencies import Dependencies
 from cmake_converter.data_files import get_xml_data, get_propertygroup
 from cmake_converter.utils import normalize_path, message, prepare_build_event_cmd_line_for_cmake, \
-    check_for_relative_in_path, cleaning_output, set_native_slash, get_mount_point
+    check_for_relative_in_path, cleaning_output, set_native_slash, get_mount_point, replace_vs_vars_with_cmake_vars, \
+    parse_env_vars_in_vs_fmt
 from cmake_converter.flags import ln_flags
 
 
@@ -56,9 +57,16 @@ class VCXDependencies(Dependencies):
 
         del attr_name, node
 
+        path = attr_value
+        path = parse_env_vars_in_vs_fmt(path)
+        path = replace_vs_vars_with_cmake_vars(context, path)
+
+        if not os.path.isabs(path):
+            path = os.path.join(os.path.dirname(context.vcxproj_path), attr_value)
+
         ref = self.get_dependency_target_name(
             context,
-            os.path.join(os.path.dirname(context.vcxproj_path), attr_value)
+            path
         )
 
         context.target_references.append(ref)
