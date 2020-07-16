@@ -40,7 +40,6 @@ def init_colorama():
     if 'PYCHARM_HOSTED' in os.environ:
         convert = False  # in PyCharm, we should disable convert
         strip = False
-        print("Hi! You are using PyCharm")
     else:
         convert = None
         strip = None
