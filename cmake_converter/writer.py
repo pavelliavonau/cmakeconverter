@@ -989,7 +989,7 @@ class CMakeWriter:
         message(
             project_context,
             'Conversion of {} finished{}\n\nNow you may run cmake like following sample:\n\n'
-            'cmake -S{} -B{} -G"Visual Studio 15 2017 Win64"'.format(
+            'cmake -S "{}" -B "{}" -G "Visual Studio 15 2017 Win64"'.format(
                 project_context.vcxproj_path,
                 warnings,
                 project_context.cmake,
