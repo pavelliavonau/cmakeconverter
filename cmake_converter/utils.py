@@ -31,6 +31,8 @@ import glob
 import re
 import time
 import ntpath
+import sysconfig
+
 
 import colorama
 
@@ -357,6 +359,11 @@ def cleaning_output(context, output):
 def insensitive_glob(path):
     """ Searches given path case insensitive """
     drive, path = os.path.splitdrive(path)
+
+    platform = sysconfig.get_platform()
+    if 'msys' in platform or 'mingw' in platform:
+        drive = path[:2]
+        path = path[2:]
 
     def either(c):
         return '[{}{}]'.format(c.lower(), c.upper()) if c.isalpha() else c
