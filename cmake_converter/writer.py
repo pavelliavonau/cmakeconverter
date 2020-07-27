@@ -1260,7 +1260,7 @@ class CMakeWriter:
         indent = kwargs['indent']
 
         if has_property_value:
-            if default:
+            if default and config_expressions:
                 cmake_file.write('{}{}$<$<NOT:$<OR:{}>>:{}>\n'
                                  .format(indent + command_indent, kwargs['main_indent'],
                                          ','.join(config_expressions),
