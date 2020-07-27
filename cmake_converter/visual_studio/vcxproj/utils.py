@@ -37,7 +37,8 @@ class VCXUtils(Utils):
         lists.extend(
             [
                 'cl_flags',
-                'ln_flags'
+                'ln_flags',
+                'MSVC_RUNTIME_LIBRARY'
             ]
         )
         return lists
