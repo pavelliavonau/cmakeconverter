@@ -52,7 +52,7 @@ class DataConverter:
         message(context, 'Collecting data for project {}'.format(context.vcxproj_path), '')
         context.parser.parse(context)
 
-        context.files.find_cmake_project_languages(context)
+        context.files.find_cmake_target_languages(context)
 
     def verify_data(self, context):
         """ Verify procedure after gathering information from source project """

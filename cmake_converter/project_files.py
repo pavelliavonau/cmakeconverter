@@ -148,7 +148,7 @@ class ProjectFiles:
         context.has_only_headers = bool(has_headers and not context.sources)
         message(context, "Source files extensions found: {}".format(self.languages), 'INFO')
 
-    def find_cmake_project_languages(self, context):
+    def find_cmake_target_languages(self, context):
         """
         Add CMake Project
 
@@ -162,13 +162,13 @@ class ProjectFiles:
         fortran_extensions = ['F90', 'F', 'f90', 'f', 'fi', 'FI']
         available_language.update(dict.fromkeys(fortran_extensions, 'Fortran'))
 
-        project_languages_set = set()
+        target_languages_set = set()
         for lang in self.languages:
             if lang in available_language:
-                project_languages_set.add(available_language[lang])
+                target_languages_set.add(available_language[lang])
 
-        project_languages = list(project_languages_set)
-        project_languages.sort()
-        for project_language in project_languages:
+        target_languages = list(target_languages_set)
+        target_languages.sort()
+        for project_language in target_languages:
             context.solution_languages.add(project_language)
-        context.project_languages = project_languages
+        context.target_languages = target_languages
