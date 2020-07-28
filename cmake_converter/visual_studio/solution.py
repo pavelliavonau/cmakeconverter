@@ -350,12 +350,12 @@ class VSSolutionConverter(DataConverter):
 
     def __get_input_data_for_converter(self, project_context, sln_projects_data):
         input_data_for_converter = {}
-        project_number = 0
+        target_number = 0
         projects_filter_pattern = re.compile(project_context.projects_regexp)
         for guid in sln_projects_data:
-            project_number += 1
+            target_number += 1
             target_context = project_context.clone()
-            target_context.project_number = project_number
+            target_context.target_number = target_number
             sln_project_path = sln_projects_data[guid]['path']
 
             m = projects_filter_pattern.match(sln_project_path)

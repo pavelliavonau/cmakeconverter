@@ -261,14 +261,14 @@ class DataConverter:
         results = []
         for target_data in subdirectory_targets_data:
             target_context = target_data['target_context']
-            name = target_context.project_number
-            message(target_context, '------ Starting {} -------'.format(name), '')
+            number = target_context.target_number
+            message(target_context, '------ Starting {} -------'.format(number), '')
             converted = self.convert_project(
                 target_context,
                 target_data['target_abs'],
                 target_data['subdirectory'],
             )
-            message(target_context, '------ Exiting  {} -------'.format(name), '')
+            message(target_context, '------ Exiting  {} -------'.format(number), '')
 
             if not converted:
                 continue

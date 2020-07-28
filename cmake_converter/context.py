@@ -46,7 +46,7 @@ class Context:
         self.xml_data = {}
         self.vcxproj_path = ''
         self.solution_path = ''
-        self.project_number = None
+        self.target_number = None
         self.has_headers = False
         self.has_only_headers = False
         self.project_languages = set()

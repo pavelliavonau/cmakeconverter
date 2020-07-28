@@ -455,8 +455,8 @@ def message(context, text, status):  # pragma: no cover
     dt = '{0:f} '.format(delta_time)
 
     message_begin = dt
-    if context.project_number:
-        message_begin = message_begin + '{}> '.format(context.project_number)
+    if context.target_number:
+        message_begin = message_begin + '{}> '.format(context.target_number)
 
     if None not in context.current_setting:
         text = '{} : {}'.format(context.current_setting, text)
