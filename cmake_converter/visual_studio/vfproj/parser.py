@@ -138,8 +138,8 @@ class VFParser(Parser):
         return attributes_handlers
 
     def parse(self, context):
-        context.vcxproj = get_xml_data(context, context.vcxproj_path)
-        tree = context.vcxproj['tree']
+        context.xml_data = get_xml_data(context, context.vcxproj_path)
+        tree = context.xml_data['tree']
         root = tree.getroot()
         context.current_node = root
         self._parse_nodes(context, root)

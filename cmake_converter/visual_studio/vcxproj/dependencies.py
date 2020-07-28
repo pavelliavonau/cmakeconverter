@@ -220,9 +220,9 @@ class VCXDependencies(Dependencies):
                         continue
                     if 'packages' not in context.settings[setting]:
                         context.settings[setting]['packages'] = {}
-                    ext_property_node = context.vcxproj['tree'].xpath(
+                    ext_property_node = context.xml_data['tree'].xpath(
                         '{}/ns:{}'.format(get_propertygroup(setting), ext_property),
-                        namespaces=context.vcxproj['ns'])
+                        namespaces=context.xml_data['ns'])
                     if ext_property_node:
                         if id_version not in context.settings[setting]['packages']:
                             context.settings[setting]['packages'][id_version] = {}

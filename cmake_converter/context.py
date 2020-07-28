@@ -43,7 +43,7 @@ class Context:
     def __init__(self):
         self.time0 = time.time()
         self.jobs = cpu_count()
-        self.vcxproj = {}
+        self.xml_data = {}
         self.vcxproj_path = ''
         self.solution_path = ''
         self.project_number = None

@@ -41,7 +41,7 @@ class TestDataConverter(unittest.TestCase):
         under_test = VSContext()
 
         self.assertEqual(under_test.cmake, '')
-        self.assertEqual(under_test.vcxproj, {})
+        self.assertEqual(under_test.xml_data, {})
 
         under_test.init(self.vs_project, self.cur_dir)
 

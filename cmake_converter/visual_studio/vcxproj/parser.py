@@ -135,11 +135,11 @@ class VCXParser(Parser):
         return attributes_handlers
 
     def parse(self, context):
-        context.vcxproj = get_vcxproj_data(context, context.vcxproj_path)
+        context.xml_data = get_vcxproj_data(context, context.vcxproj_path)
         filters_file = get_actual_filename(context, context.vcxproj_path + '.filters')
         if filters_file is not None:
             self.filters = get_xml_data(context, filters_file)
-        tree = context.vcxproj['tree']
+        tree = context.xml_data['tree']
         root = tree.getroot()
         context.current_node = root
         self._parse_nodes(context, root)
