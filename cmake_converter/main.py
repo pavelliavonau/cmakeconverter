@@ -41,7 +41,7 @@ def main():  # pragma: no cover
     """
 
     usage = "cmake-converter -s <path/to/file.sln> " \
-            "[ -h | -p | -d | -v | -w | -j | -a ]"
+            "[ -h | -s | -p | -i | -d | -v | -w | -j | -a | -pi | -ias ]"
     parser = argparse.ArgumentParser(
         usage=usage,
         description='Converts Visual Studio projects in solution (*.sln) to CMakeLists.txt tree'
@@ -76,7 +76,7 @@ def main():  # pragma: no cover
     )
     parser.add_argument(
         '-w', '--warning-level',
-        help='run converter with given verbocity of warnings([1..4]default=3).',
+        help='run converter with given verbosity of warnings([1..4] default=2).',
         dest='warn',
     )
     parser.add_argument(
@@ -98,7 +98,7 @@ def main():  # pragma: no cover
     )
     parser.add_argument(
         '-ias', '--ignore-absent-sources',
-        help='do not add absent source file to CMakeLists.txt',
+        help='do not add absent source files to CMakeLists.txt',
         dest='ignore_absent_sources',
         default=False,
         action='store_true'
