@@ -76,6 +76,16 @@ class Parser:
                 continue
             child_node_tag = Parser.strip_namespace(child_node.tag)
 
+            message(
+                context,
+                'Parsing... line {} node {} attrib {}'.format(
+                    child_node.sourceline,
+                    child_node_tag,
+                    child_node.attrib
+                ),
+                ''
+            )
+
             context.current_node = child_node
 
             try:
