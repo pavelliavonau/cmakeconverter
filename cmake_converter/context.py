@@ -68,7 +68,7 @@ class Context:
         self.indent = '    '
 
         self.sln_configurations_map = dict()
-        self.solution_folder = ''
+        self.project_folder = ''
         self.configurations_to_parse = set()
         self.cmake = ''
         self.project_name = ''

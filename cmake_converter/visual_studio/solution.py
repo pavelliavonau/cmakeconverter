@@ -242,18 +242,18 @@ class VSSolutionConverter(DataConverter):
     def set_solution_dirs_to_projects(projects_data, solution_folders_map, solution_folders):
         """ Evaluate locations of projects in Solution explorer tree of Visual Studio UI """
         for project_guid in projects_data:
-            project_solution_dir = ''
+            sln_project_folder = ''
 
             if project_guid in solution_folders_map:
                 guid = project_guid
                 while guid in solution_folders_map:
-                    if project_solution_dir:
-                        project_solution_dir = '/' + project_solution_dir
-                    project_solution_dir = solution_folders[solution_folders_map[guid]]\
-                        + project_solution_dir
+                    if sln_project_folder:
+                        sln_project_folder = '/' + sln_project_folder
+                    sln_project_folder = solution_folders[solution_folders_map[guid]]\
+                        + sln_project_folder
                     guid = solution_folders_map[guid]
 
-            projects_data[project_guid]['project_solution_dir'] = project_solution_dir
+            projects_data[project_guid]['sln_project_folder'] = sln_project_folder
 
     @staticmethod
     def set_dependencies_for_project(context, project_data):
@@ -367,7 +367,7 @@ class VSSolutionConverter(DataConverter):
             self.set_dependencies_for_project(target_context, sln_projects_data[guid])
             target_context.sln_configurations_map = \
                 sln_projects_data[guid]['sln_configs_2_project_configs']
-            target_context.solution_folder = sln_projects_data[guid]['project_solution_dir']
+            target_context.project_folder = sln_projects_data[guid]['sln_project_folder']
             if subdirectory not in input_data_for_converter:
                 input_data_for_converter[subdirectory] = []
             input_data_for_converter[subdirectory].append(
