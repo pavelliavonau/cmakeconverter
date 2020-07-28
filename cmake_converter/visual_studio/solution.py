@@ -388,26 +388,26 @@ class VSSolutionConverter(DataConverter):
             subdirectories_to_target_name
     ):
         for directory_results in results:
-            for sln_project_result in directory_results:
+            for sln_target_result in directory_results:
                 subdirectory = os.path.relpath(
-                    sln_project_result['cmake'], project_context.solution_path
+                    sln_target_result['cmake'], project_context.solution_path
                 )
                 if subdirectory != '.':
                     subdirectories_set.add(subdirectory)
-                subdirectories_to_target_name[subdirectory] = sln_project_result['target_name']
-                project_context.solution_languages.update(sln_project_result['solution_languages'])
+                subdirectories_to_target_name[subdirectory] = sln_target_result['target_name']
+                project_context.project_languages.update(sln_target_result['project_languages'])
                 if project_context.target_windows_version and \
-                        sln_project_result['target_windows_ver'] and \
+                        sln_target_result['target_windows_ver'] and \
                         project_context.target_windows_version !=\
-                        sln_project_result['target_windows_ver']:
+                        sln_target_result['target_windows_ver']:
                     message(
                         project_context,
                         'CMake does not support more than 1 version of windows SDK', 'warn'
                     )
-                if sln_project_result['target_windows_ver']:
+                if sln_target_result['target_windows_ver']:
                     project_context.target_windows_version = \
-                        sln_project_result['target_windows_ver']
-                project_context.warnings_count += sln_project_result['warnings_count']
+                        sln_target_result['target_windows_ver']
+                project_context.warnings_count += sln_target_result['warnings_count']
 
     @staticmethod
     def __get_global_configuration_types(solution_data):

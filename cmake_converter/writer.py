@@ -943,7 +943,7 @@ class CMakeWriter:
         project_cmake.write(
             'project({} {})\n\n'.format(
                 project_context.project_name,
-                ' '.join(sorted(project_context.solution_languages))
+                ' '.join(sorted(project_context.project_languages))
             )
         )
 
@@ -1063,7 +1063,7 @@ class CMakeWriter:
             '{}# remove default flags provided with CMake for MSVC\n'.format(project_context.indent)
         )
         have_fortran = False
-        for lang in sorted(project_context.solution_languages):
+        for lang in sorted(project_context.project_languages):
             if lang == 'Fortran':
                 have_fortran = True
                 continue

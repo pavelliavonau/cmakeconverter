@@ -49,7 +49,7 @@ class Context:
         self.project_number = None
         self.has_headers = False
         self.has_only_headers = False
-        self.solution_languages = set()
+        self.project_languages = set()
         self.target_languages = []
         self.sln_deps = []
         self.target_references = []

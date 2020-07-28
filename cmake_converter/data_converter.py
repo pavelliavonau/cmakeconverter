@@ -279,7 +279,7 @@ class DataConverter:
                 {
                     'cmake': target_context.cmake,
                     'target_name': target_context.project_name,
-                    'solution_languages': target_context.solution_languages,
+                    'project_languages': target_context.project_languages,
                     'target_windows_ver': target_context.target_windows_version,
                     'warnings_count': target_context.warnings_count
                 }

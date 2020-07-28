@@ -170,5 +170,5 @@ class ProjectFiles:
         target_languages = list(target_languages_set)
         target_languages.sort()
         for project_language in target_languages:
-            context.solution_languages.add(project_language)
+            context.project_languages.add(project_language)
         context.target_languages = target_languages
