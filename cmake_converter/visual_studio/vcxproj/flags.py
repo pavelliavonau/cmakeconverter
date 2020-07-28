@@ -321,11 +321,12 @@ class CPPFlags(Flags):
             self.__apply_link_incremental(context, setting)
             for flag_name in self.flags_handlers:
                 for context_flags_data_key in context_flags_data_keys:
-                    if context_flags_data_key in self.flags[setting][flag_name]:
-                        for value in self.flags[setting][flag_name][context_flags_data_key]:
-                            context.settings[setting][context_flags_data_key].append(
-                                value
-                            )
+                    if setting in self.flags:
+                        if context_flags_data_key in self.flags[setting][flag_name]:
+                            for value in self.flags[setting][flag_name][context_flags_data_key]:
+                                context.settings[setting][context_flags_data_key].append(
+                                    value
+                                )
                     for file in context.file_contexts:
                         file_context = context.file_contexts[file]
                         if setting not in context.file_contexts[file].flags.flags:
