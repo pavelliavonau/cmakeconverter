@@ -47,8 +47,6 @@ class Context:
         self.vcxproj_path = ''
         self.solution_path = ''
         self.target_number = None
-        self.has_headers = False
-        self.has_only_headers = False
         self.project_languages = set()
         self.target_languages = []
         self.sln_deps = []

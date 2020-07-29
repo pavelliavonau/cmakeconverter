@@ -143,9 +143,6 @@ class ProjectFiles:
 
     def apply_files_to_context(self, context):
         """ Analyzes collected set of files and initializes necessary variables """
-        has_headers = bool(context.headers)
-        context.has_headers = has_headers
-        context.has_only_headers = bool(has_headers and not context.sources)
         message(context, "Source files extensions found: {}".format(self.languages), 'INFO')
 
     def find_cmake_target_languages(self, context):

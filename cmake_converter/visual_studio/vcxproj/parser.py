@@ -147,7 +147,7 @@ class VCXParser(Parser):
         context.flags.apply_flags_to_context(context)
         context.files.apply_files_to_context(context)
         context.dependencies.apply_target_dependency_packages(context)
-        if not context.has_only_headers:
+        if context.sources:
             context.flags.define_pch_cpp_file(context)
 
     def __parse_item_group(self, context, node):

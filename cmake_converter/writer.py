@@ -52,7 +52,7 @@ class CMakeWriter:
 
         self.write_source_groups(context, cmake_file)
 
-        if not context.has_only_headers:
+        if context.sources:
             self.write_comment(cmake_file, 'Target')
             self.write_target_artifact(context, cmake_file)
             self.write_use_pch_function(context, cmake_file)
