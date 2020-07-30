@@ -471,7 +471,7 @@ def message(context, text, status):  # pragma: no cover
             status += '1'
         message_warning_level = int(status[-1])
         if message_warning_level <= context.warn_level:
-            print(message_begin + 'WARN : ' + WARN + text + ENDC)
+            print(message_begin + 'WARN L' + status[-1] + ' : ' + WARN + text + ENDC)
             context.warnings_count += 1
     elif status == 'ok':
         print(message_begin + 'OK   : ' + OK + text + ENDC)
