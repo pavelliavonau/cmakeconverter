@@ -31,9 +31,9 @@ try:
     python_version = sys.version_info
 except Exception:
     python_version = (1, 5)
-if python_version < (3, 5):
+if python_version < (3, 6):
     sys.exit(
-        "This application requires a minimum of Python 3.5 !"
+        "This application requires a minimum of Python 3.6 !"
         " Please update your Python version."
     )
 
@@ -64,7 +64,7 @@ setup(
     zip_safe=False,
 
     packages=find_packages(),
-    python_requires='>=3.5',
+    python_requires='>=3.6',
     include_package_data=True,
 
     install_requires=install_requires,
@@ -79,10 +79,10 @@ setup(
         'Natural Language :: English',
         'Operating System :: OS Independent',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
         'Topic :: Software Development :: Build Tools',
         'Topic :: Software Development :: Code Generators',
         'Topic :: Software Development :: Compilers',
