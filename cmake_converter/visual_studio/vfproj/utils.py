@@ -33,7 +33,7 @@ class VFUtils(Utils):
     """
 
     def lists_of_settings_to_merge(self):
-        lists = super(VFUtils, self).lists_of_settings_to_merge()
+        lists = super().lists_of_settings_to_merge()
         lists.extend(
             [
                 'ifort_cl_win',
@@ -52,7 +52,7 @@ class VFUtils(Utils):
         :type context: Context
         """
 
-        super(VFUtils, self).init_context_current_setting(context)
+        super().init_context_current_setting(context)
         for list_to_merge in self.lists_of_settings_to_merge():
             context.settings[context.current_setting][list_to_merge] = []
         if None not in context.current_setting:

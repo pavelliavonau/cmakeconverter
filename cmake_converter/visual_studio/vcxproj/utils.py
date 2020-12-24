@@ -33,7 +33,7 @@ class VCXUtils(Utils):
     """
 
     def lists_of_settings_to_merge(self):
-        lists = super(VCXUtils, self).lists_of_settings_to_merge()
+        lists = super().lists_of_settings_to_merge()
         lists.extend(
             [
                 'cl_flags',
@@ -51,7 +51,7 @@ class VCXUtils(Utils):
         :type context: Context
         """
 
-        super(VCXUtils, self).init_context_current_setting(context)
+        super().init_context_current_setting(context)
         for list_to_merge in self.lists_of_settings_to_merge():
             context.settings[context.current_setting][list_to_merge] = []
         context.settings[context.current_setting]['inc_dirs_list'] = []

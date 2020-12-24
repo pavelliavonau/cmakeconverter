@@ -419,7 +419,7 @@ class VSSolutionConverter(DataConverter):
         return configuration_types_list
 
     def copy_cmake_utils(self, cmake_lists_path):
-        super(VSSolutionConverter, self).copy_cmake_utils(cmake_lists_path)
+        super().copy_cmake_utils(cmake_lists_path)
 
         utils_path = os.path.join(cmake_lists_path, 'CMake')
         if not os.path.exists(utils_path):
