@@ -989,8 +989,13 @@ class CMakeWriter:
             warnings = ' ({} warnings)'.format(project_context.warnings_count)
         message(
             project_context,
-            'Conversion of {} finished{}\n\nNow you may run cmake like following sample:\n\n'
-            'cmake -S "{}" -B "{}" -G "Visual Studio 15 2017 Win64"'.format(
+            'Conversion of {0} finished{1}\n\nNow you may run cmake like following samples:\n\n'
+            'to generate:\n'
+            'cmake -S "{2}" -B "{3}" -G "Visual Studio 15 2017 Win64"\n'
+            '    or\n'
+            'cmake -S "{2}" -B "{3}" -G "Visual Studio 16 2019" -A "x64"\n\n'
+            'to build:\n'
+            'cmake --build "{3}"'.format(
                 project_context.vcxproj_path,
                 warnings,
                 project_context.cmake,
