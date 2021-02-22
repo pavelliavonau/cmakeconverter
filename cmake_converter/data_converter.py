@@ -57,6 +57,8 @@ class DataConverter:
     def verify_data(self, context):
         """ Verify procedure after gathering information from source project """
         self.__verify_target_types(context)
+        if 'vcxproj' in context.vcxproj_path:
+            self.__verify_common_language_runtime_target_property(context)
         return self.__verify_configurations_to_parse(context)
 
     @staticmethod
@@ -71,6 +73,22 @@ class DataConverter:
             message(
                 context,
                 'Target has more than one output binary type. CMake does not support it!',
+                'warn'
+            )
+
+    @staticmethod
+    def __verify_common_language_runtime_target_property(context):
+        target_clr = set()
+        for setting in context.settings:
+            if None in setting:
+                continue
+            if context.settings[setting]['COMMON_LANGUAGE_RUNTIME']:
+                target_clr.add(context.settings[setting]['COMMON_LANGUAGE_RUNTIME'][0])
+
+        if len(target_clr) > 1:
+            message(
+                context,
+                'Target has different types of common language runtime. CMake does not support it!',
                 'warn'
             )
 

@@ -38,7 +38,8 @@ class VCXUtils(Utils):
             [
                 'cl_flags',
                 'ln_flags',
-                'MSVC_RUNTIME_LIBRARY'
+                'MSVC_RUNTIME_LIBRARY',
+                'COMMON_LANGUAGE_RUNTIME'
             ]
         )
         return lists
@@ -57,4 +58,5 @@ class VCXUtils(Utils):
         context.settings[context.current_setting]['inc_dirs_list'] = []
         context.settings[context.current_setting]['PrecompiledHeader'] = []
         context.settings[context.current_setting]['MSVC_RUNTIME_LIBRARY'] = []
+        context.settings[context.current_setting]['COMMON_LANGUAGE_RUNTIME'] = []
         context.settings[context.current_setting]['property_sheets'] = []

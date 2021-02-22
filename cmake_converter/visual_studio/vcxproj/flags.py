@@ -69,7 +69,7 @@ class CPPFlags(Flags):
             ('EnableFiberSafeOptimizations', self.__set_enable_fiber_safe_optimizations),
             ('BasicRuntimeChecks', self.__set_basic_runtime_checks),
             ('ShowIncludes', self.__set_show_includes),
-            ('CompileAsManaged', self.__set_compile_as_managed),
+            ('CompileAsManaged', self.__set_common_language_runtime),
             ('EnableEnhancedInstructionSet', self.__set_enable_enhanced_instruction_set),
             ('OmitFramePointers', self.__set_omit_frame_pointers),
             ('CallingConvention', self.__set_calling_convention),
@@ -88,7 +88,7 @@ class CPPFlags(Flags):
             ('FloatingPointModel', self.__set_floating_point_model),
             ('StructMemberAlignment', self.__set_struct_member_alignment),
             ('RuntimeTypeInfo', self.__set_runtime_type_info),
-            ('CLRSupport', self.__set_compile_as_managed),
+            ('CLRSupport', self.__set_common_language_runtime),
             ('DisableSpecificWarnings', self.__set_disable_specific_warnings),
             ('CompileAdditionalOptions', self.__set_compile_additional_options),
             ('ExceptionHandling', self.__set_exception_handling),
@@ -643,20 +643,25 @@ class CPPFlags(Flags):
         return flag_values
 
     @staticmethod
-    def __set_compile_as_managed(context, flag_name, node):
+    def __set_common_language_runtime(context, flag_name, node):
         """
-        Set CompileAsManaged flag: /clr*
+        Set COMMON_LANGUAGE_RUNTIME property: /clr*
 
         """
-        del context, flag_name, node
+        del flag_name
         flag_values = {
-            'Pure': {cl_flags: '/clr:pure'},
-            'Safe': {cl_flags: '/clr:safe'},
-            'true': {cl_flags: '/clr'},
-            default_value: {}
+            'Pure': 'pure',
+            'Safe': 'safe',
+            'true': '',
+            'false': 'No'
         }
 
-        return flag_values
+        node_text = node.text.strip()
+
+        if node_text:
+            value = flag_values[node_text]
+            context.settings[context.current_setting]['COMMON_LANGUAGE_RUNTIME'] = [value]
+            message(context, 'COMMON_LANGUAGE_RUNTIME : {}'.format(node_text), '')
 
     @staticmethod
     def __set_enable_enhanced_instruction_set(context, flag_name, node):
