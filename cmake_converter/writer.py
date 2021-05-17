@@ -67,7 +67,7 @@ class CMakeWriter:
                     or context.sln_deps
                     or context.packages):
                 self.write_comment(cmake_file, 'Dependencies')
-            self.write_target_references(context, cmake_file)
+            self.write_sln_dependencies(context, cmake_file)
             self.write_link_dependencies(context, cmake_file)
             self.write_target_dependency_packages(context, cmake_file)
         else:
@@ -779,9 +779,9 @@ class CMakeWriter:
                 cmake_file.write('\n')
 
     @staticmethod
-    def write_target_references(context, cmake_file):
+    def write_sln_dependencies(context, cmake_file):
         """
-        Write target references on given CMakeLists.txt file
+        Write target sln dependencies on given CMakeLists.txt file
 
         :param context: current context
         :type context: Context
@@ -789,19 +789,15 @@ class CMakeWriter:
         :type cmake_file: _io.TextIOWrapper
         """
 
-        deps_to_write = []
-        targets_dependencies_set = set()
-        for reference in context.target_references:
-            targets_dependencies_set.add(reference)
-            deps_to_write.append(reference)
+        # Ignore sln-dependency when it matches target reference
+        sln_deps_to_write = []
         for sln_dep in context.sln_deps:
-            if sln_dep not in targets_dependencies_set:
-                targets_dependencies_set.add(sln_dep)
-                deps_to_write.append(sln_dep)
+            if sln_dep not in context.target_references:
+                sln_deps_to_write.append(sln_dep)
 
-        if deps_to_write:
+        if sln_deps_to_write:
             cmake_file.write('add_dependencies(${PROJECT_NAME}\n')
-            for dep in deps_to_write:
+            for dep in sorted(sln_deps_to_write):
                 cmake_file.write('{}{}\n'.format(context.indent, dep))
             cmake_file.write(')\n\n')
 
