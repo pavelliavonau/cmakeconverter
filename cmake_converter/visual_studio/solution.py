@@ -63,7 +63,7 @@ class VSSolutionConverter(DataConverter):
         self.__parse_configurations_of_solution(context, sln_text, solution_data)
 
         message(context, 'Start parsing GlobalSection(ProjectConfigurationPlatforms) = '
-                         'postSolution (Mapping sln-setting -> project-settong)', '')
+                         'postSolution (Mapping sln-setting -> project-setting)', '')
         self.__parse_project_configuration_platforms(context, sln_text, sln_projects_data)
 
         solution_folders_map = {}
@@ -124,7 +124,7 @@ class VSSolutionConverter(DataConverter):
         :type context: Context
         :param sln_text:
         :param solution_folders:
-        :param projects_data:
+        :param sln_projects_data:
         :return:
         """
         p = re.compile(
