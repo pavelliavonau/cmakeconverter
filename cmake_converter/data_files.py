@@ -186,4 +186,7 @@ def get_cmake_lists(context, cmake_path=None, open_type='w'):
 
     message(context, 'CMakeLists.txt will be written to : ' + cmake, '')
 
-    return open(cmake, open_type, newline='\n', encoding='utf-8')
+    with open(cmake, open_type, newline='\n', encoding='utf-8') as cmake_file:
+        yield cmake_file
+
+    return None

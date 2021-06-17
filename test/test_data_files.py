@@ -72,8 +72,6 @@ class TestDataFiles(unittest.TestCase):
         """Get CMakeLists.txt"""
 
         context = VSContext()
-        under_test = get_cmake_lists(context, './')
-
-        self.assertTrue(under_test)
-        self.assertIsInstance(under_test, _io.TextIOWrapper)
-        under_test.close()
+        for under_test in get_cmake_lists(context, './'):
+            self.assertTrue(under_test)
+            self.assertIsInstance(under_test, _io.TextIOWrapper)

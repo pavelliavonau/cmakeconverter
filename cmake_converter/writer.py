@@ -110,11 +110,10 @@ class CMakeWriter:
 
         if file_to_add != '':
             try:
-                fc = open(file_to_add)
-                CMakeWriter.write_comment(cmake_file, 'Provides from external file.')
-                for line in fc:
-                    cmake_file.write(line)
-                fc.close()
+                with open(file_to_add) as fc:
+                    CMakeWriter.write_comment(cmake_file, 'Provides from external file.')
+                    for line in fc:
+                        cmake_file.write(line)
                 cmake_file.write('\n')
                 message(context, 'File of Code is added = ' + file_to_add, 'warn')
             except OSError as e:
@@ -280,8 +279,7 @@ class CMakeWriter:
         if property_value:
             for property_sheet_cmake in property_value:
                 result_width = width - width_diff
-                if result_width < 0:
-                    result_width = 0
+                result_width = max(result_width, 0)
                 cmake_file.write(
                     '{}use_props(${{PROJECT_NAME}} {:<{width}}"{}")\n'.format(
                         property_indent,
@@ -338,8 +336,7 @@ class CMakeWriter:
         if property_value:
             for property_sheet_cmake in property_value:
                 result_width = width - width_diff
-                if result_width < 0:
-                    result_width = 0
+                result_width = max(result_width, 0)
                 cmake_file.write(
                     '{}{}{}{:<{width}} "{}"\n'.format(
                         property_indent,
@@ -932,62 +929,63 @@ class CMakeWriter:
         if project_context.dry:
             return
 
-        project_cmake = get_cmake_lists(project_context, project_context.solution_path, 'r')
         project_cmake_projects_text = ''
-        if project_cmake is not None:
-            project_cmake_projects_text = project_cmake.read()
-            project_cmake.close()
+        for project_cmake in get_cmake_lists(project_context, project_context.solution_path, 'r'):
+            if project_cmake is not None:
+                project_cmake_projects_text = project_cmake.read()
 
-        project_cmake = get_cmake_lists(project_context, project_context.solution_path)
-        project_cmake.write('cmake_minimum_required(VERSION 3.16.0 FATAL_ERROR)\n\n')
-        if project_context.target_windows_version:
+        for project_cmake in get_cmake_lists(project_context, project_context.solution_path):
+            project_cmake.write('cmake_minimum_required(VERSION 3.16.0 FATAL_ERROR)\n\n')
+            if project_context.target_windows_version:
+                project_cmake.write(
+                    'set(CMAKE_SYSTEM_VERSION {} CACHE STRING "" FORCE)\n\n'
+                    .format(project_context.target_windows_version)
+                )
+
             project_cmake.write(
-                'set(CMAKE_SYSTEM_VERSION {} CACHE STRING "" FORCE)\n\n'
-                .format(project_context.target_windows_version)
+                'project({} {})\n\n'.format(
+                    project_context.project_name,
+                    ' '.join(sorted(project_context.project_languages))
+                )
             )
 
-        project_cmake.write(
-            'project({} {})\n\n'.format(
-                project_context.project_name,
-                ' '.join(sorted(project_context.project_languages))
+            self.write_arch_types(project_context, project_cmake)
+
+            self.__write_supported_architectures_check(project_context, project_cmake)
+            self.__write_global_configuration_types(
+                project_context, project_cmake, configuration_types_list
             )
-        )
 
-        self.write_arch_types(project_context, project_cmake)
+            self.__write_global_compile_options(
+                project_context, project_cmake, configuration_types_list
+            )
 
-        self.__write_supported_architectures_check(project_context, project_cmake)
-        self.__write_global_configuration_types(
-            project_context, project_cmake, configuration_types_list
-        )
+            self.__write_global_link_options(
+                project_context,
+                project_cmake,
+                configuration_types_list
+            )
 
-        self.__write_global_compile_options(
-            project_context, project_cmake, configuration_types_list
-        )
+            self.write_use_package_stub(project_context, project_cmake)
 
-        self.__write_global_link_options(project_context, project_cmake, configuration_types_list)
+            CMakeWriter.write_comment(project_cmake, 'Common utils')
+            project_cmake.write('include(CMake/Utils.cmake)\n\n')
 
-        self.write_use_package_stub(project_context, project_cmake)
+            CMakeWriter.write_comment(
+                project_cmake, 'Additional Global Settings(add specific info there)'
+            )
+            project_cmake.write('include(CMake/GlobalSettingsInclude.cmake OPTIONAL)\n\n')
 
-        CMakeWriter.write_comment(project_cmake, 'Common utils')
-        project_cmake.write('include(CMake/Utils.cmake)\n\n')
+            CMakeWriter.write_comment(project_cmake, 'Use solution folders feature')
+            project_cmake.write('set_property(GLOBAL PROPERTY USE_FOLDERS ON)\n\n')
 
-        CMakeWriter.write_comment(
-            project_cmake, 'Additional Global Settings(add specific info there)'
-        )
-        project_cmake.write('include(CMake/GlobalSettingsInclude.cmake OPTIONAL)\n\n')
+            self.__write_subdirectories(
+                project_cmake, subdirectories_set, subdirectories_to_target_name
+            )
 
-        CMakeWriter.write_comment(project_cmake, 'Use solution folders feature')
-        project_cmake.write('set_property(GLOBAL PROPERTY USE_FOLDERS ON)\n\n')
-
-        self.__write_subdirectories(
-            project_cmake, subdirectories_set, subdirectories_to_target_name
-        )
-
-        if project_cmake_projects_text:
-            project_cmake.write('\n' * 26)
-            project_cmake.write(project_cmake_projects_text)
-
-        project_cmake.close()
+            if project_cmake_projects_text:
+                project_cmake.write('\n' * 26)
+                project_cmake.write(project_cmake_projects_text)
 
         warnings = ''
         if project_context.warnings_count > 0:

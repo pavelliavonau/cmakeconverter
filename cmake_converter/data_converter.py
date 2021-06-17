@@ -256,14 +256,16 @@ class DataConverter:
         self.merge_data_settings(context)
         if context.dry:
             return True
-        if os.path.exists(context.cmake + '/CMakeLists.txt'):
-            cmake_file = get_cmake_lists(context, context.cmake, 'a')
-            cmake_file.write('\n' * 26)
+
+        message(context, f'Writing data for project {context.vcxproj_path}', '')
+        if os.path.exists(os.path.join(context.cmake, 'CMakeLists.txt')):
+            for cmake_file in get_cmake_lists(context, context.cmake, 'a'):
+                cmake_file.write('\n' * 26)
+                self.write_data(context, cmake_file)
         else:
-            cmake_file = get_cmake_lists(context, context.cmake)
-        message(context, 'Writing data for project {}'.format(context.vcxproj_path), '')
-        self.write_data(context, cmake_file)
-        cmake_file.close()
+            for cmake_file in get_cmake_lists(context, context.cmake):
+                self.write_data(context, cmake_file)
+
         warnings = ''
         if context.warnings_count > 0:
             warnings = ' ({} warnings)'.format(context.warnings_count)
@@ -312,8 +314,8 @@ class DataConverter:
 
         results = []
         if project_context.jobs > 1:
-            pool = Pool(project_context.jobs)
-            results = pool.map(self.run_conversion, input_converter_data_list)
+            with Pool(project_context.jobs) as pool:
+                results = pool.map(self.run_conversion, input_converter_data_list)
         else:   # do in main thread
             for data_for_converter in input_converter_data_list:
                 results.append(self.run_conversion(data_for_converter))
