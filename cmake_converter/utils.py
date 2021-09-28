@@ -263,9 +263,9 @@ def make_os_specific_shell_path(output):
         '$(OutDir)': '${OUTPUT_DIRECTORY}',
         '$(TargetPath)': '$<TARGET_FILE:${PROJECT_NAME}>',
     }
-    for var in variables_to_replace:
-        if var in output:
-            output = output.replace(var, '$<SHELL_PATH:{}>'.format(variables_to_replace[var]))
+    for sln_var, cmake_var in variables_to_replace.items():
+        if sln_var in output:
+            output = output.replace(sln_var, '$<SHELL_PATH:{}>'.format(cmake_var))
 
     return output
 

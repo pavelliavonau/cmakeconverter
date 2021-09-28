@@ -129,14 +129,14 @@ class Context:
             )
             return False
 
-        for sln_config in self.sln_configurations_map:
-            self.configurations_to_parse.add(self.sln_configurations_map[sln_config])
+        for _, proj_config in self.sln_configurations_map.items():
+            self.configurations_to_parse.add(proj_config)
 
         context_initializer_map = self.get_project_initialization_dict()
 
-        for key in context_initializer_map:
+        for key, initializer in context_initializer_map.items():
             if key in source_project_path:
-                context_initializer_map[key]()
+                initializer()
                 self.project_name = os.path.basename(os.path.splitext(source_project_path)[0])
                 self.vcxproj_path = source_project_path
                 self.set_cmake_lists_path(cmake_lists_destination_dir)

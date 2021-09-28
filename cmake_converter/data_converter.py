@@ -159,8 +159,7 @@ class DataConverter:
                 set_of_items
             )
 
-            for arch in merged_settings:
-                merged_setting = merged_settings[arch]
+            for arch, merged_setting in merged_settings.items():
                 context.settings[(None, arch)][key] = merged_setting
                 context.sln_configurations_map[(None, arch)] = (None, arch)
 
