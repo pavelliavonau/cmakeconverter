@@ -51,7 +51,7 @@ class VFProjectFiles(ProjectFiles):
         file_abs_path = os.path.join(os.path.dirname(context.vcxproj_path), file_path_name)
 
         file_text = ''
-        with open(file_abs_path, 'r', errors='replace') as file:
+        with open(file_abs_path, 'r', errors='replace', encoding='utf-8') as file:
             file_text = file.read()
         includes = includes_re.findall(file_text)
 

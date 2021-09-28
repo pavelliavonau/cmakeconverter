@@ -110,7 +110,7 @@ class CMakeWriter:
 
         if file_to_add != '':
             try:
-                with open(file_to_add) as fc:
+                with open(file_to_add, encoding='utf-8') as fc:
                     CMakeWriter.write_comment(cmake_file, 'Provides from external file.')
                     for line in fc:
                         cmake_file.write(line)
