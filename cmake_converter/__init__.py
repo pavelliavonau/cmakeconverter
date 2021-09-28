@@ -29,14 +29,14 @@
 
 # Application version and manifest
 VERSION = (2, 1, 0)
-__application__ = u"CMake-Converter"
+__application__ = "CMake-Converter"
 __short_version__ = '.'.join((str(each) for each in VERSION[:2]))
 __version__ = '.'.join((str(each) for each in VERSION[:4]))
-__author__ = u"Liavonau Pavel"
-__copyright__ = u"2016-2020 - %s" % __author__
-__license__ = u"GNU Affero General Public License, version 3"
-__description__ = u"CMake converter for Visual Studio projects"
-__releasenotes__ = u"CMake converter for Visual Studio projects"
+__author__ = "Liavonau Pavel"
+__copyright__ = "2016-2020 - %s" % __author__
+__license__ = "GNU Affero General Public License, version 3"
+__description__ = "CMake converter for Visual Studio projects"
+__releasenotes__ = "CMake converter for Visual Studio projects"
 __project_url__ = "https://github.com/pavelliavonau/cmakeconverter"
 __doc_url__ = "https://github.com/pavelliavonau/cmakeconverter"
 
