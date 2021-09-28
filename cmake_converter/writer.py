@@ -1175,7 +1175,7 @@ class CMakeWriter:
         if isinstance(property_value, list):
             return separator.join(property_value)
 
-        raise str('property value must be a list')
+        raise Exception('property value must be a list')
 
     @staticmethod
     def write_property_of_setting_f(cmake_file,
