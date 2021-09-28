@@ -259,8 +259,3 @@ class VFParser(Parser):
 
     def __parse_filter(self, context, filter_node):
         self._parse_nodes(context, filter_node)
-
-    def __parse_filter_name(self, context, attr_name, attr_value, file_node):
-        del context, attr_name, file_node
-
-        self.source_group = attr_value
