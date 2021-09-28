@@ -156,8 +156,7 @@ class VSSolutionConverter(DataConverter):
         :param path:
         :return:
         """
-        project = dict()
-        project['name'] = project_data_match[1]
+        project = {'name': project_data_match[1]}
         message(context, '    Found project "{}" with {}'.format(path, project_data_match[3]), '')
         project['path'] = path
         project['sln_configs_2_project_configs'] = OrderedDict({(None, None): (None, None)})

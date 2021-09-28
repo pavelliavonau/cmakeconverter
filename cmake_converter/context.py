@@ -65,7 +65,7 @@ class Context:
         self.ignore_absent_sources = False
         self.indent = '    '
 
-        self.sln_configurations_map = dict()
+        self.sln_configurations_map = {}
         self.project_folder = ''
         self.configurations_to_parse = set()
         self.cmake = ''
