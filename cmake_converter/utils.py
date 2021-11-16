@@ -481,17 +481,34 @@ def message(context, text, status):  # pragma: no cover
         if context.verbose:
             print(message_begin + 'INFO : ' + text)
 
+def try_translate(input_str):
+    """ translate predefined logical folders for VS """
+    words = ['header','source','resource']
+    trans = {'源文件':1, '头文件':2, '资源文件':3,
+    '原始程式檔':1, '標頭檔':2, '資源檔':3,
+    'ソースファイル':1, 'ヘッダーファイル':2, 'リソースファイル':3,
+    '원본파일':1, '헤더파일':2, '리소스파일':3}
+    if input_str in trans:
+        return words[trans[input_str] - 1]
+    else:
+        return ''
 
+    
 def escape_string(context, wrong_chars_regex, input_str):
     """ Removes wrong chars from input string """
     output_str = re.sub(wrong_chars_regex, '', input_str)
 
+    # put if when input_str != output_str, so that won't slow down English words
     if input_str != output_str:
-        message(
-            context,
-            'string from solution fixed for CMake "{}" -> "{}"'.format(input_str, output_str),
-            'warn3'
-        )
+        trans_str = try_translate(input_str)
+        if trans_str == '':
+            message(
+                context,
+                'string from solution fixed for CMake "{}" -> "{}"'.format(input_str, output_str),
+                'warn3'
+            )
+        else:
+            output_str = trans_str
     return output_str
 
 
