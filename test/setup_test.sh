@@ -27,7 +27,7 @@ BASE_PATH=$(dirname "$THIS_PATH")
 cd $BASE_PATH
 
 echo '--------- Upgrade pip ... --------- '
-pip install --upgrade pip
+pip install --upgrade pip importlib-metadata
 
 echo '--------- Installing application requirements ... --------- '
 pip install -r requirements.txt
