@@ -1323,43 +1323,44 @@ class CMakeWriter:
 
         indent = kwargs['indent']
 
-        has_property_value = False
-
-        command_indent = ''
-        config_expressions = []
-        has_property_value = CMakeWriter.write_selected_sln_setting(
-            cmake_file, settings, sln_setting_2_project_setting, (None, None),
-            has_property_value,
-            command_indent,
-            None,
-            config_expressions,
-            0,
-            **kwargs
-        )
-
-        CMakeWriter.write_footer_of_settings(cmake_file,
-                                             command_indent,
-                                             config_expressions,
-                                             has_property_value,
-                                             **kwargs)
-
         max_config_condition_width = 0
         settings_of_arch = OrderedDict()
         for sln_setting in sln_setting_2_project_setting:
-            arch = sln_setting[1]
-            if arch is None:
-                continue
             conf = sln_setting[0]
             if conf is not None:
                 length = len('$<CONFIG:{}>'.format(conf))
                 if length > max_config_condition_width:
                     max_config_condition_width = length
+            arch = sln_setting[1]
+            if arch is None:
+                continue
             if arch not in settings_of_arch:
                 settings_of_arch[arch] = OrderedDict()
             settings_of_arch[arch][sln_setting] = sln_setting
 
         single_arch = len(settings_of_arch) == 1
+        has_common_property_value = False
+
         command_indent = ''
+        config_expressions = []
+        for sln_conf in set(sln_setting[0] for sln_setting in sln_setting_2_project_setting
+                            if sln_setting[1] is None):
+            has_common_property_value = CMakeWriter.write_selected_sln_setting(
+                cmake_file, settings, sln_setting_2_project_setting, (sln_conf, None),
+                has_common_property_value,
+                command_indent,
+                sln_conf,
+                config_expressions,
+                max_config_condition_width,
+                **kwargs
+            )
+
+        CMakeWriter.write_footer_of_settings(cmake_file,
+                                             command_indent,
+                                             config_expressions,
+                                             has_common_property_value,
+                                             **kwargs)
+
         first_arch = True
         for arch in settings_of_arch:
             has_data = is_settings_has_data(sln_setting_2_project_setting, settings, property_name,
@@ -1400,7 +1401,7 @@ class CMakeWriter:
         if not first_arch and not single_arch:
             cmake_file.write('{}endif()\n'.format(indent))
 
-        return not first_arch
+        return has_common_property_value or not first_arch
 
 # pylint: enable=R0914
 # pylint: enable=R0913

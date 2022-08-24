@@ -134,7 +134,7 @@ class DataConverter:
                     context.utils.init_context_current_setting(context)
 
                 if key not in context.settings[mapped_setting] \
-                        or mapped_setting[0] is None:
+                        or mapped_setting[0] is None or mapped_arch is None:
                     continue
                 settings_list = context.settings[mapped_setting][key]
                 if not lists_of_items_to_merge[mapped_arch]:  # first pass
@@ -162,6 +162,11 @@ class DataConverter:
             for arch, merged_setting in merged_settings.items():
                 context.settings[(None, arch)][key] = merged_setting
                 context.sln_configurations_map[(None, arch)] = (None, arch)
+
+            self.__reduce_equal_architectures(context, key)
+
+        for key in context.utils.lists_of_settings_to_reduce():
+            self.__reduce_equal_architectures(context, key)
 
         if context.file_contexts is not None:
             for file in context.file_contexts:
@@ -225,6 +230,27 @@ class DataConverter:
                         break
 
         return common_ordered_lists
+
+    @staticmethod
+    def __reduce_equal_architectures(context, key):
+        sln_configurations = set(sln_setting[0] for sln_setting
+                                 in context.sln_configurations_map)
+        sln_architectures = set(sln_setting[1] for sln_setting
+                                in context.sln_configurations_map
+                                if sln_setting[1] is not None)
+
+        if all(map(lambda conf, key=key, sln_architectures=sln_architectures:
+                   len(set(tuple(context.settings[(conf, arch)][key])
+                           for arch in sln_architectures)) == 1, sln_configurations)):
+            for conf in sln_configurations:
+                if (conf, None) not in context.settings:
+                    context.current_setting = (conf, None)
+                    context.utils.init_context_current_setting(context)
+
+                for arch in sln_architectures:
+                    context.settings[(conf, None)][key] =\
+                        context.settings[(conf, arch)].pop(key)
+                context.sln_configurations_map[(conf, None)] = (conf, None)
 
     @staticmethod
     def write_data(context, cmake_file):

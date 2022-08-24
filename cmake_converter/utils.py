@@ -73,6 +73,16 @@ class Utils:
             'INTERPROCEDURAL_OPTIMIZATION'
         ]
 
+    @staticmethod
+    def lists_of_settings_to_reduce():
+        """ Lists of keys of settings at context that will be reduce """
+        return [
+            'TARGET_NAME',
+            'OUTPUT_DIRECTORY',
+            'ARCHIVE_OUTPUT_DIRECTORY',
+            'ARCHIVE_OUTPUT_NAME',
+        ]
+
     def init_context_current_setting(self, context):
         """
         Define settings of converter.
