@@ -73,6 +73,8 @@ class ProjectVariables:
                 context.settings[context.current_setting]['TARGET_NAME'] = ['${TARGET_NAME}']
 
             output_path = context.settings[context.current_setting]['OUTPUT_DIRECTORY'][0]
+            if output_path and output_path[-1] != '/' and output_path[-1] != '\\':
+                output_path = output_path + '/'
             output_file = cleaning_output(context, output_file_node_text)
             output_file = output_file.replace('${OUTPUT_DIRECTORY}', output_path)
             output_path = os.path.dirname(output_file)
