@@ -414,15 +414,18 @@ def normalize_path(context, working_path, path_to_normalize, remove_relative=Tru
         os.path.join(working_path, ntpath.normpath(path_to_normalize.strip()))
     )
     normal_path = os.path.normpath(joined_path)
-    actual_path_name = get_actual_filename(context, normal_path)
-    if actual_path_name is None:
-        message(
-            context,
-            'getting actual filesystem name failed : "{}"'.format(normal_path),
-            'warn1'
-        )
-        actual_path_name = normal_path
-    normal_path = os.path.relpath(actual_path_name, working_path)
+    if '$' not in normal_path:
+        actual_path_name = get_actual_filename(context, normal_path)
+        if actual_path_name is None:
+            message(
+                context,
+                'getting actual filesystem name failed : "{}"'.format(normal_path),
+                'warn1'
+            )
+        else:
+            normal_path = actual_path_name
+
+    normal_path = os.path.relpath(normal_path, working_path)
     if unix_slash:
         normal_path = set_unix_slash(normal_path)
     normal_path = check_for_relative_in_path(context, normal_path, remove_relative)

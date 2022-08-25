@@ -66,8 +66,8 @@ class Dependencies:
         for i in inc_dir.split(';'):
             if i:
                 dirs_raw.append(i)
-                i = normalize_path(context, working_path, i)
                 i = replace_vs_vars_with_cmake_vars(context, i)
+                i = normalize_path(context, working_path, i)
                 inc_dirs.append(i)
 
         context.settings[setting]['inc_dirs_list'].extend(dirs_raw)
