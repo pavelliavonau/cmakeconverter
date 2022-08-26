@@ -420,6 +420,9 @@ def normalize_path(context, working_path, path_to_normalize, remove_relative=Tru
     :rtype: str
     """
 
+    if path_to_normalize and path_to_normalize[0] == '"' and path_to_normalize[-1] == '"':
+        path_to_normalize = path_to_normalize[1:-1]
+
     joined_path = set_native_slash(
         os.path.join(working_path, ntpath.normpath(path_to_normalize.strip()))
     )
@@ -435,7 +438,10 @@ def normalize_path(context, working_path, path_to_normalize, remove_relative=Tru
         else:
             normal_path = actual_path_name
 
-    normal_path = os.path.relpath(normal_path, working_path)
+    common_path = os.path.commonpath([context.solution_path, os.path.realpath(working_path)])
+    if os.path.samefile(common_path, os.path.commonpath([common_path, normal_path])):
+        normal_path = os.path.relpath(normal_path, working_path)
+
     if unix_slash:
         normal_path = set_unix_slash(normal_path)
     normal_path = check_for_relative_in_path(context, normal_path, remove_relative)

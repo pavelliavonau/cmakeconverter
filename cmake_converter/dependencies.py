@@ -31,8 +31,8 @@ import os
 import re
 
 from cmake_converter.data_files import get_vcxproj_data
-from cmake_converter.utils import get_global_project_name_from_vcxproj_file, normalize_path, message
-from cmake_converter.utils import replace_vs_vars_with_cmake_vars, resolve_path_variables_of_vs
+from cmake_converter.utils import get_global_project_name_from_vcxproj_file, normalize_path,\
+    message, replace_vs_vars_with_cmake_vars, resolve_path_variables_of_vs, set_unix_slash
 
 
 class Dependencies:
@@ -86,6 +86,7 @@ class Dependencies:
         for d in re.split(splitter, dependencies_text):
             if d:
                 d = re.sub(r'\.lib$', '', d, 0, re.IGNORECASE)  # strip lib extension
+                d = set_unix_slash(d)
                 add_libs.append(d)
 
         if add_libs:
