@@ -566,20 +566,31 @@ class CMakeWriter:
             separator=';\n',
             indent=context.indent
         )
-        for file in context.file_contexts:
+
+        mapped_files = list(map(
+            lambda file: (file, frozenset(map(
+                lambda setting: (setting[0], frozenset(setting[1][compiler_flags_key]))
+                if compiler_flags_key in setting[1] else None,
+                context.file_contexts[file].settings.items()))), context.file_contexts))
+
+        configurations = set(map(lambda mapped_file: mapped_file[1], mapped_files))
+        groups = [[mapped_file[0] for mapped_file in mapped_files
+                   if mapped_file[1] == conf] for conf in configurations]
+
+        for group in groups:
             file_cl_var = 'FILE_CL_OPTIONS'
-            text = CMakeWriter.write_property_of_settings(
-                context.file_contexts[file], cmake_file,
-                begin_text='string(CONCAT {}'.format(file_cl_var),
-                end_text=')',
-                property_name=compiler_flags_key,
-                indent=context.indent,
-                in_quotes=True
-            )
-            if text:
-                cmake_file.write(
-                    '{}source_file_compile_options({} ${{{}}})\n'
-                    .format(context.indent, file, file_cl_var))
+            if CMakeWriter.write_property_of_settings(
+                    context.file_contexts[next(iter(group))], cmake_file,
+                    begin_text='string(CONCAT {}'.format(file_cl_var),
+                    end_text=')',
+                    property_name=compiler_flags_key,
+                    indent=context.indent,
+                    in_quotes=True):
+
+                for file in group:
+                    cmake_file.write(
+                        '{}source_file_compile_options({} ${{{}}})\n'
+                        .format(context.indent, file, file_cl_var))
 
     @staticmethod
     def __write_link_flags(context, cmake_file, linker_flags_key):
