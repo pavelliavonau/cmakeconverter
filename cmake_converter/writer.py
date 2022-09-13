@@ -766,6 +766,8 @@ class CMakeWriter:
             outputs_str = ''
             if outputs:
                 outputs_str = '{0}OUTPUT "{1}"\n'.format(context.indent, outputs)
+            elif not commands_head:
+                commands_head = '{0}TARGET ${{PROJECT_NAME}}\n'.format(context.indent)
             depends_str = ''
             if depends:
                 depends_str = '{0}DEPENDS "{1}"\n'.format(context.indent, depends)
