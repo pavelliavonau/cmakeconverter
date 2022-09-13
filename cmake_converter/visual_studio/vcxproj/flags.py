@@ -149,7 +149,8 @@ class CPPFlags(Flags):
                 define = replace_vs_vars_with_cmake_vars(context, define)
                 define = define.replace('\\', '\\\\')
                 define = define.replace('"', '\\"')
-                context.settings[context.current_setting][defines].append(define)
+                if define not in context.settings[context.current_setting][defines]:
+                    context.settings[context.current_setting][defines].append(define)
         message(context, 'PreprocessorDefinitions : {}'.format(
             context.settings[context.current_setting][defines]
         ), '')
