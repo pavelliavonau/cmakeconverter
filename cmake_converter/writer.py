@@ -254,6 +254,7 @@ class CMakeWriter:
         """
 
         pch_header = context.settings[setting]['PrecompiledHeaderFile']
+        pch_source = context.settings[setting]['PrecompiledSourceFile']
         working_path = os.path.dirname(context.vcxproj_path)
         cmake_file.write(
             'target_precompile_headers(${{PROJECT_NAME}} PRIVATE\n'
@@ -261,6 +262,10 @@ class CMakeWriter:
             ')\n\n'.format(
                 context.indent,
                 normalize_path(context, working_path, pch_header, False)
+            ) if not context.advanced_precompiled_headers else
+            'use_precompiled_header(ALL_FILES "{}" "{}")\n\n'.format(
+                normalize_path(context, working_path, pch_header, False),
+                normalize_path(context, working_path, pch_source, False)
             )
         )
 
@@ -445,14 +450,15 @@ class CMakeWriter:
         #     write_setting_property_func=ProjectVariables.write_target_property
         # )
 
-        CMakeWriter.write_property_of_settings(
-            context,
-            cmake_file,
-            begin_text='set_target_properties(${PROJECT_NAME} PROPERTIES',
-            end_text=')',
-            property_name='INTERPROCEDURAL_OPTIMIZATION',
-            write_setting_property_func=CMakeWriter.write_target_property
-        )
+        if not context.disable_interprocedural_optimization:
+            CMakeWriter.write_property_of_settings(
+                context,
+                cmake_file,
+                begin_text='set_target_properties(${PROJECT_NAME} PROPERTIES',
+                end_text=')',
+                property_name='INTERPROCEDURAL_OPTIMIZATION',
+                write_setting_property_func=CMakeWriter.write_target_property
+            )
 
         if is_settings_has_data(context.sln_configurations_map,
                                 context.settings,
