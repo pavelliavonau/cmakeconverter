@@ -122,6 +122,8 @@ class CPPFlags(Flags):
             ('IgnoreEmbeddedIDL', self.__set_ignore_embedded_idl),
             ('AssemblyDebug', self.__set_assembly_debug),
             ('LinkAdditionalOptions', self.__set_link_additional_options),
+            ('EntryPointSymbol', self.__set_entry_point_symbol),
+            ('NoEntryPoint', self.__set_no_entry_point),
         ])
 
     def __set_default_flag(self, context, flag_name):
@@ -331,6 +333,7 @@ class CPPFlags(Flags):
         for setting in context.settings:
             self.__apply_generate_debug_information(context, setting)
             self.__apply_link_incremental(context, setting)
+            self.__apply_entry_point(context, setting)
             for flag_name in self.flags_handlers:
                 for context_flags_data_key in context_flags_data_keys:
                     if setting in self.flags:
@@ -367,6 +370,24 @@ class CPPFlags(Flags):
         conf_type = context.settings[setting]['target_type']
         if conf_type and 'StaticLibrary' in conf_type:
             self.flags[setting]['LinkIncremental'][ln_flags] = ''
+
+    def __apply_entry_point(self, context, setting):
+        conf_type = context.settings[setting]['target_type']
+        sub_system_flag = self.flags[setting]['SubSystem']
+        entry_point_symbol_flag = self.flags[setting]['EntryPointSymbol']
+        if conf_type and 'Application' in conf_type \
+                and sub_system_flag and not entry_point_symbol_flag:
+
+            if setting in self.unicode_defines and 'UNICODE' in self.unicode_defines[setting]:
+                if '/SUBSYSTEM:CONSOLE' in sub_system_flag[ln_flags]:
+                    entry_point_symbol_flag[ln_flags] = ['/ENTRY:wmainCRTStartup']
+                elif '/SUBSYSTEM:WINDOWS' in sub_system_flag[ln_flags]:
+                    entry_point_symbol_flag[ln_flags] = ['/ENTRY:wWinMainCRTStartup']
+            else:
+                if '/SUBSYSTEM:CONSOLE' in sub_system_flag[ln_flags]:
+                    entry_point_symbol_flag[ln_flags] = ['/ENTRY:mainCRTStartup']
+                elif '/SUBSYSTEM:WINDOWS' in sub_system_flag[ln_flags]:
+                    entry_point_symbol_flag[ln_flags] = ['/ENTRY:WinMainCRTStartup']
 
     @staticmethod
     def __set_compile_whole_program_optimization(context, flag_name, node):
@@ -1398,6 +1419,41 @@ class CPPFlags(Flags):
         flag_values = {
             'false': {cl_flags: '/Zc:wchar_t-'},
             'true': {cl_flags: '/Zc:wchar_t'},
+            default_value: {}
+        }
+
+        return flag_values
+
+    @staticmethod
+    def __set_entry_point_symbol(context, flag_name, node):
+        """
+        Set EntryPointSymbol flag: /ENTRY
+        """
+        del context, flag_name
+        flag_values = {
+            default_value: {}
+        }
+
+        entry_value = node.text
+        if entry_value:
+            flag_values.update(
+                {
+                    entry_value: {
+                        ln_flags: '/ENTRY:{}'.format(entry_value)
+                    }
+                }
+            )
+
+        return flag_values
+
+    @staticmethod
+    def __set_no_entry_point(context, flag_name, node):
+        """
+        Set NoEntryPoint flag: /NOENTRY
+        """
+        del context, flag_name, node
+        flag_values = {
+            'true': {ln_flags: '/NOENTRY'},
             default_value: {}
         }
 
