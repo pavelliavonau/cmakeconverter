@@ -165,6 +165,17 @@ class CPPFlags(Flags):
         self.unicode_defines[context.current_setting] = unicode_defines
         message(context, 'Unicode Definitions : {}'.format(unicode_defines), '')
 
+    def set_mfc(self, context, mfc_node):
+        """ Set defines related to selected MFC usage """
+        mfc_defines = []
+        if 'Static' in mfc_node.text:
+            mfc_defines += ['_WINDLL', '_USRDLL']
+        if 'Dynamic' in mfc_node.text:
+            mfc_defines += ['_WINDLL', '_AFXDLL', '_AFXEXT']
+        for define in mfc_defines:
+            context.settings[context.current_setting][defines].append(define)
+        message(context, 'MFC Definitions : {}'.format(mfc_defines), '')
+
     @staticmethod
     def __set_precompiled_header(context, flag_name, node):
         """
