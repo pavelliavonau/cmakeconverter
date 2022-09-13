@@ -347,6 +347,33 @@ def replace_vs_vars_with_cmake_vars(context, output):
     return output
 
 
+def get_basename_without_vs_vars(context, path_with_vars):
+    """ Evaluates path basename with visual studio variables """
+    path_with_vars = resolve_path_variables_of_vs(context, path_with_vars)
+    path_with_vars = replace_vs_vars_with_cmake_vars(context, path_with_vars)
+
+    path_with_vars = path_with_vars.replace('${ROOT_NAMESPACE}', context.root_namespace)
+
+    if context.settings[context.current_setting]['OUTPUT_DIRECTORY']:
+        path_with_vars = path_with_vars.replace(
+            '${OUTPUT_DIRECTORY}',
+            context.settings[context.current_setting]['OUTPUT_DIRECTORY'][0]
+        )
+
+    if context.settings[context.current_setting]['TARGET_NAME']:
+        path_with_vars = path_with_vars.replace(
+            '${TARGET_NAME}',
+            context.settings[context.current_setting]['TARGET_NAME'][0]
+        )
+
+    path_with_vars = path_with_vars.replace(
+        '${PROJECT_NAME}',
+        make_cmake_literal(context, context.project_name)
+    )
+
+    return os.path.basename(path_with_vars)
+
+
 def cleaning_output(context, output):
     """
     Clean Output string by remove VS Project Variables

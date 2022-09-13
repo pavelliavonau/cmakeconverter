@@ -32,6 +32,7 @@ from multiprocessing import Pool
 import shutil
 import copy
 
+from cmake_converter.flags import midl_flags
 from cmake_converter.data_files import get_cmake_lists
 from cmake_converter.utils import message
 from cmake_converter.context import Context
@@ -111,6 +112,29 @@ class DataConverter:
             return False
         return True
 
+    @staticmethod
+    def __merge_midl_flags(context):
+        midl_settings = [
+            setting for setting in context.sln_configurations_map
+            if setting in context.settings and midl_flags in context.settings[setting]
+        ]
+
+        settings_to_merge = [
+            setting for setting in midl_settings
+            if setting[0] is None and context.settings[setting][midl_flags]
+        ]
+
+        for setting in midl_settings:
+            if setting[0] is not None:
+                for setting_to_merge in settings_to_merge:
+                    if setting_to_merge[1] == setting[1]:
+                        context.settings[setting][midl_flags].extend(
+                            context.settings[setting_to_merge][midl_flags]
+                        )
+
+        for setting in settings_to_merge:
+            context.settings[setting][midl_flags].clear()
+
     def merge_data_settings(self, context):
         """
         Merge common settings found among configuration settings (reduce copy-paste)
@@ -168,6 +192,7 @@ class DataConverter:
         for key in context.utils.lists_of_settings_to_reduce():
             self.__reduce_equal_architectures(context, key)
 
+        self.__merge_midl_flags(context)
         if context.file_contexts is not None:
             for file in context.file_contexts:
                 self.merge_data_settings(context.file_contexts[file])

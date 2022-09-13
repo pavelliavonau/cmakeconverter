@@ -83,10 +83,11 @@ class ProjectFiles:
         files_container[file_path].append(name_to_add)
         file_path_name = os.path.normpath(os.path.join(file_path, name_to_add))
         file_path_name = set_unix_slash(file_path_name)
-        if source_group not in context.source_groups:
-            context.source_groups[source_group] = []
-        context.source_groups[source_group].append(file_path_name)
-        context.source_groups[source_group].sort(key=str.lower)
+        if source_group is not None:
+            if source_group not in context.source_groups:
+                context.source_groups[source_group] = []
+            context.source_groups[source_group].append(file_path_name)
+            context.source_groups[source_group].sort(key=str.lower)
         if real_name:
             self.include_directive_case_check(context,
                                               file_path_name,

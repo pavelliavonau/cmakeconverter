@@ -30,8 +30,8 @@ from collections import OrderedDict
 
 from cmake_converter.utils import message, make_cmake_literal,\
     normalize_path, is_settings_has_data, set_unix_slash
-from cmake_converter.flags import defines, cl_flags, ln_flags, ifort_cl_win, ifort_cl_unix,\
-    ifort_ln_win, ifort_ln_unix
+from cmake_converter.flags import defines, cl_flags, ln_flags, midl_flags, midl_output,\
+    ifort_cl_win, ifort_cl_unix, ifort_ln_win, ifort_ln_unix
 from cmake_converter.data_files import get_cmake_lists
 
 # pylint: disable=R0904
@@ -53,6 +53,9 @@ class CMakeWriter:
         self.write_source_groups(context, cmake_file)
 
         if context.sources:
+            if context.midl:
+                self.write_midl_compiler(context, cmake_file)
+
             self.write_comment(cmake_file, 'Target')
             self.write_target_artifact(context, cmake_file)
             self.write_use_pch_function(context, cmake_file)
@@ -167,6 +170,61 @@ class CMakeWriter:
                 )
             )
         cmake_file.write(')\n\n')
+
+    @staticmethod
+    def write_midl_compiler(context, cmake_file):
+        """
+        Write MIDL Compiler stage
+        :param context: converter Context
+        :type context: Context
+        :param cmake_file: CMakeLIsts.txt IO wrapper
+        :type cmake_file: _io.TextIOWrapper
+        """
+
+        if not [setting for setting in context.settings if midl_output in context.settings[setting]
+                and context.settings[setting][midl_output]]:
+            message(
+                context,
+                'The MIDL compiler stage exists, but the output is not set!',
+                'warn'
+            )
+            return
+
+        CMakeWriter.write_comment(cmake_file, 'MIDL Compiler')
+        CMakeWriter.write_property_of_settings(
+            context, cmake_file,
+            begin_text='set(MIDL_OUTPUT',
+            end_text=')',
+            property_name=midl_output,
+            separator='\n',
+            in_quotes=True
+        )
+
+        cmake_file.write('\nset(MIDL_FILE\n')
+        for file_path in context.midl:
+            for file_name in context.midl[file_path]:
+                file_path_name = os.path.normpath(os.path.join(file_path, file_name))
+                file_path_name = set_unix_slash(file_path_name)
+                cmake_file.write('{}"{}"\n'.format(context.indent, file_path_name))
+        cmake_file.write(')\n\n')
+
+        CMakeWriter.write_property_of_settings(
+            context, cmake_file,
+            begin_text='add_custom_command_if(\n'
+                       '{0}OUTPUT ${{MIDL_OUTPUT}}\n'
+                       '{0}COMMANDS'.format(context.indent),
+            end_text='{0}DEPENDS ${{MIDL_FILE}}\n'
+                     '{0}COMMENT "MIDL Compiler"\n)'.format(context.indent),
+            property_name=midl_flags,
+            write_setting_property_func=CMakeWriter.write_midl_commands
+        )
+
+        cmake_file.write('\nadd_custom_target(${{PROJECT_NAME}}_MIDL\n'
+                         '{}DEPENDS ${{MIDL_OUTPUT}}\n)\n'.format(context.indent))
+        context.sln_deps.append('${PROJECT_NAME}_MIDL')
+
+        cmake_file.write('\nset_source_files_properties(${{MIDL_OUTPUT}} PROPERTIES\n'
+                         '{}GENERATED "TRUE"\n)\n\n'.format(context.indent))
 
     @staticmethod
     def write_target_artifact(context, cmake_file):
@@ -697,6 +755,17 @@ class CMakeWriter:
         for file in context.file_contexts:
             file_context = context.file_contexts[file]
             self.__write_target_build_events_of_context(file_context, cmake_file, file)
+
+    @staticmethod
+    def write_midl_commands(cmake_file, property_indent, config_condition_expr,
+                            property_value, width, **kwargs):
+        """ Write MIDL compiler calls (helper) """
+        if config_condition_expr is None:
+            return
+        cmake_file.write('{0}{1}COMMAND {2:>{width}} midl {3} ${{MIDL_FILE}}\n'
+                         .format(property_indent, kwargs['main_indent'], config_condition_expr,
+                                 ' '.join(property_value),
+                                 width=width))
 
     def __write_target_build_events_of_context(self, context, cmake_file, depends):
         """ Writes all target build events of given context into CMakeLists.txt """

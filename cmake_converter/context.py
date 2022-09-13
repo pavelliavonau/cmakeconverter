@@ -75,6 +75,7 @@ class Context:
         self.default_property_sheet = ''
         self.sources = {}
         self.headers = {}
+        self.midl = {}
         self.other_project_files = {}
         self.source_groups = {}
         self.excluded_from_build = False
