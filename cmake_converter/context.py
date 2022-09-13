@@ -63,6 +63,7 @@ class Context:
         self.warn_level = 2
         self.private_include_directories = False
         self.ignore_absent_sources = False
+        self.advanced_precompiled_headers = False
         self.indent = '    '
 
         self.sln_configurations_map = {}

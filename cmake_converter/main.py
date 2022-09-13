@@ -41,7 +41,7 @@ def main():  # pragma: no cover
     """
 
     usage = "cmake-converter -s <path/to/file.sln> " \
-            "[ -h | -s | -p | -i | -d | -v | -w | -j | -a | -pi | -ias ]"
+            "[ -h | -s | -p | -i | -d | -v | -w | -j | -a | -pi | -ias | -pch ]"
     parser = argparse.ArgumentParser(
         usage=usage,
         description='Converts Visual Studio projects in solution (*.sln) to CMakeLists.txt tree'
@@ -103,6 +103,13 @@ def main():  # pragma: no cover
         default=False,
         action='store_true'
     )
+    parser.add_argument(
+        '-pch', '--advanced-precompiled-headers',
+        help='enable advanced custom compatibility function for PCH support',
+        dest='advanced_precompiled_headers',
+        default=False,
+        action='store_true'
+    )
 
     args = parser.parse_args()
 
@@ -139,6 +146,10 @@ def main():  # pragma: no cover
     if args.ignore_absent_sources:
         message(project_context, 'absent source files will be ignored', 'done')
         project_context.ignore_absent_sources = True
+
+    if args.advanced_precompiled_headers:
+        message(project_context, 'advanced PCH compatibility will be enabled', 'done')
+        project_context.advanced_precompiled_headers = True
 
     converter = VSSolutionConverter()
     converter.convert_solution(project_context, os.path.abspath(args.solution))

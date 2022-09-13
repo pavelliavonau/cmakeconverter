@@ -193,11 +193,23 @@ class CPPFlags(Flags):
         del flag_name
 
         pch_header_file = 'stdafx.h'  # default
+        flag_values = {
+            default_value: {}
+        }
 
         if node.text:
             pch_header_file = node.text
+            if context.advanced_precompiled_headers and context.files.file_lists:
+                flag_values.update(
+                    {
+                        pch_header_file: {
+                            cl_flags: '/Yu{}'.format(pch_header_file)
+                        }
+                    }
+                )
 
         context.settings[context.current_setting]['PrecompiledHeaderFile'] = pch_header_file
+        return flag_values
 
     @staticmethod
     def __define_pch_paths(context, setting):
