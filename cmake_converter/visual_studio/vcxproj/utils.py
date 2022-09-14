@@ -38,6 +38,8 @@ class VCXUtils(Utils):
             [
                 'cl_flags',
                 'ln_flags',
+                'midl_flags',
+                'midl_output',
                 'MSVC_RUNTIME_LIBRARY',
                 'COMMON_LANGUAGE_RUNTIME'
             ]

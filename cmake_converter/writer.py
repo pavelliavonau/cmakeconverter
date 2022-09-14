@@ -30,8 +30,8 @@ from collections import OrderedDict
 
 from cmake_converter.utils import message, make_cmake_literal,\
     normalize_path, is_settings_has_data, set_unix_slash
-from cmake_converter.flags import defines, cl_flags, ln_flags, ifort_cl_win, ifort_cl_unix,\
-    ifort_ln_win, ifort_ln_unix
+from cmake_converter.flags import defines, cl_flags, ln_flags, midl_flags, midl_output,\
+    ifort_cl_win, ifort_cl_unix, ifort_ln_win, ifort_ln_unix
 from cmake_converter.data_files import get_cmake_lists
 
 # pylint: disable=R0904
@@ -53,6 +53,9 @@ class CMakeWriter:
         self.write_source_groups(context, cmake_file)
 
         if context.sources:
+            if context.midl:
+                self.write_midl_compiler(context, cmake_file)
+
             self.write_comment(cmake_file, 'Target')
             self.write_target_artifact(context, cmake_file)
             self.write_use_pch_function(context, cmake_file)
@@ -167,6 +170,61 @@ class CMakeWriter:
                 )
             )
         cmake_file.write(')\n\n')
+
+    @staticmethod
+    def write_midl_compiler(context, cmake_file):
+        """
+        Write MIDL Compiler stage
+        :param context: converter Context
+        :type context: Context
+        :param cmake_file: CMakeLIsts.txt IO wrapper
+        :type cmake_file: _io.TextIOWrapper
+        """
+
+        if not [setting for setting in context.settings if midl_output in context.settings[setting]
+                and context.settings[setting][midl_output]]:
+            message(
+                context,
+                'The MIDL compiler stage exists, but the output is not set!',
+                'warn'
+            )
+            return
+
+        CMakeWriter.write_comment(cmake_file, 'MIDL Compiler')
+        CMakeWriter.write_property_of_settings(
+            context, cmake_file,
+            begin_text='set(MIDL_OUTPUT',
+            end_text=')',
+            property_name=midl_output,
+            separator='\n',
+            in_quotes=True
+        )
+
+        cmake_file.write('\nset(MIDL_FILE\n')
+        for file_path in context.midl:
+            for file_name in context.midl[file_path]:
+                file_path_name = os.path.normpath(os.path.join(file_path, file_name))
+                file_path_name = set_unix_slash(file_path_name)
+                cmake_file.write('{}"{}"\n'.format(context.indent, file_path_name))
+        cmake_file.write(')\n\n')
+
+        CMakeWriter.write_property_of_settings(
+            context, cmake_file,
+            begin_text='add_custom_command_if(\n'
+                       '{0}OUTPUT ${{MIDL_OUTPUT}}\n'
+                       '{0}COMMANDS'.format(context.indent),
+            end_text='{0}DEPENDS ${{MIDL_FILE}}\n'
+                     '{0}COMMENT "MIDL Compiler"\n)'.format(context.indent),
+            property_name=midl_flags,
+            write_setting_property_func=CMakeWriter.write_midl_commands
+        )
+
+        cmake_file.write('\nadd_custom_target(${{PROJECT_NAME}}_MIDL\n'
+                         '{}DEPENDS ${{MIDL_OUTPUT}}\n)\n'.format(context.indent))
+        context.sln_deps.append('${PROJECT_NAME}_MIDL')
+
+        cmake_file.write('\nset_source_files_properties(${{MIDL_OUTPUT}} PROPERTIES\n'
+                         '{}GENERATED "TRUE"\n)\n\n'.format(context.indent))
 
     @staticmethod
     def write_target_artifact(context, cmake_file):
@@ -566,20 +624,31 @@ class CMakeWriter:
             separator=';\n',
             indent=context.indent
         )
-        for file in context.file_contexts:
+
+        mapped_files = list(map(
+            lambda file: (file, frozenset(map(
+                lambda setting: (setting[0], frozenset(setting[1][compiler_flags_key]))
+                if compiler_flags_key in setting[1] else None,
+                context.file_contexts[file].settings.items()))), context.file_contexts))
+
+        configurations = set(map(lambda mapped_file: mapped_file[1], mapped_files))
+        groups = [[mapped_file[0] for mapped_file in mapped_files
+                   if mapped_file[1] == conf] for conf in configurations]
+
+        for group in groups:
             file_cl_var = 'FILE_CL_OPTIONS'
-            text = CMakeWriter.write_property_of_settings(
-                context.file_contexts[file], cmake_file,
-                begin_text='string(CONCAT {}'.format(file_cl_var),
-                end_text=')',
-                property_name=compiler_flags_key,
-                indent=context.indent,
-                in_quotes=True
-            )
-            if text:
-                cmake_file.write(
-                    '{}source_file_compile_options({} ${{{}}})\n'
-                    .format(context.indent, file, file_cl_var))
+            if CMakeWriter.write_property_of_settings(
+                    context.file_contexts[next(iter(group))], cmake_file,
+                    begin_text='string(CONCAT {}'.format(file_cl_var),
+                    end_text=')',
+                    property_name=compiler_flags_key,
+                    indent=context.indent,
+                    in_quotes=True):
+
+                for file in group:
+                    cmake_file.write(
+                        '{}source_file_compile_options({} ${{{}}})\n'
+                        .format(context.indent, file, file_cl_var))
 
     @staticmethod
     def __write_link_flags(context, cmake_file, linker_flags_key):
@@ -687,6 +756,17 @@ class CMakeWriter:
             file_context = context.file_contexts[file]
             self.__write_target_build_events_of_context(file_context, cmake_file, file)
 
+    @staticmethod
+    def write_midl_commands(cmake_file, property_indent, config_condition_expr,
+                            property_value, width, **kwargs):
+        """ Write MIDL compiler calls (helper) """
+        if config_condition_expr is None:
+            return
+        cmake_file.write('{0}{1}COMMAND {2:>{width}} midl {3} ${{MIDL_FILE}}\n'
+                         .format(property_indent, kwargs['main_indent'], config_condition_expr,
+                                 ' '.join(property_value),
+                                 width=width))
+
     def __write_target_build_events_of_context(self, context, cmake_file, depends):
         """ Writes all target build events of given context into CMakeLists.txt """
         self.__write_target_pre_build_events(context, cmake_file, depends)
@@ -755,6 +835,8 @@ class CMakeWriter:
             outputs_str = ''
             if outputs:
                 outputs_str = '{0}OUTPUT "{1}"\n'.format(context.indent, outputs)
+            elif not commands_head:
+                commands_head = '{0}TARGET ${{PROJECT_NAME}}\n'.format(context.indent)
             depends_str = ''
             if depends:
                 depends_str = '{0}DEPENDS "{1}"\n'.format(context.indent, depends)
@@ -1323,43 +1405,44 @@ class CMakeWriter:
 
         indent = kwargs['indent']
 
-        has_property_value = False
-
-        command_indent = ''
-        config_expressions = []
-        has_property_value = CMakeWriter.write_selected_sln_setting(
-            cmake_file, settings, sln_setting_2_project_setting, (None, None),
-            has_property_value,
-            command_indent,
-            None,
-            config_expressions,
-            0,
-            **kwargs
-        )
-
-        CMakeWriter.write_footer_of_settings(cmake_file,
-                                             command_indent,
-                                             config_expressions,
-                                             has_property_value,
-                                             **kwargs)
-
         max_config_condition_width = 0
         settings_of_arch = OrderedDict()
         for sln_setting in sln_setting_2_project_setting:
-            arch = sln_setting[1]
-            if arch is None:
-                continue
             conf = sln_setting[0]
             if conf is not None:
                 length = len('$<CONFIG:{}>'.format(conf))
                 if length > max_config_condition_width:
                     max_config_condition_width = length
+            arch = sln_setting[1]
+            if arch is None:
+                continue
             if arch not in settings_of_arch:
                 settings_of_arch[arch] = OrderedDict()
             settings_of_arch[arch][sln_setting] = sln_setting
 
         single_arch = len(settings_of_arch) == 1
+        has_common_property_value = False
+
         command_indent = ''
+        config_expressions = []
+        for sln_conf in set(sln_setting[0] for sln_setting in sln_setting_2_project_setting
+                            if sln_setting[1] is None):
+            has_common_property_value = CMakeWriter.write_selected_sln_setting(
+                cmake_file, settings, sln_setting_2_project_setting, (sln_conf, None),
+                has_common_property_value,
+                command_indent,
+                sln_conf,
+                config_expressions,
+                max_config_condition_width,
+                **kwargs
+            )
+
+        CMakeWriter.write_footer_of_settings(cmake_file,
+                                             command_indent,
+                                             config_expressions,
+                                             has_common_property_value,
+                                             **kwargs)
+
         first_arch = True
         for arch in settings_of_arch:
             has_data = is_settings_has_data(sln_setting_2_project_setting, settings, property_name,
@@ -1400,7 +1483,7 @@ class CMakeWriter:
         if not first_arch and not single_arch:
             cmake_file.write('{}endif()\n'.format(indent))
 
-        return not first_arch
+        return has_common_property_value or not first_arch
 
 # pylint: enable=R0914
 # pylint: enable=R0913

@@ -73,6 +73,16 @@ class Utils:
             'INTERPROCEDURAL_OPTIMIZATION'
         ]
 
+    @staticmethod
+    def lists_of_settings_to_reduce():
+        """ Lists of keys of settings at context that will be reduce """
+        return [
+            'TARGET_NAME',
+            'OUTPUT_DIRECTORY',
+            'ARCHIVE_OUTPUT_DIRECTORY',
+            'ARCHIVE_OUTPUT_NAME',
+        ]
+
     def init_context_current_setting(self, context):
         """
         Define settings of converter.
@@ -337,6 +347,33 @@ def replace_vs_vars_with_cmake_vars(context, output):
     return output
 
 
+def get_basename_without_vs_vars(context, path_with_vars):
+    """ Evaluates path basename with visual studio variables """
+    path_with_vars = resolve_path_variables_of_vs(context, path_with_vars)
+    path_with_vars = replace_vs_vars_with_cmake_vars(context, path_with_vars)
+
+    path_with_vars = path_with_vars.replace('${ROOT_NAMESPACE}', context.root_namespace)
+
+    if context.settings[context.current_setting]['OUTPUT_DIRECTORY']:
+        path_with_vars = path_with_vars.replace(
+            '${OUTPUT_DIRECTORY}',
+            context.settings[context.current_setting]['OUTPUT_DIRECTORY'][0]
+        )
+
+    if context.settings[context.current_setting]['TARGET_NAME']:
+        path_with_vars = path_with_vars.replace(
+            '${TARGET_NAME}',
+            context.settings[context.current_setting]['TARGET_NAME'][0]
+        )
+
+    path_with_vars = path_with_vars.replace(
+        '${PROJECT_NAME}',
+        make_cmake_literal(context, context.project_name)
+    )
+
+    return os.path.basename(path_with_vars)
+
+
 def cleaning_output(context, output):
     """
     Clean Output string by remove VS Project Variables
@@ -410,19 +447,28 @@ def normalize_path(context, working_path, path_to_normalize, remove_relative=Tru
     :rtype: str
     """
 
+    if path_to_normalize and path_to_normalize[0] == '"' and path_to_normalize[-1] == '"':
+        path_to_normalize = path_to_normalize[1:-1]
+
     joined_path = set_native_slash(
         os.path.join(working_path, ntpath.normpath(path_to_normalize.strip()))
     )
     normal_path = os.path.normpath(joined_path)
-    actual_path_name = get_actual_filename(context, normal_path)
-    if actual_path_name is None:
-        message(
-            context,
-            'getting actual filesystem name failed : "{}"'.format(normal_path),
-            'warn1'
-        )
-        actual_path_name = normal_path
-    normal_path = os.path.relpath(actual_path_name, working_path)
+    if '$' not in normal_path:
+        actual_path_name = get_actual_filename(context, normal_path)
+        if actual_path_name is None:
+            message(
+                context,
+                'getting actual filesystem name failed : "{}"'.format(normal_path),
+                'warn1'
+            )
+        else:
+            normal_path = actual_path_name
+
+    common_path = os.path.commonpath([context.solution_path, os.path.realpath(working_path)])
+    if os.path.samefile(common_path, os.path.commonpath([common_path, normal_path])):
+        normal_path = os.path.relpath(normal_path, working_path)
+
     if unix_slash:
         normal_path = set_unix_slash(normal_path)
     normal_path = check_for_relative_in_path(context, normal_path, remove_relative)

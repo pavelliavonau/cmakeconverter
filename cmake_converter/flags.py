@@ -28,6 +28,8 @@
 
 cl_flags = 'cl_flags'               # MSVC compile flags (Windows only)
 ln_flags = 'ln_flags'               # MSVC link flags (Windows only)
+midl_flags = 'midl_flags'           # MIDL compile flags (Windows only)
+midl_output = 'midl_output'         # MIDL compile output (Windows only)
 ifort_cl_win = 'ifort_cl_win'       # ifort compile flags (Windows)
 ifort_cl_unix = 'ifort_cl_unix'     # ifort compile flags (Unix)
 ifort_ln_win = 'ifort_ln_win'       # ifort link flags for windows

@@ -28,9 +28,11 @@ import re
 import os
 from collections import OrderedDict
 
-from cmake_converter.flags import Flags, defines, cl_flags, default_value, ln_flags
+from cmake_converter.flags import Flags, defines, cl_flags, default_value, ln_flags, midl_flags,\
+    midl_output
 from cmake_converter.utils import take_name_from_list_case_ignore
-from cmake_converter.utils import set_unix_slash, message, replace_vs_vars_with_cmake_vars
+from cmake_converter.utils import set_unix_slash, message, replace_vs_vars_with_cmake_vars,\
+    get_basename_without_vs_vars
 
 
 # pylint: disable=R0903
@@ -122,6 +124,16 @@ class CPPFlags(Flags):
             ('IgnoreEmbeddedIDL', self.__set_ignore_embedded_idl),
             ('AssemblyDebug', self.__set_assembly_debug),
             ('LinkAdditionalOptions', self.__set_link_additional_options),
+            ('EntryPointSymbol', self.__set_entry_point_symbol),
+            ('NoEntryPoint', self.__set_no_entry_point),
+            # precompilation midl_flags
+            ('MkTypLibCompatible', self.__set_mk_typ_lib_compatible),
+            ('ValidateAllParameters', self.__set_validate_all_parameters),
+            ('TargetEnvironment', self.__set_target_environment),
+            ('GenerateStublessProxies', self.__set_generate_stubless_proxies),
+            ('TypeLibraryName', self.__set_type_library_name),
+            ('HeaderFileName', self.__set_header_file_name),
+            ('InterfaceIdentifierFileName', self.__set_interface_identifier_file_name),
         ])
 
     def __set_default_flag(self, context, flag_name):
@@ -149,7 +161,8 @@ class CPPFlags(Flags):
                 define = replace_vs_vars_with_cmake_vars(context, define)
                 define = define.replace('\\', '\\\\')
                 define = define.replace('"', '\\"')
-                context.settings[context.current_setting][defines].append(define)
+                if define not in context.settings[context.current_setting][defines]:
+                    context.settings[context.current_setting][defines].append(define)
         message(context, 'PreprocessorDefinitions : {}'.format(
             context.settings[context.current_setting][defines]
         ), '')
@@ -163,6 +176,17 @@ class CPPFlags(Flags):
             unicode_defines += ['_MBCS']
         self.unicode_defines[context.current_setting] = unicode_defines
         message(context, 'Unicode Definitions : {}'.format(unicode_defines), '')
+
+    def set_mfc(self, context, mfc_node):
+        """ Set defines related to selected MFC usage """
+        mfc_defines = []
+        if 'Static' in mfc_node.text:
+            mfc_defines += ['_WINDLL', '_USRDLL']
+        if 'Dynamic' in mfc_node.text:
+            mfc_defines += ['_WINDLL', '_AFXDLL', '_AFXEXT']
+        for define in mfc_defines:
+            context.settings[context.current_setting][defines].append(define)
+        message(context, 'MFC Definitions : {}'.format(mfc_defines), '')
 
     @staticmethod
     def __set_precompiled_header(context, flag_name, node):
@@ -313,12 +337,15 @@ class CPPFlags(Flags):
         context_flags_data_keys = [
             cl_flags,
             ln_flags,
+            midl_flags,
+            midl_output,
             'PrecompiledHeader',
         ]
 
         for setting in context.settings:
             self.__apply_generate_debug_information(context, setting)
             self.__apply_link_incremental(context, setting)
+            self.__apply_entry_point(context, setting)
             for flag_name in self.flags_handlers:
                 for context_flags_data_key in context_flags_data_keys:
                     if setting in self.flags:
@@ -355,6 +382,24 @@ class CPPFlags(Flags):
         conf_type = context.settings[setting]['target_type']
         if conf_type and 'StaticLibrary' in conf_type:
             self.flags[setting]['LinkIncremental'][ln_flags] = ''
+
+    def __apply_entry_point(self, context, setting):
+        conf_type = context.settings[setting]['target_type']
+        sub_system_flag = self.flags[setting]['SubSystem']
+        entry_point_symbol_flag = self.flags[setting]['EntryPointSymbol']
+        if conf_type and 'Application' in conf_type \
+                and sub_system_flag and not entry_point_symbol_flag:
+
+            if setting in self.unicode_defines and 'UNICODE' in self.unicode_defines[setting]:
+                if '/SUBSYSTEM:CONSOLE' in sub_system_flag[ln_flags]:
+                    entry_point_symbol_flag[ln_flags] = ['/ENTRY:wmainCRTStartup']
+                elif '/SUBSYSTEM:WINDOWS' in sub_system_flag[ln_flags]:
+                    entry_point_symbol_flag[ln_flags] = ['/ENTRY:wWinMainCRTStartup']
+            else:
+                if '/SUBSYSTEM:CONSOLE' in sub_system_flag[ln_flags]:
+                    entry_point_symbol_flag[ln_flags] = ['/ENTRY:mainCRTStartup']
+                elif '/SUBSYSTEM:WINDOWS' in sub_system_flag[ln_flags]:
+                    entry_point_symbol_flag[ln_flags] = ['/ENTRY:WinMainCRTStartup']
 
     @staticmethod
     def __set_compile_whole_program_optimization(context, flag_name, node):
@@ -1388,5 +1433,168 @@ class CPPFlags(Flags):
             'true': {cl_flags: '/Zc:wchar_t'},
             default_value: {}
         }
+
+        return flag_values
+
+    @staticmethod
+    def __set_entry_point_symbol(context, flag_name, node):
+        """
+        Set EntryPointSymbol flag: /ENTRY
+        """
+        del context, flag_name
+        flag_values = {
+            default_value: {}
+        }
+
+        entry_value = node.text
+        if entry_value:
+            flag_values.update(
+                {
+                    entry_value: {
+                        ln_flags: '/ENTRY:{}'.format(entry_value)
+                    }
+                }
+            )
+
+        return flag_values
+
+    @staticmethod
+    def __set_no_entry_point(context, flag_name, node):
+        """
+        Set NoEntryPoint flag: /NOENTRY
+        """
+        del context, flag_name, node
+        flag_values = {
+            'true': {ln_flags: '/NOENTRY'},
+            default_value: {}
+        }
+
+        return flag_values
+
+    @staticmethod
+    def __set_mk_typ_lib_compatible(context, flag_name, node):
+        """
+        Set MkTypLibCompatible flag: /mktyplib203
+        """
+        del context, flag_name, node
+        flag_values = {
+            'true': {midl_flags: '/mktyplib203'},
+            default_value: {}
+        }
+
+        return flag_values
+
+    @staticmethod
+    def __set_validate_all_parameters(context, flag_name, node):
+        """
+        Set ValidateAllParameters flag: /robust
+        """
+        del context, flag_name, node
+        flag_values = {
+            'true': {midl_flags: '/robust'},
+            'false': {midl_flags: '/no_robust'},
+            default_value: {}
+        }
+
+        return flag_values
+
+    @staticmethod
+    def __set_target_environment(context, flag_name, node):
+        """
+        Set TargetEnvironment flag: /env
+        """
+        del context, flag_name, node
+        flag_values = {
+            'Win32': {midl_flags: '/env win32'},
+            'Itanium': {midl_flags: '/env ia64'},
+            'ARM64': {midl_flags: '/env amd64'},
+            'X64': {midl_flags: '/env x64'},
+            default_value: {}
+        }
+
+        return flag_values
+
+    @staticmethod
+    def __set_generate_stubless_proxies(context, flag_name, node):
+        """
+        Set GenerateStublessProxies flag: /Oicf
+        """
+        del context, flag_name, node
+        flag_values = {
+            'true': {midl_flags: '/Oicf'},
+            default_value: {}
+        }
+
+        return flag_values
+
+    @staticmethod
+    def __set_type_library_name(context, flag_name, node):
+        """
+        Set TypeLibraryName flag: /tlb
+        """
+        del flag_name
+        flag_values = {
+            default_value: {}
+        }
+
+        entry_value = node.text
+        if entry_value:
+            value = get_basename_without_vs_vars(context, entry_value)
+            flag_values.update(
+                {
+                    entry_value: {
+                        midl_flags: '/tlb {}'.format(value),
+                        midl_output: value
+                    }
+                }
+            )
+
+        return flag_values
+
+    @staticmethod
+    def __set_header_file_name(context, flag_name, node):
+        """
+        Set HeaderFileName flag: /h
+        """
+        del flag_name
+        flag_values = {
+            default_value: {}
+        }
+
+        entry_value = node.text
+        if entry_value:
+            value = get_basename_without_vs_vars(context, entry_value)
+            flag_values.update(
+                {
+                    entry_value: {
+                        midl_flags: '/h {}'.format(value),
+                        midl_output: value
+                    }
+                }
+            )
+
+        return flag_values
+
+    @staticmethod
+    def __set_interface_identifier_file_name(context, flag_name, node):
+        """
+        Set InterfaceIdentifierFileName flag: /iid
+        """
+        del flag_name
+        flag_values = {
+            default_value: {}
+        }
+
+        entry_value = node.text
+        if entry_value:
+            value = get_basename_without_vs_vars(context, entry_value)
+            flag_values.update(
+                {
+                    entry_value: {
+                        midl_flags: '/iid {}'.format(value),
+                        midl_output: value
+                    }
+                }
+            )
 
         return flag_values

@@ -52,6 +52,7 @@ class VCXParser(Parser):
             'ConfigurationType': self.__parse_configuration_type,
             'WholeProgramOptimization': self.__parse_whole_program_optimization,
             'CharacterSet': context.flags.set_character_set,
+            'UseOfMfc': context.flags.set_mfc,
             'PlatformToolset': self.do_nothing_node_stub,
             'PropertyGroup': self.__parse_property_group,
             'ProjectName': context.variables.set_project_name,
@@ -74,6 +75,8 @@ class VCXParser(Parser):
             'Import': self._parse_nodes,
             'ClInclude': self._parse_nodes,
             'ClCompile': self._parse_nodes,
+            'Midl': self._parse_nodes,
+            'ResourceCompile': self._parse_nodes,
             'None': self._parse_nodes,
             'Text': self._parse_nodes,
             'Xml': self._parse_nodes,
@@ -124,6 +127,8 @@ class VCXParser(Parser):
             'ProjectConfiguration_Include': self.__parse_project_configuration_include,
             'ClCompile_Include': self.__parse_cl_compile_include_attr,
             'ClInclude_Include': self.__parse_cl_include_include_attr,
+            'Midl_Include': self.__parse_midl_include_attr,
+            'ResourceCompile_Include': self.__parse_other_files_include_attr,
             'None_Include': self.__parse_other_files_include_attr,
             'Text_Include': self.__parse_other_files_include_attr,
             'Xml_Include': self.__parse_other_files_include_attr,
@@ -213,6 +218,12 @@ class VCXParser(Parser):
         self.__parse_file_nodes(context, context.sources, cl_node, 'Sources')
         raise StopParseException()
 
+    def __parse_midl_include_attr(self, context, attr_name, value, midl_node):
+        del attr_name, value
+
+        self.__parse_file_nodes(context, context.midl, midl_node, None)
+        raise StopParseException()
+
     def __parse_other_files_include_attr(self, context, attr_name, value, none_node):
         del attr_name, value
 
@@ -224,7 +235,7 @@ class VCXParser(Parser):
         raise StopParseException()
 
     def __parse_file_nodes(self, context, files_container, file_node, source_group):
-        if self.filters:
+        if self.filters and source_group is not None:
             source_group = self.__get_source_group_from_filters(
                 file_node,
                 Parser.strip_namespace(file_node.tag)
